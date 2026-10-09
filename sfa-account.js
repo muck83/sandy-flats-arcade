@@ -7,6 +7,8 @@
   if (!S || !S.on) return;
   var el = SFA.el;
 
+  // roster names are "Last, First Middle": show the first name on the chip
+  function first(n) { n = String(n || ''); return (n.indexOf(',') >= 0 ? n.split(',')[1] : n).trim().split(' ')[0] || n; }
   function jwt(t) { try { return JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch (e) { return {}; } }
   function credExpSoon() { var c = SFA.store.get('sync.cred', null); return c && c.kind === 'google' && (jwt(c.token).exp || 0) * 1000 < Date.now() + 5 * 60 * 1000; }
 
@@ -73,7 +75,7 @@
     S.onChange(function (s) {
       if (!s.me) { chip.textContent = 'Not saving: sign in'; chip.style.borderColor = 'var(--red)'; chip.href = 'index.html#signin'; return; }
       chip.style.borderColor = '';
-      chip.textContent = s.status === 'saving' ? 'Saving…' : s.status === 'offline' ? 'Offline (will save)' : s.status === 'signedout' ? 'Sign in again' : '✓ ' + s.me.name.split(' ')[0];
+      chip.textContent = s.status === 'saving' ? 'Saving…' : s.status === 'offline' ? 'Offline (will save)' : s.status === 'signedout' ? 'Sign in again' : '✓ ' + first(s.me.name);
       chip.href = s.status === 'signedout' ? 'index.html#signin' : 'results.html';
     });
   }
