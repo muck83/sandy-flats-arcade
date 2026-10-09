@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var KEY = 'sfa.subs', ORDER = ['s', 'm', 'l', 'off'], NAME = { s: 'Small', m: 'Medium', l: 'Large', off: 'Off' };
-  function get() { try { var v = JSON.parse(localStorage.getItem(KEY)); if (ORDER.indexOf(v) >= 0) return v; } catch (e) { } return 's'; }
+  function get() { try { var v = JSON.parse(localStorage.getItem(KEY)); if (ORDER.indexOf(v) >= 0) return v; } catch (e) { } return 'm'; }
   function set(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) { } apply(v); tellFrames(v); }
   function apply(v) {
     var b = document.body; if (!b) return;

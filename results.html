@@ -420,7 +420,7 @@ a.btn{text-decoration:none;display:inline-block}
     });
     var line = GUS.filter(function (g) { return lv >= g[0]; }).pop()[1];
     var wrap = el('div', {}, [
-      el('div', { 'class': 'acct' }, [el('div', {}, [el('b', { text: j.student.name }), el('small', { text: j.student.cls ? 'Class ' + j.student.cls : '' })]), el('a', { 'class': 'btn', href: 'index.html', text: 'Back to the arcade' })]),
+      el('div', { 'class': 'acct' }, [el('div', {}, [el('b', { text: nice(j.student.name) }), el('small', { text: j.student.cls ? 'Class ' + j.student.cls : '' })]), el('a', { 'class': 'btn', href: 'index.html', text: 'Back to the arcade' })]),
       el('div', { 'class': 'totals' }, [
         el('div', { 'class': 'tot' }, [el('b', { text: String(lv) }), el('small', { text: 'levels cleared' })]),
         el('div', { 'class': 'tot' }, [el('b', { text: std + '/' + SFA.GAMES.length }), el('small', { text: 'standard certificates' })]),
@@ -431,9 +431,15 @@ a.btn{text-decoration:none;display:inline-block}
     ]);
     show(wrap);
   }
+  function again() {
+    show(el('div', { 'class': 'acct' }, [el('div', {}, [el('b', { text: 'Sign in again to see your results' }), el('small', { text: 'Google signs you out after a while. Your progress is safe.' })]), el('a', { 'class': 'btn primary', href: 'index.html#signin', text: 'Sign in again' })]));
+  }
+  // roster names are "Last, First Middle"
+  function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
   function go() {
     S.mine().then(draw, function (e) {
-      if (/sign in/.test(e.message) && S.refresh) { S.refresh().then(function (err) { if (!err) go(); }); return; }
+      if (/sign in/.test(e.message) && S.refresh && !go.tried) { go.tried = true; S.refresh().then(function (err) { if (!err) go(); else again(); }); return; }
+      if (/sign in/.test(e.message)) return again();
       show(el('p', { 'class': 'say bad', text: 'Couldn\'t load your results right now. Check the internet and refresh.' }));
     });
   }

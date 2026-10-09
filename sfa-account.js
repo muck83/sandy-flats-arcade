@@ -9,6 +9,7 @@
 
   // roster names are "Last, First Middle": show the first name on the chip
   function first(n) { n = String(n || ''); return (n.indexOf(',') >= 0 ? n.split(',')[1] : n).trim().split(' ')[0] || n; }
+  function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
   function jwt(t) { try { return JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); } catch (e) { return {}; } }
   function credExpSoon() { var c = SFA.store.get('sync.cred', null); return c && c.kind === 'google' && (jwt(c.token).exp || 0) * 1000 < Date.now() + 5 * 60 * 1000; }
 
@@ -32,7 +33,7 @@
   function onToken(tok) {
     var first = !S.me;
     S.signInGoogle(tok).then(function (st) {
-      if (first) SFA.toast('Signed in as ' + st.name + '. Your progress saves to your class.');
+      if (first) SFA.toast('Signed in as ' + nice(st.name) + '. Your progress saves to your class.');
       waiting.splice(0).forEach(function (f) { f(null); });
     }, function (e) {
       var m = /not on roster/.test(e.message) ? 'That account isn\'t on the class list yet. Tell Mr. Crowell.' : /school account/.test(e.message) ? 'Use your school Google account.' : 'Sign-in didn\'t work. Try again.';
@@ -40,7 +41,16 @@
     });
   }
   // quietly refresh an expired token (Google tokens last an hour)
-  S.refresh = function () { return loadGis().then(function () { return new Promise(function (res) { waiting.push(res); google.accounts.id.prompt(); }); }); };
+  // gives up after 8 s: Google can quietly skip the prompt (dismissed before, cooldown), and nothing would ever answer
+  S.refresh = function () {
+    return loadGis().then(function () {
+      return new Promise(function (res) {
+        var done = false, fin = function (e) { if (!done) { done = true; res(e); } };
+        waiting.push(fin); setTimeout(function () { fin(new Error('timeout')); }, 8000);
+        google.accounts.id.prompt();
+      });
+    }, function () { return new Error('offline'); });
+  };
   S.onChange(function (s) { if (s.status === 'signedout' && SFA.store.get('sync.me', null) && credExpSoon()) S.refresh(); });
 
   /* ---------- hub card ---------- */
@@ -50,7 +60,7 @@
       if (S.me) {
         var st = { saved: 'Saved to your class ✓', saving: 'Saving…', offline: 'Offline: saves will send when you\'re back', signedout: 'Signed out' }[S.status] || '';
         box.appendChild(el('div', { 'class': 'acct' }, [
-          el('div', {}, [el('b', { text: 'Signed in as ' + S.me.name }), el('small', { text: st })]),
+          el('div', {}, [el('b', { text: 'Signed in as ' + nice(S.me.name) }), el('small', { text: st })]),
           el('div', { 'class': 'row' }, [
             el('a', { 'class': 'btn primary', href: 'results.html', text: 'My results' }),
             el('button', { type: 'button', 'class': 'btn', text: 'Sign out', onclick: function () { S.signOut(); location.reload(); } })

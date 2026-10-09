@@ -390,28 +390,46 @@ a.btn{text-decoration:none;display:inline-block}
 (function () {
   'use strict';
   var SFA = window.SFA, el = SFA.el, CFG = window.SFA_CONFIG || {}, body = document.getElementById('body');
-  var KEY = 'teacher.classkey', data = null, sortBy = 'name', cls = '', q = '';
+  var data = null, sortBy = 'name', cls = '', q = '';
+  // The key lives in this tab only, unless the teacher ticks "remember"; then until the end of the day.
+  // Stored outside the sfa.teacher prefix so a student's "Clear my progress" removes it too.
+  var KEY = 'sfa.classkey';
+  try { localStorage.removeItem('sfa.teacher.classkey'); } catch (e) { }
+  var Key = {
+    get: function () {
+      try { var s = sessionStorage.getItem(KEY); if (s) return s; var r = JSON.parse(localStorage.getItem(KEY) || 'null'); if (r && r.until > Date.now()) return r.k; localStorage.removeItem(KEY); } catch (e) { }
+      return '';
+    },
+    set: function (k, remember) {
+      try { sessionStorage.setItem(KEY, k); if (remember) { var d = new Date(); d.setHours(23, 59, 59, 0); localStorage.setItem(KEY, JSON.stringify({ k: k, until: d.getTime() })); } } catch (e) { }
+    },
+    del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
+  };
   function api(op) {
-    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ op: op, teacherKey: SFA.store.get(KEY, '') }) })
-      .then(function (r) { return r.json(); }).then(function (j) { if (!j.ok) throw new Error(j.error); return j; });
+    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ op: op, teacherKey: Key.get() }) })
+      .then(function (r) { return r.text(); })
+      .then(function (t) { try { return JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly. In Apps Script, check Deploy > Manage deployments: it should be a Web app, executing as you, with access: Anyone.'); } })
+      .then(function (j) { if (!j.ok) throw new Error(j.error); return j; });
   }
   function askKey(msg) {
     var inp = el('input', { type: 'password', 'class': 'num', style: 'width:22em;max-width:100%', autocomplete: 'off', 'aria-label': 'Teacher key' });
-    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Open class results', onclick: function () { SFA.store.set(KEY, inp.value.trim()); load(); } });
+    var rem = el('input', { type: 'checkbox', id: 'remKey' });
+    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Open class results', onclick: function () { Key.set(inp.value.trim(), rem.checked); load(); } });
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go.click(); });
     body.innerHTML = '';
     body.appendChild(el('div', { 'class': 'card', style: 'margin-top:16px;max-width:640px' }, [
       el('h2', { text: 'Teacher key' }),
-      el('p', { 'class': 'muted', text: msg || 'Paste the teacher key from the results script (Script properties > TEACHER_KEY). It is kept in this browser only; press Lock when you\'re done on a shared computer.' }),
-      el('div', { 'class': 'row' }, [inp, go])
+      el('p', { 'class': 'muted', text: msg || 'Paste the teacher key from the results script (Script properties > TEACHER_KEY). It is forgotten when you close this tab, unless you tick the box below.' }),
+      el('div', { 'class': 'row' }, [inp, go]),
+      el('label', { 'for': 'remKey', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' }, [rem, 'Remember on this computer until the end of today (not on a student or shared computer)'])
     ]));
     inp.focus();
   }
   function load() {
-    if (!CFG.endpoint) { body.textContent = 'Results saving isn\'t switched on for this copy of the arcade.'; return; }
-    if (!SFA.store.get(KEY, '')) return askKey();
+    if (!CFG.endpoint) { document.querySelector('header .chips').style.display = 'none'; body.textContent = 'Results saving isn\'t switched on for this copy of the arcade.'; return; }
+    if (!Key.get()) return askKey();
     body.innerHTML = '<p class="muted" style="margin-top:16px">Loading…</p>';
-    api('class').then(function (j) { data = j; render(); }, function (e) { if (/teacher key/.test(e.message)) { SFA.store.del(KEY); askKey('That key didn\'t work. Check it and try again.'); } else body.innerHTML = '<p class="say bad">Couldn\'t reach the results sheet. ' + SFA.esc(e.message) + '</p>'; });
+    api('class').then(function (j) { data = j; render(); }, function (e) { if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); } else body.innerHTML = '<p class="say bad">Couldn\'t reach the results sheet. ' + SFA.esc(e.message) + '</p>'; });
   }
   SFA.esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
 
@@ -452,7 +470,8 @@ a.btn{text-decoration:none;display:inline-block}
       ].concat(SFA.GAMES.map(function (G) {
         var p = r.g[G.id]; if (!p) return el('td', { 'class': 'muted', text: '·' });
         var pct = p.levelsTotal ? Math.round(100 * p.levelsDone / p.levelsTotal) : 0;
-        return el('td', { title: p.levelsDone + '/' + p.levelsTotal + ' levels · assisted ' + p.assisted + (p.specials.length ? ' · ' + p.specials.join(', ') : '') }, [el('span', { 'class': 'cell' }, [
+        var info = p.levelsDone + '/' + p.levelsTotal + ' levels · assisted ' + p.assisted + (p.specials.length ? ' · ' + p.specials.join(', ') : '');
+        return el('td', { onclick: function () { if (SFA.toast) SFA.toast(r.s.name + ', ' + G.title + ': ' + info, 5000); }, title: p.levelsDone + '/' + p.levelsTotal + ' levels · assisted ' + p.assisted + (p.specials.length ? ' · ' + p.specials.join(', ') : '') }, [el('span', { 'class': 'cell' }, [
           el('span', { 'class': 'bar' }, [el('i', { style: 'width:' + pct + '%' })]),
           el('span', { text: p.levelsDone + '/' + p.levelsTotal }),
           p.standard ? el('span', { 'class': 'st', text: '★' }) : null,
@@ -470,7 +489,7 @@ a.btn{text-decoration:none;display:inline-block}
     body.innerHTML = '';
     body.appendChild(el('div', {}, [
       tiles,
-      el('div', { 'class': 'filters' }, [sel, find, el('span', { 'class': 'muted', text: 'Tap a column heading to sort. ★ standard · ✦ specials · hover a cell for details.' })]),
+      el('div', { 'class': 'filters' }, [sel, find, el('span', { 'class': 'muted', text: 'Tap a column heading to sort. ★ standard · ✦ specials · tap a cell for details.' })]),
       el('div', { 'class': 'two' }, [
         el('div', { 'class': 'card scroll-x', style: 'padding:6px 8px' }, [el('table', { 'class': 'grid' }, [el('thead', {}, [head]), tb])]),
         el('div', { 'class': 'card' }, [el('h2', { text: 'Latest' }), feed.childNodes.length ? feed : el('p', { 'class': 'muted', text: 'Nothing yet. Results appear here as students play.' })])
@@ -481,12 +500,12 @@ a.btn{text-decoration:none;display:inline-block}
   function th(t, k) { return el('th', { text: t + (sortBy === k ? ' ▾' : ''), onclick: function () { sortBy = k; render(); } }); }
 
   document.getElementById('refresh').addEventListener('click', load);
-  document.getElementById('lock').addEventListener('click', function () { SFA.store.del(KEY); data = null; askKey(); });
+  document.getElementById('lock').addEventListener('click', function () { Key.del(); data = null; askKey(); });
   document.getElementById('csv').addEventListener('click', function () {
     if (!data) return;
     var lines = [['student', 'class', 'game', 'levels_done', 'levels_total', 'core_done', 'core_total', 'standard', 'specials', 'assisted', 'last_played'].join(',')];
     var names = {}; data.roster.forEach(function (s) { names[s.sid] = s; });
-    data.progress.forEach(function (p) { var s = names[p.sid] || { name: p.sid, cls: '' }; lines.push([s.name, s.cls, p.game, p.levelsDone, p.levelsTotal, p.coreDone, p.coreTotal, p.standard ? 'yes' : 'no', (p.specials || []).join('; '), p.assisted, p.updated].map(function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',')); });
+    data.progress.forEach(function (p) { var s = names[p.sid] || { name: p.sid, cls: '' }; lines.push([s.name, s.cls, p.game, p.levelsDone, p.levelsTotal, p.coreDone, p.coreTotal, p.standard ? 'yes' : 'no', (p.specials || []).join('; '), p.assisted, p.updated].map(function (v) { v = String(v == null ? '' : v); if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',')); });
     var a = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: 'arcade-results.csv' }); document.body.appendChild(a); a.click(); a.remove();
   });
   load();

@@ -51,7 +51,7 @@ h1,h2,h3{text-wrap:balance}
 .stagebtns{position:absolute;top:8px;right:8px;display:flex;gap:6px}
 .stagebtns button{font:600 12px var(--ui);padding:5px 10px;border-radius:999px;border:0;background:rgba(0,0,0,.55);color:#fff;cursor:pointer}
 .stagebtns button:hover{background:rgba(0,0,0,.8)}
-@media (max-width:520px){.stagebtns{top:4px;right:4px;gap:4px}.stagebtns button{font-size:10px;padding:3px 7px;opacity:.75}}
+@media (max-width:600px){.stage{overflow:visible;margin-bottom:46px}.stagebtns{top:auto;bottom:-42px;right:0;left:0;justify-content:flex-end;flex-wrap:wrap}.stagebtns button{font-size:13px;padding:8px 12px;min-height:36px;background:var(--panel2);border:2px solid var(--line)}}
 .startcover{position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,8,16,.5);border:0;cursor:pointer;padding:16px}
 .startcover span{display:flex;align-items:center;gap:12px;background:var(--marquee);color:#231800;font-weight:800;font-size:clamp(16px,2.6vw,24px);padding:14px 28px;border-radius:999px;box-shadow:0 8px 0 #B88A1A}
 .startcover[hidden]{display:none}
@@ -1473,14 +1473,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     unlocked: false,
     open: function () {
       var ov = SFA.overlay('sfaTeacher', 'Teacher mode', true); var b = ov.body; b.innerHTML = '';
-      var pin = SFA.store.get('teacher.pin', null);
+      var pin = (window.SFA_CONFIG || {}).teacherPin || null;
       try { if (sessionStorage.getItem('sfa.teacher.ok') === '1') SFA.teacher.unlocked = true; } catch (e) { }
       if (!SFA.teacher.unlocked) {
-        var inp = el('input', { type: 'password', inputmode: 'numeric', 'class': 'num', id: 'tpin', 'aria-label': pin ? 'Teacher PIN' : 'Choose a teacher PIN', autocomplete: 'off', maxlength: '8' });
-        var msg = el('p', { 'class': 'muted', text: pin ? 'Enter the teacher PIN for this device.' : 'First time on this device: choose a PIN of 4 or more digits. Students won\'t see it. It is stored only in this browser.' });
-        var go = el('button', { type: 'button', 'class': 'btn primary', text: pin ? 'Unlock' : 'Set PIN and open', onclick: function () {
+        var inp = el('input', { type: 'password', inputmode: 'numeric', 'class': 'num', id: 'tpin', 'aria-label': 'Teacher PIN', autocomplete: 'off', maxlength: '8' });
+        var msg = el('p', { 'class': 'muted', text: pin ? 'Enter the teacher PIN.' : 'Teacher mode is switched off for this copy of the arcade (no teacher PIN is set in config.js).' });
+        var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Unlock', disabled: pin ? null : '', onclick: function () {
           var v = (inp.value || '').trim(); if (!/^\d{4,8}$/.test(v)) { msg.textContent = 'Use 4 to 8 digits.'; return; }
-          if (!pin) { SFA.store.set('teacher.pin', v); } else if (v !== pin) { msg.textContent = 'That PIN doesn\'t match. Try again.'; inp.value = ''; return; }
+          if (!pin || ('h' + SFA.fnv('sfa-teacher|' + v).toString(16)) !== pin) { msg.textContent = 'That PIN doesn\'t match. Try again.'; inp.value = ''; return; }
           SFA.teacher.unlocked = true; try { sessionStorage.setItem('sfa.teacher.ok', '1'); } catch (e) { } SFA.teacher.open();
         } });
         inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go.click(); });
@@ -1508,8 +1508,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       if (SFA.teacherExtras) SFA.teacherExtras(b);
       b.appendChild(el('p', { 'class': 'muted', style: 'margin-top:12px', text: 'Shortcut: Ctrl+Shift+K, or add #teacher to the link. Settings are saved in this browser only.' }));
       b.appendChild(el('div', { 'class': 'row' }, [
-        el('button', { type: 'button', 'class': 'btn small', text: 'Lock teacher mode', onclick: function () { SFA.teacher.unlocked = false; try { sessionStorage.removeItem('sfa.teacher.ok'); } catch (e) { } document.body.classList.remove('teacher'); SFA.closeOverlay(ov); } }),
-        el('button', { type: 'button', 'class': 'btn small', text: 'Change PIN', onclick: function () { SFA.store.del('teacher.pin'); SFA.teacher.unlocked = false; try { sessionStorage.removeItem('sfa.teacher.ok'); } catch (e) { } SFA.teacher.open(); } })
+        el('button', { type: 'button', 'class': 'btn small', text: 'Lock teacher mode', onclick: function () { SFA.teacher.unlocked = false; try { sessionStorage.removeItem('sfa.teacher.ok'); } catch (e) { } document.body.classList.remove('teacher'); SFA.closeOverlay(ov); } })
       ]));
       if (ov.hidden) SFA.openOverlay(ov);
     }
@@ -1611,7 +1610,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g3', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
     { id: 'r6', kind: 'R', title: 'Found It With My Face', game: 'g5', file: 'reels/r6.html', from: 'Start and Step, about 4:10', egg: true },
     { id: 'd1', kind: 'D', title: 'The Multiplex 5000', game: 'g1', file: 'reels/d1.html', egg: true },
-    { id: 'd2', kind: 'D', title: 'One Single Drop', game: 'g4', file: 'reels/d2.html', egg: true, premiere: 'DOUBLER' },
+    { id: 'd2', kind: 'D', title: 'One Single Drop', game: 'g4', file: 'reels/d2.html', egg: true, premiere: 'h95c0a0cb' },
     { id: 'd3', kind: 'D', title: 'Doug Files a Report', game: 'g8', file: 'reels/d3.html', egg: true },
     { id: 'd4', kind: 'D', title: 'The Sidekick Application', game: 'g2', file: 'reels/d4.html', egg: true },
     { id: 'd5', kind: 'D', title: 'Sam Meets Linesy', game: 'g2', file: 'reels/d5.html', gold: 'Friend of Sam (Glitch Hunt)', egg: true },
@@ -1620,10 +1619,10 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'o1', kind: 'O', title: 'Across Three, Up One', game: 'g5', file: 'reels/o1.html', egg: true },
     { id: 'o2', kind: 'O', title: "Gus Can't Shout", game: 'g4', file: 'reels/o2.html' },
     { id: 'o3', kind: 'O', title: 'The Multiplex Glitches Out', game: 'g1', file: 'reels/o3.html' },
-    { id: 'o4', kind: 'O', title: 'Where Is One: The Movie?', game: 'g7', file: 'reels/o4.html', egg: true, premiere: 'POCKET' },
+    { id: 'o4', kind: 'O', title: 'Where Is One: The Movie?', game: 'g7', file: 'reels/o4.html', egg: true, premiere: 'h26623dbc' },
     { id: 'o5', kind: 'O', title: "The Undefined Can't Find Its Mark", game: 'g3', file: 'reels/o5.html', gold: 'Fifth Door Architect (Keeper\'s Vault)', egg: true },
     { id: 'o6', kind: 'O', title: 'Sam Corpses', game: 'g6', file: 'reels/o6.html', gold: 'Rule Maker (Linear or Liar?)' },
-    { id: 'bx', kind: 'O', title: 'The Blooper Reel', game: 'class', file: 'reels/bx.html', bonus: true, premiere: 'RAIN' }
+    { id: 'bx', kind: 'O', title: 'The Blooper Reel', game: 'class', file: 'reels/bx.html', bonus: true, premiere: 'hf07dd0bc' }
   ];
   var KINDN = { R: 'From the films', D: 'Deleted scene', O: 'Outtake' };
   var GAMEN = { g1: 'Crack the Fair', g2: 'Glitch Hunt', g3: "The Keeper's Vault", g4: "Gus's Forecast", g5: 'Scorch Marks', g6: 'Linear or Liar?', g7: 'Faster Than', g8: "Doug's Steps", 'class': 'Class unlock only' };
@@ -1672,7 +1671,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
           el('div', { 'class': 'row' }, [el('button', { type: 'button', 'class': 'btn', id: 'reelSkip', text: 'Skip (Esc)' })])]);
         var effieCap = el('p', { 'class': 'say', 'aria-live': 'polite' });
         var box = el('div', { 'class': 'reelbox' }); var fr = el('iframe', { title: 'Lost reel: ' + r.title, allow: 'autoplay; fullscreen' }); box.appendChild(fr);
-        var after = el('div', { 'class': 'row', style: 'margin-top:10px;justify-content:space-between' }, [el('span', { 'class': 'muted', text: 'Filed in your Lost Reels. Press play inside the reel; captions stay on.' }), el('button', { type: 'button', 'class': 'btn primary', id: 'reelBack', text: 'Back to the game' })]);
+        var after = el('div', { 'class': 'row', style: 'margin-top:10px;justify-content:space-between' }, [el('span', { 'class': 'muted', text: 'Filed in your Lost Reels. Press play inside the reel. CC changes the subtitles.' }), el('button', { type: 'button', 'class': 'btn primary', id: 'reelBack', text: (opts.reward || opts.gold || opts.cert) ? 'Back to the game' : 'Close' })]);
         b.appendChild(head); b.appendChild(effieCap); b.appendChild(box); b.appendChild(after);
         var d = V.data[line]; if (d) { effieCap.innerHTML = '<b style="color:#FFD27F">EFFIE</b> ' + esc(d.c); if (opts.reward || opts.gold) V.say(line); }
         R.markSeen(r.id);
@@ -1715,7 +1714,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       var msg = el('span', { 'class': 'muted', role: 'status' });
       var go = el('button', { type: 'button', 'class': 'btn small', text: 'Restore', onclick: function () {
         var v = inp.value.trim(); var w = v.toUpperCase();
-        var prem = REELS.filter(function (r) { return r.premiere === w; })[0];
+        var prem = REELS.filter(function (r) { return r.premiere && r.premiere === SFA.classWord(w); })[0];
         if (prem) { if (prem.file) { R.markSeen(prem.id); R.renderVault(host, opts); SFA.toast('Class word accepted. A new reel is in the vault.'); } else msg.textContent = 'Class word accepted. This premiere reel arrives with a later game.'; return; }
         var n = R.restore(v); msg.textContent = n < 0 ? 'That key doesn\'t look right. Check each character.' : 'Restored ' + n + ' reel' + (n === 1 ? '' : 's') + '.'; if (n >= 0) R.renderVault(host, opts);
       } });
@@ -1729,6 +1728,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   function b32(v, len) { var s = ''; for (var i = 0; i < len; i++) { s = B32.charAt(v % 32) + s; v = Math.floor(v / 32); } return s; }
   function unb32(s) { var v = 0; for (var i = 0; i < s.length; i++) { var k = B32.indexOf(s.charAt(i)); if (k < 0) return -1; v = v * 32 + k; } return v; }
   SFA.fnv = fnv;
+  (function () {
+    var ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!ios || typeof MutationObserver === 'undefined') return;
+    function fix(root) { if (root.querySelectorAll) [].forEach.call(root.matches && root.matches('input[inputmode]') ? [root] : root.querySelectorAll('input[inputmode]'), function (i) { if (i.type !== 'password' && /numeric|decimal/.test(i.getAttribute('inputmode'))) { i.removeAttribute('inputmode'); i.setAttribute('autocorrect', 'off'); i.setAttribute('autocapitalize', 'off'); i.setAttribute('spellcheck', 'false'); } }); }
+    new MutationObserver(function (ms) { ms.forEach(function (m) { [].forEach.call(m.addedNodes, function (n) { if (n.nodeType === 1) fix(n); }); }); }).observe(document.documentElement, { childList: true, subtree: true });
+    if (document.body) fix(document.body);
+  })();
+  SFA.classWord = function (w) { return 'h' + fnv('sfa-class|' + String(w || '').trim().toUpperCase()).toString(16); };
   var SALT = 'sandy-flats-arcade-2026';
   var EPOCH = Date.UTC(2026, 8, 1);
   function normName(n) { return String(n || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9؀-ۿ]+/g, ''); }
@@ -1812,7 +1819,9 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     fontsReady: function () { if (!document.fonts || !document.fonts.load) return Promise.resolve(); return Promise.all(['92px "Luckiest Guy"', '84px "Patrick Hand"', '600 30px "Bricolage Grotesque"', 'italic 30px "Bricolage Grotesque"', '600 40px "IBM Plex Mono"', '500 20px "IBM Plex Mono"'].map(function (f) { return document.fonts.load(f).catch(function () { }); })).catch(function () { }); },
     // the downloads capability (declared on the artifact). Hidden when unavailable.
     saver: null,
-    initSaver: function () { try { if (window.claude && window.claude.use) window.claude.use('downloads').then(function (d) { SFA.cert.saver = d || null; if (SFA.cert.onSaver) SFA.cert.onSaver(!!d); }).catch(function () { }); } catch (e) { } },
+    initSaver: function () {
+      if (!(window.claude && window.claude.use)) SFA.cert.saver = { save: function (o) { var u = URL.createObjectURL(o.data), a = document.createElement('a'); a.href = u; a.download = o.filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000); return Promise.resolve(); } };
+      try { if (window.claude && window.claude.use) window.claude.use('downloads').then(function (d) { SFA.cert.saver = d || null; if (SFA.cert.onSaver) SFA.cert.onSaver(!!d); }).catch(function () { }); } catch (e) { } },
     save: function (canvas, filename) {
       return new Promise(function (resolve) {
         if (!SFA.cert.saver) return resolve('unavailable');
@@ -2101,8 +2110,19 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   var SFA = window.SFA, V = SFA.vo, el = SFA.el, $ = SFA.$;
   var S = SFA.Stage($('#stage')), E = S.E, c = E.c, GY = E.GY;
   function fmt(n) { return V.fmt(n); }
-  function parseNum(s) { s = String(s == null ? '' : s).trim().replace(/[−–—]/g, '-').replace(/\s+/g, ''); if (/^-?\d+(\.\d+)?$/.test(s)) return +s; var m = s.match(/^(-?\d+)\/(-?\d+)$/); if (m && +m[2] !== 0) return +m[1] / +m[2]; return null; }
-  function same(a, b) { return a != null && Math.abs(a - b) < 1e-6; }
+  // reads 5, -5, +5, .5, 5., 3/4, -3/4, 1 1/4 (mixed number) and ignores a unit word after the number ("0.5 km")
+  function parseNum(s) {
+    s = String(s == null ? '' : s).trim().replace(/[−–—]/g, '-').replace(/\s*(?![xy]$)[a-z]+\.?$/i, '').replace(/^\+\s*/, '').replace(/^-\s+/, '-');
+    var D = '(\\d+\\.?\\d*|\\.\\d+)';
+    if (new RegExp('^-?' + D + '$').test(s)) return +s;
+    var m = s.match(/^(-?)(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+    if (m && +m[4] !== 0) return (m[1] ? -1 : 1) * (+m[2] + m[3] / m[4]);
+    m = s.match(new RegExp('^(-?' + D + ')\\s*\\/\\s*(-?' + D + ')$'));
+    if (m && +m[3] !== 0) return +m[1] / +m[3];
+    return null;
+  }
+  // exact, or within rounding when the true answer repeats forever (0.67 or 0.667 for 2/3)
+  function same(a, b) { if (a == null) return false; if (Math.abs(a - b) < 1e-6) return true; return Math.abs(b * 100 - Math.round(b * 100)) > 1e-6 && Math.abs(a - b) <= 0.0051; }
   function shuf(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(SFA.rng() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function plus(n) { return n < 0 ? ' − ' + fmt(-n) : ' + ' + fmt(n); }
 

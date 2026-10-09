@@ -23,13 +23,13 @@ In the Sheet's new **Roster** tab, add one row per student:
 - **email:** this must be the student's exact school Google address. Students who aren't on the Roster can't sign in.
 
 ## 4. Script settings
-In Apps Script, go to **Project Settings (⚙) → Script properties** and add these:
+In Apps Script, go to **Project Settings (⚙) → Script properties**. `setup` already created these; check that each one has the value below and edit any that don't:
 
 | Property | Value |
 |---|---|
-| AUTH_MODE | `google` |
+| AUTH_MODE | `google` (an older copy of the script set this to `code`: change it, or every student sign-in fails) |
 | DOMAIN | `aisr.org` |
-| CLIENT_ID | *(from step 6)* |
+| CLIENT_ID | the Client ID from step 6. Come back and paste it in once you've made it. |
 
 ## 5. Publish the script
 1. Go to **Deploy → New deployment → Web app**.
@@ -53,4 +53,5 @@ If Google Cloud says your school account can't create projects, tell Claude. You
 ## After setup
 - **Students:** they go to the arcade link and press **Sign in with Google** on the front page. Their levels and certificates save as they play, follow them to any computer, and show on **My results**.
 - **You:** open **Class results** at the bottom of the front page and enter the teacher key. You'll see the whole class at a glance, filter by class, see the latest activity and download a CSV. The raw data is always in the Sheet too.
-- **Updating the script later:** use **Deploy → Manage deployments → Edit → New version**. That keeps the same URL.
+- **Updating the script later:** paste the new `Code.gs`, save, then use **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**. That keeps the same URL.
+- **Editing the Roster:** the script remembers the roster for 5 minutes. After adding a student, wait 5 minutes, or run the function **clearRosterCache** once.

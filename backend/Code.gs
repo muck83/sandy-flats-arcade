@@ -9,7 +9,7 @@
  *
  * Script properties (Project Settings > Script properties):
  *   TEACHER_KEY   long random string; the class view asks for it once
- *   AUTH_MODE     google | code | both
+ *   AUTH_MODE     google | code | both (setup() sets google)
  *   CLIENT_ID     Google OAuth web client id (google / both)
  *   DOMAIN        school email domain, e.g. aisr.org (google / both)
  *
@@ -33,7 +33,9 @@ function setup() {
   });
   var p = PropertiesService.getScriptProperties();
   if (!p.getProperty('TEACHER_KEY')) p.setProperty('TEACHER_KEY', Utilities.getUuid().replace(/-/g, ''));
-  if (!p.getProperty('AUTH_MODE')) p.setProperty('AUTH_MODE', 'code');
+  if (!p.getProperty('AUTH_MODE')) p.setProperty('AUTH_MODE', 'google');
+  if (!p.getProperty('DOMAIN')) p.setProperty('DOMAIN', 'aisr.org');
+  if (!p.getProperty('CLIENT_ID')) p.setProperty('CLIENT_ID', 'paste the Client ID here');
   Logger.log('Teacher key: ' + p.getProperty('TEACHER_KEY'));
 }
 
@@ -85,15 +87,21 @@ function teacher(req) {
   if (!k || String(req.teacherKey || '') !== k) throw new Error('teacher key');
 }
 
+// The roster is cached for 5 minutes; after editing the Roster tab, run clearRosterCache (or wait 5 minutes).
 function rosterRows() {
+  var cache = CacheService.getScriptCache(), hit = cache.get('roster');
+  if (hit) return JSON.parse(hit);
   var sh = SpreadsheetApp.getActive().getSheetByName('Roster');
-  return sh.getDataRange().getValues().slice(1).filter(function (r) { return r[0]; }).map(function (r) {
+  var rows = sh.getDataRange().getValues().slice(1).filter(function (r) { return r[0]; }).map(function (r) {
     return { sid: String(r[0]), name: String(r[1]), cls: String(r[2]), email: String(r[3]).toLowerCase().trim(), code: String(r[4]).toUpperCase().trim() };
   });
+  try { cache.put('roster', JSON.stringify(rows), 300); } catch (e) { }
+  return rows;
 }
+function clearRosterCache() { CacheService.getScriptCache().remove('roster'); }
 
 function auth(req) {
-  var mode = prop('AUTH_MODE') || 'code', roster = rosterRows(), s = null;
+  var mode = prop('AUTH_MODE') || 'google', roster = rosterRows(), s = null;
   if (req.idToken && (mode === 'google' || mode === 'both')) {
     var email = verifyGoogle(req.idToken);
     s = roster.filter(function (r) { return r.email === email; })[0];
@@ -119,7 +127,8 @@ function verifyGoogle(idToken) {
   var dom = prop('DOMAIN').toLowerCase();
   if (dom && String(t.hd || '').toLowerCase() !== dom) throw new Error('school account only');
   var email = String(t.email).toLowerCase();
-  cache.put(key, email, 1800);
+  var left = Math.floor(Number(t.exp || 0) - Date.now() / 1000);
+  if (left > 30) cache.put(key, email, Math.min(1800, left));
   return email;
 }
 
@@ -128,12 +137,29 @@ function publicStudent(s) { return { sid: s.sid, name: s.name, cls: s.cls }; }
 /* ---------------- student ops ---------------- */
 function progressSheet() { return SpreadsheetApp.getActive().getSheetByName('Progress'); }
 
+// rows (1-based) of this student's games, reading only the sid and game columns
+function rowsFor(sh, sid) {
+  var n = sh.getLastRow(), out = {};
+  if (n < 2) return out;
+  sh.getRange(2, 1, n - 1, 2).getValues().forEach(function (r, i) { if (String(r[0]) === sid) out[r[1]] = i + 2; });
+  return out;
+}
+
 function load(s) {
-  var games = {};
-  progressSheet().getDataRange().getValues().slice(1).forEach(function (r) {
-    if (String(r[0]) === s.sid) { try { games[r[1]] = JSON.parse(r[12]); } catch (e) { } }
+  var sh = progressSheet(), at = rowsFor(sh, s.sid), games = {}, sums = {};
+  Object.keys(at).forEach(function (g) {
+    var r = sh.getRange(at[g], 1, 1, 13).getValues()[0];
+    try { games[g] = JSON.parse(r[12]); } catch (e) { }
+    var m = summaryRow(r);
+    sums[g] = { done: m.levels.split(' ').filter(function (x) { return /:Y$/.test(x); }).map(function (x) { return x.split('.')[0]; }), std: m.standard, specials: m.specials };
   });
-  return { ok: true, student: publicStudent(s), games: games };
+  return { ok: true, student: publicStudent(s), games: games, sums: sums };
+}
+
+// Text a student sends must never become a formula in the Sheet or a CSV
+function safe(x, n) {
+  x = String(x == null ? '' : x).replace(/[\u0000-\u001f]/g, ' ').slice(0, n);
+  return /^[=+\-@]/.test(x) ? "'" + x : x;
 }
 
 function num(x) { x = Number(x); return isFinite(x) ? Math.max(0, Math.min(9999, Math.round(x))) : 0; }
@@ -145,15 +171,17 @@ function save(s, req) {
   if (raw.length > MAX_RAW) throw new Error('too big');
   var m = req.summary || {};
   var levels = (m.levels || []).slice(0, 40).map(function (L) { return String(L.id).replace(/[^A-Za-z0-9]/g, '').slice(0, 8) + '.' + String(L.tier || '').replace(/[^a-z]/g, '').slice(0, 8) + ':' + (L.done ? 'Y' : L.skipped ? 'S' : '-'); }).join(' ');
-  var specials = (m.specials || []).slice(0, 12).map(function (x) { return String(x).slice(0, 60); }).join(', ');
+  var specials = (m.specials || []).slice(0, 12).map(function (x) { return safe(x, 60).replace(/,/g, ' '); }).join(', ');
   var row = [s.sid, game, new Date(), num(m.levelsDone), num(m.levelsTotal), num(m.coreDone), num(m.coreTotal), m.standard ? 'yes' : '', specials, num(m.assisted), num(m.tickets), levels, raw];
 
-  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  var ev = (req.events || []).slice(0, 20).filter(function (x) { return x && (x.type === 'level' || x.type === 'certificate'); })
+    .map(function (x) { return [new Date(), s.sid, game, x.type, safe(x.detail, 200)]; });
+  // short wait: a busy class gets "busy" and the arcade retries a little later
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(8000)) throw new Error('busy');
   try {
-    var sh = progressSheet(), vals = sh.getDataRange().getValues(), at = -1;
-    for (var i = 1; i < vals.length; i++) if (String(vals[i][0]) === s.sid && vals[i][1] === game) { at = i + 1; break; }
+    var sh = progressSheet(), at = rowsFor(sh, s.sid)[game] || -1;
     if (at > 0) sh.getRange(at, 1, 1, row.length).setValues([row]); else sh.appendRow(row);
-    var ev = (req.events || []).slice(0, 20).map(function (x) { return [new Date(), s.sid, game, String(x.type || '').slice(0, 24), String(x.detail || '').slice(0, 200)]; });
     if (ev.length) { var es = SpreadsheetApp.getActive().getSheetByName('Events'); es.getRange(es.getLastRow() + 1, 1, ev.length, 5).setValues(ev); }
   } finally { lock.releaseLock(); }
   return { ok: true };
@@ -164,14 +192,16 @@ function summaryRow(r) {
 }
 
 function mine(s) {
-  var rows = progressSheet().getDataRange().getValues().slice(1).filter(function (r) { return String(r[0]) === s.sid; }).map(summaryRow);
+  var sh = progressSheet(), at = rowsFor(sh, s.sid);
+  var rows = Object.keys(at).map(function (g) { return summaryRow(sh.getRange(at[g], 1, 1, 12).getValues()[0]); });
   return { ok: true, student: publicStudent(s), games: rows };
 }
 
 /* ---------------- teacher ---------------- */
 function classView() {
   var roster = rosterRows().map(publicStudent);
-  var prog = progressSheet().getDataRange().getValues().slice(1).map(function (r) { var o = summaryRow(r); o.sid = String(r[0]); return o; });
+  var sh = progressSheet(), n0 = sh.getLastRow();
+  var prog = (n0 < 2 ? [] : sh.getRange(2, 1, n0 - 1, 12).getValues()).filter(function (r) { return r[0]; }).map(function (r) { var o = summaryRow(r); o.sid = String(r[0]); return o; });
   var es = SpreadsheetApp.getActive().getSheetByName('Events'), n = es.getLastRow(), events = [];
   if (n > 1) {
     var from = Math.max(2, n - 299);
