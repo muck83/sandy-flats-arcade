@@ -468,9 +468,18 @@ ol.proof li>span:first-child{display:block;margin-bottom:4px}
     // queue items; returns a promise for when they have all played
     say: function () {
       var items = [].slice.call(arguments).reduce(function (a, x) { return a.concat(x); }, []);
-      var g = V.gen;
+      var g = V.gen; if (V.on) V.warm(items);
       V.chain = V.chain.then(function () { return items.reduce(function (p, it) { return p.then(function (ok) { return ok === false && g !== V.gen ? false : V._play(it, g); }); }, Promise.resolve(true)); });
       return V.chain;
+    },
+    // clips are separate files: start fetching every line in a queue so they play back to back
+    warmed: {},
+    warm: function (items) {
+      (function walk(x) {
+        if (typeof x === 'string') { var d = V.data[x]; if (d && d.s && !/^data:/.test(d.s) && !V.warmed[x]) { V.warmed[x] = 1; try { fetch(d.s).catch(function () { V.warmed[x] = 0; }); } catch (e) { } } }
+        else if (Array.isArray(x)) x.forEach(walk);
+        else if (x && typeof x === 'object') Object.keys(x).forEach(function (k) { walk(x[k]); });
+      })(items);
     },
     stop: function () { V.gen++; if (V.cur && V.cur.a) { try { V.cur.a.pause(); } catch (e) { } } V.cur = null; V.talk = { who: null, open: false }; V.caption(null); V.chain = Promise.resolve(); },
     // current mouth state, polled by the stage renderer
@@ -829,6 +838,4 @@ ol.proof li>span:first-child{display:block;margin-bottom:4px}
 </script>
 <script src="sfa-subs.js"></script>
 <script src="config.js"></script>
-<script src="sfa-sync.js"></script>
-<script src="sfa-account.js"></script>
 </body></html>
