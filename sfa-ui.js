@@ -97,7 +97,7 @@
   if (lvCard) panel.appendChild(lvCard);
   if (ctCard) panel.appendChild(ctCard);
   if (foot) { var f2 = foot.cloneNode(false); while (foot.firstChild) f2.appendChild(foot.firstChild); panel.appendChild(f2); }
-  var tb = document.getElementById('btnTeacher'); if (tb) tb.hidden = true;   // teachers use Ctrl+Shift+K or the Teacher corner page
+  var tb = document.getElementById('btnTeacher'); if (tb) tb.style.setProperty('display', 'none', 'important');   // teachers use Ctrl+Shift+K or the Teacher corner page
   drawer.appendChild(panel); document.body.appendChild(drawer);
   function openD() { drawer.hidden = false; close.focus(); }
   function closeD() { drawer.hidden = true; }
@@ -114,7 +114,7 @@
   function sync() {
     if (!lv) return;
     [].forEach.call(lv.querySelectorAll('.tier'), function (t) { var n = TIER[t.textContent]; if (n && n !== t.textContent) t.textContent = n; });
-    var bs = [].slice.call(lv.querySelectorAll('li>button')), i = -1, done = 0;
+    var bs = [].slice.call(lv.querySelectorAll('li>button:first-child')), i = -1, done = 0;
     bs.forEach(function (b, k) { if (b.getAttribute('aria-current') === 'true') i = k; if (b.querySelector('.st.done')) done++; });
     chip.innerHTML = '☰ Levels <b>' + done + '/' + bs.length + '</b>';
     if (i >= 0) {

@@ -141,6 +141,18 @@ h1,h2,h3{text-wrap:balance}
 .levels .st.done{color:var(--green)}
 
 /* feedback strip */
+.task .goal{display:block;color:#fff;font-weight:700;font-size:1.04em;line-height:1.3}
+.task .story{display:block;color:var(--muted);font-size:.9em;margin-top:2px}
+.task ol.steps{margin:6px 0 0;padding-left:1.5em;font-size:.93em;line-height:1.35;color:#D9D4E6}
+.task ol.steps li{margin:2px 0;padding-left:2px}
+.task ol.steps li::marker{font-weight:700;color:var(--muted)}
+.task ol.steps li.now{color:#fff}
+.task ol.steps li.now::marker{color:var(--marquee)}
+.task ol.steps li.did{color:var(--muted)}
+.task ol.steps li.did::after{content:' ✓';color:var(--green);font-weight:700}
+.task .donew{display:block;margin-top:5px;font-size:.88em;color:var(--teal)}
+.task .donew b{color:var(--teal)}
+#workBody h3:first-child{margin-top:8px}
 .say{border-left:4px solid var(--marquee);padding:6px 10px;background:var(--panel2);border-radius:0 10px 10px 0;margin:8px 0 0;font-size:.98em}
 .say.bad{border-color:var(--red)}
 .say.good{border-color:var(--teal)}
@@ -275,6 +287,9 @@ body.teacher .tonly{display:revert}
 ol.proof{margin:8px 0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
 ol.proof li{background:var(--paper);color:var(--paperink);border-radius:8px;padding:8px 10px}
 ol.proof li>span:first-child{display:block;margin-bottom:4px}
+ol.proof li{display:flex;align-items:center;gap:8px;padding:6px 8px;font-size:.93em;line-height:1.3}
+ol.proof li>span:first-child{flex:1;margin:0}
+ol.proof li>.row{flex-wrap:nowrap;gap:4px}
 .levels .tier.review{color:var(--teal)}
 </style>
 </head><body>
@@ -2213,16 +2228,22 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   // the first time a slider is used, bring the stage into view (with the slider still on screen when both fit)
   function peekStage(ctrl) { var used = false; ctrl.addEventListener('input', function () { if (used) return; used = true; try { var s = $('#stage').getBoundingClientRect(), k = ctrl.getBoundingClientRect(), H = window.innerHeight; if (s.top >= 0 && s.bottom <= H && k.top >= 0 && k.bottom <= H) return; window.scrollBy({ top: k.bottom - s.top + 16 <= H ? s.top - 8 : k.bottom - H + 8, behavior: 'smooth' }); } catch (e) { } }); }
 
+
+  /* job card: one goal sentence, numbered steps, and what "done" looks like */
+  function job(goal, steps, fin, story) { return '<span class="goal">' + goal + '</span>' + (story ? '<span class="story">' + story + '</span>' : '') + '<ol class="steps">' + steps.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ol>' + (fin ? '<span class="donew"><b>Done when:</b> ' + fin + '</span>' : ''); }
+  /* light up the step the student is on now; earlier steps get a tick */
+  function stepAt(n) { [].forEach.call(document.querySelectorAll('#task ol.steps li'), function (li, i) { li.classList.toggle('now', i === n - 1); li.classList.toggle('did', i < n - 1); }); }
+
   /* ================= L0: the staircase ruler (low floor) ================= */
   function L0() {
     scene(); ST.grid = { box: [250, 64, 690, 448], xr: [0, 4], yr: [0, 20], ylab: 5, stairs: [{ x: 0, y: 0, run: 1, rise: 5 }, { x: 1, y: 5, run: 1, rise: 5 }, { x: 2, y: 10, run: 1, rise: 5 }], stones: [] };
-    G.setTask('The Staircase Ruler', 'The Surveyor unfolds his staircase ruler. Count the squares in each stair: <strong>how far across</strong>, and <strong>how far up</strong>?');
+    G.setTask('The Staircase Ruler', job('Measure each stair of the Surveyor\'s ruler.', ['Look at the glowing stair. Count the squares <strong>across</strong> its bottom.', 'Count the squares <strong>up</strong> its side.', 'Type both numbers and press <strong>Measure stair</strong>. Do all 3 stairs.'], 'all 3 stairs are measured.'));
     var k = 0, box = el('div', {}); G.work.appendChild(box);
     function stair() {
       ST.grid.stairs.forEach(function (s, i) { s.hl = i === k; s.on = i <= k; });
       box.innerHTML = ''; var a = num('l0a', 'Squares across'), u = num('l0u', 'Squares up'), b = el('button', { type: 'button', 'class': 'btn primary', text: 'Measure stair ' + (k + 1) });
       box.appendChild(el('h3', { text: 'Stair ' + (k + 1) + ' of 3 (the glowing one)' })); box.appendChild(row(lab('Across', 'l0a'), a, lab('Up', 'l0u'), u, b));
-      b.addEventListener('click', function () { var x = parseNum(a.value), y = parseNum(u.value); var ok = check(a, x === 1) & check(u, y === 5); if (ok) { G.firstTry(true); G.note('Stair ' + (k + 1) + ': across 1, up 5'); k++; if (k < 3) { G.say('Across 1, up 5. Next stair.', 'good'); stair(); } else finish(); } else { G.firstTry(false); G.say('Count the squares inside the glowing stair. Across first, then up.', 'bad'); V.say('g5_l0_bad'); } });
+      b.addEventListener('click', function () { var x = parseNum(a.value), y = parseNum(u.value); var ok = check(a, x === 1) & check(u, y === 5); if (ok) { G.firstTry(true); G.note('Stair ' + (k + 1) + ': across 1, up 5'); k++; if (k < 3) { G.say('Across 1, up 5. Next stair.', 'good'); stair(); } else finish(); } else { G.firstTry(false); G.say('Count again: squares along the bottom of the glowing stair go in Across, squares up its side go in Up.', 'bad'); V.say('g5_l0_bad'); } });
       a.focus();
     }
     function finish() { ST.grid.stairs.forEach(function (s) { s.hl = false; s.on = true; }); ST.grid.lines = [{ m: 5, b: 0, col: '#FFD23F', x0: 0, x1: 3 }]; done('L0', 'Every stair is 1 across and 5 up. When every step is the same, the stairs make a straight line.', ['g5_l0_ok']); }
@@ -2233,7 +2254,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= L1: read the stones ================= */
   function L1() {
     scene(); mainGrid({ stones: [{ x: 1, y: -1 }, { x: 5, y: 19 }] });
-    G.setTask('Read the Stones', 'Two stones glow on the Grid. Read each one: <strong>across first, then up</strong>. Look closely: the high stone sits just below the 20 line.');
+    G.setTask('Read the Stones', job('Write where the two glowing stones are.', ['Start at 0. Count <strong>across</strong> to the low stone. Type it in the first box.', 'Count <strong>up</strong> to it. Below the 0 line? Use a minus, like −2.', 'Do the same for the high stone (just below the 20 line). Press <strong>Check</strong>.'], 'both stones are right.'));
     var ax = num('ax', 'Low stone, across'), ay = num('ay', 'Low stone, up'), bx = num('bx', 'High stone, across'), by = num('by', 'High stone, up'), go = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' });
     G.work.appendChild(row(el('span', { text: 'Low stone (' }), ax, el('span', { text: ',' }), ay, el('span', { text: ')' })));
     G.work.appendChild(row(el('span', { text: 'High stone (' }), bx, el('span', { text: ',' }), by, el('span', { text: ')' })));
@@ -2242,7 +2263,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       var v = [parseNum(ax.value), parseNum(ay.value), parseNum(bx.value), parseNum(by.value)], tr = [1, -1, 5, 19];
       var ok = v.map(function (q, i) { return check([ax, ay, bx, by][i], q === tr[i]); }); tries++;
       if (ok.every(Boolean)) { G.firstTry(tries === 1); ST.grid.stones = [{ x: 1, y: -1, tag: '(1, −1)', dx: -34 }, { x: 5, y: 19, tag: '(5, 19)', dx: -40 }]; G.note('A = (1, −1)   B = (5, 19)'); done('L1', 'Stone A is at (1, −1) and stone B is at (5, 19).', ['g5_l1_ok']); }
-      else { G.firstTry(false); var swapped = v[0] === -1 && v[1] === 1; G.say(swapped ? 'Swapped: that\'s up first. Across first, then up.' : 'Not quite. Count across from 0 first, then up (or down) from 0.', 'bad'); V.say(swapped ? ['g5_l1_marcus', 'g5_l1_bad'] : 'g5_l1_bad'); }
+      else { G.firstTry(false); var swapped = v[0] === -1 && v[1] === 1; G.say(swapped ? 'Swapped: that\'s up first. Put the across number first, then the up number.' : 'Fix the red boxes. Count across from 0 first, then up (or down, with a minus) from 0.', 'bad'); V.say(swapped ? ['g5_l1_marcus', 'g5_l1_bad'] : 'g5_l1_bad'); }
     });
     G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_l1_s' : 'g5_l1_bad'); G.say(r === 1 ? 'Hint: start at 0. How many squares across to the stone? Then up or down?' : r === 2 ? 'Hint: the low stone is just below the across line.' : 'Worked step: the low stone is 1 across and 1 below: (1, −1).'); if (r >= 3) { ax.value = '1'; ay.value = '-1'; } if (r >= 4) { bx.value = '5'; by.value = '19'; } };
     V.say('g5_l1_s'); ax.focus();
@@ -2251,30 +2272,30 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= L2: rise over run ================= */
   function L2() {
     scene(); mainGrid();
-    G.setTask('Rise Over Run', 'Build the slope triangle from stone A to stone B. Then work out the slope.');
+    G.setTask('Rise Over Run', job('Find how steep the trail is, from stone A to stone B.', ['From A (1, −1) to B (5, 19): count the <strong>run</strong> (across) and the <strong>rise</strong> (up). Press <strong>Draw triangle</strong>.', 'Choose which way to divide.', 'Type the slope and press <strong>Fly it</strong>.'], 'One flies straight along the trail.')); stepAt(1);
     var run = num('run', 'Run (across)'), rise = num('rise', 'Rise (up)'), draw = el('button', { type: 'button', 'class': 'btn', text: 'Draw triangle' });
-    G.work.appendChild(el('h3', { text: '1. From A to B: how far across? how far up?' })); G.work.appendChild(row(lab('Run', 'run'), run, lab('Rise', 'rise'), rise, draw));
+    G.work.appendChild(el('h3', { text: '1. Count the run and the rise' })); G.work.appendChild(row(lab('Run', 'run'), run, lab('Rise', 'rise'), rise, draw));
     var calc = el('div', { hidden: '' }); G.work.appendChild(calc);
     var sl = num('slope', 'Slope', '6em');
-    calc.appendChild(el('h3', { text: '2. Which way up?' })); calc.appendChild(row(el('button', { type: 'button', 'class': 'btn', text: 'run ÷ rise', onclick: function () { pick('rr'); } }), el('button', { type: 'button', 'class': 'btn', text: 'rise ÷ run', onclick: function () { pick('rr2'); } })));
-    var fin = el('div', { hidden: '' }, [el('h3', { text: '3. The slope is' }), row(sl, el('button', { type: 'button', 'class': 'btn primary', text: 'Fly it', onclick: fly }))]); G.work.appendChild(fin);
+    calc.appendChild(el('h3', { text: '2. Which way do you divide?' })); calc.appendChild(row(el('button', { type: 'button', 'class': 'btn', text: 'run ÷ rise', onclick: function () { pick('rr'); } }), el('button', { type: 'button', 'class': 'btn', text: 'rise ÷ run', onclick: function () { pick('rr2'); } })));
+    var fin = el('div', { hidden: '' }, [el('h3', { text: '3. Type the slope' }), row(sl, el('button', { type: 'button', 'class': 'btn primary', text: 'Fly it', onclick: fly }))]); G.work.appendChild(fin);
     var wrongs = 0;
     draw.addEventListener('click', function () {
       var a = parseNum(run.value), b = parseNum(rise.value);
-      if (a === 4 && b === 20) { check(run, true); check(rise, true); ST.grid.tris = [{ ax: 1, ay: -1, run: 4, rise: 20, col: '#FFD23F' }]; G.note('A→B: run 4, rise 20'); calc.hidden = false; G.say('Triangle drawn: run 4, rise 20. Now, which goes on top?'); V.say('g5_l2_s'); }
+      if (a === 4 && b === 20) { check(run, true); check(rise, true); ST.grid.tris = [{ ax: 1, ay: -1, run: 4, rise: 20, col: '#FFD23F' }]; G.note('A→B: run 4, rise 20'); calc.hidden = false; stepAt(2); G.say('Triangle drawn: run 4, rise 20. Now, which goes on top?'); V.say('g5_l2_s'); }
       else { wrongs++; check(run, a === 4); check(rise, b === 20); G.firstTry(false); G.say(a === 4 && b !== 20 ? 'Run 4 is right. Count the rise from −1 up to 19.' : b === 20 && a !== 4 ? 'Rise 20 is right. Count across from 1 to 5.' : 'Across: from 1 to 5. Up: from −1 to 19.', 'bad'); if (a === 4 && !(b > 0)) V.say(['g5_l2_marcus', 'g5_l2_uponly']); }
     });
     function pick(w) {
       if (busy()) return;
       if (w === 'rr') { G.firstTry(false); wrongs++; G.lock(true); ST.grid.hedge = [6, 0];
-        G.after(G.after(G.after(V.say(['g5_l2_flat', 'g5_l2_fly']), function () { ST.grid.fly = { t0: S.now(), dur: 2, path: function (q) { return [1 + q * 5, -1 + q]; } }; return S.wait(2100); }), function () { return V.say(['g5_l2_hedge', 'g5_l2_flip']); }), function () { G.lock(false); ST.grid.fly = null; G.say('4 ÷ 20 = 1/5 is the flipped slope: almost flat. The climb (rise) goes on top.', 'bad'); }); }
-      else { G.say('Rise over run: 20 ÷ 4.'); fin.hidden = false; sl.focus(); }
+        G.after(G.after(G.after(V.say(['g5_l2_flat', 'g5_l2_fly']), function () { ST.grid.fly = { t0: S.now(), dur: 2, path: function (q) { return [1 + q * 5, -1 + q]; } }; return S.wait(2100); }), function () { return V.say(['g5_l2_hedge', 'g5_l2_flip']); }), function () { G.lock(false); ST.grid.fly = null; G.say('4 ÷ 20 = 1/5 is the flipped slope: almost flat. The climb (rise) goes on top. Press rise ÷ run.', 'bad'); }); }
+      else { G.say('Rise over run: 20 ÷ 4.'); fin.hidden = false; stepAt(3); sl.focus(); }
     }
     function fly() {
       if (busy()) return; var v = parseNum(sl.value);
       if (same(v, 5)) { check(sl, true); G.firstTry(wrongs === 0); G.lock(true); ST.grid.hedge = null; ST.grid.fly = { t0: S.now(), dur: 1.8, path: function (q) { return [1 + 4 * q, -1 + 20 * q]; } }; ST.grid.panel = ['rise / run', '= 20 / 4', '= 5']; G.note('slope = 20 / 4 = 5');
         G.after(V.say(['g5_l2_ok', 'g5_l2_good']), function () { G.lock(false); done('L2', 'Slope = rise ÷ run = 20 ÷ 4 = 5. The trail climbs 5 for every 1 across.', ['g5_duck', 'g5_duck_m']); }); }
-      else { check(sl, false); G.firstTry(false); wrongs++; G.say(same(v, 0.2) ? 'That\'s 4 ÷ 20, the flipped one. Rise goes on top.' : '20 ÷ 4 = ?', 'bad'); if (same(v, 0.2)) V.say('g5_l2_flip'); }
+      else { check(sl, false); G.firstTry(false); wrongs++; G.say(same(v, 0.2) ? 'That\'s 4 ÷ 20, the flipped one. Put the rise on top: work out 20 ÷ 4.' : 'Not that. Work out 20 ÷ 4 and type the answer.', 'bad'); if (same(v, 0.2)) V.say('g5_l2_flip'); }
     }
     G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_h1' : r === 3 ? 'g5_l2_flip' : 'g5_l2_s'); G.say(r === 1 ? 'Hint: run = across, from 1 to 5. Rise = up, from −1 to 19.' : r === 2 ? 'Hint: slope is how far UP for every 1 ACROSS. Up goes on top.' : 'Worked step: run 4, rise 20, slope = 20 ÷ 4.'); if (r >= 3) { run.value = '4'; rise.value = '20'; } if (r >= 4) { draw.click(); pick('rr2'); sl.value = '5'; } };
     V.say(['g5_l2_marcus', 'g5_news']); run.focus();
@@ -2283,12 +2304,12 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= L3: big stair, little stair ================= */
   function L3() {
     scene(); mainGrid({ lines: [{ m: 5, b: -6, col: 'rgba(255,210,63,.45)', lw: 3 }] });
-    G.setTask('Big Stair, Little Stair', 'Draw stair triangles from stone A along the trail. Fill the table for <strong>three</strong> different sizes. Then fit the little one onto the big one.');
+    G.setTask('Big Stair, Little Stair', job('Show that big and little stairs on this trail have the same slope.', ['Drag the slider to pick a size (run). You choose, e.g. 1, 2 and 4.', 'Count the rise on the Grid. Type the rise and rise ÷ run, press <strong>Record</strong>. Do <strong>3 different sizes</strong>.', 'Grow the little stair until it fits the big one.', 'Pick the reason they fit.'], '3 sizes are in the table and you pick the right reason.')); stepAt(1);
     var size = el('input', { type: 'range', id: 'triRun', min: '1', max: '4', step: '1', value: '1', 'aria-label': 'Triangle run (across), 1 to 4', style: 'width:100%' });
     var sizeLab = el('p', { 'class': 'muted', 'aria-live': 'polite' });
     var rise = num('t3rise', 'Rise for this triangle'), slope = num('t3slope', 'Rise divided by run'), rec = el('button', { type: 'button', 'class': 'btn primary', text: 'Record' });
     var tbl = el('table', { 'class': 'cmp', 'aria-label': 'Stair table' }); tbl.innerHTML = '<thead><tr><th>Run</th><th>Rise</th><th>Rise ÷ run</th></tr></thead><tbody></tbody>';
-    var h1 = el('h3', { text: '1. Size of the triangle (run)' }), recRow = row(lab('Rise', 't3rise'), rise, lab('Rise ÷ run', 't3slope'), slope, rec);
+    var h1 = el('h3', { text: '1–2. Pick a size, then count its rise' }), recRow = row(lab('Rise', 't3rise'), rise, lab('Rise ÷ run', 't3slope'), slope, rec);
     G.work.appendChild(h1); G.work.appendChild(size); G.work.appendChild(sizeLab); peekStage(size);
     G.work.appendChild(recRow); G.work.appendChild(el('div', { 'class': 'scroll-x' }, [tbl]));
     var part2 = el('div', { hidden: '' }); G.work.appendChild(part2);
@@ -2299,19 +2320,19 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       var r = +size.value, ri = parseNum(rise.value), s = parseNum(slope.value);
       var ok1 = check(rise, ri === 5 * r), ok2 = check(slope, same(s, 5));
       if (ok1 && ok2) { var again = !!recs[r]; if (!again) { recs[r] = 1; tbl.tBodies[0].appendChild(el('tr', {}, [el('td', { text: String(r) }), el('td', { text: String(5 * r) }), el('td', { 'class': 'yes', text: (5 * r) + ' ÷ ' + r + ' = 5' })])); G.note('run ' + r + ', rise ' + 5 * r + ': ' + 5 * r + '/' + r + ' = 5'); } G.firstTry(true); rise.value = ''; slope.value = ''; unmark(rise, slope); upd();
-        var n = Object.keys(recs).length; if (n === 1) V.say('g5_l3_same'); if (n >= 3) { G.P.ratioOK = true; G.save(); G.say('Three stairs, three sizes, all 5. Now grow the little one.', 'good'); similarity(); } else if (again) G.say('You already have run ' + r + ': drag the slider to a new size.'); else G.say('Recorded. Try another size (' + n + ' of 3).', 'good'); }
+        var n = Object.keys(recs).length; if (n === 1) V.say('g5_l3_same'); if (n >= 3) { G.P.ratioOK = true; G.save(); G.say('Three stairs, three sizes, all 5. Now grow the little one.', 'good'); similarity(); } else if (again) G.say('You already have run ' + r + ': drag the slider to a new size.'); else { G.say('Recorded (' + n + ' of 3). Drag the slider to a new size.', 'good'); stepAt(1); } }
       else { G.firstTry(false); if (ok1 && !ok2) G.say('Rise ' + ri + ' is right. Now divide it by the run, ' + r + '.', 'bad'); else { G.say('Count the rise of THIS triangle: from −1 up to its top corner.', 'bad'); if (ri != null && ri > 5 * r) V.say('g5_l3_marcus'); } }
     });
     function similarity() {
       part2.hidden = false; part2.innerHTML = ''; [h1, size, sizeLab, recRow].forEach(function (e) { e.hidden = true; }); G.work.insertBefore(part2, G.work.firstChild);
       var sc = el('input', { type: 'range', id: 'scale', min: '1', max: '5', step: '0.5', value: '1', 'aria-label': 'Grow the little triangle (scale factor)', style: 'width:100%' }); var sl = el('p', { 'class': 'muted', 'aria-live': 'polite' });
-      part2.appendChild(el('h3', { text: '2. Grow the little stair until it fits the big one' })); part2.appendChild(sc); part2.appendChild(sl);
+      part2.appendChild(el('h3', { text: '3. Grow the little stair until it fits the big one' })); stepAt(3); part2.appendChild(sc); part2.appendChild(sl);
       var reasons = el('div', { 'class': 'choice', hidden: '' });
-      function u2() { var k = +sc.value; ST.grid.tris = [{ ax: 1, ay: -1, run: 4, rise: 20, col: 'rgba(255,210,63,.6)', o: { noLabels: true } }, { ax: 1, ay: -1, run: k, rise: 5 * k, col: k === 4 ? '#3BFF8A' : '#5CE0B8', o: { runLabel: 'run ' + frac(k), riseLabel: 'rise ' + frac(5 * k) } }]; sl.textContent = 'Little stair × ' + k + ': run ' + frac(k) + ', rise ' + frac(5 * k) + (k === 4 ? '. It fits exactly.' : k > 4 ? '. Too big now.' : '.'); if (k === 4 && reasons.hidden) { reasons.hidden = false; G.note('little stair × 4 = big stair'); V.say(['g5_l3_fit', 'g5_l3_why']); } }
+      function u2() { var k = +sc.value; ST.grid.tris = [{ ax: 1, ay: -1, run: 4, rise: 20, col: 'rgba(255,210,63,.6)', o: { noLabels: true } }, { ax: 1, ay: -1, run: k, rise: 5 * k, col: k === 4 ? '#3BFF8A' : '#5CE0B8', o: { runLabel: 'run ' + frac(k), riseLabel: 'rise ' + frac(5 * k) } }]; sl.textContent = 'Little stair × ' + k + ': run ' + frac(k) + ', rise ' + frac(5 * k) + (k === 4 ? '. It fits exactly.' : k > 4 ? '. Too big now.' : '.'); if (k === 4 && reasons.hidden) { reasons.hidden = false; stepAt(4); G.note('little stair × 4 = big stair'); V.say(['g5_l3_fit', 'g5_l3_why']); } }
       sc.addEventListener('input', u2); peekStage(sc); u2();
-      part2.appendChild(reasons); reasons.appendChild(el('h3', { text: '3. Why do they fit?' }));
+      part2.appendChild(reasons); reasons.appendChild(el('h3', { text: '4. Why do they fit?' }));
       [['Every side grew by the same factor (× 4), so the angles stay the same and rise ÷ run stays 5.', true], ['The big triangle is steeper, so its slope is bigger.', false], ['They only look the same. The big one has a bigger slope: 20.', false]].forEach(function (o) {
-        reasons.appendChild(el('button', { type: 'button', text: o[0], onclick: function (e) { if (o[1]) { e.target.classList.add('yes'); G.P.simOK = true; G.save(); G.firstTry(true); done('L3', 'Five over one, ten over two, twenty over four: all 5. The triangles are similar, so the slope is the same however big a stair you draw.', ['g5_l3_ok']); } else { e.target.classList.add('no'); G.firstTry(false); G.say(o[0].indexOf('20') >= 0 ? '20 is the rise, not the slope. Rise ÷ run is still 20 ÷ 4 = 5.' : 'Look at the table: every size gives 5.', 'bad'); V.say('g5_l3_bad'); } } }));
+        reasons.appendChild(el('button', { type: 'button', text: o[0], onclick: function (e) { if (o[1]) { e.target.classList.add('yes'); G.P.simOK = true; G.save(); G.firstTry(true); done('L3', 'Five over one, ten over two, twenty over four: all 5. The triangles are similar, so the slope is the same however big a stair you draw.', ['g5_l3_ok']); } else { e.target.classList.add('no'); G.firstTry(false); G.say(o[0].indexOf('20') >= 0 ? '20 is the rise, not the slope. Rise ÷ run is still 20 ÷ 4 = 5. Pick another reason.' : 'Look at your table: every size gives 5, so the slopes are the same. Pick another reason.', 'bad'); V.say('g5_l3_bad'); } } }));
       });
       sc.focus();
     }
@@ -2323,14 +2344,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= L4: the survey marks (a table) ================= */
   function L4() {
     scene(); ST.grid = { box: [250, 64, 690, 448], xr: [0, 12], yr: [0, 26], ylab: 5, stones: [{ x: 2, y: 7, tag: '(2, 7)' }, { x: 5, y: 13, tag: '(5, 13)' }, { x: 11, y: 25, tag: '(11, 25)', dx: -40 }] };
-    G.setTask('The Survey Marks', 'The Surveyor\'s old table: <strong>2 → 7, 5 → 13, 11 → 25</strong>. Find the slope between each pair of marks.');
+    G.setTask('The Survey Marks', job('Find the slope between two pairs of marks in the Surveyor\'s table.', ['<strong>Across</strong> = how much x grows (e.g. 4 to 10 is 6).', '<strong>Up</strong> = how much y grows.', '<strong>Slope</strong> = up ÷ across. Type all three, press <strong>Check</strong>. Then do pair 2.'], 'both pairs are checked.'));
     var tb = el('table', { 'class': 'cmp' }); tb.innerHTML = '<thead><tr><th>x</th><th>2</th><th>5</th><th>11</th></tr></thead><tbody><tr><th>y</th><td>7</td><td>13</td><td>25</td></tr></tbody>'; G.work.appendChild(el('div', { 'class': 'scroll-x' }, [tb]));
     var pairs = [[2, 7, 5, 13], [5, 13, 11, 25]], k = 0, box = el('div', {}); G.work.appendChild(box);
     function one() {
       var p = pairs[k]; box.innerHTML = ''; var dy = num('dy', 'Change in output'), dx = num('dx', 'Change in input'), s = num('s4', 'Slope'), b = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' });
-      box.appendChild(el('h3', { text: 'Pair ' + (k + 1) + ': from (' + p[0] + ', ' + p[1] + ') to (' + p[2] + ', ' + p[3] + ')' })); box.appendChild(row(lab('Across', 'dx'), dx, lab('Up', 'dy'), dy, lab('Slope', 's4'), s, b));
+      box.appendChild(el('h3', { text: 'Pair ' + (k + 1) + ' of 2: from (' + p[0] + ', ' + p[1] + ') to (' + p[2] + ', ' + p[3] + ')' })); box.appendChild(row(lab('Across', 'dx'), dx, lab('Up', 'dy'), dy, lab('Slope', 's4'), s, b));
       ST.grid.tris = [{ ax: p[0], ay: p[1], run: p[2] - p[0], rise: p[3] - p[1], col: '#FFD23F' }];
-      b.addEventListener('click', function () { var DY = parseNum(dy.value), DX = parseNum(dx.value), fy = p[3] - p[1], fx = p[2] - p[0], rev = DY === -fy && DX === -fx; var ok = check(dx, DX === fx || rev) & check(dy, DY === fy || rev) & check(s, same(parseNum(s.value), 2)); if (ok) { G.firstTry(true); G.note(rev ? '(' + p[2] + ',' + p[3] + ')→(' + p[0] + ',' + p[1] + '): ' + fmt(-fy) + '/' + fmt(-fx) + ' = 2' : '(' + p[0] + ',' + p[1] + ')→(' + p[2] + ',' + p[3] + '): ' + fy + '/' + fx + ' = 2'); k++; if (k < 2) { V.say('g5_l4_next'); one(); } else done('L4', '6/3 = 2 and 12/6 = 2. The same slope between any two marks: that is what makes it a line.', ['g5_l4_ok']); } else { G.firstTry(false); G.say('Up = change in y (output). Across = change in x (input). Use the same two marks for both.', 'bad'); V.say('g5_l4_bad'); } });
+      b.addEventListener('click', function () { var DY = parseNum(dy.value), DX = parseNum(dx.value), fy = p[3] - p[1], fx = p[2] - p[0], rev = DY === -fy && DX === -fx; var ok = check(dx, DX === fx || rev) & check(dy, DY === fy || rev) & check(s, same(parseNum(s.value), 2)); if (ok) { G.firstTry(true); G.note(rev ? '(' + p[2] + ',' + p[3] + ')→(' + p[0] + ',' + p[1] + '): ' + fmt(-fy) + '/' + fmt(-fx) + ' = 2' : '(' + p[0] + ',' + p[1] + ')→(' + p[2] + ',' + p[3] + '): ' + fy + '/' + fx + ' = 2'); k++; if (k < 2) { V.say('g5_l4_next'); one(); } else done('L4', '6/3 = 2 and 12/6 = 2. The same slope between any two marks: that is what makes it a line.', ['g5_l4_ok']); } else { G.firstTry(false); G.say('Fix the red boxes. Across = ' + p[2] + ' − ' + p[0] + '. Up = ' + p[3] + ' − ' + p[1] + '. Slope = up ÷ across.', 'bad'); V.say('g5_l4_bad'); } });
       dx.focus();
     }
     G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r <= 2 ? 'g5_l4_bad' : 'g5_h3'); G.say(r === 1 ? 'Hint: subtract the outputs, then subtract the inputs, in the same order.' : r === 2 ? 'Hint: from 2 to 5 is 3 across. From 7 to 13 is 6 up.' : 'Worked step: 6 ÷ 3 = 2.'); var p = pairs[k]; if (r >= 3) { $('#dy').value = p[3] - p[1]; $('#dx').value = p[2] - p[0]; } if (r >= 4) $('#s4').value = '2'; };
@@ -2340,25 +2361,25 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= L5: backwards and downhill ================= */
   function L5() {
     scene(); ST.cast.priya = { x: 160, f: 1, sc: 0.55 }; mainGrid({ xr: [-1, 6], yr: [-8, 21], lines: [{ m: 5, b: -6, col: 'rgba(255,210,63,.45)', lw: 3 }] });
-    G.setTask('Backwards and Downhill', 'Gus says: start at the far stone and walk back. Then a second trail appears. <strong>Climb or fall?</strong>');
+    G.setTask('Backwards and Downhill', job('Measure the trail backwards, then catch a fake trail.', ['Walk from B back to A. Type run, rise and slope. Going back or down means minus. Press <strong>Check</strong>.', 'Read the grey trail left to right. Press <strong>It climbs</strong> or <strong>It falls</strong>.', 'Measure the grey trail. Press <strong>Check</strong>.', 'Pick which trail the RULE link left.'], 'you pick the real trail.'));
     var part = 0, box = el('div', {}); G.work.appendChild(box);
     function back() {
       box.innerHTML = ''; ST.grid.tris = [{ ax: 5, ay: 19, run: -4, rise: -20, col: '#FF9EC7', o: { runLabel: 'run −4', riseLabel: 'rise −20' } }];
       var ri = num('br', 'Rise from B back to A'), ru = num('bu', 'Run from B back to A'), s = num('bs', 'Slope'), b = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' });
-      box.appendChild(el('h3', { text: '1. From B (5, 19) back to A (1, −1)' })); box.appendChild(row(lab('Run', 'bu'), ru, lab('Rise', 'br'), ri, lab('Slope', 'bs'), s, b));
-      b.addEventListener('click', function () { var R1 = parseNum(ri.value), R2 = parseNum(ru.value), S1 = parseNum(s.value); var ok = check(ri, R1 === -20) & check(ru, R2 === -4) & check(s, same(S1, 5)); if (ok) { G.firstTry(true); G.note('B→A: −20 / −4 = 5'); G.lock(true); G.after(V.say(['g5_l5_back', 'g5_l5_gus2']), function () { G.lock(false); decoy(); }); } else { G.firstTry(false); G.say(R1 === 20 || R2 === 4 ? 'Walking backwards, both go negative: down 20, back 4.' : same(S1, -5) ? 'A minus over a minus is a plus.' : 'Rise: from 19 down to −1. Run: from 5 back to 1.', 'bad'); V.say('g5_l5_backbad'); } });
+      box.appendChild(el('h3', { text: '1. Walk back from B (5, 19) to A (1, −1)' })); stepAt(1); box.appendChild(row(lab('Run', 'bu'), ru, lab('Rise', 'br'), ri, lab('Slope', 'bs'), s, b));
+      b.addEventListener('click', function () { var R1 = parseNum(ri.value), R2 = parseNum(ru.value), S1 = parseNum(s.value); var ok = check(ri, R1 === -20) & check(ru, R2 === -4) & check(s, same(S1, 5)); if (ok) { G.firstTry(true); G.note('B→A: −20 / −4 = 5'); G.lock(true); G.after(V.say(['g5_l5_back', 'g5_l5_gus2']), function () { G.lock(false); decoy(); }); } else { G.firstTry(false); G.say(R1 === 20 || R2 === 4 ? 'Walking backwards, both go negative: type the run and rise with a minus.' : same(S1, -5) ? 'A minus over a minus is a plus. Fix the slope.' : 'Run: from 5 back to 1 (that\'s minus). Rise: from 19 down to −1 (minus). Then slope = rise ÷ run.', 'bad'); V.say('g5_l5_backbad'); } });
       ru.focus();
     }
     function decoy() {
       G.say(''); box.innerHTML = ''; ST.cast.priya = null; delete ST.cast.priya; ST.grid.tris = []; ST.grid.lines = [{ m: 5, b: -6, col: 'rgba(255,210,63,.45)', lw: 3 }, { m: -2, b: 8, col: '#9AA0A8', dash: true, x0: 0, x1: 4 }]; ST.grid.stones = ST.grid.stones.concat([{ x: 0, y: 8, col: '#C8C8C8', tag: '(0, 8)', dx: 36 }, { x: 4, y: 0, col: '#C8C8C8', tag: '(4, 0)', dx: 36 }]);
-      box.appendChild(el('h3', { text: '2. The grey trail, read left to right' }));
+      box.appendChild(el('h3', { text: '2. Read the grey trail left to right: climb or fall?' })); stepAt(2);
       var cf = el('div', { 'class': 'row' }); var fb = el('div', { hidden: '' }); box.appendChild(cf); box.appendChild(fb);
-      ['It climbs', 'It falls'].forEach(function (t) { cf.appendChild(el('button', { type: 'button', 'class': 'btn', text: t, onclick: function () { if (t === 'It falls') { G.firstTry(true); G.say('It falls. Now measure it, left to right.', 'good'); cf.hidden = true; fb.hidden = false; V.say('g5_l5_neg'); ST.grid.tris = [{ ax: 0, ay: 8, run: 4, rise: -8, col: '#C8C8C8' }]; } else { G.firstTry(false); G.say('It starts high at 8 and ends low at 0. Left to right, that\'s down.', 'bad'); V.say('g5_l5_dq'); } } })); });
+      ['It climbs', 'It falls'].forEach(function (t) { cf.appendChild(el('button', { type: 'button', 'class': 'btn', text: t, onclick: function () { if (t === 'It falls') { G.firstTry(true); G.say('It falls. Now measure it, left to right.', 'good'); cf.hidden = true; fb.hidden = false; stepAt(3); V.say('g5_l5_neg'); ST.grid.tris = [{ ax: 0, ay: 8, run: 4, rise: -8, col: '#C8C8C8' }]; } else { G.firstTry(false); G.say('It starts high at 8 and ends low at 0. Left to right, that\'s down. Try the other button.', 'bad'); V.say('g5_l5_dq'); } } })); });
       var ri = num('dr', 'Rise of the grey trail'), ru = num('du', 'Run'), s = num('ds', 'Slope'), b = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' });
-      fb.appendChild(row(lab('Run', 'du'), ru, lab('Rise', 'dr'), ri, lab('Slope', 'ds'), s, b));
-      var which = el('div', { 'class': 'row', hidden: '' }, [el('span', { text: 'Which is the link\'s trail?' }), el('button', { type: 'button', 'class': 'btn', text: 'Slope 5 (yellow)', onclick: function () { G.note('decoy: −8/4 = −2'); G.lock(true); G.after(V.say(['g5_l5_dok', 'g5_l5_dec']), function () { G.lock(false); done('L5', 'Backwards, −20 ÷ −4 is still 5. The grey trail falls: −8 ÷ 4 = −2. Downhill means negative, so it\'s the decoy.', []); }); } }), el('button', { type: 'button', 'class': 'btn', text: 'Slope −2 (grey)', onclick: function () { G.firstTry(false); G.say('The link climbs: rise 20 over run 4. The grey one falls.', 'bad'); } })]);
+      fb.appendChild(el('h3', { text: '3. Measure the grey trail' })); fb.appendChild(row(lab('Run', 'du'), ru, lab('Rise', 'dr'), ri, lab('Slope', 'ds'), s, b));
+      var which = el('div', { 'class': 'row', hidden: '' }, [el('h3', { text: '4. Which trail did the RULE link leave?', style: 'width:100%;margin:8px 0 0' }), el('button', { type: 'button', 'class': 'btn', text: 'Slope 5 (yellow)', onclick: function () { G.note('decoy: −8/4 = −2'); G.lock(true); G.after(V.say(['g5_l5_dok', 'g5_l5_dec']), function () { G.lock(false); done('L5', 'Backwards, −20 ÷ −4 is still 5. The grey trail falls: −8 ÷ 4 = −2. Downhill means negative, so it\'s the decoy.', []); }); } }), el('button', { type: 'button', 'class': 'btn', text: 'Slope −2 (grey)', onclick: function () { G.firstTry(false); G.say('Not the grey one: it falls. The link\'s trail climbs 20 over 4. Pick the other trail.', 'bad'); } })]);
       fb.appendChild(which);
-      b.addEventListener('click', function () { var R1 = parseNum(ri.value), R2 = parseNum(ru.value), S1 = parseNum(s.value); var ok = check(ri, R1 === -8) & check(ru, R2 === 4) & check(s, same(S1, -2)); if (ok) { G.firstTry(true); G.say('Minus 8 over 4: minus 2. Downhill. So whose trail is it?', 'good'); which.hidden = false; } else { G.firstTry(false); G.say(R1 === 8 ? 'It falls, so the rise is negative: −8.' : 'Rise −8, run 4. Then divide.', 'bad'); V.say('g5_l5_neg'); } });
+      b.addEventListener('click', function () { var R1 = parseNum(ri.value), R2 = parseNum(ru.value), S1 = parseNum(s.value); var ok = check(ri, R1 === -8) & check(ru, R2 === 4) & check(s, same(S1, -2)); if (ok) { G.firstTry(true); G.say('Minus 8 over 4: minus 2. Downhill. So whose trail is it?', 'good'); which.hidden = false; stepAt(4); } else { G.firstTry(false); G.say(R1 === 8 ? 'It falls, so the rise is negative: −8. Fix the rise and slope.' : 'Run: from 0 across to 4. Rise: from 8 down to 0 (minus). Then divide rise ÷ run.', 'bad'); V.say('g5_l5_neg'); } });
       V.say(['g5_l5_decoy', 'g5_l5_dq']);
     }
     G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_l5_gus' : 'g5_h3'); G.say(r === 1 ? 'Hint: going backwards flips the direction of BOTH the rise and the run.' : r === 2 ? 'Hint: negative ÷ negative is positive.' : 'Worked step: backwards is −20 ÷ −4 = 5. The grey trail: −8 ÷ 4 = −2.'); };
@@ -2368,21 +2389,21 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= L6: find the lock ================= */
   function L6() {
     scene(); mainGrid({ lines: [{ m: 5, b: -6, col: 'rgba(255,210,63,.45)', lw: 3 }], lock: { x: 4, y: 14 } }); ST.grid.lock.hidden = true; var lock = ST.grid.lock; ST.grid.lock = null;
-    G.setTask('Find the Lock', 'One knows the step: <strong>5</strong>. Test "y = 5x", find where the trail <strong>starts</strong>, then put your net where the lock is at input <strong>4</strong>.');
+    G.setTask('Find the Lock', job('Find the trail\'s rule, then catch the RULE link at input 4.', ['Test y = 5x at stone A: type 5 × 1, press <strong>Test</strong>.', 'Walk back one step from A to input 0. Where does the trail start? Press <strong>Check start</strong>.', 'Use the rule to find y at input 4. Press <strong>Place net</strong>.'], 'your net catches the link.')); stepAt(1);
     var box = el('div', {}); G.work.appendChild(box);
     var t1 = num('t1', 'y = 5x at input 1'), b1 = el('button', { type: 'button', 'class': 'btn', text: 'Test' });
     box.appendChild(el('h3', { text: '1. Test y = 5x at stone A (input 1)' })); box.appendChild(row(lab('5 × 1 =', 't1'), t1, b1));
     var p2 = el('div', { hidden: '' }); box.appendChild(p2);
     var st = num('st', 'The start: output at input 0'), b2 = el('button', { type: 'button', 'class': 'btn primary', text: 'Check start' });
-    p2.appendChild(el('h3', { text: '2. Walk back from A to input 0: where does the trail start?' })); p2.appendChild(row(lab('Start', 'st'), st, b2));
+    p2.appendChild(el('h3', { text: '2. Walk back to input 0: where does the trail start?' })); p2.appendChild(row(lab('Start', 'st'), st, b2));
     var p3 = el('div', { hidden: '' }); box.appendChild(p3);
     var ny = num('ny', 'Output at input 4'), b3 = el('button', { type: 'button', 'class': 'btn primary', text: 'Place net at (4, ?)' });
     p3.appendChild(el('h3', { text: '3. The rule is y = 5x − 6. Where is the trail at input 4?' })); p3.appendChild(row(lab('y =', 'ny'), ny, b3));
-    b1.addEventListener('click', function () { if (parseNum(t1.value) === 5) { check(t1, true); ST.grid.stones = ST.grid.stones.concat([{ x: 1, y: 5, col: '#FF5B5B', tag: '5x says (1, 5)', dx: 60 }]); G.lock(true); G.after(V.say(['g5_l6_rule', 'g5_l6_test', 'g5_l6_miss', 'g5_l6_start', 'g5_l6_zero']), function () { G.lock(false); p2.hidden = false; st.focus(); G.say('y = 5x puts the stone at 5, but it is at −1. The slope alone isn\'t the rule.'); }); } else { check(t1, false); G.firstTry(false); G.say('Just the step times the input: 5 × 1.', 'bad'); } });
-    b2.addEventListener('click', function () { var v = parseNum(st.value); if (v === -6) { check(st, true); G.firstTry(true); G.note('start = −6, rule y = 5x − 6'); ST.grid.stones = ST.grid.stones.filter(function (s) { return s.x !== 1 || s.y !== 5; }).concat([{ x: 0, y: -6, col: '#FFA23A', tag: '(0, −6)', dx: -56 }]); ST.grid.tris = [{ ax: 0, ay: -6, run: 1, rise: 5, col: '#FFA23A' }]; p3.hidden = false; ny.focus(); V.say('g5_l6_net'); } else { check(st, false); G.firstTry(false); G.say(v === 4 ? '−1 + 5 = 4 goes forwards. Walk BACK one step: −1 − 5.' : 'From A, step back 1 across: the output drops by 5.', 'bad'); } });
+    b1.addEventListener('click', function () { if (parseNum(t1.value) === 5) { check(t1, true); ST.grid.stones = ST.grid.stones.concat([{ x: 1, y: 5, col: '#FF5B5B', tag: '5x says (1, 5)', dx: 60 }]); G.lock(true); G.after(V.say(['g5_l6_rule', 'g5_l6_test', 'g5_l6_miss', 'g5_l6_start', 'g5_l6_zero']), function () { G.lock(false); p2.hidden = false; stepAt(2); st.focus(); G.say('y = 5x puts the stone at 5, but it is at −1. The slope alone isn\'t the rule.'); }); } else { check(t1, false); G.firstTry(false); G.say('Just the step times the input: work out 5 × 1 and type it.', 'bad'); } });
+    b2.addEventListener('click', function () { var v = parseNum(st.value); if (v === -6) { check(st, true); G.firstTry(true); G.note('start = −6, rule y = 5x − 6'); ST.grid.stones = ST.grid.stones.filter(function (s) { return s.x !== 1 || s.y !== 5; }).concat([{ x: 0, y: -6, col: '#FFA23A', tag: '(0, −6)', dx: -56 }]); ST.grid.tris = [{ ax: 0, ay: -6, run: 1, rise: 5, col: '#FFA23A' }]; p3.hidden = false; stepAt(3); ny.focus(); V.say('g5_l6_net'); } else { check(st, false); G.firstTry(false); G.say(v === 4 ? '−1 + 5 = 4 goes forwards. Walk BACK one step: work out −1 − 5.' : 'From A (1, −1), step back 1 across: the output drops by 5. Work out −1 − 5.', 'bad'); } });
     b3.addEventListener('click', function () { if (busy()) return; var v = parseNum(ny.value); if (v == null) { check(ny, false); G.say('I can\'t read that number. Type the output at input 4, like 12.'); return; } ST.grid.net = { x: 4, y: v };
       if (v === 14) { ST.grid.net.ok = true; check(ny, true); G.say(''); G.firstTry(true); G.lock(true); ST.grid.lock = lock; ST.grid.fly = { t0: S.now(), dur: 2, path: function (q) { return [1 + 3 * q, -1 + 15 * q]; } }; G.note('lock at (4, 14) = 5×4 − 6'); G.after(G.after(S.wait(2100), function () { return V.say(['g5_l6_caught', 'g5_sidekick', 'g5_news']); }), function () { G.lock(false); done('L6', 'y = 5 × 4 − 6 = 14. The RULE link is locked at (4, 14). You needed both: the step (5) and the start (−6).', []); }); }
-      else { ST.grid.net.ok = false; G.firstTry(false); G.say(v === 20 ? '5 × 4 = 20 forgets the start. Subtract 6.' : 'Use the rule: 5 × 4 − 6.', 'bad'); V.say('g5_l6_miss2'); } });
+      else { ST.grid.net.ok = false; G.firstTry(false); G.say(v === 20 ? '5 × 4 = 20 forgets the start. Take away 6 and try again.' : 'Use the rule: work out 5 × 4, then take away 6.', 'bad'); V.say('g5_l6_miss2'); } });
     G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_l6_start' : 'g5_h3'); G.say(r === 1 ? 'Hint: the slope says how fast, not where it starts.' : r === 2 ? 'Hint: from (1, −1), one step back is (0, −1 − 5).' : 'Worked step: start −6, so at input 4: 5 × 4 − 6.'); if (r >= 3 && !p2.hidden) st.value = '-6'; if (r >= 4 && !p3.hidden) ny.value = '14'; };
     t1.focus();
   }
@@ -2391,7 +2412,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   var S1SETS = [[[2, 3, 6, 5], [-2, 7, 3, -8], [4, 9, 10, 12]], [[2, 4, 6, 6], [-1, 9, 2, 0], [3, 4, 9, 8]]];
   function S1() {
     scene(); var set = S1SETS[(G.P.s1try || 0) % 2]; G.P.s1try = (G.P.s1try || 0) + 1; var s1cur = []; G.save(); var k = 0, box = el('div', {}); G.work.appendChild(box);
-    G.setTask('From Any Two Marks', 'No stone at zero. For each pair of marks, find the <strong>slope</strong> (fractions are fine, like 1/2) and the <strong>start</strong>, then predict another point.');
+    G.setTask('From Any Two Marks', job('Find the whole rule from two marks. Do it 3 times.', ['<strong>Slope</strong> = up ÷ across between the two marks. Fractions are fine, like 1/2.', '<strong>Start</strong> = y at input 0. Walk back one slope-step at a time.', 'Predict y at the input shown. Press <strong>Check</strong>.'], 'all 3 pairs are done.'));
     function one() {
       var p = set[k], m = (p[3] - p[1]) / (p[2] - p[0]), b = p[1] - m * p[0], X = p[2] + 2;
       ST.grid = { box: [250, 64, 690, 448], xr: [-3, 12], yr: [-10, 16], ylab: 5, stones: [{ x: p[0], y: p[1], tag: '(' + fmt(p[0]) + ', ' + fmt(p[1]) + ')' }, { x: p[2], y: p[3], tag: '(' + fmt(p[2]) + ', ' + fmt(p[3]) + ')' }] };
@@ -2400,7 +2421,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       b1.addEventListener('click', function () { var M2 = parseNum(ms.value), B2 = parseNum(bs.value), Y = parseNum(py.value); var ok = check(ms, same(M2, m)) & check(bs, same(B2, b)) & check(py, same(Y, m * X + b));
         if (ok) { b1.disabled = true; G.firstTry(true); s1cur.push('(' + fmt(p[0]) + ', ' + fmt(p[1]) + ') & (' + fmt(p[2]) + ', ' + fmt(p[3]) + ')  ⇒  y = ' + (Number.isInteger(m) ? frac(m) : '(' + frac(m) + ')') + 'x ' + (b < 0 ? '− ' + frac(-b) : '+ ' + frac(b))); G.save(); ST.grid.lines = [{ m: m, b: b, col: '#FFD23F' }]; ST.grid.stones.push({ x: 0, y: b, col: '#FFA23A', tag: 'start ' + frac(b), dx: 50 }); G.note('y = ' + frac(m) + 'x + ' + frac(b)); k++;
           if (k < 3) { if (!Number.isInteger(m)) V.say('g5_s1_frac'); (function (ep1) { setTimeout(function () { if (ep1 === G.epoch) one(); }, 900); })(G.epoch); } else { var sp = G.levelMaxRung <= 2; if (sp || !(G.P.s1rules && G.P.s1rules.length)) G.P.s1rules = s1cur; done('S1', 'Three rules from two marks each.' + (sp ? ' You earned Where One Starts.' : ' (Where One Starts needs no rung 3 or 4 hints: replay to try again.)'), ['g5_s1_ok']); } }
-        else { G.firstTry(false); G.say(!same(M2, m) ? 'Slope = change in y ÷ change in x, between the two marks.' : !same(B2, b) ? 'Walk back from a mark to input 0, one slope-step at a time.' : 'Use your rule: slope × ' + X + ' + start.', 'bad'); if (!same(M2, m) && !Number.isInteger(m)) V.say('g5_s1_frac'); } });
+        else { G.firstTry(false); G.say(!same(M2, m) ? 'Fix the slope first: (second y − first y) ÷ (second x − first x).' : !same(B2, b) ? 'Slope is right. Fix the start: from a mark, take away one slope for each step back to input 0.' : 'Slope and start are right. Now work out slope × ' + X + ' + start.', 'bad'); if (!same(M2, m) && !Number.isInteger(m)) V.say('g5_s1_frac'); } });
       ms.focus();
     }
     G.hintFn = function (r) { var p = set[k], m = (p[3] - p[1]) / (p[2] - p[0]); V.say(r <= 2 ? 'g5_h1' : 'g5_h3'); G.say(r === 1 ? 'Hint: up ' + (p[3] - p[1]) + ', across ' + (p[2] - p[0]) + '.' : r === 2 ? 'Hint: the slope is ' + (p[3] - p[1]) + '/' + (p[2] - p[0]) + '. Simplify it.' : 'Worked step: slope ' + frac(m) + '. Start = ' + br(fmt(p[1])) + ' − ' + br(frac(m)) + ' × ' + br(fmt(p[0])) + '.'); function br(t) { return /^[−-]/.test(t) ? '(' + t + ')' : t; } if (r >= 3) $('#m1').value = frac(m); };
@@ -2411,16 +2432,16 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   function S2() {
     ST.cast = { zero: { x: 90, f: 1, sc: 0.7 }, one: { x: 870, f: -1, sc: 0.6 } };
     ST.grid = { box: [230, 64, 690, 448], xr: [-1, 5], yr: [-8, 20], ylab: 4, ymajor: 4, stones: [{ x: 1, y: -1, col: '#FF7A7A', tag: 'scorch (1, −1)', dx: 60 }, { x: 2, y: 4, col: '#FF7A7A', tag: 'scorch (2, 4)', dx: 56 }, { x: 0, y: 3, col: '#FFA23A', tag: 'Zero (0, 3)', dx: -50 }] };
-    G.setTask('The Crossing', 'Zero walks: <strong>start at 3, two more every step</strong>. One flies through his scorch marks <strong>(1, −1)</strong> and <strong>(2, 4)</strong>. Write both rules, <strong>then</strong> find where they meet.');
+    G.setTask('The Crossing', job('Find where Zero and One meet.', ['Write both rules. Zero: <strong>starts at 3, adds 2 every step</strong>. One: goes through <strong>(1, −1)</strong> and <strong>(2, 4)</strong>. Press <strong>Set rules</strong>.', 'Find where they meet. Type it, press <strong>They meet here</strong>. Drag the clock to check.'], 'you find where they meet.')); stepAt(1);
     var zm = num('zm', 'Zero slope'), zb = num('zb', 'Zero start'), om = num('om', 'One slope'), ob = num('ob', 'One start'), setB = el('button', { type: 'button', 'class': 'btn primary', text: 'Set rules' });
-    G.work.appendChild(row(el('b', { text: 'Zero: y =' }), zm, el('span', { text: 'x +' }), zb)); G.work.appendChild(row(el('b', { text: 'One: y =' }), om, el('span', { text: 'x +' }), ob)); G.work.appendChild(row(setB));
+    G.work.appendChild(el('h3', { text: '1. Write both rules' })); G.work.appendChild(row(el('b', { text: 'Zero: y =' }), zm, el('span', { text: 'x +' }), zb)); G.work.appendChild(row(el('b', { text: 'One: y =' }), om, el('span', { text: 'x +' }), ob)); G.work.appendChild(row(setB));
     var clock = el('input', { type: 'range', id: 'clk', min: '0', max: '5', step: '1', value: '0', 'aria-label': 'Step number (input)', style: 'width:100%' }); var cl = el('p', { 'class': 'muted', 'aria-live': 'polite' });
     var mx = num('mx', 'Meeting input'), my = num('my', 'Meeting output'), mB = el('button', { type: 'button', 'class': 'btn primary', text: 'They meet here' });
-    G.work.appendChild(el('h3', { text: 'Run the clock (steps)' })); G.work.appendChild(clock); G.work.appendChild(cl); G.work.appendChild(row(lab('Meet at (', 'mx'), mx, el('span', { text: ',' }), my, el('span', { text: ')' }), mB));
+    G.work.appendChild(el('h3', { text: '2. Find where they meet (drag the clock to check)' })); G.work.appendChild(clock); G.work.appendChild(cl); G.work.appendChild(row(lab('Meet at (', 'mx'), mx, el('span', { text: ',' }), my, el('span', { text: ')' }), mB));
     var rulesOK = false, scrubbedFirst = false;
     clock.addEventListener('input', function () { if (!rulesOK) scrubbedFirst = true; var x = +clock.value, z = 2 * x + 3, o = 5 * x - 6; ST.grid.stones = ST.grid.stones.filter(function (s) { return !s.live; }).concat([{ x: x, y: z, col: '#FFA23A', live: true, tag: 'Zero ' + z, dx: -44 }, { x: x, y: o, col: '#FF5A5A', live: true, tag: 'One ' + fmt(o), dx: 50, dy: 30 }]); cl.textContent = 'Step ' + x + ': Zero at ' + z + ', One at ' + fmt(o) + (z === o ? '. SAME PLACE.' : '. Gap ' + Math.abs(z - o) + '.'); });
-    setB.addEventListener('click', function () { var ok = check(zm, parseNum(zm.value) === 2) & check(zb, parseNum(zb.value) === 3) & check(om, parseNum(om.value) === 5) & check(ob, parseNum(ob.value) === -6); if (ok) { rulesOK = true; ST.grid.lines = [{ m: 2, b: 3, col: '#FFA23A' }, { m: 5, b: -6, col: '#FF5A5A' }]; G.note('Zero y = 2x + 3; One y = 5x − 6'); G.say('Rules set. Now find where they meet, then run the clock to check.', 'good'); V.say('g5_s2_set'); } else { G.firstTry(false); G.say('One\'s slope: from (1, −1) to (2, 4). His start: one step back from (1, −1).', 'bad'); } });
-    mB.addEventListener('click', function () { if (busy()) return; var x = parseNum(mx.value), y = parseNum(my.value); if (x === 3 && y === 9) { check(mx, true); check(my, true); G.P.s2rulesFirst = G.P.s2rulesFirst || (rulesOK && !scrubbedFirst && G.levelMaxRung <= 2); G.save(); ST.grid.stones.push({ x: 3, y: 9, col: '#3BFF8A', tag: '(3, 9)', dx: 40 }); G.lock(true); G.after(V.say(['g5_s2_gus', 'g5_s2_coinc', 'g5_s2_eq']), function () { G.lock(false); done('S2', 'At input 3 both rules give 9: 2 × 3 + 3 = 5 × 3 − 6. Same place, same time.' + (G.P.s2rulesFirst ? ' You earned Same Place, Same Time.' : ' (The special needs both rules set before you run the clock.)'), []); }); } else { check(mx, false); check(my, false); G.firstTry(false); G.say('Where do 2x + 3 and 5x − 6 give the same output? One gains 3 on Zero every step.', 'bad'); } });
+    setB.addEventListener('click', function () { var ok = check(zm, parseNum(zm.value) === 2) & check(zb, parseNum(zb.value) === 3) & check(om, parseNum(om.value) === 5) & check(ob, parseNum(ob.value) === -6); if (ok) { rulesOK = true; ST.grid.lines = [{ m: 2, b: 3, col: '#FFA23A' }, { m: 5, b: -6, col: '#FF5A5A' }]; G.note('Zero y = 2x + 3; One y = 5x − 6'); G.say('Rules set. Now find where they meet, then run the clock to check.', 'good'); stepAt(2); V.say('g5_s2_set'); } else { G.firstTry(false); var zOK = parseNum(zm.value) === 2 && parseNum(zb.value) === 3; G.say((zOK ? '' : 'Zero: his step (2 each step) goes in the first box, his start (3) in the second. ') + 'One: slope = up ÷ across from (1, −1) to (2, 4). Start = one step back from (1, −1).', 'bad'); } });
+    mB.addEventListener('click', function () { if (busy()) return; var x = parseNum(mx.value), y = parseNum(my.value); if (x === 3 && y === 9) { check(mx, true); check(my, true); G.P.s2rulesFirst = G.P.s2rulesFirst || (rulesOK && !scrubbedFirst && G.levelMaxRung <= 2); G.save(); ST.grid.stones.push({ x: 3, y: 9, col: '#3BFF8A', tag: '(3, 9)', dx: 40 }); G.lock(true); G.after(V.say(['g5_s2_gus', 'g5_s2_coinc', 'g5_s2_eq']), function () { G.lock(false); done('S2', 'At input 3 both rules give 9: 2 × 3 + 3 = 5 × 3 − 6. Same place, same time.' + (G.P.s2rulesFirst ? ' You earned Same Place, Same Time.' : ' (The special needs both rules set before you run the clock.)'), []); }); } else { check(mx, false); check(my, false); G.firstTry(false); G.say('Not there. Drag the clock and look for SAME PLACE, or find where 2x + 3 and 5x − 6 give the same output.', 'bad'); } });
     G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_s2_zero' : 'g5_s2_gus'); G.say(r === 1 ? 'Hint: Zero is y = 2x + 3. One climbs 5 per step from (1, −1).' : r === 2 ? 'Hint: they start 9 apart and One gains 3 every step.' : 'Worked step: 2x + 3 = 5x − 6 when 9 = 3x.'); };
     V.say(['g5_s2_zero', 'g5_s2_set']);
   }
@@ -2430,11 +2451,11 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     scene(); mainGrid({ lines: [{ m: 5, b: -6, col: 'rgba(255,210,63,.6)', lw: 3 }], tris: [{ ax: 1, ay: -1, run: 1, rise: 5, col: '#5CE0B8' }, { ax: 2, ay: 4, run: 3, rise: 15, col: '#FFD23F' }] });
     var CARDS = ['Pick any two points on the line and draw a slope triangle between them.', 'Draw a second slope triangle somewhere else on the same line.', 'Each triangle has a flat side, an upright side and a piece of the line, so their angles match.', 'Triangles with matching angles are similar: every side of one is the same multiple of the other.', 'So rise ÷ run is the same for both triangles: a line has the same slope everywhere.'];
     var order = [2, 4, 0, 3, 1];
-    G.setTask('Why Triangles?', 'Put the Surveyor\'s reasons in order, so each step follows from the one before.');
+    G.setTask('Why Triangles?', job('Put the Surveyor\'s 5 reasons in order to prove a line has one slope.', ['Read the cards. Use <strong>↑</strong> and <strong>↓</strong> to move them.', 'Each card must follow from the card above it.', 'Press <strong>Check the order</strong>.'], 'the order is right.'));
     var list = el('ol', { 'class': 'proof' }); G.work.appendChild(list); var chk = el('button', { type: 'button', 'class': 'btn primary', text: 'Check the order' }); G.work.appendChild(row(chk));
     function render() { list.innerHTML = ''; order.forEach(function (ci, i) { list.appendChild(el('li', {}, [el('span', { text: CARDS[ci] }), el('span', { 'class': 'row' }, [el('button', { type: 'button', 'class': 'btn small', 'aria-label': 'Move up', text: '↑', disabled: i === 0 ? '' : null, onclick: function () { var t = order[i - 1]; order[i - 1] = order[i]; order[i] = t; render(); list.querySelectorAll('li')[i - 1].querySelector('button').focus(); } }), el('button', { type: 'button', 'class': 'btn small', 'aria-label': 'Move down', text: '↓', disabled: i === order.length - 1 ? '' : null, onclick: function () { var t = order[i + 1]; order[i + 1] = order[i]; order[i] = t; render(); var bs = list.querySelectorAll('li')[i + 1].querySelectorAll('button'); bs[bs.length - 1].focus(); } })])])); }); }
     render();
-    chk.addEventListener('click', function () { var good = order.every(function (ci, i) { return ci === i; }); if (good) { G.P.proofOrder = 'two triangles → same angles → similar → same rise ÷ run'; G.firstTry(true); done('S3', 'That is a proof: matching angles make the triangles similar, so rise ÷ run is the same everywhere on the line.', ['g5_s3_ok']); } else { G.firstTry(false); var firstBad = order.findIndex(function (ci, i) { return ci !== i; }); G.say('Step ' + (firstBad + 1) + ' doesn\'t follow yet. What do you need to know before you can say that?', 'bad'); V.say('g5_s3_bad'); } });
+    chk.addEventListener('click', function () { var good = order.every(function (ci, i) { return ci === i; }); if (good) { G.P.proofOrder = 'two triangles → same angles → similar → same rise ÷ run'; G.firstTry(true); done('S3', 'That is a proof: matching angles make the triangles similar, so rise ÷ run is the same everywhere on the line.', ['g5_s3_ok']); } else { G.firstTry(false); var firstBad = order.findIndex(function (ci, i) { return ci !== i; }); G.say('Card ' + (firstBad + 1) + ' is in the wrong place. Ask: what must be true before you can say it? Move cards with ↑ and ↓, then check again.', 'bad'); V.say('g5_s3_bad'); } });
     G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)('g5_s3_bad'); G.say(r === 1 ? 'Hint: start by drawing the triangles. End with the slope.' : r === 2 ? 'Hint: "similar" comes after "angles match".' : 'Worked step: draw, draw again, angles match, similar, same slope.'); if (r >= 4) { order = [0, 1, 2, 3, 4]; render(); } };
     V.say('g5_s3_s');
   }
@@ -2442,12 +2463,12 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= S4: not a line ================= */
   function S4() {
     scene(); ST.grid = { box: [250, 64, 690, 448], xr: [-1, 6], yr: [-1, 11], ylab: 2, ymajor: 2, stones: [{ x: 0, y: 1, tag: 'P (0, 1)', dx: 40 }, { x: 2, y: 5, tag: 'Q (2, 5)', dx: -44 }, { x: 5, y: 9, tag: 'R (5, 9)', dx: -44 }], tris: [{ ax: 0, ay: 1, run: 2, rise: 4, col: '#5CE0B8' }, { ax: 2, ay: 5, run: 3, rise: 4, col: '#FFD23F' }] };
-    G.setTask('Not a Line', 'Three marks look like a trail: <strong>P (0, 1), Q (2, 5), R (5, 9)</strong>. Use two slope triangles to decide.');
+    G.setTask('Not a Line', job('Decide if P, Q and R sit on one straight line.', ['Slope P→Q: up ÷ across of the green triangle.', 'Slope Q→R: up ÷ across of the yellow triangle. Fractions are fine, like 2/5.', 'Press <strong>Compare</strong>, then pick your answer.'], 'you pick the right answer.')); stepAt(1);
     var a = num('pq', 'Slope P to Q'), b = num('qr', 'Slope Q to R'), go = el('button', { type: 'button', 'class': 'btn primary', text: 'Compare' });
     G.work.appendChild(row(lab('Slope P→Q', 'pq'), a, lab('Slope Q→R', 'qr'), b, go));
-    var v = el('div', { 'class': 'row', hidden: '' }, [el('button', { type: 'button', 'class': 'btn', text: 'One straight line', onclick: function () { G.firstTry(false); G.say('A straight line has the same slope between any two marks. 2 ≠ 4/3.', 'bad'); } }), el('button', { type: 'button', 'class': 'btn', text: 'Not a line', onclick: function () { G.P.notLine = 'P→Q 4/2 = 2, Q→R 4/3: different, so not a line'; G.firstTry(true); done('S4', 'P→Q has slope 2 and Q→R has slope 4/3. Different slopes, so the three marks are not on one line.', ['g5_s4_ok']); } })]);
+    var v = el('div', { 'class': 'row', hidden: '' }, [el('button', { type: 'button', 'class': 'btn', text: 'One straight line', onclick: function () { G.firstTry(false); G.say('A straight line has the same slope between any two marks. Your slopes are 2 and 4/3. Are they the same? Pick again.', 'bad'); } }), el('button', { type: 'button', 'class': 'btn', text: 'Not a line', onclick: function () { G.P.notLine = 'P→Q 4/2 = 2, Q→R 4/3: different, so not a line'; G.firstTry(true); done('S4', 'P→Q has slope 2 and Q→R has slope 4/3. Different slopes, so the three marks are not on one line.', ['g5_s4_ok']); } })]);
     G.work.appendChild(v);
-    go.addEventListener('click', function () { var ok = check(a, same(parseNum(a.value), 2)) & check(b, same(parseNum(b.value), 4 / 3)); if (ok) { G.note('P→Q 2, Q→R 4/3'); v.hidden = false; G.say('Two triangles, two different slopes. So?'); } else { G.firstTry(false); G.say('P→Q: up 4, across 2. Q→R: up 4, across 3. Fractions are fine.', 'bad'); } });
+    go.addEventListener('click', function () { var ok = check(a, same(parseNum(a.value), 2)) & check(b, same(parseNum(b.value), 4 / 3)); if (ok) { G.note('P→Q 2, Q→R 4/3'); v.hidden = false; stepAt(3); G.say('Two triangles, two different slopes. So is it one straight line?'); } else { G.firstTry(false); G.say('Fix the red box. P→Q: up 4, across 2. Q→R: up 4, across 3. Type up ÷ across; fractions are fine.', 'bad'); } });
     G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)('g5_h1'); G.say(r === 1 ? 'Hint: rise ÷ run for each triangle.' : r === 2 ? 'Hint: Q→R is up 4 across 3. Type 4/3.' : 'Worked step: 4 ÷ 2 = 2, but 4 ÷ 3 = 4/3.'); };
     V.say('g5_s4_s'); a.focus();
   }

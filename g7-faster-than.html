@@ -307,7 +307,7 @@ ol.proof li>span:first-child{display:block;margin-bottom:4px}
     </div>
         <section class="card" aria-labelledby="workH">
         <h2 id="workH">Faster Than</h2>
-        <p class="task" id="task"></p>
+        <div class="task" id="task"></div>
         <div id="workBody"></div>
         <p class="say" id="say" aria-live="polite"></p>
       </section>
@@ -2213,7 +2213,12 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     build: function (L) { ({ R0: R0, R1: R1, R2: R2, R3: R3, R4: R4, R5: R5, S1: S1, S2: S2, S3: S3 })[L.id](); }
   });
   G.stage = S; window.__gm = function () { return G; };
+  // clarity pass: the job card text (goal, numbered steps, done-when) and which step is "now"
+  function job(goal, steps, doneWhen, extra) { return '<span class="goal">' + goal + '</span>' + (extra ? extra : '') + '<ol class="steps">' + steps.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol>' + (doneWhen ? '<span class="donewhen"><b>Done when:</b> ' + doneWhen + '</span>' : ''); }
+  function stepAt(n) { [].forEach.call(document.querySelectorAll('#task ol.steps li'), function (x, i) { x.className = i < n - 1 ? 'did' : i === n - 1 ? 'now' : 'todo'; }); }
+  function setJob(goal, steps, doneWhen, extra) { G.setTask(G.lv(G.curId).name, job(goal, steps, doneWhen, extra)); stepAt(1); }
   function busy() { return G.busy; }
+  var RULES7 = '<span class="rules"><span>Taxi: d = 20 + 0.5t</span> · <span>Scooter: d = 6 + 1t</span> · <span>Bike: d = 1.5t</span></span>';
   function stamp() { var ep = G.epoch; return function () { return ep !== G.epoch; }; }
   function num(id, label, w) { return el('input', { type: 'text', inputmode: 'decimal', 'class': 'num sm', id: id, 'aria-label': label, autocomplete: 'off', style: w ? 'width:' + w : null }); }
   function row() { return el('div', { 'class': 'row', style: 'margin-top:6px' }, [].slice.call(arguments)); }
@@ -2223,18 +2228,18 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   function peekStage(ctrl) { var used = false; ctrl.addEventListener('input', function () { if (used) return; used = true; try { var s = $('#stage').getBoundingClientRect(), k = ctrl.getBoundingClientRect(), H = window.innerHeight; if (s.top >= 0 && s.bottom <= H && k.top >= 0 && k.bottom <= H) return; window.scrollBy({ top: k.bottom - s.top + 16 <= H ? s.top - 8 : k.bottom - H + 8, behavior: 'smooth' }); } catch (e) { } }); }
   // a ratio typed as 1.5, 3/2 or 1.5:1
   function parseRatio(s) { var m = String(s == null ? '' : s).match(/^([^:]+):([^:]+)$/); if (!m) return parseNum(s); var a = parseNum(m[1]), b = parseNum(m[2]); return a == null || !b ? null : a / b; }
-  function done(id, text, lines) { G.P.done[id] = true; G.save(); if (CORE.every(function (c2) { return G.P.done[c2]; }) && !status(G.P).std && CORE.indexOf(id) >= 0) lines = (lines || []).concat(['g7_notyet']); return G.levelDone(id, text, lines); }
+  function done(id, text, lines) { stepAt(99); G.P.done[id] = true; G.save(); if (CORE.every(function (c2) { return G.P.done[c2]; }) && !status(G.P).std && CORE.indexOf(id) >= 0) lines = (lines || []).concat(['g7_notyet']); return G.levelDone(id, text, lines); }
   function race(rides, from, to, secs) { ST.scene = 'road'; ST.rides = rides; return S.anim({ dur: secs, draw: function (q, u) { ST.t = from + (to - from) * u; } }).then(function () { ST.t = to; }); }
 
   /* ================= R0: ahead or faster? (low floor) ================= */
   function R0() {
     ST.scene = 'road'; ST.rides = ['taxi', 'bike']; ST.t = 0; ST.cast = {};
-    G.setTask('Ahead or Faster?', 'Marcus takes the taxi. Zero and One take the tandem bike. Watch the race, then answer.');
+    setJob('Find out who is ahead and who is faster.', ['Press <strong>▶ Watch the race</strong>.', 'Answer: who was <strong>ahead</strong> at the start?', 'Answer: who is <strong>faster</strong>?'], 'you answer both questions.', '<span class="jx">Marcus rides the taxi. Zero and One ride the tandem bike.</span>');
     var go = el('button', { type: 'button', 'class': 'btn primary', text: '▶ Watch the race' }); G.work.appendChild(row(go));
     var q = el('div', { hidden: '' }); G.work.appendChild(q); var right = 0;
-    function ask(title, opts, ans, after) { var box = el('div', {}, [el('h3', { text: title })]); var r = el('div', { 'class': 'row' }); opts.forEach(function (o) { r.appendChild(el('button', { type: 'button', 'class': 'btn', text: o, onclick: function (e) { if (box.dataset.done) return; if (o === ans) { box.dataset.done = 1; e.target.classList.add('good'); G.firstTry(true); right++; after(); } else { G.firstTry(false); G.say('Watch again: ' + (title.indexOf('start') >= 0 ? 'where was each ride at minute 0?' : 'who closes the gap?'), 'bad'); V.say('g7_r0_bad'); } } })); }); box.appendChild(r); q.appendChild(box); }
+    function ask(title, opts, ans, after) { var box = el('div', {}, [el('h3', { text: title })]); var r = el('div', { 'class': 'row' }); opts.forEach(function (o) { r.appendChild(el('button', { type: 'button', 'class': 'btn', text: o, onclick: function (e) { if (box.dataset.done) return; if (o === ans) { box.dataset.done = 1; e.target.classList.add('good'); G.firstTry(true); right++; after(); } else { G.firstTry(false); G.say(title.indexOf('start') >= 0 ? 'Not that one. Look at the board at MINUTE 0: which ride has more km? Then tap again.' : 'Not that one. Press ↺ Watch again and look at who catches up and passes. Then tap again.', 'bad'); V.say('g7_r0_bad'); } } })); }); box.appendChild(r); q.appendChild(box); }
     go.addEventListener('click', function () { if (busy()) return; var gone = stamp(); G.lock(true); race(['taxi', 'bike'], 0, 44, 7).then(function () { if (gone()) return; G.lock(false); go.textContent = '↺ Watch again'; if (!q.hidden) return; q.hidden = false; V.say('g7_r0_q');
-      ask('Who was ahead at the start?', ['Taxi', 'Tandem bike'], 'Taxi', function () { ask('Who is faster?', ['Taxi', 'Tandem bike'], 'Tandem bike', function () { G.P.done.R0 = true; done('R0', 'The taxi started ahead (20 km down the road), but the bike is faster: it closes the gap and passes. Ahead is not the same as faster.', ['g7_r0_ok']); }); }); }); });
+      stepAt(2); ask('2. Who was ahead at the start?', ['Taxi', 'Tandem bike'], 'Taxi', function () { stepAt(3); ask('3. Who is faster?', ['Taxi', 'Tandem bike'], 'Tandem bike', function () { G.P.done.R0 = true; done('R0', 'The taxi started ahead (20 km down the road), but the bike is faster: it closes the gap and passes. Ahead is not the same as faster.', ['g7_r0_ok']); }); }); }); });
     G.hintFn = function (r) { V.say('g7_hint1'); G.say(r === 1 ? 'Hint: look at minute 0 for "ahead". Look at who gains for "faster".' : 'Hint: the bike passes the taxi. Passing means faster.'); };
     V.say(['g7_intro1', 'g7_intro2']);
   }
@@ -2242,21 +2247,21 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= R1: read Rita's signs ================= */
   function R1() {
     ST.scene = 'stand'; ST.cast = { marcus: { x: 905, f: -1, sc: 0.5 } };
-    G.setTask("Read Rita's Signs", 'Every sign is in a different form. Find each ride\'s <strong>speed in kilometres per minute</strong>.');
+    setJob('Find each ride\'s speed: how many km it goes in 1 minute.', ['Read the sign named below (it is on the stage).', 'Type its speed and press <strong>Check speed</strong>.', 'Do all 4 signs: taxi, scooter, bike, sled.'], 'all 4 speeds are right. (Example: 3 km every minute = speed 3.)', '<span class="jx">Each sign shows its ride in a different way.</span>');
     var steps = [
-      { k: 'taxi', title: 'Taxi: the equation d = 20 + 0.5t', hint: 'The number next to t is the speed.', lines: ['g7_r1_marcus', 'g7_r1_head'], ok: 'g7_r1_taxi', bad: function (v) { return v === 20 ? ['20 is the head start: where the taxi begins. It never grows.', ['g7_r1_head']] : null; } },
-      { k: 'scooter', title: 'Scooter: the table (t 0, 4, 8, 12 → d 6, 10, 14, 18)', hint: 'Distance goes up 4 when time goes up 4.', lines: [], ok: 'g7_r1_scoot', bad: function (v) { return v === 4 ? ['4 km is per FOUR minutes. The minutes jump by 4 too.', ['g7_r1_four', 'g7_r1_care']] : v === 6 ? ['6 is where it starts.', []] : null; } },
-      { k: 'bike', title: 'Tandem bike: the graph through (0, 0), (10, 15), (20, 30)', hint: 'Rise over run: 15 km over 10 minutes.', lines: [], ok: 'g7_r1_bike', bad: function (v) { return v === 15 ? ['15 km is how far it goes in TEN minutes.', []] : null; } },
-      { k: 'sled', title: 'Sand Sled: the words ("starts 2 km down the road, adds 1.25 km every minute")', hint: '"Every minute" is the speed.', lines: ['g7_r1_sled'], ok: 'g7_r1_sledok', bad: function (v) { return v === 2 ? ['2 km is the head start.', []] : null; } }
+      { k: 'taxi', title: 'Taxi: the equation d = 20 + 0.5t', hint: 'The number next to t is the speed.', lines: ['g7_r1_marcus', 'g7_r1_head'], ok: 'g7_r1_taxi', bad: function (v) { return v === 20 ? ['20 is the head start: where the taxi begins. Use the number next to t instead.', ['g7_r1_head']] : null; } },
+      { k: 'scooter', title: 'Scooter: the table (t 0, 4, 8, 12 → d 6, 10, 14, 18)', hint: 'Distance goes up 4 when time goes up 4.', lines: [], ok: 'g7_r1_scoot', bad: function (v) { return v === 4 ? ['4 km is per FOUR minutes (the minutes jump by 4 too). How many km in ONE minute?', ['g7_r1_four', 'g7_r1_care']] : v === 6 ? ['6 is where it starts. How much does d go up each minute?', []] : null; } },
+      { k: 'bike', title: 'Tandem bike: the graph through (0, 0), (10, 15), (20, 30)', hint: 'Rise over run: 15 km over 10 minutes.', lines: [], ok: 'g7_r1_bike', bad: function (v) { return v === 15 ? ['15 km is how far it goes in TEN minutes. Divide by 10 to get ONE minute.', []] : null; } },
+      { k: 'sled', title: 'Sand Sled: the words ("starts 2 km down the road, adds 1.25 km every minute")', hint: '"Every minute" is the speed.', lines: ['g7_r1_sled'], ok: 'g7_r1_sledok', bad: function (v) { return v === 2 ? ['2 km is the head start. Look for the number it adds every minute.', []] : null; } }
     ];
     var k = 0, box = el('div', {}); G.work.appendChild(box);
     function one() {
       var s = steps[k]; ST.hl = s.k; box.innerHTML = ''; var inp = num('sp', s.title, '6em'), b = el('button', { type: 'button', 'class': 'btn primary', text: 'Check speed' });
-      box.appendChild(el('h3', { text: (k + 1) + ' of 4. ' + s.title })); box.appendChild(row(lab('Speed (km per minute)', 'sp'), inp, b));
+      box.appendChild(el('h3', { text: 'Sign ' + (k + 1) + ' of 4. ' + s.title })); box.appendChild(row(lab('Speed (km per minute)', 'sp'), inp, b));
       if (s.k === 'bike') box.appendChild(bikeGraph());
       b.addEventListener('click', function () { if (busy()) return; var v = parseNum(inp.value); if (same(v, RIDES[s.k].speed)) { check(inp, true); G.say(''); G.firstTry(true); G.note(RIDES[s.k].name + ': ' + fmt(RIDES[s.k].speed) + ' km/min'); var gone = stamp(); G.lock(true); V.say(s.k === 'scooter' ? [s.ok, 'g7_r1_test'] : [s.ok]).then(function () { if (gone()) return; G.lock(false); k++; if (k < 4) one(); else done('R1', 'Taxi 0.5, scooter 1, bike 1.5, sled 1.25 km per minute. The speed is the rate of change: the number next to t, or change in distance ÷ change in time.', []); }); }
-        else { check(inp, false); G.firstTry(false); var b2 = s.bad(v); G.say(b2 ? b2[0] : 'How many kilometres in ONE minute?', 'bad'); V.say(b2 && b2[1].length ? b2[1] : 'g7_r1_bad'); } });
-      if (s.lines.length) V.say(s.lines); inp.focus();
+        else { check(inp, false); G.firstTry(false); var b2 = s.bad(v); G.say(b2 ? b2[0] : 'Not yet. Find how many km it goes in ONE minute, then check again. Stuck? Press Hint.', 'bad'); V.say(b2 && b2[1].length ? b2[1] : 'g7_r1_bad'); } });
+      if (s.lines.length) V.say(s.lines); inp.focus({ preventScroll: true }); inp.addEventListener('input', function () { stepAt(k ? 3 : 2); });
     }
     G.hintFn = function (r) { var s = steps[k]; V.say(r === 4 ? 'g7_hint4' : r >= 3 ? 'g7_hint3' : 'g7_hint1'); G.say(r <= 2 ? 'Hint: ' + s.hint : 'Worked step: ' + ({ taxi: '0.5 km each minute.', scooter: '4 km ÷ 4 min = 1.', bike: '15 ÷ 10 = 1.5.', sled: '1.25 km every minute.' })[s.k]); if (r >= 4) $('#sp').value = String(RIDES[s.k].speed); };
     V.say(['g7_intro3', 'g7_r1_s']); one();
@@ -2275,15 +2280,15 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= R2: rank the rides ================= */
   function R2() {
     ST.scene = 'stand'; ST.hl = null; ST.cast = { zero: { x: 860, f: -1, sc: 0.7 }, one: { x: 920, f: -1, sc: 0.5 } };
-    G.setTask('Rank the Rides', 'Put the rides in order, <strong>fastest first</strong>. Then choose the ride for Zero and One.');
-    var order = ['taxi', 'scooter', 'bike', 'sled'], list = el('ol', { 'class': 'proof' }); G.work.appendChild(list); var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Check my ranking' }); G.work.appendChild(row(b));
+    setJob('Put the rides in order, fastest first.', ['Use <strong>↑</strong> and <strong>↓</strong> to move the rides. Fastest goes on top.', 'Press <strong>Check my ranking</strong>.', 'Pick the ride for Zero and One.'], 'your order is right and Zero and One have their ride.', '<span class="jx">Rank by speed (km per minute) from Rita\'s signs, not by the biggest number.</span>');
+    var order = ['taxi', 'scooter', 'bike', 'sled'], list = el('ol', { 'class': 'proof rank' }); G.work.appendChild(list); var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Check my ranking' }); G.work.appendChild(row(b));
     var pick = el('div', { hidden: '' }); G.work.appendChild(pick); var tries = 0;
     function render() { list.innerHTML = ''; order.forEach(function (k, i) { list.appendChild(el('li', {}, [el('span', { text: RIDES[k].name + ' (' + ({ taxi: 'd = 20 + 0.5t', scooter: 'the table', bike: 'the graph', sled: 'the words' })[k] + ')' }), el('span', { 'class': 'row' }, [el('button', { type: 'button', 'class': 'btn small', 'aria-label': 'Move ' + RIDES[k].name + ' up', text: '↑', disabled: i ? null : '', onclick: function () { var t2 = order[i - 1]; order[i - 1] = k; order[i] = t2; render(); } }), el('button', { type: 'button', 'class': 'btn small', 'aria-label': 'Move ' + RIDES[k].name + ' down', text: '↓', disabled: i < 3 ? null : '', onclick: function () { var t2 = order[i + 1]; order[i + 1] = k; order[i] = t2; render(); } })])])); }); }
     render();
-    b.addEventListener('click', function () { tries++; if (order.join() === 'bike,sled,scooter,taxi') { G.firstTry(tries === 1); G.note('1.5 > 1.25 > 1 > 0.5'); var gone = stamp(); G.lock(true); V.say(['g7_r2_gus', 'g7_r2_ok']).then(function () { if (gone()) return; G.lock(false); pick.hidden = false; }); }
-      else { G.firstTry(false); G.say(order[0] === 'taxi' ? 'The taxi has the biggest number, but 20 is its head start. Rank by speed.' : 'Use the speeds from the signs: 0.5, 1, 1.5 and 1.25.', 'bad'); V.say(order[0] === 'taxi' ? 'g7_r2_bad' : 'g7_hint1'); } });
-    pick.appendChild(el('h3', { text: 'Which ride for Zero and One?' })); var pr = el('div', { 'class': 'row' }); pick.appendChild(pr);
-    ['taxi', 'scooter', 'bike', 'sled'].forEach(function (k) { pr.appendChild(el('button', { type: 'button', 'class': 'btn', text: RIDES[k].name, onclick: function () { if (k === 'bike') { var gone = stamp(); G.lock(true); V.say(['g7_r2_pair', 'g7_r2_both']).then(function () { if (gone()) return; G.lock(false); done('R2', 'Fastest to slowest: bike 1.5, sled 1.25, scooter 1, taxi 0.5. The fastest ride has no big number on its sign at all.', []); }); } else { G.firstTry(false); G.say('Pick the steepest one: the fastest speed.', 'bad'); V.say('g7_r2_gus'); } } })); });
+    b.addEventListener('click', function () { tries++; if (order.join() === 'bike,sled,scooter,taxi') { G.firstTry(tries === 1); G.note('1.5 > 1.25 > 1 > 0.5'); var gone = stamp(); G.lock(true); V.say(['g7_r2_gus', 'g7_r2_ok']).then(function () { if (gone()) return; G.lock(false); pick.hidden = false; stepAt(3); }); }
+      else { G.firstTry(false); G.say(order[0] === 'taxi' ? 'The taxi\'s 20 is its head start, not its speed. Move the rides by speed, then check again.' : 'Not yet. The speeds are 0.5, 1, 1.5 and 1.25 km per minute. Put the biggest on top, then check again.', 'bad'); V.say(order[0] === 'taxi' ? 'g7_r2_bad' : 'g7_hint1'); } });
+    pick.appendChild(el('h3', { text: '3. Which ride for Zero and One?' })); var pr = el('div', { 'class': 'row' }); pick.appendChild(pr);
+    ['taxi', 'scooter', 'bike', 'sled'].forEach(function (k) { pr.appendChild(el('button', { type: 'button', 'class': 'btn', text: RIDES[k].name, onclick: function () { if (k === 'bike') { var gone = stamp(); G.lock(true); V.say(['g7_r2_pair', 'g7_r2_both']).then(function () { if (gone()) return; G.lock(false); done('R2', 'Fastest to slowest: bike 1.5, sled 1.25, scooter 1, taxi 0.5. The fastest ride has no big number on its sign at all.', []); }); } else { G.firstTry(false); G.say('Zero and One need the fastest ride: the one at the top of your list. Tap that one.', 'bad'); V.say('g7_r2_gus'); } } })); });
     G.hintFn = function (r) { V.say(r === 1 ? 'g7_r2_gus' : 'g7_hint1'); G.say(r === 1 ? 'Hint: pick the steepest, not the biggest number.' : 'Hint: speeds are taxi 0.5, scooter 1, bike 1.5, sled 1.25.'); if (r >= 4) { order = ['bike', 'sled', 'scooter', 'taxi']; render(); } };
     V.say('g7_r2_s');
   }
@@ -2291,13 +2296,13 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= R3: the Proportional Lane ================= */
   function R3() {
     ST.scene = 'stand'; ST.cast = { zero: { x: 880, f: -1, sc: 0.8 } };
-    G.setTask('The Proportional Lane', 'Zero guards the lane: <strong>start at zero, and double the time means double the distance</strong>. Which rides get in?');
-    var box = el('div', { 'class': 'suspects' }); G.work.appendChild(box); var right = {};
+    setJob('Decide which rides are proportional.', ['Look at each ride: where is it at minute 0?', 'Tap <strong>Proportional</strong> or <strong>Not proportional</strong>.', 'Do all 4 rides.'], 'all 4 rides are sorted.', '<span class="jx">Proportional = it starts at 0 km, and double the time gives double the distance.</span>');
+    var box = el('div', { 'class': 'sortlist' }); G.work.appendChild(box); var right = {};
     ['taxi', 'scooter', 'bike', 'sled'].forEach(function (k) {
-      var R = RIDES[k], fb = el('small', { 'class': 'muted' }), d = el('div', { 'class': 'suspect' }, [el('div', { 'class': 'shead' }, [el('b', { text: R.name }), el('span', { text: ({ taxi: 'd = 20 + 0.5t', scooter: '0→6, 4→10, 8→14', bike: '(0,0), (10,15), (20,30)', sled: 'starts 2 km, +1.25 km/min' })[k] })])]);
-      var r = el('div', { 'class': 'row' }); ['Proportional', 'Not proportional'].forEach(function (lbl) { r.appendChild(el('button', { type: 'button', 'class': 'btn small', text: lbl, onclick: function () { if (right[k]) return; var yes = lbl === 'Proportional'; if (yes === R.prop) { right[k] = 1; G.firstTry(true); fb.className = 'good'; fb.textContent = R.prop ? 'In the lane: starts at (0, 0), and 15/10 = 30/20 = 1.5.' : 'Not proportional: it starts at ' + R.start + ' km, not 0.' + (k === 'scooter' ? ' 10/4 = 2.5 but 14/8 = 1.75.' : ''); G.note(R.name + ': ' + (R.prop ? 'proportional' : 'not proportional (starts at ' + R.start + ')'));
+      var R = RIDES[k], fb = el('small', { 'class': 'muted' }), d = el('div', { 'class': 'sortrow' }, [el('div', { 'class': 'sl' }, [el('b', { text: R.name }), el('span', { text: ({ taxi: 'd = 20 + 0.5t', scooter: '0→6, 4→10, 8→14', bike: '(0,0), (10,15), (20,30)', sled: 'starts 2 km, +1.25 km/min' })[k] })])]);
+      var r = el('div', { 'class': 'row' }); ['Proportional', 'Not proportional'].forEach(function (lbl) { r.appendChild(el('button', { type: 'button', 'class': 'btn small', text: lbl, onclick: function () { if (right[k]) return; var yes = lbl === 'Proportional'; if (yes === R.prop) { right[k] = 1; G.firstTry(true); d.classList.add('ok'); this.classList.add('picked'); if (Object.keys(right).length >= 1) stepAt(3); fb.className = 'good'; fb.textContent = R.prop ? 'In the lane: starts at (0, 0), and 15/10 = 30/20 = 1.5.' : 'Not proportional: it starts at ' + R.start + ' km, not 0.' + (k === 'scooter' ? ' 10/4 = 2.5 but 14/8 = 1.75.' : ''); G.note(R.name + ': ' + (R.prop ? 'proportional' : 'not proportional (starts at ' + R.start + ')'));
         V.say(k === 'bike' ? 'g7_r3_bike' : k === 'scooter' ? ['g7_r3_scoot', 'g7_r3_head'] : k === 'sled' ? 'g7_r3_sled' : 'g7_r3_no'); if (Object.keys(right).length === 4) setTimeout((function (gone) { return function () { if (gone()) return; done('R3', 'Only the bike is proportional: it starts at (0, 0) and distance ÷ time is always 1.5. The others are linear, but a head start breaks proportionality.', []); }; })(stamp()), 400); }
-        else { G.firstTry(false); fb.className = 'bad'; fb.textContent = R.prop ? 'Check: does it start at 0? Is distance ÷ time the same every time?' : 'It\'s a straight line, but does it start at 0?'; V.say(R.prop ? 'g7_r3_eff' : 'g7_r3_no'); } } })); });
+        else { G.firstTry(false); fb.className = 'bad'; fb.textContent = R.prop ? 'Look again: where is it at minute 0? Is distance ÷ time always the same? Then tap again.' : 'It is a straight line, but where is it at minute 0? Then tap again.'; V.say(R.prop ? 'g7_r3_eff' : 'g7_r3_no'); } } })); });
       d.appendChild(r); d.appendChild(fb); box.appendChild(d);
     });
     G.hintFn = function (r) { V.say(r === 1 ? 'g7_r3_s' : 'g7_r3_eff'); G.say(r === 1 ? 'Hint: where is each ride at minute 0?' : r === 2 ? 'Hint: only a ride that starts at 0 km can be proportional.' : 'Worked step: taxi starts at 20, scooter at 6, sled at 2, bike at 0.'); };
@@ -2307,18 +2312,19 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= R4: the race board ================= */
   function R4() {
     ST.scene = 'road'; ST.rides = ['taxi', 'scooter', 'bike']; ST.t = 0; ST.cast = {};
-    G.setTask('The Race Board', 'Predict the board <strong>before</strong> the clock runs. Bets made before the clock count for the Helmet Keeper certificate.');
-    var tb = el('table', { 'class': 'cmp' }); tb.innerHTML = '<thead><tr><th>Minute</th><th>Taxi</th><th>Scooter</th><th>Bike</th></tr></thead>';
+    setJob('Predict the race before it runs.', ['Fill the board: km for each ride at minute 10 and 20.', 'Choose who is ahead at minute 10 and at minute 30.', 'Type the minute the bike catches up and the scooter passes.', 'Press <strong>Lock in my predictions</strong>.'], 'every box is right. Then watch the race.', RULES7);
+    var tb = el('table', { 'class': 'cmp' }); tb.innerHTML = '<thead><tr><th>Minute</th><th>Taxi km</th><th>Scooter km</th><th>Bike km</th></tr></thead>';
     var body = el('tbody'); tb.appendChild(body); var ids = [];
     [10, 20].forEach(function (m) { var tr = el('tr', {}, [el('th', { text: String(m) })]); ['taxi', 'scooter', 'bike'].forEach(function (k) { var id = 'b' + m + k; ids.push([id, RIDES[k].f(m)]); tr.appendChild(el('td', {}, [num(id, RIDES[k].name + ' at minute ' + m, '4.5em')])); }); body.appendChild(tr); });
     G.work.appendChild(el('div', { 'class': 'scroll-x' }, [tb]));
     function sel(id, label, opts) { var s = el('select', { id: id, 'class': 'num', 'aria-label': label, style: 'width:auto' }); s.appendChild(el('option', { value: '', text: 'choose…' })); opts.forEach(function (o) { s.appendChild(el('option', { value: o, text: o })); }); return s; }
     var a10 = sel('a10', 'Ahead at minute 10', ['Taxi', 'Scooter', 'Bike']), a30 = sel('a30', 'Ahead at minute 30', ['Taxi', 'Scooter', 'Bike']), lv = num('lv', 'Minute the bike draws level with the taxi'), ps = num('ps', 'Minute the scooter passes the taxi');
-    G.work.appendChild(row(lab('Ahead at minute 10:', 'a10'), a10, lab('Ahead at minute 30:', 'a30'), a30));
-    G.work.appendChild(row(lab('Bike draws level with the taxi at minute', 'lv'), lv)); G.work.appendChild(row(lab('Scooter passes the taxi at minute', 'ps'), ps));
+    lv.style.width = ps.style.width = '3.6em'; G.work.appendChild(el('div', { 'class': 'qgrid q4' }, [lab('Ahead at minute 10', 'a10'), a10, lab('Ahead at minute 30', 'a30'), a30, lab('Bike catches the taxi at minute', 'lv'), lv, lab('Scooter passes the taxi at minute', 'ps'), ps]));
     var lock = el('button', { type: 'button', 'class': 'btn primary', text: 'Lock in my predictions' }); G.work.appendChild(row(lock));
+    G.work.addEventListener('focusin', function (e) { var id = e.target.id || ''; var n = /^b\d/.test(id) ? 1 : id === 'a10' || id === 'a30' ? 2 : id === 'lv' || id === 'ps' ? 3 : 0; if (n) stepAt(n); });
+    G.work.addEventListener('input', function () { if (ids.every(function (p) { return $('#' + p[0]).value.trim(); }) && a10.value && a30.value && lv.value.trim() && ps.value.trim()) stepAt(4); });
     var clockBox = el('div', {}); var clk = el('input', { type: 'range', id: 'clk7', min: '0', max: '40', step: '1', value: '0', 'aria-label': 'Race clock in minutes', style: 'width:100%' });
-    clockBox.appendChild(el('h3', { text: 'Race clock' })); clockBox.appendChild(clk); G.work.appendChild(clockBox);
+    clockBox.appendChild(el('h3', { text: 'Race clock: drag to peek (peeking first = no Helmet Keeper)' })); clockBox.appendChild(clk); G.work.appendChild(clockBox);
     var usedClock = false, tries = 0;
     clk.addEventListener('input', function () { usedClock = true; ST.t = +clk.value; }); peekStage(clk);
     lock.addEventListener('click', function () {
@@ -2329,7 +2335,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       if (!bad.length) {
         G.P.helmet = G.P.helmet || (tries === 1 && !usedClock && G.levelMaxRung === 0); G.save(); G.firstTry(tries === 1); G.note('min 10: 25, 16, 15   min 20: 30, 26, 30'); G.note('bike = taxi at (20, 30); scooter passes at (28, 34)');
         var gone = stamp(); G.lock(true); race(['taxi', 'scooter', 'bike'], 0, 10, 2.5).then(function () { if (gone()) return; return V.say(['g7_r4_m10', 'g7_r4_ahead', 'g7_r4_gap']); }).then(function () { if (gone()) return; return race(['taxi', 'scooter', 'bike'], 10, 20, 2.5); }).then(function () { if (gone()) return; return V.say(['g7_r4_m20', 'g7_r4_pass', 'g7_r4_same']); }).then(function () { if (gone()) return; return race(['taxi', 'scooter', 'bike'], 20, 28, 2); }).then(function () { if (gone()) return; return V.say(['g7_r4_scoot', 'g7_r4_outrage']); }).then(function () { if (gone()) return; G.lock(false); done('R4', 'Taxi leads at minute 10 because it started 20 km ahead. The bike draws level at minute 20 (30 km) and the scooter passes at minute 28 (34 km).' + (G.P.helmet ? ' Every bet right before the clock: you earned Helmet Keeper.' : ''), G.P.helmet ? ['g7_cert_helmet'] : []); });
-      } else { G.firstTry(false); G.say('Not yet: check ' + bad.slice(0, 3).join(', ') + (bad.length > 3 ? ' and more' : '') + '. Distance = start + speed × minutes.', 'bad'); V.say(a30.value === 'Taxi' ? 'g7_r4_bet' : 'g7_r4_bad'); }
+      } else { G.firstTry(false); G.say('Fix the red boxes (' + bad.slice(0, 3).join(', ') + (bad.length > 3 ? ' and more' : '') + '). For each one use: start + speed × minutes. Then lock in again.', 'bad'); V.say(a30.value === 'Taxi' ? 'g7_r4_bet' : 'g7_r4_bad'); }
     });
     G.hintFn = function (r) { V.say(r === 1 ? 'g7_r4_bad' : 'g7_r4_gap'); G.say(r === 1 ? 'Hint: taxi at minute 10 = 20 + 0.5 × 10.' : r === 2 ? 'Hint: the bike gains 1 km per minute on the taxi (1.5 − 0.5), and starts 20 behind.' : 'Worked step: 20 km gap ÷ 1 km per minute = minute 20. Scooter gains 0.5 per minute on a 14 km gap: minute 28.'); };
     V.say('g7_r4_s');
@@ -2338,13 +2344,13 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= R5: the lighthouse ================= */
   function R5() {
     ST.scene = 'road'; ST.rides = ['taxi', 'scooter', 'bike']; ST.t = 28; ST.cast = {};
-    G.setTask('The Lighthouse', 'The lighthouse is <strong>60 km</strong> away. At what minute does each ride arrive?');
+    setJob('Find the minute each ride reaches the lighthouse at 60 km.', ['Use each ride\'s rule to find when it gets to 60 km.', 'Type the 3 minutes in the boxes.', 'Press <strong>Check arrivals</strong>.'], 'all 3 minutes are right.', RULES7);
     var ins = { bike: num('arB', 'Bike arrival minute'), scooter: num('arS', 'Scooter arrival minute'), taxi: num('arT', 'Taxi arrival minute') };
-    G.work.appendChild(row(lab('Bike', 'arB'), ins.bike, lab('Scooter', 'arS'), ins.scooter, lab('Taxi', 'arT'), ins.taxi));
+    G.work.appendChild(el('h3', { text: 'Arrives at 60 km at minute…' })); G.work.appendChild(row(lab('Bike', 'arB'), ins.bike, lab('Scooter', 'arS'), ins.scooter, lab('Taxi', 'arT'), ins.taxi));
     var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Check arrivals' }); G.work.appendChild(row(b)); var tries = 0;
     b.addEventListener('click', function () { if (busy()) return; tries++; var ok = check(ins.bike, same(parseNum(ins.bike.value), 40)) & check(ins.scooter, same(parseNum(ins.scooter.value), 54)) & check(ins.taxi, same(parseNum(ins.taxi.value), 80));
       if (ok) { G.firstTry(tries === 1); G.note('arrive: bike 40, scooter 54, taxi 80'); var gone = stamp(); G.lock(true); race(['taxi', 'scooter', 'bike'], 28, 40, 2).then(function () { if (gone()) return; return V.say(['g7_r5_duo']); }).then(function () { if (gone()) return; return race(['taxi', 'scooter', 'bike'], 40, 80, 3); }).then(function () { if (gone()) return; return V.say(['g7_r5_taxi', 'g7_r5_marcus', 'g7_r5_adm', 'g7_end']); }).then(function () { if (gone()) return; G.lock(false); done('R5', 'Bike 60 ÷ 1.5 = 40. Scooter (60 − 6) ÷ 1 = 54. Taxi (60 − 20) ÷ 0.5 = 80. Take away the head start, then divide by the speed.', []); }); }
-      else { G.firstTry(false); var tv = parseNum(ins.taxi.value); G.say(same(tv, 120) ? '60 ÷ 0.5 forgets the head start: the taxi only needs to cover 40 km.' : 'Take away the head start first, then divide by the speed.', 'bad'); V.say('g7_r5_bad'); } });
+      else { G.firstTry(false); var tv = parseNum(ins.taxi.value); G.say(same(tv, 120) ? '60 ÷ 0.5 forgets the head start: the taxi only needs to cover 40 more km. Fix the taxi box and check again.' : 'Fix the red boxes: take away the head start from 60 first, then divide by the speed.', 'bad'); V.say('g7_r5_bad'); } });
     G.hintFn = function (r) { V.say(r === 1 ? 'g7_r5_bad' : 'g7_hint3'); G.say(r === 1 ? 'Hint: the bike starts at 0 and goes 1.5 km each minute.' : r === 2 ? 'Hint: the scooter has 54 km left at 1 km per minute.' : 'Worked step: taxi: 60 − 20 = 40 km, at 0.5 km per minute.'); };
     V.say('g7_r5_s');
   }
@@ -2353,13 +2359,13 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   function S1() {
     ST.scene = 'road'; ST.rides = ['taxi']; ST.t = 0; ST.cast = { rita: { x: 80, f: 1, sc: 0.6 } };
     RIDES.mine = { name: 'Your ride', col: '#FF8FD1', f: function (t) { return 0; } };
-    G.setTask('Rig the Race', 'Design a ride <strong>d = start + speed × t</strong> that is <strong>behind the taxi at minute 10</strong> but <strong>ahead of it by minute 40</strong>.');
-    var b0 = num('rs', 'Your start (km)'), m0 = num('rm', 'Your speed (km per minute)'); G.work.appendChild(row(lab('d =', 'rs'), b0, lab('+', 'rm'), m0, el('span', { text: '× t' })));
-    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Race it against the taxi' }); G.work.appendChild(row(go)); var out = el('div', { 'class': 'scroll-x' }); G.work.appendChild(out);
+    setJob('Design a ride that loses to the taxi early but wins late.', ['Type a start (km) and a speed (km per minute) for your ride.', 'Press <strong>Race it against the taxi</strong>.', 'Change your numbers until it works.'], 'your ride is <strong>behind the taxi at minute 10</strong> and <strong>ahead of it at minute 40</strong>.', '<span class="rules"><span>Taxi: d = 20 + 0.5t</span> → <span>25 km at minute 10,</span> <span>40 km at minute 40</span></span><span class="jx">Any numbers are fine to try first, e.g. start 0, speed 0.8. See what happens.</span>');
+    var b0 = num('rs', 'Your start (km)'), m0 = num('rm', 'Your speed (km per minute)'); G.work.appendChild(el('h3', { text: '1. Your ride: d = start + speed × t' })); G.work.appendChild(row(lab('d =', 'rs'), b0, lab('+', 'rm'), m0, el('span', { text: '× t' }))); G.work.appendChild(el('small', { 'class': 'muted', text: 'first box: start (km) · second box: speed (km per minute)' }));
+    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Race it against the taxi' }); G.work.appendChild(row(go)); [b0, m0].forEach(function (x) { x.addEventListener('input', function () { if (b0.value.trim() && m0.value.trim()) stepAt(2); }); }); var out = el('div', { 'class': 'scroll-x' }); G.work.appendChild(out);
     go.addEventListener('click', function () { if (busy()) return; var b = parseNum(b0.value), m = parseNum(m0.value); if (b == null || m == null || b < 0 || b > 60 || m < 0 || m > 5) { G.say('Use a start from 0 to 60 km and a speed from 0 to 5 km per minute.', 'bad'); return; }
-      RIDES.mine.f = function (t) { return b + m * t; }; var y10 = b + 10 * m, y40 = b + 40 * m, ok = y10 < 25 && y40 > 40;
+      stepAt(3); RIDES.mine.f = function (t) { return b + m * t; }; var y10 = b + 10 * m, y40 = b + 40 * m, ok = y10 < 25 && y40 > 40;
       out.innerHTML = '<table class="cmp"><thead><tr><th>Minute</th><th>Taxi</th><th>Yours</th></tr></thead><tbody><tr><td>10</td><td>25</td><td class="' + (y10 < 25 ? 'yes' : 'no') + '">' + fmt(+y10.toFixed(2)) + '</td></tr><tr><td>40</td><td>40</td><td class="' + (y40 > 40 ? 'yes' : 'no') + '">' + fmt(+y40.toFixed(2)) + '</td></tr></tbody></table>';
-      var gone = stamp(); G.lock(true); race(['taxi', 'mine'], 0, 40, 3).then(function () { if (gone()) return; G.lock(false); if (ok) { G.P.rig = 'd = ' + fmt(b) + ' + ' + fmt(m) + 't (behind at 10, ahead at 40)'; G.save(); G.firstTry(true); done('S1', 'Your ride d = ' + fmt(b) + ' + ' + fmt(m) + 't loses early and wins late: a smaller head start, a faster speed.', ['g7_s1_ok']); } else { G.firstTry(false); G.say(y10 >= 25 ? 'At minute 10 you are not behind the taxi. ' + (b > 0 ? 'Try a smaller start or a slower speed.' : 'You already start at 0, so try a slower speed.') : 'By minute 40 you haven\'t passed the taxi. Try a faster speed.', 'bad'); } }); });
+      var gone = stamp(); G.lock(true); race(['taxi', 'mine'], 0, 40, 3).then(function () { if (gone()) return; G.lock(false); if (ok) { G.P.rig = 'd = ' + fmt(b) + ' + ' + fmt(m) + 't (behind at 10, ahead at 40)'; G.save(); G.firstTry(true); done('S1', 'Your ride d = ' + fmt(b) + ' + ' + fmt(m) + 't loses early and wins late: a smaller head start, a faster speed.', ['g7_s1_ok']); } else { G.firstTry(false); G.say(y10 >= 25 ? 'At minute 10 you are not behind the taxi (25 km). ' + (b > 0 ? 'Try a smaller start or a slower speed.' : 'You already start at 0, so try a slower speed.') : 'By minute 40 you haven\'t passed the taxi (40 km). Try a faster speed, then race again.', 'bad'); } }); });
     G.hintFn = function (r) { V.say('g7_hint1'); G.say(r === 1 ? 'Hint: start behind the taxi, but go faster than 0.5 km per minute.' : r === 2 ? 'Hint: try a start of 0 and a speed between 1 and 2.' : 'Worked step: d = 0 + 1.2t gives 12 at minute 10 (behind) and 48 at minute 40 (ahead).'); };
     V.say('g7_s1_s');
   }
@@ -2367,11 +2373,11 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= S2: the false claim (case + bust) ================= */
   function S2() {
     ST.scene = 'stand'; ST.cast = { marcus: { x: 905, f: -1, sc: 0.5 } };
-    G.setTask('The False Claim', 'Marcus is on the radio with "facts". Bust the false one with the real ratio of speeds.');
+    setJob('Check Marcus\'s two claims. Find the false one.', ['Divide the two speeds to get the real ratio (e.g. 3 ÷ 1.5 = 2 means "2 times as fast").', 'Type it in <strong>Real ratio</strong>.', 'Tap <strong>True</strong> or <strong>Busted</strong>. Do both claims.'], 'both claims are judged right.', '<span class="rules"><span>Speeds (km per minute):</span> <span>taxi 0.5 ·</span> <span>scooter 1 ·</span> <span>bike 1.5 ·</span> <span>sled 1.25</span></span>');
     var claims = [{ t: '"The bike is three times as fast as the scooter."', truth: false, ratio: 1.5 }, { t: '"The scooter is twice as fast as the taxi."', truth: true, ratio: 2 }];
     var box = el('div', { 'class': 'suspects' }); G.work.appendChild(box); var ok = {}, wrong = 0;
-    claims.forEach(function (C, i) { var r = num('cr' + i, 'Real ratio of speeds'), fb = el('small', { 'class': 'muted' }); var d = el('div', { 'class': 'suspect' }, [el('div', { 'class': 'shead' }, [el('b', { text: 'Claim ' + (i + 1) }), el('span', { text: C.t })]), row(lab('Real ratio:', 'cr' + i), r)]); var rr = el('div', { 'class': 'row' });
-      ['True', 'Busted'].forEach(function (lbl) { rr.appendChild(el('button', { type: 'button', 'class': 'btn small', text: lbl, onclick: function () { if (ok[i]) return; var v = parseRatio(r.value); var good = (lbl === 'True') === C.truth && same(v, C.ratio); if (good) { ok[i] = 1; check(r, true); fb.className = 'good'; fb.textContent = (C.truth ? 'True: ' : 'Busted: ') + (i ? '1 ÷ 0.5 = 2.' : '1.5 ÷ 1 = 1.5, not 3.'); G.firstTry(true); if (Object.keys(ok).length === 2) { G.P.factOK = G.P.factOK || wrong === 0 || G.levelMaxRung <= 1; G.save(); done('S2', 'Claim 1 is busted: the bike is 1.5 times as fast as the scooter. Claim 2 is true: the scooter is 2 times as fast as the taxi.' + (G.P.factOK ? ' You earned Fact Checker.' : ''), ['g7_s2_ok']); } } else { wrong++; G.firstTry(false); fb.className = 'bad'; fb.textContent = 'Divide the two speeds. Then decide.'; V.say('g7_s2_bad'); } } })); });
+    claims.forEach(function (C, i) { var r = num('cr' + i, 'Real ratio of speeds'); r.addEventListener('input', function () { stepAt(3); }); var fb = el('small', { 'class': 'muted' }); var d = el('div', { 'class': 'suspect' }, [el('div', { 'class': 'shead' }, [el('b', { text: 'Claim ' + (i + 1) }), el('span', { text: C.t })]), row(lab('Real ratio:', 'cr' + i), r)]); var rr = el('div', { 'class': 'row' });
+      ['True', 'Busted'].forEach(function (lbl) { rr.appendChild(el('button', { type: 'button', 'class': 'btn small', text: lbl, onclick: function () { if (ok[i]) return; var v = parseRatio(r.value); var good = (lbl === 'True') === C.truth && same(v, C.ratio); if (good) { ok[i] = 1; check(r, true); if (Object.keys(ok).length === 1) stepAt(3); fb.className = 'good'; fb.textContent = (C.truth ? 'True: ' : 'Busted: ') + (i ? '1 ÷ 0.5 = 2.' : '1.5 ÷ 1 = 1.5, not 3.'); G.firstTry(true); if (Object.keys(ok).length === 2) { G.P.factOK = G.P.factOK || wrong === 0 || G.levelMaxRung <= 1; G.save(); done('S2', 'Claim 1 is busted: the bike is 1.5 times as fast as the scooter. Claim 2 is true: the scooter is 2 times as fast as the taxi.' + (G.P.factOK ? ' You earned Fact Checker.' : ''), ['g7_s2_ok']); } } else { wrong++; G.firstTry(false); fb.className = 'bad'; fb.textContent = v == null ? 'Type the real ratio first (divide the two speeds), then tap True or Busted.' : !same(v, C.ratio) ? (i ? 'Ratio not right yet. Divide: scooter speed ÷ taxi speed. Then tap again.' : 'Ratio not right yet. Divide: bike speed ÷ scooter speed. Then tap again.') : 'Your ratio is right. Does it match what Marcus said? Same number: True. Different: Busted.'; check(r, v != null && same(v, C.ratio)); V.say('g7_s2_bad'); } } })); });
       d.appendChild(rr); d.appendChild(fb); box.appendChild(d); });
     G.hintFn = function (r) { V.say('g7_s2_bad'); G.say(r === 1 ? 'Hint: bike 1.5, scooter 1, taxi 0.5 km per minute.' : 'Worked step: 1.5 ÷ 1 = 1.5 times, and 1 ÷ 0.5 = 2 times.'); };
     V.say('g7_s2_claim');
@@ -2381,18 +2387,18 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   function S3() {
     ST.scene = 'road'; ST.rides = []; ST.t = 0; ST.cast = { zero: { x: 80, f: 1, sc: 0.7 } };
     RIDES.ra = { name: 'Ride A', col: '#FF8FD1', f: function () { return 0; } }; RIDES.rb = { name: 'Ride B', col: '#B48CFF', f: function () { return 0; } };
-    G.setTask('Never Tie', 'Build two rides whose lines <strong>never</strong> meet, not even before the race starts. Ride A as a <strong>rule</strong>, Ride B as a <strong>table</strong>.');
-    var b0 = num('na', 'Ride A start'), m0 = num('nm', 'Ride A speed'); G.work.appendChild(row(el('b', { text: 'Ride A: d =' }), b0, el('span', { text: '+' }), m0, el('span', { text: '× t' })));
+    setJob('Make two rides that never tie.', ['Ride A: type a start and a speed.', 'Ride B: fill its table (km at minutes 0, 2, 4, 6).', 'Press <strong>Race them</strong>.'], 'the two lines never meet, not even before minute 0.', '<span class="jx">Example of a table: 3, 4, 5, 6 goes up 1 every 2 minutes.</span>');
+    var b0 = num('na', 'Ride A start'), m0 = num('nm', 'Ride A speed'); G.work.appendChild(el('h3', { text: '1. Ride A: its rule' })); G.work.appendChild(row(el('b', { text: 'd =' }), b0, el('span', { text: '+' }), m0, el('span', { text: '× t' })));
     var ts = [0, 2, 4, 6], cells = ts.map(function (t) { return num('nt' + t, 'Ride B distance at minute ' + t, '4.5em'); });
     var tb = el('table', { 'class': 'cmp' }); tb.innerHTML = '<thead><tr><th>t</th>' + ts.map(function (t) { return '<th>' + t + '</th>'; }).join('') + '</tr></thead>'; var trr = el('tr', {}, [el('th', { text: 'd' })]); cells.forEach(function (ce) { trr.appendChild(el('td', {}, [ce])); }); tb.appendChild(el('tbody', {}, [trr]));
-    G.work.appendChild(el('h3', { text: 'Ride B: table' })); G.work.appendChild(el('div', { 'class': 'scroll-x' }, [tb]));
-    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Race them' }); G.work.appendChild(row(go));
+    G.work.appendChild(el('h3', { text: '2. Ride B: its table' })); G.work.appendChild(el('div', { 'class': 'scroll-x' }, [tb]));
+    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Race them' }); G.work.appendChild(row(go)); G.work.addEventListener('focusin', function (e) { var id = e.target.id || ''; if (/^n[am]$/.test(id)) stepAt(1); else if (/^nt/.test(id)) stepAt(2); }); G.work.addEventListener('input', function () { if (b0.value.trim() && m0.value.trim() && cells.every(function (x) { return x.value.trim(); })) stepAt(3); });
     go.addEventListener('click', function () { if (busy()) return; var b = parseNum(b0.value), m = parseNum(m0.value), ds = cells.map(function (x) { return parseNum(x.value); }); if (b == null || m == null || ds.some(function (v) { return v == null; })) { G.say('Fill Ride A\'s rule and all four table cells.', 'bad'); return; }
       var steps = [ds[1] - ds[0], ds[2] - ds[1], ds[3] - ds[2]]; if (!(same(steps[0], steps[1]) && same(steps[1], steps[2]))) { G.say('Ride B\'s table isn\'t a steady speed: it goes up ' + steps.map(fmt).join(', ') + '. Make every jump the same.', 'bad'); return; }
-      var mb = steps[0] / 2, bb = ds[0]; RIDES.ra.f = function (t) { return b + m * t; }; RIDES.rb.f = function (t) { return bb + mb * t; };
+      stepAt(3); var mb = steps[0] / 2, bb = ds[0]; RIDES.ra.f = function (t) { return b + m * t; }; RIDES.rb.f = function (t) { return bb + mb * t; };
       var gone = stamp(); G.lock(true); race(['ra', 'rb'], 0, 40, 3).then(function () { if (gone()) return; G.lock(false);
         if (same(m, mb) && !same(b, bb)) { G.P.never = 'A: d = ' + fmt(b) + ' + ' + fmt(m) + 't; B table starts ' + fmt(bb) + ', +' + fmt(steps[0]) + ' every 2 min'; G.save(); G.firstTry(true); done('S3', 'Same speed (' + fmt(m) + ' km per minute), different starts (' + fmt(b) + ' and ' + fmt(bb) + '): parallel lines that never meet.', ['g7_s3_ok']); }
-        else { G.firstTry(false); G.say(same(m, mb) ? 'Same speed AND same start: they tie the whole way. Change one start.' : 'Ride B\'s speed is ' + fmt(mb) + ' km per minute (it goes up ' + fmt(steps[0]) + ' every 2 minutes) but Ride A\'s is ' + fmt(m) + '. ' + (function (tm) { tm = Math.round(tm * 100) / 100; return tm < 0 ? 'They don\'t meet in the race, but their lines cross at minute ' + fmt(tm) + ', before the start. Lines with different speeds always cross somewhere.' : 'The faster one catches up at minute ' + fmt(tm) + '.'; })((bb - b) / (m - mb)), 'bad'); V.say('g7_s3_bad'); } }); });
+        else { G.firstTry(false); G.say(same(m, mb) ? 'Same speed AND same start: they tie the whole way. Change one start, then race again.' : 'Ride B\'s speed is ' + fmt(mb) + ' km per minute (it goes up ' + fmt(steps[0]) + ' every 2 minutes) but Ride A\'s is ' + fmt(m) + '. ' + (function (tm) { tm = Math.round(tm * 100) / 100; return tm < 0 ? 'They don\'t meet in the race, but their lines cross at minute ' + fmt(tm) + ', before the start. Lines with different speeds always cross somewhere. Give them the same speed.' : 'The faster one catches up at minute ' + fmt(tm) + '. Give them the same speed, then race again.'; })((bb - b) / (m - mb)), 'bad'); V.say('g7_s3_bad'); } }); });
     G.hintFn = function (r) { V.say(r === 1 ? 'g7_s3_bad' : 'g7_hint1'); G.say(r === 1 ? 'Hint: never tying means the same speed, but different starts.' : r === 2 ? 'Hint: the table jumps 2 minutes at a time, so it must go up 2 × speed each column.' : 'Worked step: A: d = 5 + 1t. B: 0, 2, 4, 6.'); };
     V.say('g7_s3_s');
   }
@@ -2400,6 +2406,47 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   G.boot('Press <strong>Start the race</strong>. The WORDS link is 60 km up the coast road. Rental Rita has rides, and every sign is in a different form.');
 })();
 </script>
+<style>/* clarity pass: goal, numbered steps, done-when in the job card */
+#task{max-width:none}
+#task .goal{display:block;font-weight:700;color:var(--ink)}
+#task .jx{display:block;margin-top:2px;font-size:.92em;color:var(--muted)}
+#task .jx code,#task .rules{font:600 .92em var(--mono)}
+#task .rules{display:block;margin-top:4px;padding:4px 8px;border-radius:8px;background:var(--panel2);color:var(--ink);font-size:.8em;line-height:1.5}
+#task .rules>span{white-space:nowrap}
+#task ol.steps{margin:6px 0 0;padding-left:1.5em;font-size:.95em;line-height:1.35}
+#task ol.steps li{margin:1px 0}
+#task ol.steps li.now{font-weight:700;color:var(--ink)}
+#task ol.steps li.now::marker{color:var(--marquee)}
+#task ol.steps li.todo{color:var(--muted)}
+#task ol.steps li.did{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(255,255,255,.35)}
+#task ol.steps li.did::marker{color:var(--teal)}
+#task .donewhen{display:block;margin-top:5px;font-size:.92em;color:var(--muted)}
+#task .donewhen b{color:var(--teal)}
+#workBody .num{padding:6px 8px}
+#workBody h3{margin:10px 0 4px}
+#workBody .cmp th,#workBody .cmp td{padding:3px 5px}
+#workBody .cmp input.num{text-align:center;padding-inline:4px}
+.sortlist{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.sortrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;background:var(--panel2);border:2px solid var(--line);border-radius:10px;padding:5px 8px 5px 12px}
+.sortrow .sl{flex:1 1 150px;min-width:0;line-height:1.25}
+.sortrow .sl b{display:block;font-weight:700}
+.sortrow .sl span{display:block;font:500 13px var(--mono);color:var(--muted)}
+.sortrow>.row{flex:0 0 auto;gap:6px}
+.sortrow>small{flex:1 1 100%;font-size:.9em}
+.sortrow>small:empty{display:none}
+.sortlist.tight{gap:4px}
+.sortlist.tight .sortrow{padding:3px 6px 3px 12px}
+.sortlist.tight .sortrow .sl{flex-basis:120px}
+.sortrow small.good{color:var(--green)} .sortrow small.bad{color:var(--red)}
+.sortrow.ok{border-color:var(--green)}
+.sortrow .btn.picked{background:var(--green);border-color:var(--green);color:#06210f}
+.qgrid{display:grid;grid-template-columns:auto auto;gap:6px 10px;align-items:center;justify-content:start;margin-top:6px}
+.qgrid.q4{grid-template-columns:minmax(0,9em) auto minmax(0,9em) auto;line-height:1.2}
+.qgrid.q4 select.num{padding:6px 4px;font-size:15px}
+ol.proof.rank li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 6px 5px 10px}
+ol.proof.rank li>span:first-child{margin:0}
+@media (max-width:480px){.qgrid,.qgrid.q4{grid-template-columns:1fr auto}}
+</style>
 <script src="sfa-ui.js"></script>
 <script src="sfa-subs.js"></script>
 <script src="config.js"></script>

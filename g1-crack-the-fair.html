@@ -276,6 +276,18 @@ ol.proof{margin:8px 0;padding-left:22px;display:flex;flex-direction:column;gap:6
 ol.proof li{background:var(--paper);color:var(--paperink);border-radius:8px;padding:8px 10px}
 ol.proof li>span:first-child{display:block;margin-bottom:4px}
 .levels .tier.review{color:var(--teal)}
+
+/* clarity pass: goal, numbered steps, done-when */
+.task .goal{display:block;font-weight:700;color:var(--ink);font-size:1.06em;line-height:1.35}
+.task .donewhen{display:block;margin-top:4px;font-size:.9em;color:var(--muted)}
+.task .donewhen b{color:var(--teal);font-weight:700}
+.task ol.steps{margin:6px 0 0;padding-left:22px;font-size:.94em;line-height:1.4}
+.task ol.steps li{margin:1px 0}
+.task ol.steps li::marker{color:var(--marquee);font-weight:700}
+#workBody h3.later{opacity:.5}
+.job #workBody h3{margin:10px 0 5px}
+.job .task{margin-bottom:2px}
+#workBody .wait{margin:0 0 2px;font-size:14px;color:var(--muted);font-style:italic}
 </style>
 </head><body>
 <div class="wrap">
@@ -2023,6 +2035,11 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   var work = $('#workBody'), task = $('#task'), sayEl = $('#say'), tapeEl = $('#tape'), gaugeEl = $('#gauge');
   function say(text, kind) { sayEl.className = 'say' + (kind ? ' ' + kind : ''); sayEl.textContent = text || ''; }
   function setTask(h, text) { $('#workH').textContent = h; task.innerHTML = text; }
+  // job card text: one plain goal sentence, an optional short story line, and what "done" looks like
+  function job(goal, story, done) { return '<span class="goal">' + goal + '</span>' + (story ? story : '') + (done ? '<span class="donewhen"><b>Done when:</b> ' + done + '</span>' : ''); }
+  function stepH(text, later) { var h = el('h3', { text: text }); if (later) h.className = 'later'; return h; }
+  function waitP(text) { return el('p', { 'class': 'wait', text: text }); }
+  function openCerts() { var ch = document.querySelector('.lvchip'); if (ch) ch.click(); else $('#certs').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   var busy = false;
   function lock(b) { busy = b; [].forEach.call(work.querySelectorAll('button,input'), function (x) { if (b) { x.dataset.wasDis = x.disabled ? '1' : ''; x.disabled = true; } else if (x.dataset.wasDis !== undefined) { x.disabled = x.dataset.wasDis === '1'; delete x.dataset.wasDis; } }); }
   function fmt(n) { return V.fmt(n); }
@@ -2074,7 +2091,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   $('#btnHint').addEventListener('click', function () { doHint(); });
   SFA.keys.h = function () { doHint(); };
   var hintFn = null;
-  function doHint() { if (busy || !hintFn) return; var next = Math.min(4, rung + 1); if (next === 4 && !SFA.teacher.get().hint4) { say('Rung 4 ("Show me") is switched off. Try rung 3 again, or ask your teacher.', 'bad'); VS(['g1_r3']); return; } hintFn(next); }
+  function doHint() { if (busy || !hintFn) return; var next = Math.min(4, rung + 1); if (next === 4 && !SFA.teacher.get().hint4) { say('That was the last hint. Use it to try again, or ask your teacher for help.', 'bad'); VS(['g1_r3']); return; } hintFn(next); }
   function clearHL() { [].forEach.call(document.querySelectorAll('.glow,.panelp.hl'), function (x) { x.classList.remove('glow'); x.classList.remove('hl'); }); if (M) M.hlRows = []; if (ST.mach && ST.mach.panels) ST.mach.panels.forEach(function (p) { p.hl = false; }); }
 
   /* ================= reward hooks ================= */
@@ -2082,7 +2099,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
 
   /* ================= level card + natural pause ================= */
   function levelDone(id, text, extraLines) {
-    clearHL(); hintFn = null; say('');
+    clearHL(); hintFn = null; say(''); var og = $('#btnGus'); if (og) og.remove();
     var L = lv(id), i = LV.indexOf(L), nxt = LV[i + 1];
     if (L.tier === 'stretch') SFA.reels.addEP(3, 'stretch cleared');
     save(); renderLevels(); renderCerts(); updateChips();
@@ -2091,7 +2108,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     var row = el('div', { 'class': 'row' });
     var nextId = nxt && unlocked(nxt.id) ? nxt.id : firstOpen();
     if (nextId && nextId !== id) row.appendChild(el('button', { type: 'button', 'class': 'btn primary', id: 'btnNext', text: 'Next: ' + lv(nextId).name + ' →', onclick: function () { go(nextId); } }));
-    row.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'Certificates', onclick: function () { $('#certs').scrollIntoView({ behavior: 'smooth', block: 'center' }); } }));
+    row.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'Certificates', onclick: openCerts }));
     box.appendChild(row); work.appendChild(box);
     return VS(extraLines || []).then(function () { return SFA.reels.pause(GAME); }).then(function () { var b = $('#btnNext'); if (b) b.focus(); });
   }
@@ -2101,21 +2118,25 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   function L0() {
     ST.scene = 'class'; ST.mach = { kind: 'mux', x: 650, screen: null }; ST.cast = { priya: { x: 90, f: 1 }, marcus: { x: 420, f: 1 } }; ST.zero = { v: true, x: 190, y: 0, rot: 0 }; ST.one.v = false;
     M = { tape: [], fed: 0, fuel: false, maxRung: 0 }; var count = 0, asked = false;
-    setTask('Feed the Multiplex', 'The Multiplex <strong>multiplies by 4, then subtracts 3</strong>. Pick a small number. Before it answers, say whether the output will be <strong>bigger</strong>, <strong>smaller</strong> or <strong>the same</strong> as your input. Feed it three times.');
+    setTask('Feed the Multiplex', job('Guess if the machine makes your number bigger or smaller.', 'The Multiplex does <strong>× 4, then − 3</strong> to any number you feed it.', 'you have fed it 3 numbers (<b id="l0n">0</b> of 3 so far).'));
     work.innerHTML = '';
     var tray = el('div', { 'class': 'tray', role: 'group', 'aria-label': 'Number tokens' });
     var pick = null, choiceBox = el('div', { 'class': 'row', hidden: '' }), groups = el('div', { 'class': 'groups', 'aria-live': 'polite' });
     [0, 1, 2, 3, 4, 5, 7, 10].forEach(function (n) { tray.appendChild(el('button', { type: 'button', 'class': 'tok' + (n === 0 ? ' zero' : ''), 'aria-label': 'Input ' + n, text: String(n), onclick: function () { choose(n); } })); });
-    tray.appendChild(el('button', { type: 'button', 'class': 'tok million', 'aria-label': 'Marcus\'s token: one million', text: '1,000,000', onclick: function () { if (busy) return; M.mil = (M.mil || 0) + 1; VS(M.mil > 1 ? ['g1_mx_big'] : ['g1_l0_marcus', 'g1_mx_million']); say('The Multiplex only takes small numbers, 0 to 10.', 'bad'); } }));
-    ['Bigger', 'Smaller', 'The same'].forEach(function (lab) { choiceBox.appendChild(el('button', { type: 'button', 'class': 'btn', text: lab, onclick: function () { run(lab); } })); });
-    work.appendChild(el('h3', { text: '1. Pick an input' })); work.appendChild(tray);
-    work.appendChild(el('h3', { text: '2. Bigger, smaller or the same?' })); work.appendChild(choiceBox);
-    work.appendChild(el('h3', { text: 'What the machine did' })); work.appendChild(groups);
-    function choose(n) { if (busy) return; pick = n; choiceBox.hidden = false; say('You picked ' + n + '. Will the output be bigger, smaller or the same as ' + n + '?'); if (!asked) { asked = true; VS('g1_mx_ask'); } choiceBox.querySelector('button').focus(); }
+    tray.appendChild(el('button', { type: 'button', 'class': 'tok million', 'aria-label': 'Marcus\'s token: one million', text: '1,000,000', onclick: function () { if (busy) return; M.mil = (M.mil || 0) + 1; VS(M.mil > 1 ? ['g1_mx_big'] : ['g1_l0_marcus', 'g1_mx_million']); say('Too big! The Multiplex only takes 0 to 10. Tap one of the other numbers.', 'bad'); } }));
+    ['Bigger', 'Smaller', 'The same'].forEach(function (lab) { choiceBox.appendChild(el('button', { type: 'button', 'class': 'btn', text: lab, disabled: '', onclick: function () { run(lab); } })); });
+    var h2 = stepH('2. Guess: bigger, smaller or the same?', true), h3 = stepH('3. See what the machine did', true);
+    var w2 = waitP('Tap a number in step 1 first.'), w3 = waitP('The machine shows its working here after you guess.');
+    choiceBox.hidden = false;
+    work.appendChild(stepH('1. Tap a number to feed in')); work.appendChild(tray);
+    work.appendChild(h2); work.appendChild(w2); work.appendChild(choiceBox);
+    work.appendChild(h3); work.appendChild(w3); work.appendChild(groups);
+    function choiceOn(on) { [].forEach.call(choiceBox.querySelectorAll('button'), function (b) { b.disabled = !on; }); h2.className = on ? '' : 'later'; }
+    function choose(n) { if (busy) return; pick = n; choiceOn(true); w2.textContent = 'You picked ' + n + '. Will the answer be bigger, smaller or the same as ' + n + '?'; say('You picked ' + n + '. Will the output be bigger, smaller or the same as ' + n + '?'); if (!asked) { asked = true; VS('g1_mx_ask'); } choiceBox.querySelector('button').focus(); }
     function run(lab) {
       if (busy || pick == null) return; lock(true); var n = pick, y = 4 * n - 3; var truth = y > n ? 'Bigger' : y < n ? 'Smaller' : 'The same'; var ok = lab === truth;
-      choiceBox.hidden = true;
       feedAnim(n).then(function () {
+        h3.className = ''; w3.hidden = true;
         showOut(y); M.tape.push({ x: n, y: y }); M.fed++; renderTape();
         // groups of four, then three taken away
         groups.innerHTML = '';
@@ -2123,11 +2144,11 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         groups.appendChild(el('span', { text: n + ' group' + (n === 1 ? '' : 's') + ' of 4 = ' + 4 * n + ', take away 3 = ' + fmt(y) + (n === 0 ? ' (nothing to multiply, so it goes below zero)' : '') }));
         var lines = [V.inout('machine', n, y)]; if (n === 1) lines.push('g1_mx_same');
         lines.push(ok ? (count === 0 ? 'g1_l0_right' : { pause: 1 }) : 'g1_l0_wrong');
-        say((ok ? 'Yes: the output ' : 'Not this time: the output ') + fmt(y) + ' is ' + truth.toLowerCase() + (truth === 'The same' ? ' as ' : ' than ') + 'the input ' + n + '.', ok ? 'good' : 'bad');
-        count++;
+        say((ok ? 'Yes: the output ' : 'Not this time: the output ') + fmt(y) + ' is ' + truth.toLowerCase() + (truth === 'The same' ? ' as ' : ' than ') + 'the input ' + n + '.' + (ok ? '' : ' Count the dots below to see why.') + (count < 2 ? ' Tap another number for the next go.' : ''), ok ? 'good' : 'bad');
+        count++; var cn = $('#l0n'); if (cn) cn.textContent = String(count);
         return VS(lines);
       }).then(function () {
-        lock(false); pick = null;
+        lock(false); pick = null; choiceOn(false); w2.textContent = 'Tap a number in step 1 first.';
         if (count >= 3) { P.done.L0 = true; ST.mach.screen = null; var saw0 = M.tape.some(function (t) { return t.x === 0; }), saw1 = M.tape.some(function (t) { return t.x === 1; });
           var seen = saw0 && saw1 ? 'You saw that 0 gives −3 and 1 gives 1.' : saw0 ? 'You saw that 0 gives −3. Try 1 next time: it comes out the same.' : saw1 ? 'You saw that 1 gives 1. Try 0 next time: it does something surprising.' : 'Try 0 and 1 next time: they do something surprising.';
           levelDone('L0', 'The Multiplex is happy. ' + seen + ' Next: what does Zero reveal?', ['g1_mx_done']); }
@@ -2143,22 +2164,24 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   function L1() {
     ST.scene = 'fair'; ST.cast = { priya: { x: 70, f: 1 }, dunmore: { x: 380, f: 1 } }; ST.zero = { v: true, x: 190, y: 0, rot: 0 }; ST.one.v = false;
     var k = 0; work.innerHTML = '';
-    setTask('The X-Ray', 'Each machine hides two panels: a <strong>× ?</strong> and a <strong>+ ?</strong>. Send Zero in, then say which panel his output just showed you.');
+    setTask('The X-Ray', job('Find out which hidden panel Zero shows you.', 'Each machine hides a <strong>× ?</strong> panel and a <strong>+ ?</strong> panel.', 'you have X-rayed all 3 machines.'));
     var go1 = el('button', { type: 'button', 'class': 'btn primary', id: 'btnZeroIn', text: 'Send Zero in' });
-    var q = el('div', { 'class': 'row', hidden: '' }, [el('button', { type: 'button', 'class': 'btn', text: 'The × panel', onclick: function () { answer('x'); } }), el('button', { type: 'button', 'class': 'btn', text: 'The + panel', onclick: function () { answer('+'); } })]);
-    var prog = el('p', { 'class': 'muted' });
-    work.appendChild(el('div', { 'class': 'row' }, [go1, prog])); work.appendChild(el('h3', { text: 'Which panel did the output show?' })); work.appendChild(q);
+    var q = el('div', { 'class': 'row' }, [el('button', { type: 'button', 'class': 'btn', text: 'The × panel', onclick: function () { answer('x'); } }), el('button', { type: 'button', 'class': 'btn', text: 'The + panel', onclick: function () { answer('+'); } })]);
+    var prog = el('p', { 'class': 'muted', style: 'margin:0' });
+    var qh = stepH('2. Which panel does the output match?', true), qw = waitP('Do step 1 first. Then tap a panel.');
+    work.appendChild(stepH('1. Press Send Zero in')); work.appendChild(el('div', { 'class': 'row' }, [go1, prog])); work.appendChild(qh); work.appendChild(qw); work.appendChild(q);
+    function qOn(on) { [].forEach.call(q.querySelectorAll('button'), function (b) { b.disabled = !on; }); qh.className = on ? '' : 'later'; qw.hidden = on; }
     function setup() {
       var r = XR[k]; M = { m: r[0], b: r[1], tape: [], fed: 0, maxRung: 0 }; ST.mach = { kind: 'fair', x: 640, label: 'MYSTERY #' + (k + 1), col: ['#E8743B', '#3FA66B', '#2E6DA4'][k], screen: null, panels: [{ t: '× ?' }, { t: '+ ?' }] };
-      prog.textContent = 'Machine ' + (k + 1) + ' of 3'; go1.hidden = false; q.hidden = true; renderTape(); go1.focus();
+      prog.textContent = 'Machine ' + (k + 1) + ' of 3'; go1.disabled = false; qOn(false); renderTape(); go1.focus();
     }
     go1.addEventListener('click', function () {
-      if (busy) return; lock(true); go1.hidden = true;
+      if (busy) return; lock(true);
       var first = k === 0;
       VS(first ? ['g1_l1_intro'] : []).then(function () { return feedAnim(0); }).then(function () {
         ST.mach.panels[0].fallT = nowS(); showOut(M.b); M.tape.push({ x: 0, y: M.b }); M.fed++; renderTape();
         return VS([first ? 'g1_l1_partoff' : { pause: 1 }, V.inout('mach', 0, M.b), first ? 'g1_l1_q' : { pause: 1 }]);
-      }).then(function () { lock(false); q.hidden = false; q.querySelector('button').focus(); say('Zero went in and ' + fmt(M.b) + ' came out. Which panel is that?'); });
+      }).then(function () { lock(false); go1.disabled = true; qOn(true); q.querySelector('button').focus(); say('Zero went in and ' + fmt(M.b) + ' came out. Which panel is that? Tap The × panel or The + panel.'); });
     });
     var wrongs = 0;
     function answer(a) {
@@ -2167,7 +2190,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         lock(true); ST.mach.panels[1].t = (M.b < 0 ? '− ' : '+ ') + Math.abs(M.b); firstTry(wrongs === 0); say('Yes. Zero erased the × step, so only the + part came out: ' + fmt(M.b) + '.', 'good');
         var lines = k === 0 ? ['g1_l1_right', 'g1_l1_xray', 'g1_l1_zero'] : [{ pause: 400 }];
         VS(lines).then(function () { lock(false); k++; wrongs = 0; if (k < 3) setup(); else { P.done.L1 = true; levelDone('L1', 'Three X-rays. Zero always shows you the start: the + part of a "× then +" rule.'); } });
-      } else { wrongs++; say('Zero times anything is zero, so the × panel can\'t show up. Look again.', 'bad'); VS('g1_l1_wrong'); }
+      } else { wrongs++; say('Not the × panel: 0 times anything is 0, so the × part disappears. Try the other panel.', 'bad'); VS('g1_l1_wrong'); }
     }
     hintFn = function (r) { noteHint(r); if (r <= 2) VS('g1_l1_wrong'); else { say('The output is the same number as the + panel would show. Choose "The + panel".'); VS('g1_l1_right'); } };
     setup();
@@ -2193,27 +2216,29 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     var toks = jam ? [0, 1, 2, 3, 4, 5, 6, 10] : [0, 1, 2, 3, 4, 5, 10, -1];
     toks.forEach(function (n) {
       var isJam = jam > 0 && n < jam;
-      var bt = el('button', { type: 'button', 'class': 'tok' + (n === 0 ? ' zero' : n === 1 ? ' one' : '') + (isJam ? ' jam' : ''), 'aria-label': isJam ? 'Input ' + n + ', jammed with gum' : 'Feed input ' + n, 'data-n': n, text: n < 0 ? '−' + (-n) : String(n), onclick: function () { if (isJam) { VS('g1_s2_jam'); say('That slot is jammed. Inputs 3 and up only.', 'bad'); return; } feed(n); } });
+      var bt = el('button', { type: 'button', 'class': 'tok' + (n === 0 ? ' zero' : n === 1 ? ' one' : '') + (isJam ? ' jam' : ''), 'aria-label': isJam ? 'Input ' + n + ', jammed with gum' : 'Feed input ' + n, 'data-n': n, text: n < 0 ? '−' + (-n) : String(n), onclick: function () { if (isJam) { VS('g1_s2_jam'); say('That slot is jammed with gum. Tap 3 or a bigger number.', 'bad'); return; } feed(n); } });
       if (isJam) bt.setAttribute('aria-disabled', 'true'); tray.appendChild(bt);
     });
     tray.appendChild(el('button', { type: 'button', 'class': 'tok million', 'aria-label': 'Marcus\'s token: one million', text: '1,000,000', onclick: function () { feed(1000000); } }));
     var inp = el('input', { type: 'text', inputmode: 'numeric', 'class': 'num sm', id: 'feedIn', 'aria-label': 'Type any whole-number input', placeholder: 'any', autocomplete: 'off' });
-    var feedB = el('button', { type: 'button', 'class': 'btn small', text: 'Feed', onclick: function () { var v = readInt(inp); if (v == null || Math.abs(v) > 999 && v !== 1000000) { inp.classList.add('bad'); say('Type a whole number from −999 to 999.', 'bad'); return; } inp.classList.remove('bad'); if (v < jam) { VS('g1_s2_jam'); say('That slot is jammed. Inputs ' + jam + ' and up only.', 'bad'); return; } feed(v); inp.value = ''; } });
+    var feedB = el('button', { type: 'button', 'class': 'btn small', text: 'Feed', onclick: function () { var v = readInt(inp); if (v == null || Math.abs(v) > 999 && v !== 1000000) { inp.classList.add('bad'); say('Type a whole number from −999 to 999.', 'bad'); return; } inp.classList.remove('bad'); if (v < jam) { VS('g1_s2_jam'); say('That slot is jammed with gum. Type ' + jam + ' or a bigger number.', 'bad'); return; } feed(v); inp.value = ''; } });
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') feedB.click(); });
-    work.appendChild(el('h3', { text: '1. Feed it inputs' })); work.appendChild(tray); work.appendChild(el('div', { 'class': 'typein', style: 'margin-top:8px' }, [el('label', { 'for': 'feedIn', 'class': 'muted', text: 'Or type one:' }), inp, feedB]));
+    work.appendChild(stepH(jam ? '1. Feed it numbers (3 and up)' : '1. Tap numbers to feed it')); work.appendChild(tray); tray.appendChild(el('div', { 'class': 'typein' }, [el('label', { 'for': 'feedIn', 'class': 'muted', text: 'or type:' }), inp, feedB]));
     // rule builder
     var mIn = el('input', { type: 'text', inputmode: 'numeric', id: 'ruleM', 'aria-label': 'Times: the step', autocomplete: 'off' });
     var bIn = el('input', { type: 'text', inputmode: 'numeric', id: 'ruleB', 'aria-label': 'Plus: the start (use a minus sign for negative)', autocomplete: 'off' });
     var pm = el('span', { 'class': 'panelp', id: 'panelM' }, [el('span', { 'class': 'op', text: '×' }), mIn]), pb = el('span', { 'class': 'panelp', id: 'panelB' }, [el('span', { 'class': 'op', text: '+' }), bIn]);
     var lockB = el('button', { type: 'button', 'class': 'btn primary', id: 'btnLock', text: 'Lock in rule' });
-    work.appendChild(el('h3', { text: '2. Build the rule' }));
-    work.appendChild(el('div', { 'class': 'rule' }, [el('span', { 'class': 'xword', text: 'output = input' }), pm, pb, lockB]));
-    work.appendChild(el('p', { 'class': 'muted', style: 'margin:4px 0 0;font-size:14px', text: 'For a minus, type a negative number in the + panel (for example −1).' }));
+    work.appendChild(stepH('2. Type the rule, then press Lock in rule'));
+    work.appendChild(el('div', { 'class': 'rule' }, [el('span', { 'class': 'xword', text: 'output = input' }), pm, pb]));
+    work.appendChild(el('div', { 'class': 'row', style: 'margin-top:8px' }, [lockB, el('small', { 'class': 'muted', text: 'For "− 1", type −1 in the + box.' })]));
     var cmp = el('div', { 'class': 'scroll-x' }); work.appendChild(cmp);
     // proof
-    var proofBox = el('div', { hidden: '' }); var pIn = el('input', { type: 'text', inputmode: 'numeric', 'class': 'num', id: 'predIn', autocomplete: 'off' }); var pLab = el('label', { 'for': 'predIn' });
+    var proofBox = el('div'), proofRow; var pIn = el('input', { type: 'text', inputmode: 'numeric', 'class': 'num', id: 'predIn', autocomplete: 'off' }); var pLab = el('label', { 'for': 'predIn' });
     var pB = el('button', { type: 'button', 'class': 'btn primary', text: 'Predict', id: 'btnPredict' });
-    proofBox.appendChild(el('h3', { text: '3. Prove it' })); proofBox.appendChild(el('div', { 'class': 'row' }, [pLab, pIn, pB])); work.appendChild(proofBox);
+    var proofH = stepH('3. Prove it: predict one output', true), proofW = waitP('After step 2, the machine asks you what it gives for one number.');
+    proofRow = el('div', { 'class': 'row', hidden: '' }, [pLab, pIn, pB]);
+    proofBox.appendChild(proofH); proofBox.appendChild(proofW); proofBox.appendChild(proofRow); work.appendChild(proofBox);
     pIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') pB.click(); });
     [mIn, bIn].forEach(function (x) { x.addEventListener('keydown', function (e) { if (e.key === 'Enter') lockB.click(); }); });
     var bust = null; if (opts.extra) bust = opts.extra(work);
@@ -2232,7 +2257,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     }
     function readRule() { var mm = readInt(mIn), bb = readInt(bIn); mIn.classList.toggle('bad', mm == null); bIn.classList.toggle('bad', bb == null); return mm == null || bb == null ? null : [mm, bb]; }
     lockB.addEventListener('click', function () {
-      if (busy || M.phase === 'proof' || M.phase === 'done') return; var r = readRule(); if (!r) { say('Fill both panels with whole numbers.', 'bad'); return; }
+      if (busy || M.phase === 'proof' || M.phase === 'done') return; var r = readRule(); if (!r) { say('Type a whole number in both boxes, the × box and the + box.', 'bad'); return; }
       skipIntro(); clearHL(); var mm = r[0], bb = r[1];
       var fits = M.tape.every(function (t) { return mm * t.x + bb === t.y; });
       var right = faker ? fits && M.tape.length >= 1 : (mm === m && bb === b);
@@ -2241,7 +2266,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         if (M.wrong > 0 && M.maxRung < 4 && !M.misBonus) { M.misBonus = true; SFA.reels.addEP(2, 'misconception overcome'); }
         M.rule = [mm, bb]; M.phase = 'proof'; cmp.innerHTML = '';
         var px = PROOFS.filter(function (p) { return p >= jam && !M.tape.some(function (t) { return t.x === p; }); })[0];
-        M.proofX = px; pLab.textContent = 'What does it give for ' + px + '?'; proofBox.hidden = false; pIn.value = ''; pIn.focus();
+        M.proofX = px; pLab.textContent = 'What does it give for ' + px + '?'; proofH.className = ''; proofW.hidden = true; proofRow.hidden = false; pIn.value = ''; pIn.focus();
         ST.mach.screen = px + '→?';
         var lines = boss ? ['g1_max_lucky', V.proveFor('max', px)] : ['g1_lockin', V.proveFor('mach', px)];
         say('Rule locked in. Now predict the output for ' + px + ' before the machine shows it.'); VS(lines);
@@ -2251,8 +2276,9 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         var d = faker ? 'both' : diagnose(mm, bb), lines = [];
         if (M.wrong === 1) lines.push(boss ? 'g1_max_wrong' : 'g1_wrongrule');
         var map = { swap: ['g1_mis_swap', 'g1_mis_swap2'], bf1: ['g1_mis_bf1'], mf1: ['g1_mis_mf1'], sign: ['g1_mis_sign'], step: ['g1_mis_step'], start: ['g1_mis_start'], bsign: ['g1_mis_start'], atjam: ['g1_mis_start'], both: ['g1_mis_both'] };
-        var txt = { swap: 'You swapped them. The × number is the step; the + number is the start.', bf1: 'Your + number is where the machine is at input 1. The start is the output at input 0.', mf1: 'Your × number is the output at 1. The step is how much it grows from one input to the next.', sign: 'Check the direction: is the output going up or down as the input goes up?', step: 'Right start, wrong step.', start: 'Right step, wrong start.', bsign: 'Right step. Check the sign of the start: what did 0 give?', atjam: 'Right step. That\'s the output at ' + jam + '. Count back ' + jam + ' steps to get to 0.', both: 'Both panels are off. Go back to the tape.' };
-        if (faker && !fits) { txt.both = 'No ×☐ +☐ rule fits every row of this tape. Hmm.'; }
+        var to0 = jam ? ' Count back from your inputs to input 0.' : ' Feed 0 if you haven\'t yet.';
+        var txt = { swap: 'You swapped them. The × box is the step (how much it grows each time). The + box is the start (the output for 0).', bf1: 'Your + number is the output for input 1. The + box needs the output for input 0.' + to0, mf1: 'Your × number is the output for input 1. The × box needs the jump: how much the output grows from one input to the next.', sign: 'Check the direction: does the output go up or down as the input goes up? Going down means a minus number in the × box.', step: 'Right start, wrong step. Compare two inputs next to each other: how much does the output grow?', start: 'Right step, wrong start. The start is the output for input 0.' + to0, bsign: 'Right step. Check the sign of the start: is the output for 0 above or below zero?', atjam: 'Right step. That\'s the output at ' + jam + '. Count back ' + jam + ' steps to get to 0.', both: jam ? 'Both boxes are off. Pick two inputs on the tape: how much does the output change for each 1 the input goes up?' : 'Both boxes are off. Try small inputs like 0 and 1, then look at the tape.' };
+        if (faker && !fits) { txt.both = 'No × ☐ + ☐ rule fits every row of the tape. Maybe the machine is lying: try step 4, Accuse.'; }
         lines = lines.concat(map[d]);
         say(txt[d], 'bad'); VS(lines);
         // compare their rule with the tape
@@ -2273,13 +2299,13 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       }
       feedAnim(px).then(function () {
         showOut(y); M.tape.push({ x: px, y: y, proof: true }); renderTape();
-        if (v === y && faker) { M.phase = 'busted-pred'; say('You predicted ' + fmt(v) + ', and it gave ' + fmt(y) + '. But your rule says ' + fmt(mine) + ', so your rule is not this machine’s rule. Is it even a × ☐ + ☐ machine?', 'bad'); return VS([V.inout(who, px, y), 'g1_s3_priya']).then(function () { if (opts.onPredFail) opts.onPredFail(); }); }
+        if (v === y && faker) { M.phase = 'busted-pred'; say('You predicted ' + fmt(v) + ', and it gave ' + fmt(y) + '. But your rule says ' + fmt(mine) + ', so your rule is not this machine’s rule. Is it even a × ☐ + ☐ machine? Look at the steps on the tape.', 'bad'); return VS([V.inout(who, px, y), 'g1_s3_priya']).then(function () { if (opts.onPredFail) opts.onPredFail(); }); }
         if (v === y) {
           firstTry(M.firstPred && M.predTries == null); M.phase = 'done'; ST.mach.screen = 'OPEN!';
           return VS([V.inout(who, px, y)]).then(function () { return cracked(); });
         }
         M.predTries = (M.predTries || 0) + 1;
-        if (faker) { M.phase = 'busted-pred'; say('You predicted ' + fmt(v) + '. It gave ' + fmt(y) + '. Your rule fitted the tape, but the machine broke it.', 'bad'); return VS([V.inout(who, px, y), 'g1_wrongpred', 'g1_s3_priya']).then(function () { if (opts.onPredFail) opts.onPredFail(); }); }
+        if (faker) { M.phase = 'busted-pred'; say('You predicted ' + fmt(v) + '. It gave ' + fmt(y) + '. Your rule fitted the tape, but the machine broke it. Look at the steps on the tape.', 'bad'); return VS([V.inout(who, px, y), 'g1_wrongpred', 'g1_s3_priya']).then(function () { if (opts.onPredFail) opts.onPredFail(); }); }
         var arith = v !== mine ? ' Your rule gives ' + fmt(mine) + ' for ' + px + ': check your working.' : '';
         say('Not quite. Predict again before it shows you.' + arith, 'bad'); M.tape.pop(); renderTape(); ST.mach.screen = px + '→?';
         return VS([boss ? 'g1_max_wrong' : 'g1_wrongpred']);
@@ -2338,9 +2364,9 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       else if (L.id === 'L6') intro = ['g1_max_intro', 'g1_max_gus', 'g1_gus_case', 'g1_max_rule'];
     }
     P.seenIntro[L.id] = true; save();
-    var desc = { L2: 'A little cousin of Maximus. Its rule is <strong>× something, + something</strong>. Feed it, build the rule, then prove it.', L3: 'Another cousin. Try to crack it in <strong>two inputs</strong>.', L4: 'The last cousin. Fewer inputs earn more prize tickets.', L5: 'Marcus already fed this one <strong>a million</strong>. Can you still crack it?', L6: '<strong>Maximus Million</strong> has Gus inside his prize case. Crack his rule, then prove it.' };
-    setTask((echo ? 'Echo: ' : '') + L.name, echo ? 'A fresh machine, same kind of puzzle. This one is all yours.' : desc[L.id]);
-    var extra = L.boss ? function (w) { var gb = el('button', { type: 'button', 'class': 'btn small', text: 'Ask Gus (whispered hint)', onclick: function () { if (busy) return; skipIntro(); if (rung < 1) noteHint(1); VS(M.gusN ? 'g1_gus_h2' : 'g1_gus_h1'); say(M.gusN ? 'Gus: count the jump from 0 to 1. It is the same jump every time.' : 'Gus: there\'s a hundred in here. It comes out at zero.'); M.gusN = 1; } }); w.appendChild(el('div', { 'class': 'row', style: 'margin-top:10px' }, [gb])); } : null;
+    var desc = { L2: 'A little cousin of Maximus. Its rule looks like <strong>× ☐ + ☐</strong>.', L3: 'Another cousin. Can you crack it with only <strong>2 numbers</strong>?', L4: 'The last cousin. The fewer numbers you feed, the more <strong>prize tickets</strong> you win.', L5: 'Marcus already fed this one <strong>1,000,000</strong>. Can you still crack it?', L6: '<strong>Gus</strong> is stuck in his prize case.' };
+    setTask((echo ? 'Echo: ' : '') + L.name, job(L.boss ? 'Find Maximus\'s secret rule and prove it, to free Gus.' : 'Find this machine\'s secret rule, then prove it.', echo ? 'A fresh machine, same kind of puzzle. This one is all yours.' : desc[L.id], 'the machine opens: right rule, then a right prediction.'));
+    var extra = L.boss ? function (w) { var gb = el('button', { type: 'button', 'class': 'btn small', id: 'btnGus', text: 'Ask Gus (whispered hint)', onclick: function () { if (busy) return; skipIntro(); if (rung < 1) noteHint(1); VS(M.gusN ? 'g1_gus_h2' : 'g1_gus_h1'); say(M.gusN ? 'Gus: count the jump from 0 to 1. It is the same jump every time.' : 'Gus: there\'s a hundred in here. It comes out at zero.'); M.gusN = 1; } }); var og0 = $('#btnGus'); if (og0) og0.remove(); var stk = document.querySelector('.stuck'); if (stk) stk.insertBefore(gb, stk.children[1] || null); else w.appendChild(el('div', { 'class': 'row', style: 'margin-top:10px' }, [gb])); } : null;
     opts.extra = extra;
     opts.onCrack = function (r) {
       var lines = [];
@@ -2371,14 +2397,16 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     function setup() {
       cur = mk(); M.tape = []; M.fed = 0; renderTape();
       ST.mach = { kind: 'fair', x: 650, label: 'ADD ' + cur.a + ' → ×' + cur.mul, col: '#7A5230', screen: null, panels: [{ t: '+ ' + cur.a }, { t: '× ' + cur.mul }] };
-      setTask('Add First, Then ' + (cur.mul === 2 ? 'Double' : 'Multiply'), 'This machine <strong>adds ' + cur.a + ' first</strong>, then <strong>multiplies by ' + cur.mul + '</strong>. Predict what comes out when Zero jumps in. Then rewrite the machine the usual way: × something, + something.');
+      setTask('Add First, Then ' + (cur.mul === 2 ? 'Double' : 'Multiply'), job('Predict what comes out, then write the rule a new way.', 'This machine <strong>adds ' + cur.a + ' first</strong>, then <strong>multiplies by ' + cur.mul + '</strong>. Machine ' + (k + 1) + ' of 2.', 'both machines are rewritten as × ☐ + ☐, and you explain why.'));
       work.innerHTML = '';
       var pIn = el('input', { type: 'text', inputmode: 'numeric', 'class': 'num', id: 's1Pred', autocomplete: 'off', 'aria-label': 'Your prediction for input 0' });
       var pB = el('button', { type: 'button', 'class': 'btn primary', text: 'Predict, then send Zero in' });
-      work.appendChild(el('h3', { text: '1. Predict: Zero goes in. What comes out?' })); work.appendChild(el('div', { 'class': 'row' }, [pIn, pB]));
+      work.appendChild(stepH('1. Zero (0) goes in. Type what comes out')); work.appendChild(el('div', { 'class': 'row' }, [pIn, pB]));
+      var rwH = stepH('2. Write it as × ☐ + ☐, then press Check', true), rwW = waitP('After step 1.');
+      work.appendChild(rwH); work.appendChild(rwW);
       var rw = el('div', { hidden: '' }); var mIn = el('input', { type: 'text', inputmode: 'numeric', id: 's1M', autocomplete: 'off', 'aria-label': 'Times' }), bIn = el('input', { type: 'text', inputmode: 'numeric', id: 's1B', autocomplete: 'off', 'aria-label': 'Plus' });
       var rB = el('button', { type: 'button', 'class': 'btn primary', text: 'Check my rewrite' });
-      rw.appendChild(el('h3', { text: '2. Rewrite it: × something, + something' })); rw.appendChild(el('div', { 'class': 'rule' }, [el('span', { 'class': 'xword', text: 'output = input' }), el('span', { 'class': 'panelp' }, [el('span', { 'class': 'op', text: '×' }), mIn]), el('span', { 'class': 'panelp', id: 's1PB' }, [el('span', { 'class': 'op', text: '+' }), bIn]), rB]));
+      rw.appendChild(el('div', { 'class': 'rule' }, [el('span', { 'class': 'xword', text: 'output = input' }), el('span', { 'class': 'panelp' }, [el('span', { 'class': 'op', text: '×' }), mIn]), el('span', { 'class': 'panelp', id: 's1PB' }, [el('span', { 'class': 'op', text: '+' }), bIn]), rB]));
       var tbl = el('div', { 'class': 'scroll-x' }); rw.appendChild(tbl); work.appendChild(rw);
       pIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') pB.click(); }); [mIn, bIn].forEach(function (x) { x.addEventListener('keydown', function (e) { if (e.key === 'Enter') rB.click(); }); });
       var predDone = false, tries = 0;
@@ -2389,13 +2417,13 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         VS(pre).then(function () { return feedAnim(0); }).then(function () {
           showOut(y); M.tape.push({ x: 0, y: y }); M.fed++; renderTape(); var lines = [V.inout('mach', 0, y)];
           if (ok) { lines.push('g1_predpraise'); say('Yes: ' + cur.a + ' gets added first, so Zero becomes ' + cur.a + ', then × ' + cur.mul + ' gives ' + y + '.', 'good'); }
-          else { if (cur.a === 9 && cur.mul === 2) lines.push('g1_s1_shock'); lines.push('g1_s1_priya', 'g1_s1_rule'); say('It gave ' + y + '. The add came first: 0 + ' + cur.a + ' = ' + cur.a + ', then × ' + cur.mul + ' = ' + y + '. Zero only erases a multiply that comes first.', 'bad'); }
+          else { if (cur.a === 9 && cur.mul === 2) lines.push('g1_s1_shock'); lines.push('g1_s1_priya', 'g1_s1_rule'); say('It gave ' + y + '. The add came first: 0 + ' + cur.a + ' = ' + cur.a + ', then × ' + cur.mul + ' = ' + y + '. Zero only erases a multiply that comes first. Now do step 2.', 'bad'); }
           P.s1.items[k] = { pred: v, ok: ok }; firstTry(ok);
           lines.push('g1_s1_rewrite'); return VS(lines);
-        }).then(function () { lock(false); predDone = true; rw.hidden = false; mIn.focus(); });
+        }).then(function () { lock(false); predDone = true; rw.hidden = false; rwH.className = ''; rwW.hidden = true; mIn.focus(); });
       });
       rB.addEventListener('click', function () {
-        if (busy) return; var mm = readInt(mIn), bb = readInt(bIn); if (mm == null || bb == null) { say('Fill both panels.', 'bad'); return; }
+        if (busy) return; var mm = readInt(mIn), bb = readInt(bIn); if (mm == null || bb == null) { say('Type a whole number in both boxes, the × box and the + box.', 'bad'); return; }
         var good = mm === cur.mul && bb === cur.mul * cur.a; tries++;
         var h = '<table class="cmp"><thead><tr><th>Input</th><th>Add ' + cur.a + ', then × ' + cur.mul + '</th><th>× ' + mm + ' + ' + bb + '</th></tr></thead><tbody>';
         [0, 1, 2, 3].forEach(function (x) { var a1 = cur.f(x), a2 = mm * x + bb; h += '<tr><td>' + x + '</td><td>' + a1 + '</td><td class="' + (a1 === a2 ? 'yes' : 'no') + '">' + a2 + '</td></tr>'; });
@@ -2408,19 +2436,19 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         } else {
           firstTry(false);
           if (mm === cur.mul && bb === cur.a) { say('Close: the + ' + cur.a + ' happens before the × ' + cur.mul + ', so it gets multiplied too.', 'bad'); VS('g1_s1_rule'); }
-          else say('Look at the table: your rule and the machine disagree. What is the output at 0?', 'bad');
+          else say('Your rule and the machine don\'t match (red in the table). The + box is what came out for 0. The × box is how much it grows each time.', 'bad');
         }
       });
       if (k === 0 && set === S1SETS[0]) VS(['g1_s1_intro', 'g1_s1_predict']); else VS(['g1_s1_predict']);
       pIn.focus();
     }
     function explain() {
-      setTask('Explain it', 'Why didn\'t Zero\'s X-ray work on these machines? Build the sentence from tiles, or write it in your own words.');
+      setTask('Explain it', job('Explain why Zero\'s X-ray didn\'t work on these machines.', '', 'you submit a sentence that explains it.'));
       work.innerHTML = ''; var a = set[0][0], mul = set[0][1];
       var fr = SFA.frame(['Zero\'s X-ray didn\'t work because the machine', { id: 'op', options: ['adds', 'multiplies'] }, 'first. By the time Zero reached the', { id: 'step', options: ['× step', '+ step'] }, ', he was', { id: 'val', options: ['still 0', String(a), String(a * mul)] }, ', not zero, so the ', { id: 'what', options: ['add got multiplied too', 'multiply was erased'] }, '.']);
       var ta = el('textarea', { 'class': 'explain', id: 's1Text', 'aria-label': 'Or explain in your own words', placeholder: 'Or write it in your own words (optional)…', maxlength: '280' });
       var cB = el('button', { type: 'button', 'class': 'btn primary', text: 'Submit my explanation' });
-      work.appendChild(fr.node); work.appendChild(el('h3', { text: 'Or in your own words' })); work.appendChild(ta); work.appendChild(el('div', { 'class': 'row', style: 'margin-top:8px' }, [cB]));
+      work.appendChild(stepH('1. Tap each gap and choose a word')); work.appendChild(fr.node); work.appendChild(stepH('2. Or write it in your own words (optional)')); work.appendChild(ta); work.appendChild(stepH('3. Press Submit')); work.appendChild(el('div', { 'class': 'row' }, [cB]));
       VS('g1_s1_explain');
       cB.addEventListener('click', function () {
         var v = fr.value(), own = ta.value.trim();
@@ -2462,7 +2490,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     var L = lv('S2');
     function next() {
       var r = set[k];
-      setTask('The Jammed Slot ' + (k + 1) + ' of 3', 'Marcus jammed the 0, 1 and 2 slots with gum. Only inputs <strong>3 and up</strong> work. Find the rule from two inputs that aren\'t zero, then prove it.');
+      setTask('The Jammed Slot ' + (k + 1) + ' of 3', job('Find the rule without feeding 0, 1 or 2.', 'Marcus jammed those slots with gum. Only <strong>3 and up</strong> work. Machine ' + (k + 1) + ' of 3.', 'the machine opens: right rule, then a right prediction.'));
       var lines = k === 0 ? ['g1_s2_gum', 'g1_s2_zero', 'g1_s2_one'] : [];
       crack(L, {
         m: r[0], b: r[1], jam: 3, label: 'JAMMED #' + (k + 1), col: ['#C0392B', '#3FA66B', '#2E6DA4'][k],
@@ -2479,7 +2507,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
           var lines = [res.fed <= 2 ? 'g1_fast' : 'g1_cracked'];
           if (k < 2) { k++; say('Cracked without Zero or One. ' + (3 - k) + ' to go.', 'good'); return VS(lines).then(function () { work.innerHTML = ''; work.appendChild(el('button', { type: 'button', 'class': 'btn primary', id: 'btnS2n', text: 'Next jammed machine →', onclick: next })); $('#btnS2n').focus(); }); }
           P.done.S2 = true; save(); var special = P.s2.maxRung <= 2 && P.s2.neg;
-          return levelDone('S2', special ? 'Three jammed machines cracked, one of them going down. You earned Where Zero Isn\'t.' : 'Three jammed machines cracked. (Where Zero Isn\'t needs no rung 3 or 4 hints. You can replay it.)', special ? ['g1_cert_wzi'] : ['g1_nice_one']);
+          return levelDone('S2', special ? 'Three jammed machines cracked, one of them going down. You earned Where Zero Isn\'t.' : 'Three jammed machines cracked. (Where Zero Isn\'t needs at most 2 hints on each machine. You can replay it.)', special ? ['g1_cert_wzi'] : ['g1_nice_one']);
         }
       });
       playIntro(lines);
@@ -2490,14 +2518,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= S3: the faker ================= */
   function S3() {
     var L = lv('S3'); P.s3 = { bust: false, principle: false, maxRung: 0, steps: '' }; save();
-    setTask('The Faker', 'This machine swears it is a normal <strong>× something, + something</strong> machine. Crack it and prove it. If it\'s lying, <strong>bust it</strong> with evidence.');
+    setTask('The Faker', job('Find out if this machine is lying.', 'It says its rule is <strong>× ☐ + ☐</strong>. Crack it, or bust it with evidence.', 'you bust it and answer Priya\'s question.'));
     var bustBox, qBox;
     crack(L, {
       faker: true, m: 3, b: 7, label: 'TOTALLY NORMAL', col: '#A35FC0',
       extra: function (w) {
-        bustBox = el('div', { hidden: '' }, [el('h3', { text: 'Bust it: pick two steps that don\'t match' }), el('p', { 'class': 'muted', style: 'margin:0', text: 'On the tape, tap two different "step per 1" numbers. A real × ☐ + ☐ machine has the same step everywhere.' })]);
-        var acc = el('button', { type: 'button', 'class': 'btn', id: 'btnAccuse', text: 'Accuse: this isn\'t a × ☐ + ☐ machine', onclick: function () { openBust(); } });
-        qBox = el('div', { hidden: '' }); w.appendChild(el('div', { 'class': 'row', style: 'margin-top:12px' }, [acc])); w.appendChild(bustBox); w.appendChild(qBox);
+        bustBox = el('div', { hidden: '' }, [el('p', { 'class': 'say', style: 'margin:6px 0 0', text: 'On the tape (below this card), tap two "step per 1" numbers that are different. A real × ☐ + ☐ machine has the same step everywhere.' })]);
+        var acc = el('button', { type: 'button', 'class': 'btn', id: 'btnAccuse', text: 'Accuse: it\'s not a × ☐ + ☐ machine', onclick: function () { openBust(); } });
+        qBox = el('div', { hidden: '' }); w.appendChild(stepH('4. Think it\'s lying? Accuse it')); w.appendChild(el('div', { 'class': 'row' }, [acc])); w.appendChild(bustBox); w.appendChild(qBox);
       },
       onPredFail: function () { openBust(); },
       onStuck: function () { say('No rule fits every row. Maybe the machine is the problem. Try "Accuse".', 'bad'); },
@@ -2513,7 +2541,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     playIntro(['g1_s3_intro']);
     function openBust() {
       if (P.s3.bust) return; M.showSteps = true; M.sortTape = true; M.pickSteps = []; bustBox.hidden = false; renderTape();
-      if (M.tape.length < 3) say('Feed at least three inputs so there are two steps to compare.', 'bad');
+      if (M.tape.length < 3) say('Feed at least 3 numbers (step 1) so there are two steps to compare.', 'bad');
       M.onStepPick = function (i, rows) {
         if (P.s3.bust) return; var ps = M.pickSteps; var at = ps.indexOf(i); if (at >= 0) ps.splice(at, 1); else ps.push(i); if (ps.length > 2) ps.shift(); renderTape();
         if (ps.length === 2) {
@@ -2524,15 +2552,15 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
             ST.mach.label = 'BUSTED'; ST.mach.screen = 'x²+2x+7';
             say('Busted. One step is ' + fmt(s1) + ', another is ' + fmt(s2) + '. A × ☐ + ☐ machine has the same step everywhere. (Its real rule: input², + 2 × input, + 7.)', 'good');
             lock(true); VS(['g1_s3_bust', 'g1_s3_marcus', 'g1_s3_q']).then(function () { lock(false); principle(); });
-          } else say('Those two steps match. Find two that don\'t.', 'bad');
+          } else say('Those two steps are the same. Tap a different step number. If they all look the same, feed more numbers.', 'bad');
         }
       };
     }
     function principle() {
-      qBox.hidden = false; qBox.innerHTML = ''; qBox.appendChild(el('h3', { text: 'So how many inputs does it take to be completely sure?' }));
+      qBox.hidden = false; qBox.innerHTML = ''; qBox.appendChild(stepH('5. How many inputs does it take to be completely sure?'));
       var opts = [['Two. Zero and One crack every machine, so two inputs always settle it.', false], ['Three. If a third input fits the same rule, no faker can still hide.', false], ['No number. Inputs can catch a faker, but never prove there isn\'t one.', true], ['As many as Marcus says. He has fed more machines than anybody.', false]];
       var box = el('div', { 'class': 'choice' }); var wrong = 0;
-      opts.forEach(function (o) { box.appendChild(el('button', { type: 'button', text: o[0], onclick: function (e) { if (P.s3.principle) return; if (o[1]) { e.target.classList.add('yes'); P.s3.principle = true; P.s3.maxRung = Math.max(P.s3.maxRung, M.maxRung || 0); P.done.S3 = true; save(); firstTry(wrong === 0); var special = P.s3.maxRung <= 1; levelDone('S3', (special ? 'Faker busted and the principle nailed. You earned Faker Finder.' : 'Faker busted. (Faker Finder needs at most one small hint. You can replay it.)') + ' (If you KNOW it\'s a × ☐ + ☐ machine, two inputs are enough.)', special ? ['g1_s3_right', 'g1_cert_faker'] : ['g1_s3_right']); } else { wrong++; e.target.classList.add('no'); say(o[0].indexOf('Three') === 0 ? 'A cleverer faker could pass three inputs and fail the fourth.' : o[0].indexOf('Two') === 0 ? 'This machine passed with 0 and 1 and still lied.' : 'Nice try, Marcus.', 'bad'); } } })); });
+      opts.forEach(function (o) { box.appendChild(el('button', { type: 'button', text: o[0], onclick: function (e) { if (P.s3.principle) return; if (o[1]) { e.target.classList.add('yes'); P.s3.principle = true; P.s3.maxRung = Math.max(P.s3.maxRung, M.maxRung || 0); P.done.S3 = true; save(); firstTry(wrong === 0); var special = P.s3.maxRung <= 1; levelDone('S3', (special ? 'Faker busted and the principle nailed. You earned Faker Finder.' : 'Faker busted. (Faker Finder needs at most one small hint. You can replay it.)') + ' (If you KNOW it\'s a × ☐ + ☐ machine, two inputs are enough.)', special ? ['g1_s3_right', 'g1_cert_faker'] : ['g1_s3_right']); } else { wrong++; e.target.classList.add('no'); say((o[0].indexOf('Three') === 0 ? 'A cleverer faker could pass three inputs and fail the fourth.' : o[0].indexOf('Two') === 0 ? 'This machine passed with 0 and 1 and still lied.' : 'Nice try, Marcus. Being sure is not evidence.') + ' Pick another answer.', 'bad'); } } })); });
       qBox.appendChild(box); box.querySelector('button').focus();
     }
   }
@@ -2542,18 +2570,19 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     ST.scene = 'fair'; ST.cast = { priya: { x: 60, f: 1 }, dunmore: { x: 400, f: 1 } }; ST.zero = { v: true, x: 175, y: 0, rot: 0 }; ST.one = { v: true, x: 285, f: 1 };
     ST.mach = { kind: 'fair', x: 650, label: 'YOUR STUMPER', col: '#8E5BD6', screen: null, panels: [{ t: '? ?' }, { t: '? ?' }] };
     M = { tape: [], fed: 0, maxRung: 0 }; renderTape();
-    setTask('Build a Stumper', 'Design a machine with two steps, in any order. Then predict what <strong>Zero</strong> and <strong>One</strong> will find, and write it as <strong>× ☐ + ☐</strong>.');
+    setTask('Build a Stumper', job('Build your own machine, then work out its rule.', 'Pick any two steps, in any order, like <strong>add 3, then multiply by 4</strong>.', 'all 4 of your answers match your machine.'));
     work.innerHTML = '';
-    function opSel(id) { var s = el('select', { id: id, 'class': 'num sm', 'aria-label': 'Operation' }); [['add', 'add'], ['mul', 'multiply by']].forEach(function (o) { s.appendChild(el('option', { value: o[0], text: o[1] })); }); return s; }
+    function opSel(id) { var s = el('select', { id: id, 'class': 'num sm', style: 'width:auto', 'aria-label': 'Operation' }); [['add', 'add'], ['mul', 'multiply by']].forEach(function (o) { s.appendChild(el('option', { value: o[0], text: o[1] })); }); return s; }
     var o1 = opSel('s4o1'), o2 = opSel('s4o2'); o2.value = 'mul'; var n1 = el('input', { type: 'text', 'class': 'num sm', id: 's4n1', value: '3', 'aria-label': 'First number' }), n2 = el('input', { type: 'text', 'class': 'num sm', id: 's4n2', value: '4', 'aria-label': 'Second number' });
     var z = el('input', { type: 'text', 'class': 'num sm', id: 's4z', 'aria-label': 'What Zero finds (output at 0)' }), on = el('input', { type: 'text', 'class': 'num sm', id: 's4o', 'aria-label': 'What One finds (output at 1)' });
     var rm = el('input', { type: 'text', id: 's4m', 'aria-label': 'Times' }), rb = el('input', { type: 'text', id: 's4b', 'aria-label': 'Plus' });
     var ck = el('button', { type: 'button', 'class': 'btn primary', text: 'Test my stumper' });
-    work.appendChild(el('h3', { text: '1. Your machine' }));
+    work.appendChild(stepH('1. Choose your machine\'s two steps'));
     work.appendChild(el('div', { 'class': 'row' }, [el('span', { text: 'First' }), o1, n1, el('span', { text: 'then' }), o2, n2]));
-    work.appendChild(el('h3', { text: '2. Predict' }));
+    work.appendChild(stepH('2. What will Zero (0) and One (1) get?'));
     work.appendChild(el('div', { 'class': 'row' }, [el('label', { 'for': 's4z', text: 'Zero will find:' }), z, el('label', { 'for': 's4o', text: 'One will find:' }), on]));
-    work.appendChild(el('div', { 'class': 'rule', style: 'margin-top:8px' }, [el('span', { 'class': 'xword', text: 'so: output = input' }), el('span', { 'class': 'panelp' }, [el('span', { 'class': 'op', text: '×' }), rm]), el('span', { 'class': 'panelp' }, [el('span', { 'class': 'op', text: '+' }), rb]), ck]));
+    work.appendChild(stepH('3. Write it as × ☐ + ☐, then test it'));
+    work.appendChild(el('div', { 'class': 'rule' }, [el('span', { 'class': 'xword', text: 'output = input' }), el('span', { 'class': 'panelp' }, [el('span', { 'class': 'op', text: '×' }), rm]), el('span', { 'class': 'panelp' }, [el('span', { 'class': 'op', text: '+' }), rb]), ck]));
     VS('g1_s4_intro');
     function upd() { var a = readInt(n1), b2 = readInt(n2); ST.mach.panels = [{ t: (o1.value === 'add' ? '+ ' : '× ') + (a == null ? '?' : a) }, { t: (o2.value === 'add' ? '+ ' : '× ') + (b2 == null ? '?' : b2) }]; }
     [o1, o2, n1, n2].forEach(function (x) { x.addEventListener('input', upd); x.addEventListener('change', upd); }); upd();
@@ -2563,7 +2592,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       var f0 = g(0), f1 = g(1), mm = f1 - f0;
       var vz = readInt(z), vo = readInt(on), vm = readInt(rm), vb = readInt(rb);
       var ok = vz === f0 && vo === f1 && vm === mm && vb === f0;
-      if (mm === 0) { say('Your machine gives the same output for everything (the step is 0). Legal, but not much of a stumper. Try another.', 'bad'); return; }
+      if (mm === 0) { say('Your machine gives the same output for everything (the step is 0). Legal, but not much of a stumper. Change one of your numbers and test again.', 'bad'); return; }
       if (ok) {
         [z, on, rm, rb].forEach(function (q) { q.classList.remove('bad'); });
         var desc = (o1.value === 'add' ? 'add ' + a : 'multiply by ' + a) + ', then ' + (o2.value === 'add' ? 'add ' + b2 : 'multiply by ' + b2);
@@ -2584,6 +2613,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   var curId = null;
   function go(id) {
     if (!unlocked(id) && !SFA.teacher.get().skip) { say('Finish the level before it first.', 'bad'); return; }
+    var og = $('#btnGus'); if (og) og.remove();
     LG++; V.stop(); introOn = false; busy = false; rung = 0; clearHL(); say(''); ST.anims = []; curId = id; P.cur = id; save(); M = null;
     var L = lv(id);
     if (L.type === 'multiplex') L0(); else if (L.type === 'xray') L1(); else if (L.type === 'crack') coreLevel(L, false); else if (L.type === 'addfirst') S1(); else if (L.type === 'jam') S2(); else if (L.type === 'faker') S3(); else S4();
@@ -2622,9 +2652,9 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   }
   var CERTS = [
     { key: 'std', title: 'Licensed Fair Cracker', sub: 'cracked every machine at the Great Machine Fair, and proved each rule', by: 'Maximus Million', quote: 'BEATEN BY A ZERO AND A ONE. AGAIN.', line: 'g1_cert_std', crit: 'Crack Cousins #1-3, Marcus Helps and Maximus Million, proving each rule with a prediction. Average 3 inputs or fewer per machine.', portrait: 'max' },
-    { key: 0, title: 'The X-Ray Specialist', sub: 'knows exactly when Zero\'s X-ray works, and when it doesn\'t', by: 'Zero', quote: 'I erase multiply steps for breakfast. Not ADD steps. Lesson learned.', line: 'g1_cert_xray', crit: 'Stretch "Add First": rewrite both machines as × ☐ + ☐ and explain why the X-ray failed, using at most one small hint.', portrait: 'zero' },
-    { key: 1, title: "Where Zero Isn't", sub: 'cracked three machines without Zero or One', by: 'One', quote: 'No Zero. No problem. You found where I start anyway.', line: 'g1_cert_wzi', crit: 'Stretch "Jammed Slot": crack all three machines (one goes down) with no rung 3 or 4 hints.', portrait: 'one' },
-    { key: 2, title: 'Faker Finder', sub: 'busted a machine pretending to be a line', by: 'Gus', quote: 'You looked at it three times. That\'s two more than most people.', line: 'g1_cert_faker', crit: 'Stretch "Faker": bust it with two steps that don\'t match, and say why no number of inputs makes you completely sure. At most one small hint.', portrait: 'gus' }
+    { key: 0, title: 'The X-Ray Specialist', sub: 'knows exactly when Zero\'s X-ray works, and when it doesn\'t', by: 'Zero', quote: 'I erase multiply steps for breakfast. Not ADD steps. Lesson learned.', line: 'g1_cert_xray', crit: 'Challenge "Add First": rewrite both machines as × ☐ + ☐ and explain why the X-ray failed, using at most one small hint.', portrait: 'zero' },
+    { key: 1, title: "Where Zero Isn't", sub: 'cracked three machines without Zero or One', by: 'One', quote: 'No Zero. No problem. You found where I start anyway.', line: 'g1_cert_wzi', crit: 'Challenge "Jammed Slot": crack all three machines (one goes down), with at most 2 hints on each machine.', portrait: 'one' },
+    { key: 2, title: 'Faker Finder', sub: 'busted a machine pretending to be a line', by: 'Gus', quote: 'You looked at it three times. That\'s two more than most people.', line: 'g1_cert_faker', crit: 'Challenge "Faker": bust it with two steps that don\'t match, and say why no number of inputs makes you completely sure. At most one small hint.', portrait: 'gus' }
   ];
   function renderCerts() {
     var s = status(), box = $('#certs'); box.innerHTML = '';

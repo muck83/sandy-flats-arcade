@@ -277,6 +277,22 @@ ol.proof{margin:8px 0;padding-left:22px;display:flex;flex-direction:column;gap:6
 ol.proof li{background:var(--paper);color:var(--paperink);border-radius:8px;padding:8px 10px}
 ol.proof li>span:first-child{display:block;margin-bottom:4px}
 .levels .tier.review{color:var(--teal)}
+
+/* clarity pass: goal, numbered steps, done-when */
+.task .goal{display:block;font-weight:700;color:var(--ink);font-size:1.06em;line-height:1.35}
+.task .donewhen{display:block;margin-top:4px;font-size:.9em;color:var(--muted)}
+.task .donewhen b{color:var(--teal);font-weight:700}
+.task ol.steps{margin:6px 0 0;padding-left:22px;font-size:.94em;line-height:1.4}
+.task ol.steps li{margin:1px 0}
+.task ol.steps li::marker{color:var(--marquee);font-weight:700}
+#workBody h3.later{opacity:.5}
+#workBody .wait{margin:0 0 2px;font-size:14px;color:var(--muted);font-style:italic}
+.job #workBody h3{margin:10px 0 5px}
+.job .suspects{gap:8px;margin-top:6px}
+.job .suspect{padding:8px;gap:6px}
+.job .suspect .tray.small{gap:4px}
+.job .suspect .tok.sm{min-width:32px;height:32px;font-size:14px;padding:0 6px;border-width:2px}
+.job .suspect svg{max-height:150px}
 </style>
 </head><body>
 <div class="wrap">
@@ -1980,7 +1996,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     G.noteHint = function (r) { G.rung = Math.max(G.rung, r); G.levelMaxRung = Math.max(G.levelMaxRung, r); G.P.hints['r' + r]++; G.save(); G.updateChips(); };
     G.hint = function () {
       if (G.busy || !G.hintFn) return; var next = Math.min(4, G.rung + 1);
-      if (next === 4 && !SFA.teacher.get().hint4) { G.say('Rung 4 ("Show me") is switched off. Try rung 3 again, or ask your teacher.', 'bad'); return; }
+      if (next === 4 && !SFA.teacher.get().hint4) { G.say('That was the last hint. Use it to try again, or ask your teacher for help.', 'bad'); return; }
       G.noteHint(next); G.hintFn(next);
     };
     $('#btnHint').addEventListener('click', G.hint); SFA.keys.h = G.hint;
@@ -1996,7 +2012,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       var row = el('div', { 'class': 'row' });
       var nextId = nxt && G.unlocked(nxt.id) ? nxt.id : G.firstOpen();
       if (nextId && nextId !== id) row.appendChild(el('button', { type: 'button', 'class': 'btn primary', id: 'btnNext', text: 'Next: ' + G.lv(nextId).name + ' →', onclick: function () { G.go(nextId); } }));
-      row.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'Certificates', onclick: function () { $('#certs').scrollIntoView({ behavior: 'smooth', block: 'center' }); } }));
+      row.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'Certificates', onclick: function () { var ch = document.querySelector('.lvchip'); if (ch) ch.click(); else $('#certs').scrollIntoView({ behavior: 'smooth', block: 'center' }); } }));
       box.appendChild(row); work.appendChild(box);
       var ep = G.epoch;
       return V.say(lines || []).then(function () { if (ep !== G.epoch) return; return SFA.reels.pause(cfg.id).then(function () { var b = $('#btnNext'); if (b && ep === G.epoch) b.focus(); }); });
@@ -2143,8 +2159,8 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   var CERTS = [
     { key: 'std', title: 'Sandy Flats Glitch Detective', sub: 'closed every case with evidence: one input, one output', by: 'Mr. Dunmore', quote: 'One input, one output. On the wall, and now in your head.', line: 'g2_cert_std', crit: 'Close cases 1 to 4, each accusation backed by evidence, with 2 or fewer wrong accusations in total, and clear Sam.', portrait: 'dunmore', portraitSrc: [380, 250, 210] },
     { key: 0, title: 'Friend of Sam', sub: 'cleared an innocent suspect before anyone else was accused', by: 'Squaring Sam', quote: 'Nobody ever asks. You asked.', line: 'g2_cert_sam', crit: 'In "The Roundness Trap", clear Sam first (before accusing anyone), with the right reason on the first try and at most one small hint.', portrait: 'sam', portraitSrc: [370, 230, 220], gold: 'd5' },
-    { key: 1, title: 'Rule Breaker, Rule Maker', sub: 'built a liar that fools the table check', by: 'The Glitch', quote: 'Y-you made a liar on purpose? That\'s... actually really clever.', line: 'g2_s2_ok', crit: 'Stretch "Write the Confession": build a relation that passes Marcus\'s table check at 0, 1 and 2 but fails Linesy\'s test somewhere else.', portrait: 'glitch', portraitSrc: [380, 270, 200] },
-    { key: 2, title: 'Efficient Detective', sub: 'caught the clever liar without wasting a single test', by: 'Gus', quote: 'You only had to look twice.', line: 'g2_s1_found', crit: 'Stretch "The Clever Liar": bust it without a wasted test (no even inputs, nothing above 5), never asking the same thing more than twice.', portrait: 'gus', portraitSrc: [380, 290, 200] }
+    { key: 1, title: 'Rule Breaker, Rule Maker', sub: 'built a liar that fools the table check', by: 'The Glitch', quote: 'Y-you made a liar on purpose? That\'s... actually really clever.', line: 'g2_s2_ok', crit: 'Challenge "Write the Confession": build a relation that passes Marcus\'s table check at 0, 1 and 2 but fails Linesy\'s test somewhere else.', portrait: 'glitch', portraitSrc: [380, 270, 200] },
+    { key: 2, title: 'Efficient Detective', sub: 'caught the clever liar without wasting a single test', by: 'Gus', quote: 'You only had to look twice.', line: 'g2_s1_found', crit: 'Challenge "The Clever Liar": bust it without a wasted test (no even inputs, nothing above 5), never asking the same thing more than twice.', portrait: 'gus', portraitSrc: [380, 290, 200] }
   ];
   function artefact(C, P) {
     if (C.key === 'std') return ['Cases closed:'].concat((P.busts || []).slice(0, 4).map(function (b) { return '  ' + b; }));
@@ -2244,6 +2260,10 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   function reset(scene) { ST.lineup = []; ST.sel = null; ST.cast = {}; ST.graph = null; ST.linesy = null; ST.board = null; }
   function place(list) { var n = list.length, x0 = 300, x1 = 890; list.forEach(function (s, i) { s.x = n === 1 ? (x0 + x1) / 2 : x0 + (x1 - x0) * i / (n - 1); }); ST.lineup = list; }
   function cage(s) { s.caged = S.now(); }
+  // job card text: one plain goal sentence, optional short story, numbered steps, and what "done" looks like
+  function job(goal, story, steps, done) { return '<span class="goal">' + goal + '</span>' + (story || '') + (steps && steps.length ? '<ol class="steps"><li>' + steps.join('</li><li>') + '</li></ol>' : '') + (done ? '<span class="donewhen"><b>Done when:</b> ' + done + '</span>' : ''); }
+  function stepH(text, later) { var h = el('h3', { text: text }); if (later) h.className = 'later'; return h; }
+  function waitP(text) { return el('p', { 'class': 'wait', text: text }); }
   function f1(v) { return fmt(+v.toFixed(1)); }
   // record the outcome of a core case
   function closeCase(id, wrong, bustText, lines, doneText) {
@@ -2264,9 +2284,10 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   function snackChip(k) { var s = SNACKS[k]; return el('span', { 'class': 'snack' }, [el('i', { style: 'background:' + s[1] }), s[0]]); }
   function C0(G) {
     reset(); ST.cast = { marcus: { x: 90, f: 1, sc: 0.8 }, priya: { x: 190, f: 1, sc: 0.8 } }; place([{ id: 'v', kind: 'vend', label: 'B4', tag: 'SNACKS', sc: 0.95 }]); ST.lineup[0].x = 640;
-    G.setTask('The Snack Machine', 'Press <strong>B4</strong> twice. Then test five snack machines: press each button twice. Do you <strong>trust</strong> the machine, or <strong>not</strong>?');
+    G.setTask('The Snack Machine', job('Find out which snack machines you can trust.', '', null, 'all 5 machines are sorted.'));
     var w = G.work; var demo = el('div', { 'class': 'row' }); var b4 = el('button', { type: 'button', 'class': 'btn primary', text: 'Press B4' }); var got = el('div', { 'class': 'row', 'aria-live': 'polite' });
-    w.appendChild(el('h3', { text: '1. The famous B4' })); demo.appendChild(b4); demo.appendChild(got); w.appendChild(demo);
+    w.appendChild(stepH('1. Press B4 two times')); demo.appendChild(b4); demo.appendChild(got); w.appendChild(demo);
+    var h2 = stepH('2. Press each button twice, then: trust it or not?', true), w2 = waitP('After step 1.'); w.appendChild(h2); w.appendChild(w2);
     var n = 0;
     b4.addEventListener('click', function () {
       if (busy()) return; n++; ST.lineup[0].press = true; setTimeout(function () { ST.lineup[0].press = false; }, 300);
@@ -2275,15 +2296,15 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       if (n === 2) { b4.disabled = true; G.lock(true); G.after(V.say(['g2_c0_m2', 'g2_c0_p1', 'g2_c0_p2']), function () { G.lock(false); b4.disabled = true; part2(); }); }
     });
     function part2() {
-      w.appendChild(el('h3', { text: '2. Five machines: trust them?' }));
+      h2.className = ''; w2.textContent = 'Same snack twice: trust it. Two different snacks: don\'t trust it.';
       var M = [['A', 'juice', 'juice'], ['B', 'apple', 'banana'], ['C', 'water', 'water'], ['D', 'cookie', 'crisps'], ['E', 'dates', 'dates']];
       var box = cards(); var right = 0;
       M.forEach(function (m) {
-        var trust = m[1] === m[2], presses = 0, res = el('div', { 'class': 'row' }), ans = el('div', { 'class': 'row', hidden: '' }), fb = el('small', { 'class': 'muted' });
-        var pb = el('button', { type: 'button', 'class': 'btn small', text: 'Press B2', onclick: function () { if (presses >= 2) return; res.appendChild(snackChip(presses === 0 ? m[1] : m[2])); presses++; if (presses === 2) { pb.disabled = true; ans.hidden = false; } } });
+        var trust = m[1] === m[2], presses = 0, res = el('div', { 'class': 'row' }), ans = el('div', { 'class': 'row' }), fb = el('small', { 'class': 'muted' });
+        var pb = el('button', { type: 'button', 'class': 'btn small', text: 'Press B2', onclick: function () { if (presses >= 2) return; res.appendChild(snackChip(presses === 0 ? m[1] : m[2])); presses++; if (presses === 2) { pb.disabled = true; [].forEach.call(ans.querySelectorAll('button'), function (x) { x.disabled = false; }); } } });
         var done = false;
-        function pick(t) { if (done) return; if (t === trust) { done = true; right++; fb.textContent = trust ? 'Trusted: same button, same snack.' : 'Not trusted: one button, two snacks.'; fb.className = 'good'; G.firstTry(true); if (right === M.length) finish(); else V.say('g2_c0_good'); [].forEach.call(ans.querySelectorAll('button'), function (x) { x.disabled = true; }); } else { fb.textContent = 'Look again at the two snacks.'; fb.className = 'bad'; G.firstTry(false); V.say('g2_c0_bad'); } }
-        ans.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Trust it', onclick: function () { pick(true); } })); ans.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Don\'t trust it', onclick: function () { pick(false); } }));
+        function pick(t) { if (done) return; if (t === trust) { done = true; right++; fb.textContent = trust ? 'Trusted: same button, same snack.' : 'Not trusted: one button, two snacks.'; fb.className = 'good'; G.firstTry(true); if (right === M.length) finish(); else V.say('g2_c0_good'); [].forEach.call(ans.querySelectorAll('button'), function (x) { x.disabled = true; }); } else { fb.textContent = 'Are the two snacks the same? Same: trust it. Different: don\'t trust it.'; fb.className = 'bad'; G.firstTry(false); V.say('g2_c0_bad'); } }
+        ans.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Trust it', disabled: '', onclick: function () { pick(true); } })); ans.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Don\'t trust it', disabled: '', onclick: function () { pick(false); } }));
         card(box, { id: 'm' + m[0], label: 'Machine ' + m[0] }, [el('div', { 'class': 'row' }, [pb, res]), ans, fb]);
       });
     }
@@ -2299,10 +2320,10 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       s.log = [];
       var tape = el('div', { 'class': 'minitape', 'aria-live': 'polite' }); var toks = el('div', { 'class': 'tray small' });
       opts.inputs.forEach(function (n) { toks.appendChild(el('button', { type: 'button', 'class': 'tok sm', 'aria-label': 'Ask ' + s.label + ' input ' + n, 'data-n': n, text: String(n), onclick: function () { ask(s, n); } })); });
-      var acc = el('button', { type: 'button', 'class': 'btn small', text: 'Accuse ' + s.label.split(' ')[0] + '…', onclick: function () { startAccuse(s); } });
+      var acc = el('button', { type: 'button', 'class': 'btn small', text: 'Accuse it', onclick: function () { startAccuse(s); } });
       var pin = el('div', { 'class': 'pin', hidden: '' });
       s.dom = { tape: tape, toks: toks, pin: pin, acc: acc };
-      card(box, s, [el('small', { 'class': 'muted', text: 'Ask an input:' }), toks, tape, el('div', { 'class': 'row' }, [acc]), pin]);
+      card(box, s, [el('small', { 'class': 'muted', text: 'Test a number:' }), toks, tape, el('div', { 'class': 'row' }, [acc]), pin]);
     });
     function render(s) { s.dom.tape.innerHTML = s.log.length ? s.log.map(function (r) { var dup = s.log.some(function (q) { return q.x === r.x && q.y !== r.y; }); return '<span class="tr' + (dup && s.showDup ? ' clash' : '') + '">' + r.x + ' → ' + fmt(r.y) + '</span>'; }).join('') : '<span class="muted">No tests yet.</span>'; }
     sus.forEach(render);
@@ -2314,7 +2335,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     function startAccuse(s) {
       if (busy() || closed) return; accusing = s; sus.forEach(function (q) { q.dom.pin.hidden = true; q.dom.pin.innerHTML = ''; }); ST.sel = s.id;
       var inputs = []; s.log.forEach(function (r) { if (inputs.indexOf(r.x) < 0) inputs.push(r.x); });
-      var p = s.dom.pin; p.hidden = false; p.appendChild(el('small', { text: inputs.length ? 'Pin your evidence: which input proves it?' : 'Ask it some inputs first, so there\'s evidence to pin.' }));
+      var p = s.dom.pin; p.hidden = false; p.appendChild(el('small', { text: inputs.length ? 'Tap the number that proves it:' : 'Test it first: tap a number twice, so there\'s evidence.' }));
       var row = el('div', { 'class': 'row' }); inputs.forEach(function (n) { row.appendChild(el('button', { type: 'button', 'class': 'tile', text: 'input ' + n, onclick: function () { judge(s, n); } })); });
       row.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Cancel', onclick: function () { p.hidden = true; p.innerHTML = ''; } })); p.appendChild(row);
       V.say('g2_acc_ask');
@@ -2327,7 +2348,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         G.say('Busted: input ' + n + ' gave ' + outs.map(fmt).join(' and ') + '. One input, two outputs.', 'good'); G.note('BUSTED ' + s.label + ': input ' + n + ' → ' + outs.map(fmt).join(' and '), 'hl');
         opts.onBust(s, n, outs, wrong);
       } else if (s.guilty) { G.say('Right suspect, weak evidence: input ' + n + ' only ever gave ' + fmt(outs[0]) + '. Find an input that gave two outputs.', 'bad'); V.say('g2_weak'); }
-      else { wrong++; G.firstTry(false); G.note('Wrong accusation: ' + s.label, 'pre'); G.say(s.label + ' is innocent: input ' + n + ' gave ' + fmt(outs[0]) + ' every time. That\'s not evidence. (Wrong accusations: ' + wrong + ')', 'bad'); V.say(['g2_wrong'].concat(s.innocentLine ? [s.innocentLine] : [])); }
+      else { wrong++; G.firstTry(false); G.note('Wrong accusation: ' + s.label, 'pre'); G.say(s.label + ' is innocent: input ' + n + ' gave ' + fmt(outs[0]) + ' every time. That\'s not evidence. Test the others. (Wrong accusations: ' + wrong + ')', 'bad'); V.say(['g2_wrong'].concat(s.innocentLine ? [s.innocentLine] : [])); }
     }
     return { sus: sus, wrong: function () { return wrong; }, render: render, ask: ask, judge: judge };
   }
@@ -2342,7 +2363,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       { id: 'gl', label: 'The Shaky One', blurb: 'no label', kind: 'glitch', talkAs: 'glitch', guilty: true, out: function (x, prev) { var y, k = 0; do { y = Math.floor(SFA.rng() * 25) - 2; } while (prev.indexOf(y) >= 0 && ++k < 20); if (prev.indexOf(y) >= 0) y = Math.max.apply(null, prev) + 1 + x; return y; } }
     ];
     place(sus.map(function (s) { return { id: s.id, kind: s.kind, label: s.label, tag: s.label.replace('The ', '').toUpperCase(), talkAs: s.talkAs, sc: s.kind === 'glitch' ? 0.85 : 0.6 }; }));
-    G.setTask('Who Glitched the Multiplex?', 'One of these four can\'t make up its mind. Ask them inputs. When you think you know, <strong>accuse</strong> it and <strong>pin the input</strong> that proves it.');
+    G.setTask('Who Glitched the Multiplex?', job('Find the machine that gives one number two different answers.', '', ['Tap a number on a machine. Try the same number <strong>twice</strong>.', 'Two different answers? Press <strong>Accuse it</strong>.', 'Tap the number that proves it.'], 'you catch the glitch with proof.'));
     var T = tapeSuspects(G, 'C1', sus, {
       inputs: [0, 1, 2, 3, 4, 5],
       onBust: function (s, n, outs, wrong) {
@@ -2395,7 +2416,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     ];
     place(sus.map(function (s) { return { id: s.id, kind: s.kind, label: s.label, tag: s.label.toUpperCase(), col: s.col, talkAs: s.talkAs, sc: s.kind === 'sam' ? 0.62 : s.kind === 'littlef' ? 0.9 : 0.55 }; }));
     var C = { wrong: 0, accused: false, cleared: false, reasonTries: 0, closed: false };
-    G.setTask('The Roundness Trap', 'Marcus is sure Sam is the glitch. <strong>Clear the innocent</strong> and <strong>bust the real culprit</strong>: tap the input in its diagram that proves it.');
+    G.setTask('The Roundness Trap', job('Clear Sam, and catch the real glitch.', 'Marcus is sure round Sam is the glitch.', ['Look at the arrows leaving each input (left side).', 'Sam innocent? Press <strong>Clear Sam</strong> and pick the reason.', 'Found the glitch? Press <strong>Accuse</strong>, then tap the input that proves it.'], 'Sam is cleared and the glitch is caught.'));
     var box = cards();
     sus.forEach(function (s, i) {
       var pin = el('div', { 'class': 'pin', hidden: '' });
@@ -2425,8 +2446,8 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         C.closed = true; G.firstTry(C.wrong === 0); cage(ST.lineup[2]); G.note('BUSTED The Sneak: input 2 → 4 and 5', 'hl'); G.say('Busted: input 2 has two arrows leaving, to 4 and to 5. One input, two outputs.', 'good');
         if (!C.cleared) { G.say('Busted the Sneak: input 2 has two arrows leaving. Now clear Sam too: why is he innocent?', 'good'); G.lock(true); G.after(V.say(['g2_c2_sneak', 'g2_cage']), function () { G.lock(false); clearSam(); waitClear(); }); C.sneakSaid = true; return; }
         finish();
-      } else if (s.guilty) { G.say('Right suspect, weak evidence: input ' + v + ' has only one arrow leaving.', 'bad'); V.say('g2_weak'); }
-      else { C.wrong++; G.firstTry(false); if (s.id === 'sam') { ST.lineup[0].sad = true; G.say('Sam is innocent: input ' + v + ' has one arrow leaving. Two arrows ARRIVING at the same output is allowed. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say(['g2_c2_sam', 'g2_c2_wrongsam']); } else { G.say(s.label + ' is innocent: every input has exactly one arrow leaving. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say('g2_wrong'); } }
+      } else if (s.guilty) { G.say('Right suspect, weak evidence: input ' + v + ' has only one arrow leaving. Press Accuse again and tap an input with two arrows leaving.', 'bad'); V.say('g2_weak'); }
+      else { C.wrong++; G.firstTry(false); if (s.id === 'sam') { ST.lineup[0].sad = true; G.say('Sam is innocent: input ' + v + ' has one arrow leaving. Two arrows ARRIVING at the same output is allowed. Look for an input with two arrows LEAVING. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say(['g2_c2_sam', 'g2_c2_wrongsam']); } else { G.say(s.label + ' is innocent: every input has exactly one arrow leaving. Try another suspect. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say('g2_wrong'); } }
     }
     function waitClear() { var ep = G.epoch; var iv = setInterval(function () { if (ep !== G.epoch) { clearInterval(iv); return; } if (C.cleared) { clearInterval(iv); finish(); } }, 300); }
     function finish() { G.lock(true); G.after(V.say(C.sneakSaid ? ['g2_c2_sorry'] : ['g2_c2_sneak', 'g2_cage', 'g2_c2_sorry']), function () { G.lock(false); closeCase('C2', C.wrong, 'The Sneak, input 2 → 4 and 5 (Sam cleared)', [], 'Case closed. Sam is cleared (many-to-one is allowed) and the Sneak is busted (one-to-many is not). Wrong accusations: ' + C.wrong + '.' + (G.P.friendOfSam ? ' You earned Friend of Sam.' : '')); }); }
@@ -2447,12 +2468,12 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       { id: 'C', pairs: [[4, 11], [5, 13], [4, 2], [6, 15]], guilty: true }, { id: 'D', pairs: [[0, 5], [1, 5], [2, 5], [3, 5]] }
     ];
     place(sets.map(function (s) { return { id: s.id, kind: 'poster', label: s.id, tag: 'SET ' + s.id, sc: 0.62 }; }));
-    G.setTask('Pairs on the Wall', 'Four suspects left their <strong>(input, output)</strong> pairs on the wall. Accuse one by tapping <strong>two pairs that clash</strong>.');
+    G.setTask('Pairs on the Wall', job('Find the set where one input has two different outputs.', 'Each pair is <strong>(input, output)</strong>.', ['Look for the same <strong>first</strong> number twice in one set.', 'Tap those two pairs.'], 'you tap the 2 pairs that clash.'));
     var C = { wrong: 0, closed: false, picks: {} }; var box = cards();
     sets.forEach(function (s) {
       var row = el('div', { 'class': 'pairs' }); C.picks[s.id] = [];
       s.pairs.forEach(function (p, i) { row.appendChild(el('button', { type: 'button', 'class': 'tile pair', 'aria-pressed': 'false', text: '(' + p[0] + ', ' + p[1] + ')', onclick: function (e) { pick(s, i, e.target); } })); });
-      card(box, { id: s.id, label: 'Set ' + s.id }, [row, el('small', { 'class': 'muted', text: 'Tap two pairs to accuse this set.' })]);
+      card(box, { id: s.id, label: 'Set ' + s.id }, [row]);
     });
     function pick(s, i, btn) {
       if (busy() || C.closed) return; var pk = C.picks[s.id]; var at = pk.indexOf(i); if (at >= 0) { pk.splice(at, 1); btn.setAttribute('aria-pressed', 'false'); return; }
@@ -2460,7 +2481,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       var a = s.pairs[pk[0]], b = s.pairs[pk[1]];
       [].forEach.call(document.querySelectorAll('#sus-' + s.id + ' .pair'), function (x) { x.setAttribute('aria-pressed', 'false'); }); C.picks[s.id] = [];
       if (a[0] === b[0] && a[1] !== b[1]) { G.note('BUSTED Set ' + s.id + ': (' + a.join(', ') + ') and (' + b.join(', ') + ')', 'hl'); C.closed = true; G.firstTry(C.wrong === 0); cage(ST.lineup[2]); G.say('Busted: (' + a.join(', ') + ') and (' + b.join(', ') + '). Same input 4, two outputs.', 'good'); G.lock(true); G.after(V.say(['g2_c3_bust', 'g2_cage']), function () { G.lock(false); closeCase('C3', C.wrong, 'Set C, (4, 11) and (4, 2)', [], 'Case closed. Set C sends input 4 to both 11 and 2. Wrong accusations: ' + C.wrong + '.'); }); }
-      else { C.wrong++; G.firstTry(false); if (a[1] === b[1]) { G.say('(' + a.join(', ') + ') and (' + b.join(', ') + ') share an OUTPUT. That\'s allowed. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say('g2_c3_sameout'); } else { G.say('Those pairs have different inputs, ' + a[0] + ' and ' + b[0] + '. No clash. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say('g2_c3_diff'); } }
+      else { C.wrong++; G.firstTry(false); if (a[1] === b[1]) { G.say('(' + a.join(', ') + ') and (' + b.join(', ') + ') share an OUTPUT. That\'s allowed. Look for two pairs with the same FIRST number. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say('g2_c3_sameout'); } else { G.say('Those pairs have different inputs, ' + a[0] + ' and ' + b[0] + '. No clash. Look for two pairs that start with the same number. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say('g2_c3_diff'); } }
     }
     G.hintFn = function (r) {
       if (r === 1) { V.say('g2_h3_pairs'); G.say('Hint: look for the same first number twice in one set.'); }
@@ -2476,13 +2497,13 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     reset(); ST.cast = {}; GR.xr = [-4, 4]; GR.yr = [-3, 7];
     var keys = ['line', 'u', 'circle', 'side', 'vee', 's'], guilty = { circle: 1, side: 1 };
     var C = { wrong: 0, busted: {}, cur: 'line' };
-    G.setTask('Linesy Joins the Force', 'Six graphs. <strong>Two of them are liars.</strong> Pick a graph, slide <strong>Linesy</strong> across it, and pin the spot where he touches it twice.');
+    G.setTask('Linesy Joins the Force', job('Find the 2 graphs that are not functions.', 'Linesy is the up-and-down line. If he touches a graph twice, it\'s a liar.', null, 'both liars are busted (<b id="c4n">0</b> of 2).'));
     var tabs = el('div', { 'class': 'row', role: 'group', 'aria-label': 'Choose a graph' });
     keys.forEach(function (k) { tabs.appendChild(el('button', { type: 'button', 'class': 'chip', 'data-k': k, 'aria-pressed': String(k === C.cur), text: CURVES[k].name, onclick: function () { show(k); } })); });
     var slider = el('input', { type: 'range', id: 'linesyX', min: '-4', max: '4', step: '0.1', value: '-3.5', 'aria-label': 'Move Linesy across the graph (input value)', style: 'width:100%;accent-color:#8FD3FF' });
     var readout = el('p', { 'class': 'muted', 'aria-live': 'polite', id: 'linesyRead' });
     var pinB = el('button', { type: 'button', 'class': 'btn primary', text: 'Pin evidence here', id: 'btnPinG' }), cleanB = el('button', { type: 'button', 'class': 'btn', text: 'Declare it a function', id: 'btnClean' }), sideB = el('button', { type: 'button', 'class': 'btn small', text: 'Turn Linesy sideways', id: 'btnSide' });
-    G.work.appendChild(tabs); G.work.appendChild(el('h3', { text: 'Slide Linesy (arrow keys work too)' })); G.work.appendChild(slider); G.work.appendChild(readout); G.work.appendChild(el('div', { 'class': 'row' }, [pinB, cleanB, sideB]));
+    G.work.appendChild(stepH('1. Tap a graph')); G.work.appendChild(tabs); G.work.appendChild(stepH('2. Slide Linesy across it (arrow keys work too)')); G.work.appendChild(slider); G.work.appendChild(readout); G.work.appendChild(stepH('3. Touches twice? Pin it. Never twice? It\'s a function')); G.work.appendChild(el('div', { 'class': 'row' }, [pinB, cleanB, sideB]));
     var found = el('p', { 'class': 'muted', id: 'found' }); G.work.appendChild(found);
     function show(k) { C.cur = k; ST.graph = { key: k, label: CURVES[k].name, caged: C.busted[k] ? S.now() - 10 : null }; [].forEach.call(tabs.querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.k === k)); }); upd(); }
     var lastCount = null;
@@ -2491,13 +2512,13 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     slider.addEventListener('input', upd);
     pinB.addEventListener('click', function () {
       if (busy()) return; var k = C.cur, x = +slider.value, h = touches(x);
-      if (C.busted[k]) { G.say('Already busted. Pick another graph.'); return; }
+      if (C.busted[k]) { G.say('Already busted. Tap another graph (step 1).'); return; }
       if (h.length >= 2) { C.busted[k] = true; ST.graph.caged = S.now(); G.firstTry(true); G.say('Busted: at input ' + f1(x) + ', ' + CURVES[k].name + ' gives two outputs, ' + h.map(f1).join(' and ') + '.', 'good'); G.note('BUSTED ' + CURVES[k].name + ': input ' + f1(x) + ' → ' + h.map(f1).join(' and '), 'hl');
-        G.lock(true); G.after(V.say(k === 'circle' ? ['g2_c4_twice', 'g2_c4_loopbust'] : ['g2_c4_twice', 'g2_c4_sideu']), function () { G.lock(false); found.textContent = 'Busted so far: ' + Object.keys(C.busted).map(function (q) { return CURVES[q].name; }).join(', ') + '.'; if (C.busted.circle && C.busted.side) done(); }); }
+        G.lock(true); G.after(V.say(k === 'circle' ? ['g2_c4_twice', 'g2_c4_loopbust'] : ['g2_c4_twice', 'g2_c4_sideu']), function () { G.lock(false); found.textContent = 'Busted so far: ' + Object.keys(C.busted).map(function (q) { return CURVES[q].name; }).join(', ') + '.'; var cn = $('#c4n'); if (cn) cn.textContent = String(Object.keys(C.busted).length); if (C.busted.circle && C.busted.side) done(); }); }
       else if (guilty[k]) { G.say('This one might be a liar, but at input ' + f1(x) + ' Linesy touches it ' + h.length + ' time' + (h.length === 1 ? '' : 's') + '. Slide him to where he touches twice.', 'bad'); V.say('g2_c4_once'); }
-      else { C.wrong++; G.firstTry(false); G.say(CURVES[k].name + ' is a function: Linesy never touches it more than once. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say(k === 'vee' ? 'g2_c4_vee' : 'g2_c4_once'); }
+      else { C.wrong++; G.firstTry(false); G.say(CURVES[k].name + ' is a function: Linesy never touches it more than once. Try another graph. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say(k === 'vee' ? 'g2_c4_vee' : 'g2_c4_once'); }
     });
-    cleanB.addEventListener('click', function () { var k = C.cur; if (guilty[k]) { C.wrong++; G.firstTry(false); G.say('Careful: slide Linesy all the way across before you clear it. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say('g2_h3_graph'); } else G.say(CURVES[k].name + ': cleared. Linesy touches it once at every input.', 'good'); });
+    cleanB.addEventListener('click', function () { var k = C.cur; if (guilty[k]) { C.wrong++; G.firstTry(false); G.say('Careful: slide Linesy all the way across before you clear it. (Wrong accusations: ' + C.wrong + ')', 'bad'); V.say('g2_h3_graph'); } else G.say(CURVES[k].name + ': cleared. Linesy touches it once at every input. Now tap another graph.', 'good'); });
     sideB.addEventListener('click', function () { V.say('g2_c4_side'); G.say('Linesy only stands up. The test is about inputs, and inputs go across.'); });
     function done() { G.lock(true); G.after(V.say(['g2_c4_loop', 'g2_c4_loopbust', 'g2_cage']), function () { G.lock(false); closeCase('C4', C.wrong, 'The Loop and the Sideways U (Linesy touched twice)', ['g2_sidekick', 'g2_no', 'g2_doug'], 'Both liars busted: the Loop and the Sideways U. A graph is a function when every vertical line touches it at most once. Wrong accusations: ' + C.wrong + '.'); }); }
     G.hintFn = function (r) {
@@ -2519,8 +2540,8 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     var asked = {}, tests = 0, wasted = 0;
     var sus = ['A', 'B', 'C'].map(function (m) { return { id: m, label: 'Machine ' + m, kind: 'fair', col: { A: '#E8743B', B: '#3FA66B', C: '#2E6DA4' }[m], guilty: m === lm, out: function (x, prev) { var key = m + x; asked[key] = (asked[key] || 0) + 1; tests++; if (m !== 'B' && (cand.indexOf(key) < 0 || asked[key] > 2)) wasted++; var y = rules[m](x); if (key === liar && asked[key] >= 2) y = y + 4; return y; } }; });
     place(sus.map(function (s) { return { id: s.id, kind: 'fair', label: s.label.toUpperCase(), tag: s.label.toUpperCase(), col: s.col, sc: 0.55 }; }));
-    G.setTask('The Clever Liar', 'One machine lies on <strong>one input</strong>, and only <strong>the second time</strong> you ask. Read the clues, then test as few times as you can. Every test is written in your case notes. Don\'t waste any.');
-    G.work.appendChild(el('ul', { 'class': 'clues' }, [el('li', { text: 'Gus: it only lies on odd numbers.' }), el('li', { text: 'Priya: Machine B passed every test Marcus did yesterday. (Passing yesterday can\'t prove it won\'t lie today, so testing B isn\'t wasted.)' }), el('li', { text: 'Mr. Dunmore: inputs above 5 are too big for it to bother with.' })]));
+    G.setTask('The Clever Liar', job('Catch the lying machine in as few tests as you can.', 'It lies on <strong>one number</strong>, and only the <strong>2nd time</strong> you ask.', ['Read the 3 clues.', 'Tap a number on a machine <strong>twice</strong>.', 'Two different answers? Press <strong>Accuse it</strong>, then tap that number.'], 'you catch it. No wasted tests earns Efficient Detective.'));
+    G.work.appendChild(el('ul', { 'class': 'clues' }, [el('li', { text: 'Gus: it only lies on odd numbers.' }), el('li', { text: 'Priya: Machine B passed every test yesterday. (That doesn\'t prove it\'s honest today.)' }), el('li', { text: 'Mr. Dunmore: inputs above 5 are too big for it to bother with.' })]));
     var cnt = el('p', { 'class': 'muted', 'aria-live': 'polite', text: 'Tests used: 0' }); G.work.appendChild(cnt);
     tapeSuspects(G, 'S1', sus, {
       inputs: [0, 1, 2, 3, 4, 5, 6, 7], onAsk: function () { cnt.textContent = 'Tests used: ' + tests; },
@@ -2544,21 +2565,22 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     reset(); ST.cast = { marcus: { x: 80, f: 1, sc: 0.7 } };
     ST.graph = { points: [], label: 'YOUR LIAR' }; GR.xr = [0, 6]; GR.yr = [0, 9];
     var pts = ST.graph.points;
-    G.setTask('Write the Confession', 'Build a liar on purpose. Marcus\'s detector only checks inputs <strong>0, 1 and 2</strong>. Make a relation that <strong>passes his check</strong> but that <strong>Linesy catches</strong> somewhere else.');
+    G.setTask('Write the Confession', job('Build a liar that fools Marcus but not Linesy.', 'Marcus\'s detector only checks inputs <strong>0, 1 and 2</strong>.', ['Tap the grid: put exactly <strong>one</strong> point above 0, 1 and 2.', 'Pick an input from 3 to 6. Put <strong>two</strong> points above it.', 'Press <strong>Run both tests</strong>.'], 'Marcus\'s check passes and Linesy catches your liar.'));
     var grid = el('div', { 'class': 'pgrid', role: 'grid', 'aria-label': 'Point grid: inputs 0 to 6 across, outputs 0 to 9 up' });
     for (var y = 9; y >= 0; y--) { var row = el('div', { 'class': 'prow', role: 'row' }); row.appendChild(el('span', { 'class': 'plab', text: String(y) })); for (var x = 0; x <= 6; x++) { (function (x, y) { row.appendChild(el('button', { type: 'button', 'class': 'pcell', role: 'gridcell', 'aria-pressed': 'false', 'aria-label': 'Point (' + x + ', ' + y + ')', onclick: function (e) { toggle(x, y, e.target); } })); })(x, y); } grid.appendChild(row); }
     var xl = el('div', { 'class': 'prow' }); xl.appendChild(el('span', { 'class': 'plab' })); for (var k = 0; k <= 6; k++) xl.appendChild(el('span', { 'class': 'plab', text: String(k) })); grid.appendChild(xl);
-    G.work.appendChild(grid);
-    var list = el('p', { 'class': 'muted', 'aria-live': 'polite', text: 'Points: none yet. Tap the grid.' }); G.work.appendChild(list);
-    var chk = el('button', { type: 'button', 'class': 'btn primary', text: 'Run both tests' }); G.work.appendChild(el('div', { 'class': 'row' }, [chk, el('button', { type: 'button', 'class': 'btn small', text: 'Clear points', onclick: function () { pts.length = 0; [].forEach.call(grid.querySelectorAll('.pcell'), function (b) { b.setAttribute('aria-pressed', 'false'); }); upd(); } })]));
-    function toggle(x, y, b) { var i = pts.findIndex(function (p) { return p[0] === x && p[1] === y; }); if (i >= 0) { pts.splice(i, 1); b.setAttribute('aria-pressed', 'false'); } else { if (pts.length >= 12) { G.say('Twelve points is plenty.', 'bad'); return; } pts.push([x, y]); b.setAttribute('aria-pressed', 'true'); } upd(); }
+    var side = el('div', { 'class': 'stack', style: 'flex:1 1 180px;min-width:0;gap:8px' });
+    G.work.appendChild(el('div', { 'class': 'row', style: 'align-items:flex-start;flex-wrap:wrap;gap:12px' }, [grid, side]));
+    var list = el('p', { 'class': 'muted', 'aria-live': 'polite', style: 'margin:0', text: 'Points: none yet. Tap the grid.' }); side.appendChild(list);
+    var chk = el('button', { type: 'button', 'class': 'btn primary', text: 'Run both tests' }); side.appendChild(el('div', { 'class': 'row' }, [chk, el('button', { type: 'button', 'class': 'btn small', text: 'Clear points', onclick: function () { pts.length = 0; [].forEach.call(grid.querySelectorAll('.pcell'), function (b) { b.setAttribute('aria-pressed', 'false'); }); upd(); } })]));
+    function toggle(x, y, b) { var i = pts.findIndex(function (p) { return p[0] === x && p[1] === y; }); if (i >= 0) { pts.splice(i, 1); b.setAttribute('aria-pressed', 'false'); } else { if (pts.length >= 12) { G.say('Twelve points is plenty. Tap a point to remove it, or press Run both tests.', 'bad'); return; } pts.push([x, y]); b.setAttribute('aria-pressed', 'true'); } upd(); }
     function upd() { pts.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; }); list.textContent = pts.length ? 'Points: ' + pts.map(function (p) { return '(' + p[0] + ', ' + p[1] + ')'; }).join(' ') : 'Points: none yet. Tap the grid.'; }
     chk.addEventListener('click', function () {
       if (busy()) return; var cnt = function (x) { return pts.filter(function (p) { return p[0] === x; }).length; };
       var tableOK = [0, 1, 2].every(function (x) { return cnt(x) === 1; }); var clash = [3, 4, 5, 6].filter(function (x) { return cnt(x) >= 2; })[0];
       G.lock(true);
-      if (!tableOK) { G.firstTry(false); G.say('Marcus\'s check: inputs 0, 1 and 2 must each have exactly one point. ' + [0, 1, 2].map(function (x) { return x + ' has ' + cnt(x); }).join(', ') + '.', 'bad'); G.after(V.say('g2_s2_badtable'), function () { G.lock(false); }); return; }
-      if (clash == null) { ST.linesy = 4; G.firstTry(false); G.say('Marcus is fooled, but Linesy finds nothing: no input past 2 has two points. That\'s still a function.', 'bad'); G.after(V.say(['g2_s2_pass', 'g2_s2_badfunc']), function () { G.lock(false); }); return; }
+      if (!tableOK) { G.firstTry(false); G.say('Marcus\'s check: inputs 0, 1 and 2 must each have exactly one point. ' + [0, 1, 2].map(function (x) { return x + ' has ' + cnt(x); }).join(', ') + '. Fix those, then run the tests again.', 'bad'); G.after(V.say('g2_s2_badtable'), function () { G.lock(false); }); return; }
+      if (clash == null) { ST.linesy = 4; G.firstTry(false); G.say('Marcus is fooled, but Linesy finds nothing: no input past 2 has two points. That\'s still a function. Put two points above one input from 3 to 6.', 'bad'); G.after(V.say(['g2_s2_pass', 'g2_s2_badfunc']), function () { G.lock(false); }); return; }
       ST.linesy = clash; G.P.s2 = { ok: true, points: pts.map(function (p) { return p.slice(); }), clash: clash }; G.P.done.S2 = true; G.save();
       G.say('Marcus\'s table check passes. Then Linesy stands at input ' + clash + ' and touches twice. A liar, built on purpose.', 'good');
       G.after(V.say(['g2_s2_pass', 'g2_c4_twice', 'g2_s2_ok']), function () { G.lock(false); GR.xr = [-4, 4]; GR.yr = [-3, 7]; G.levelDone('S2', 'Confession written: it fools a 3-input table check and fails Linesy at input ' + clash + '. You earned Rule Breaker, Rule Maker.', []); });
@@ -2577,13 +2599,13 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       { t: 'Each month → the students born then', pairs: [['March', 'Layla'], ['March', 'Omar'], ['June', 'Sara']], f: false, bad: 'March' },
       { t: 'Each raincoat size → its price', pairs: [['Small', '20 riyals'], ['Medium', '25 riyals'], ['Large', '25 riyals']], f: true }
     ];
-    G.setTask('Is Doug a Function?', 'No machines this time. For each story, decide: <strong>function</strong> or <strong>not</strong>? If not, tap the input that points to two things.');
+    G.setTask('Is Doug a Function?', job('Decide if each story is a function.', 'A function: every input has <strong>one</strong> arrow leaving.', ['Look at the arrows in a story.', 'Tap <strong>Function</strong> or <strong>Not a function</strong>.', 'If not, tap the input with two arrows leaving.'], 'all 5 stories are sorted.'));
     var box = cards(), right = 0, wrongAny = 0;
     STORIES.forEach(function (st, i) {
       var fb = el('small', { 'class': 'muted' }), done = false, waitPick = false;
       var d = arrowSVG(st.pairs.map(function (p) { return p; }), { uid: 's3' + i, label: st.t, pick: function (v) { if (!waitPick || done) return; if (v === st.bad) { done = true; right++; fb.textContent = v + ' points to two things. Not a function.'; fb.className = 'good'; G.firstTry(true); next(); } else { wrongAny++; fb.textContent = v + ' points to only one thing. Look for the input with two arrows leaving.'; fb.className = 'bad'; G.firstTry(false); V.say('g2_s3_bad'); } } });
-      var bf = el('button', { type: 'button', 'class': 'btn small', text: 'Function', onclick: function () { if (done) return; if (st.f) { done = true; right++; fb.textContent = 'Yes: every input has one arrow leaving.'; fb.className = 'good'; G.firstTry(true); next(); } else { wrongAny++; G.firstTry(false); fb.textContent = 'Check each input. Does one point to two things?'; fb.className = 'bad'; V.say('g2_s3_bad'); } } });
-      var bn = el('button', { type: 'button', 'class': 'btn small', text: 'Not a function', onclick: function () { if (done) return; if (!st.f) { waitPick = true; fb.textContent = 'Right. Now tap the input that points to two things.'; fb.className = ''; } else { wrongAny++; G.firstTry(false); fb.textContent = 'Every input here has exactly one arrow leaving. Two inputs sharing an output is allowed.'; fb.className = 'bad'; V.say('g2_s3_bad'); } } });
+      var bf = el('button', { type: 'button', 'class': 'btn small', text: 'Function', onclick: function () { if (done) return; if (st.f) { done = true; right++; fb.textContent = 'Yes: every input has one arrow leaving.'; fb.className = 'good'; G.firstTry(true); next(); } else { wrongAny++; G.firstTry(false); fb.textContent = 'Check each input on the left. If one has two arrows leaving, it\'s Not a function.'; fb.className = 'bad'; V.say('g2_s3_bad'); } } });
+      var bn = el('button', { type: 'button', 'class': 'btn small', text: 'Not a function', onclick: function () { if (done) return; if (!st.f) { waitPick = true; fb.textContent = 'Right. Now tap the input that points to two things.'; fb.className = ''; } else { wrongAny++; G.firstTry(false); fb.textContent = 'Every input here has exactly one arrow leaving. Two inputs sharing an output is allowed. So it is a Function.'; fb.className = 'bad'; V.say('g2_s3_bad'); } } });
       card(box, { id: 's' + i, label: st.t }, [d.svg, el('div', { 'class': 'row' }, [bf, bn]), fb]);
     });
     function next() { if (right === STORIES.length) { G.P.done.S3 = true; G.save(); G.lock(true); G.after(V.say(['g2_s3_ok', 'doug_coo1', 'g2_s3_gus']), function () { G.lock(false); G.levelDone('S3', 'All five stories sorted. "Pigeon → bench" is a function, but "bench → pigeons" is not: the same story the other way round. Direction matters.', []); }); } }

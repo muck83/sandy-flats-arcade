@@ -305,6 +305,13 @@ section.shelf>p{margin:4px 0 0;color:var(--muted);max-width:72ch}
 .soon{font:700 11px var(--ui);letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:var(--panel2);color:var(--muted)}
 a.btn{text-decoration:none;display:inline-block}
 .prog{font:600 13px var(--mono);color:var(--green)}
+.nextup{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;background:var(--panel2);border:3px solid var(--marquee);border-radius:16px;padding:16px 20px;margin:4px 0 22px}
+.nextup .k{font:700 12px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.nextup b{display:block;font-family:var(--display);font-weight:400;font-size:clamp(24px,3.4vw,34px);letter-spacing:.03em;color:var(--marquee);line-height:1.1}
+.nextup p{margin:4px 0 0;max-width:52ch}
+.nextup .btn{font-size:20px;padding:14px 30px}
+.pbar{height:8px;border-radius:99px;background:var(--bg);overflow:hidden}.pbar i{display:block;height:100%;background:var(--green)}
+.game details{font-size:13px;color:var(--muted)}.game details summary{cursor:pointer}
 .guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:14px}
 .guide .card p,.guide .card li{font-size:15px}
 .guide .card ul,.guide .card ol{margin:6px 0 0;padding-left:20px}
@@ -318,15 +325,16 @@ a.btn{text-decoration:none;display:inline-block}
   <header class="marquee">
     <div>
       <h1>Sandy Flats Arcade</h1>
-      <p>Games that put you inside the films. Feed the machines, bust the liars, crack the rules. Every game has a way in for everyone and a ceiling nobody hits by accident.</p>
+      <p>Eight games that put you inside the films. Play them in order: each one starts easy.</p>
     </div>
     <div class="bulbs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   </header>
   <div id="signin"><div id="sfaAccount"></div></div>
 
   <section class="shelf" aria-labelledby="gH">
+    <div class="nextup" id="nextUp"></div>
     <h2 id="gH">The games</h2>
-    <p>One game for each stretch of the films. About 30 minutes each: a low floor anyone can start, a core path that earns the standard certificate, and stretch levels for the special ones.</p>
+    <p>About 30 minutes each. Finish the main levels to earn the certificate. Challenge levels are for extra certificates.</p>
     <div class="games" id="games"></div>
   </section>
 
@@ -336,10 +344,6 @@ a.btn{text-decoration:none;display:inline-block}
     <div class="card" style="margin-top:14px" id="vault"></div>
   </section>
 
-  <section class="shelf" aria-labelledby="sH">
-    <h2 id="sH">New here?</h2>
-    <p id="startHere">Start with <a href="g1-crack-the-fair.html">Crack the Fair</a> after the film <i>Zero 2</i>, then play the games in order along the shelf. Each one goes with the film named on its card.</p>
-  </section>
 
   <footer class="footer">
     <span id="saveNote">Progress is saved in this browser only. Write down your certificate codes.</span>
@@ -862,28 +866,29 @@ a.btn{text-decoration:none;display:inline-block}
     {g:8,id:'g8',title:'Doug\'s Steps',file:'g8-dougs-steps.html',live:true,after:'Episode F: Doug\'s Steps',math:'Dots or a line? Fence the domain and range.',std:'8.F.5 · domain',bg:'linear-gradient(135deg,#3A3444,#9AA0A8)'}
   ];
   var host=$('#games');
-  GAMES.forEach(function(G){
-    var info=SFA.GAMES[G.g]; var p=SFA.store.get(G.id,null);
-    var doneN=p&&p.done?Object.keys(p.done).filter(function(k){return p.done[k];}).length:0;
-    var card=el('article',{'class':'game'+(G.live?' live':''),'aria-label':G.title},[
-      el('div',{'class':'poster',style:'background:'+G.bg},[el('span',{'class':'gno',text:'G'+G.g}),el('b',{text:G.title})]),
+  var GOAL={g1:'Feed numbers into machines and work out their secret rules.',g2:'Catch the suspect that gives one input two outputs.',g4:'Build graphs that tell a story, and read stories from graphs.',g3:'Turn one rule into words, a table, a graph and a formula.',g5:'Find the slope between two marks, then the rule.',g6:'Spot the machines that only pretend to be lines.',g7:'Work out who is fastest when every ride shows it differently.',g8:'Dots or a line? Fence in the inputs and outputs.'};
+  function prog(G){ var p=SFA.store.get(G.id,null); var info=SFA.GAMES[G.g]||{}; var n=p&&p.done?Object.keys(p.done).filter(function(k){return p.done[k];}).length:0; var tot=({1:11,2:8,3:8,4:9,5:11,6:8,7:9,8:9})[G.g]||0; return {n:n,tot:tot}; }
+  var next=null;
+  GAMES.forEach(function(G,ix){
+    var info=SFA.GAMES[G.g]; var pr=prog(G); if(!next&&!(pr.n&&pr.tot&&pr.n>=pr.tot)&&!(pr.n>0&&ix<GAMES.length-1&&prog(GAMES[ix+1]).n>0)) next={G:G,ix:ix,pr:pr};
+    var card=el('article',{'class':'game'+(G.live?' live':''),'aria-label':'Game '+(ix+1)+': '+G.title},[
+      el('div',{'class':'poster',style:'background:'+G.bg},[el('span',{'class':'gno',text:'Game '+(ix+1)}),el('b',{text:G.title})]),
       el('div',{'class':'body'},[
-        el('div',{'class':'math',text:G.math}),
-        el('div',{'class':'meta',text:'After: '+G.after}),
-        el('div',{'class':'meta',text:G.std}),
-        el('div',{'class':'certl',text:'Certificates: '+info.std+' · '+info.specials.join(' · ')}),
-        el('div',{'class':'act'},G.live?[el('a',{'class':'btn primary',href:G.file,text:'Play'}),doneN?el('span',{'class':'prog',text:doneN+' level'+(doneN===1?'':'s')+' done'}):null]:[el('span',{'class':'soon',text:'Coming soon'})])
+        el('div',{'class':'math',text:GOAL[G.id]||G.math}),
+        el('div',{'class':'meta',text:'Watch first: '+G.after}),
+        pr.n?el('div',{'class':'pbar','aria-hidden':'true'},[el('i',{style:'width:'+(pr.tot?Math.min(100,Math.round(100*pr.n/pr.tot)):10)+'%'})]):null,
+        el('details',{},[el('summary',{text:'Certificates and standards'}),el('div',{text:info.std+' · '+info.specials.join(' · ')}),el('div',{text:G.std})]),
+        el('div',{'class':'act'},G.live?[el('a',{'class':'btn primary',href:G.file,text:pr.n?'Keep playing':'Play'}),pr.n?el('span',{'class':'prog',text:pr.n+(pr.tot?' of '+pr.tot:'')+' levels done'}):null]:[el('span',{'class':'soon',text:'Coming soon'})])
       ])
     ]);
     host.appendChild(card);
   });
   (function(){
-    var next=GAMES.filter(function(G){ var p=SFA.store.get(G.id,null); return !(p&&p.done&&Object.keys(p.done).length); })[0];
-    var any=GAMES.some(function(G){ var p=SFA.store.get(G.id,null); return p&&p.done&&Object.keys(p.done).length; });
-    if(any&&next){ var sh=$('#startHere'); sh.textContent=''; sh.appendChild(document.createTextNode('You\'re up to ')); sh.appendChild(el('a',{href:next.file,text:next.title})); sh.appendChild(document.createTextNode('. Go back to any game to finish levels or chase a special certificate.')); }
-    else if(any&&!next){ $('#startHere').textContent='You\'ve started every game. Chase the special certificates, or find the Lost Reels you haven\'t seen yet.'; }
+    var box=$('#nextUp'); if(!next) next={G:GAMES[0],ix:0,pr:prog(GAMES[0])};
+    var started=GAMES.some(function(G){ return prog(G).n>0; });
+    box.appendChild(el('div',{},[el('div',{'class':'k',text:started?'Next up':'Start here'}),el('b',{text:'Game '+(next.ix+1)+': '+next.G.title}),el('p',{text:(GOAL[next.G.id]||'')+' Watch first: '+next.G.after+'.'})]));
+    box.appendChild(el('a',{'class':'btn primary',href:next.G.file,text:next.pr.n?'▶ Keep playing':'▶ Play'}));
   })();
-  document.addEventListener('DOMContentLoaded',function(){ if(SFA.sync&&SFA.sync.on) $('#saveNote').textContent='Signed in, your levels and certificates save to your class so you and Mr. Crowell can see them. Answers you type and certificate names stay in this browser.'; });
   SFA.vo.init(window.VO_DATA,null);
   function vault(){ SFA.reels.renderVault($('#vault'),{onPlay:vault}); }
   vault(); SFA.reels.onChange=function(){};
