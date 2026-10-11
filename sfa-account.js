@@ -51,9 +51,26 @@
       });
     }, function () { return new Error('offline'); });
   };
+  // backup sign-in: the student code from the Roster tab (works when Google sign-in is blocked for students)
+  function codeBox() {
+    var inp = el('input', { type: 'text', placeholder: 'Student code', maxlength: '10', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'Student code', style: 'width:8.5em;text-transform:uppercase;font-family:var(--mono,monospace)' });
+    var b = el('button', { type: 'button', 'class': 'btn small', text: 'Sign in' });
+    function go() {
+      var c = inp.value.trim(); if (c.length < 4) { inp.focus(); return; }
+      b.disabled = true;
+      S.signInCode(c).then(function (st) { SFA.toast('Signed in as ' + nice(st.name) + '. Your work saves to your class.', 4000); }, function (e) {
+        b.disabled = false;
+        SFA.toast(/bad code/.test(e.message) ? 'That code didn\'t work. Check it with Mr. Crowell.' : /sign in/.test(e.message) ? 'Code sign-in isn\'t switched on yet. Tell Mr. Crowell.' : 'Sign-in didn\'t work: ' + e.message, 5000);
+      });
+    }
+    b.addEventListener('click', go); inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+    return el('div', { 'class': 'codebox', style: 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px' }, [el('small', { text: 'Google not working? Use your student code:' }), inp, b]);
+  }
   // a Google sign-in button anywhere on the page (the lesson slides put one under an answer that couldn't send)
   S.button = function (box) {
-    loadGis().then(function () { google.accounts.id.renderButton(box, { theme: 'filled_black', size: 'medium', shape: 'pill', text: 'signin_with' }); }, function () { box.textContent = 'Google sign-in couldn\'t load. Check the internet connection.'; });
+    var g = el('span', { style: 'display:inline-block;vertical-align:middle' }); box.appendChild(g);
+    if (CFG.auth !== 'code') loadGis().then(function () { google.accounts.id.renderButton(g, { theme: 'filled_black', size: 'medium', shape: 'pill', text: 'signin_with' }); }, function () { g.textContent = 'Google sign-in couldn\'t load.'; });
+    if (CFG.auth === 'both' || CFG.auth === 'code') box.appendChild(codeBox());
   };
   S.credExpired = function () { var c = SFA.store.get('sync.cred', null); return !!(c && c.kind === 'google' && (jwt(c.token).exp || 0) * 1000 < Date.now()); };
   S.onChange(function (s) { if (s.status === 'signedout' && SFA.store.get('sync.me', null) && credExpSoon()) S.refresh(); });
@@ -76,7 +93,7 @@
         box.appendChild(el('div', { 'class': 'acct out' }, [
           el('div', {}, [el('b', { text: 'Sign in to save your progress' }), el('small', { text: 'Use your school Google account. Your levels and certificates follow you to any computer, and Mr. Crowell can see how you\'re doing.' })]),
           gbtn
-        ]));
+        ].concat(CFG.auth === 'both' || CFG.auth === 'code' ? [codeBox()] : [])));
         loadGis().then(function () { google.accounts.id.renderButton(gbtn, { theme: 'filled_black', size: 'large', shape: 'pill', text: 'signin_with' }); }, function () { gbtn.textContent = 'Google sign-in couldn\'t load. Check the internet connection.'; });
       }
     }
