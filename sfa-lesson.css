@@ -49,8 +49,8 @@ body.lesson{min-height:100vh;overflow-x:hidden}
 .note{background:var(--panel2);border-left:.3em solid var(--teal);padding:.6em .9em;border-radius:.4em;font-size:.95em}
 
 /* answer controls */
-.opts{display:grid;gap:.6em}
-.opt{position:relative;display:flex;align-items:center;gap:.7em;text-align:left;font:600 1.05em var(--ui);padding:.7em .9em;border-radius:.7em;border:.12em solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer;overflow:hidden;transition:border-color .2s,transform .12s}
+.opts{display:grid;gap:.45em}
+.opt{position:relative;display:flex;align-items:center;gap:.7em;text-align:left;font:600 1.05em var(--ui);padding:.5em .85em;border-radius:.7em;border:.12em solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer;overflow:hidden;transition:border-color .2s,transform .12s}
 .opt:hover:not(:disabled){border-color:var(--marquee);transform:translateY(-2px)}
 .opt .L{flex:none;width:1.7em;height:1.7em;border-radius:.4em;background:var(--panel);display:grid;place-items:center;font:400 .95em var(--display);color:var(--marquee);z-index:1}
 .opt .t{z-index:1;flex:1}
@@ -120,7 +120,7 @@ body.lesson{min-height:100vh;overflow-x:hidden}
 
 /* figures */
 .fig{width:100%;max-width:28em;margin:0 auto}
-.fig svg{display:block;width:100%;height:auto}
+.fig svg{display:block;width:100%;height:auto;max-height:38cqi}
 .fig .ax{stroke:#ABA5BC;stroke-width:1.5}
 .fig .gr{stroke:#3A3550;stroke-width:1}
 .fig text{fill:#ABA5BC;font:12px var(--ui)}
@@ -204,3 +204,10 @@ select.sel{font:600 13px var(--ui);background:var(--panel2);color:var(--ink);bor
   .slide.in,.slide.out,.st>*,.fig .ln,.fig .arr,.fig .pt,.tok,.bigicon,.mach .gear{animation:none!important}
   .fig .ln,.fig .arr{stroke-dashoffset:0}
 }
+
+/* review pass: the class screen is read from across a call, so it gets bigger type */
+body.m-screen .slide{font-size:clamp(14px,2.5cqi,50px)}
+body.m-screen .k-open .q,body.m-screen .k-exit .q{font-size:1.9em;line-height:1.25}
+body.m-screen .k-open .tally,body.m-screen .k-exit .tally{font-size:1.3em}
+.ans textarea{overflow:hidden}
+@media (max-width:760px){.ans textarea{min-height:7em}}
