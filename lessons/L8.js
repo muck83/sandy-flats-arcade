@@ -35,7 +35,7 @@ SFA_LESSON({
     { k: 'conf', min: 1, id: 'conf', q: 'How do you feel about dots or a line, and domain and range?' },
     { k: 'open', min: 2, id: 'tower', q: 'In The Tower Returns, why does the domain *stop at minute 15*?', ph: 'It stops at 15 because...',
       model: 'At minute 15 the tower is empty: 600 − 40 × 15 = 0. After that the water would be negative, and minus water isn\'t real.' },
-    { k: 'exit', min: 2, id: 'exit', q: 'Exit ticket: concert tickets cost *50 riyals* each. You can buy a maximum of *6*. Dots or a line? What is the domain? What is the range?', ph: 'Dots or a line... Domain... Range...',
+    { k: 'exit', min: 2, id: 'exit', q: 'Concert tickets cost *50 riyals* each. You can buy a maximum of *6*. Dots or a line? What is the domain? What is the range?', ph: 'Dots or a line... Domain... Range...',
       model: 'Dots, because you buy whole tickets. Domain: {1, 2, 3, 4, 5, 6} tickets. Range: {50, 100, 150, 200, 250, 300} riyals. (If buying 0 counts, add 0 to both.)' },
     { k: 'end', min: 0, title: 'Doug approves. Coo.', next: 'Next lesson: the finale, *The Final Chain*.' }
   ]

@@ -29,7 +29,7 @@ SFA_LESSON({
     { k: 'conf', min: 1, id: 'conf', q: 'How do you feel about cracking machine rules now?' },
     { k: 'open', min: 2, id: 'hard', q: 'Which machine in the game was *hardest*? What was its rule? How did you crack it?', ph: 'The hardest one was...',
       model: 'Little Cousin #3. 0 gave 5 and 1 gave 8, so I guessed 3x + 5 and tested it on 2.' },
-    { k: 'exit', min: 2, id: 'exit', q: 'Exit ticket: a machine turns *0 into −4* and *1 into −1*. Write its rule. What does it give for *10*?', ph: 'The rule is... For 10 it gives...',
+    { k: 'exit', min: 2, id: 'exit', q: 'A machine turns *0 into −4* and *1 into −1*. Write its rule. What does it give for *10*?', ph: 'The rule is... For 10 it gives...',
       model: 'The rule is 3x − 4, because it starts at −4 and goes up 3 each step. For 10 it gives 26.' },
     { k: 'end', min: 0, title: 'Machines cracked!', next: 'Next lesson: Glitch Hunt, after *Lost in Graph Land*.' }
   ]

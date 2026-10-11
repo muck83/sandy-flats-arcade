@@ -33,7 +33,7 @@ SFA_LESSON({
     { k: 'conf', min: 1, id: 'conf', q: 'How do you feel about moving between words, rule, table and graph?' },
     { k: 'open', min: 2, id: 'report', q: 'Pit report: what *mistake* sent Marcus into the Pit most for you? How will you *avoid it* next time?', ph: 'Marcus fell in when I...',
       model: 'I mixed up the start and the step. Now I put in 0 first to find the start, then 1 to find the step.' },
-    { k: 'exit', min: 2, id: 'exit', q: 'Exit ticket: a pool has *5 litres* and fills *4 litres every minute*. Write the rule. Then find the litres at 0, 1 and 3 minutes.', ph: 'The rule is... 0 gives... 1 gives... 3 gives...',
+    { k: 'exit', min: 2, id: 'exit', q: 'A pool has *5 litres* and fills *4 litres every minute*. Write the rule. Then find the litres at 0, 1 and 3 minutes.', ph: 'The rule is... 0 gives... 1 gives... 3 gives...',
       model: 'litres = 4 × minutes + 5. At 0 minutes: 5. At 1 minute: 9. At 3 minutes: 17.' },
     { k: 'end', min: 0, title: 'The Chain is whole!', next: 'Next lesson: Scorch Marks, after *One Alone*.' }
   ]

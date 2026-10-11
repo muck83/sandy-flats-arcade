@@ -37,7 +37,7 @@ SFA_LESSON({
     { k: 'conf', min: 1, id: 'conf', q: 'How do you feel about the whole functions unit now?' },
     { k: 'open', min: 2, id: 'link', q: 'Which link of the Final Chain was *hardest* to fix? What was *wrong* with it?', ph: 'The hardest link was...',
       model: 'The TABLE link. It said 2 → 6, but the jumps should all be 2: 1, 3, 5, 7. So the liar row was 2 → 6, and it should be 2 → 5.' },
-    { k: 'exit', min: 2, id: 'exit', q: 'Exit ticket: a taxi costs *5 riyals* to start, plus *2 riyals* per kilometre. Write the rule. What is the slope, and what does it mean? Dots or a line?', ph: 'The rule is... The slope is... It is...',
+    { k: 'exit', min: 2, id: 'exit', q: 'A taxi costs *5 riyals* to start, plus *2 riyals* per kilometre. Write the rule. What is the slope, and what does it mean? Dots or a line?', ph: 'The rule is... The slope is... It is...',
       model: 'y = 2x + 5. The slope is 2: it costs 2 riyals more for each kilometre. A line, because distance is measured, not counted.' },
     { k: 'end', min: 0, title: 'The Chain is whole.', next: 'That\'s the whole unit. Words, rules, tables and graphs: you can read them all now. Nobody\'s the sidekick.' }
   ]

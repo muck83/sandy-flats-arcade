@@ -34,7 +34,7 @@ SFA_LESSON({
     { k: 'conf', min: 1, id: 'conf', q: 'How do you feel about finding a slope from two points now?' },
     { k: 'open', min: 2, id: 'stairs', q: 'In _Big Stair, Little Stair_, what were your *biggest* and *smallest* stairs? What was *rise ÷ run* for each?', ph: 'My biggest stair was... my smallest was...',
       model: 'Biggest: 4 across, 20 up, so 20 ÷ 4 = 5. Smallest: 1 across, 5 up, so 5 ÷ 1 = 5. Same slope, because they are on the same line.' },
-    { k: 'exit', min: 2, id: 'exit', q: 'Exit ticket: a line goes through *(2, 5)* and *(6, 7)*. What is its slope? Describe two different stairs that show it.', ph: 'The slope is... Triangle 1... Triangle 2...',
+    { k: 'exit', min: 2, id: 'exit', q: 'A line goes through *(2, 5)* and *(6, 7)*. What is its slope? Describe two different stairs that show it.', ph: 'The slope is... Triangle 1... Triangle 2...',
       model: 'The slope is 1/2. Big stair: 4 across, 2 up, and 2 ÷ 4 = 1/2. Little stair: 2 across, 1 up, from (2, 5) to (4, 6). Also 1/2.' },
     { k: 'end', min: 0, title: 'Trail measured!', next: 'Next lesson: *Linear or Liar?*, the film and the game.' }
   ]

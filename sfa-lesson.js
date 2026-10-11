@@ -23,8 +23,10 @@
   function dropOldRun() {
     var run = liveRun(); if (!run) return false;
     var gone = Object.keys(mine).filter(function (q) { return (mine[q].run || 0) !== run; });
+    // only a real answer typed on this device is worth a "started fresh" note; restored or empty entries go quietly
+    var loud = gone.some(function (q) { return mine[q].answer && !mine[q].restored; });
     gone.forEach(function (q) { delete mine[q]; }); if (gone.length) saveLocal();
-    return gone.length > 0;
+    return gone.length ? (loud ? 2 : 1) : 0;
   }
   var console_ = null;                                    // teacher console state
   var feed = null;                                        // console data shared with the class screen
@@ -134,8 +136,8 @@
       var rows = Math.max(ins.length, outs.length, 1), gap = Math.min(52, 220 / rows);
       S_('ellipse', { 'class': 'oval', cx: 90, cy: 140, rx: 62, ry: Math.max(40, rows * gap / 2 + 26) }, svg);
       S_('ellipse', { 'class': 'oval', cx: 330, cy: 140, rx: 62, ry: Math.max(40, rows * gap / 2 + 26) }, svg);
-      var ty = S_('text', { x: 90, y: 16, 'text-anchor': 'middle' }, svg); ty.textContent = 'input';
-      var to = S_('text', { x: 330, y: 16, 'text-anchor': 'middle' }, svg); to.textContent = 'output';
+      var ty = S_('text', { x: 90, y: 20, 'text-anchor': 'middle', style: 'font-size:18px;font-weight:700' }, svg); ty.textContent = 'input';
+      var to = S_('text', { x: 330, y: 20, 'text-anchor': 'middle', style: 'font-size:18px;font-weight:700' }, svg); to.textContent = 'output';
       function yAt(i, n) { return 140 + (i - (n - 1) / 2) * gap; }
       ins.forEach(function (v, i) { var t = S_('text', { 'class': 'mv', x: 90, y: yAt(i, ins.length) }, svg); t.textContent = String(v).replace(/^-/, '−'); });
       outs.forEach(function (v, i) { var t = S_('text', { 'class': 'mv', x: 330, y: yAt(i, outs.length) }, svg); t.textContent = String(v).replace(/^-/, '−'); });
@@ -174,7 +176,7 @@
     box.innerHTML = '<svg viewBox="0 0 320 220" aria-hidden="true">' +
       '<g class="body"><path d="M70 20 L130 20 L118 58 L82 58 Z" fill="#8E5BD6" stroke="#1B1A22" stroke-width="3"/>' +
       '<rect x="40" y="56" width="220" height="120" rx="18" fill="#E8584C" stroke="#1B1A22" stroke-width="3"/>' +
-      '<rect x="62" y="74" width="120" height="44" rx="8" fill="#1B1A22"/><text x="122" y="104" text-anchor="middle" font-family="Luckiest Guy, sans-serif" font-size="24" fill="#FFC94A" class="mlabel"></text>' +
+      '<rect x="62" y="74" width="120" height="44" rx="8" fill="#1B1A22"/><text x="122" y="104" text-anchor="middle" font-family="Trebuchet MS, Verdana, sans-serif" font-weight="700" font-size="24" fill="#FFC94A" class="mlabel"></text>' +
       '<rect x="250" y="120" width="56" height="26" rx="6" fill="#5CE0B8" stroke="#1B1A22" stroke-width="3"/>' +
       '<circle cx="80" cy="186" r="14" fill="#1B1A22"/><circle cx="220" cy="186" r="14" fill="#1B1A22"/></g>' +
       '<g class="gear" ><circle cx="212" cy="96" r="22" fill="#FFC94A" stroke="#1B1A22" stroke-width="3" stroke-dasharray="8 6"/><circle cx="212" cy="96" r="7" fill="#1B1A22"/></g>' +
@@ -239,7 +241,7 @@
   function loadMine() {
     if (MODE !== 'student' || !saving || !S.me) return;
     S.call('myAnswers', { lesson: LID }).then(function (j) {
-      Object.keys(j.answers || {}).forEach(function (q) { if (!mine[q]) mine[q] = { answer: j.answers[q].answer, correct: j.answers[q].correct === 'yes' ? true : j.answers[q].correct === 'no' ? false : null, sent: true }; });
+      Object.keys(j.answers || {}).forEach(function (q) { if (!mine[q]) mine[q] = { answer: j.answers[q].answer, correct: j.answers[q].correct === 'yes' ? true : j.answers[q].correct === 'no' ? false : null, sent: true, restored: true }; });
       saveLocal(); render(cur, 0, true); flush();
     }, function (e) { if (/unknown op/.test(e.message)) { backendOld = true; upd(); } else flush(); });
   }
@@ -289,12 +291,12 @@
       c.appendChild(l); c.appendChild(r); d.appendChild(c);
       function draw() {
         r.innerHTML = '';
-        if (show) { r.appendChild(H('p', 'q', 'Sign in on your own device')); r.appendChild(H('p', 'sub', (CFG.auth === 'code' ? 'Open the lesson link and type the <b>student code</b> from your school email.' : 'Open the lesson link, then press <b>Sign in with Google</b> and pick your school account.'))); return; }
+        if (show) { r.appendChild(H('p', 'q', 'Sign in on your own device')); r.appendChild(H('p', 'sub', 'Go to <b>' + esc(location.host + location.pathname.replace(/[^\/]*$/, '') + 'lessons.html') + '</b> and open ' + esc(LID) + '.')); r.appendChild(H('p', 'sub', (CFG.auth === 'code' ? 'Type the <b>student code</b> from your school email.' : 'Press <b>Sign in with Google</b> and pick your school account.'))); return; }
         if (!saving) { r.appendChild(H('p', 'sub', 'Answer saving is off for this copy, so just follow along.')); return; }
         if (S.me) { r.appendChild(H('p', 'okline', '✓ You\'re in, ' + esc(first(S.me.name)) + '.')); r.appendChild(H('p', 'sub', 'Your answers go to ' + TEACHER + '. Press <b>Next</b> when you\'re ready.')); return; }
         r.appendChild(H('p', 'q', 'Sign in so your answers count'));
         var hold = document.getElementById('sfaAccount'); if (hold) r.appendChild(hold);
-        var alt = H('p', 'state', 'No button? Sign in on the <a href="index.html#signin" target="_blank" rel="noopener">Arcade front page</a>, then come back to this tab.'); r.appendChild(alt);
+        if (CFG.auth !== 'code') { var alt = H('p', 'state', 'No button? Sign in on the <a href="index.html#signin" target="_blank" rel="noopener">Arcade front page</a>, then come back to this tab.'); r.appendChild(alt); }
       }
       d._upd = function () { if (!r.contains(document.getElementById('sfaAccount')) || S.me) draw(); };
       draw();
@@ -333,7 +335,8 @@
         var row = H('div', 'row'); row.appendChild(inp); row.appendChild(btn); box.appendChild(row);
         if (a && a.correct === true) box.appendChild(H('div', 'fb good', '<b>Yes!</b> ' + fmt(s.why || '')));
         else if (a && a.correct === false) box.appendChild(H('div', 'fb try', 'Not yet. ' + fmt(s.hint || 'Check your working and try again.')));
-        box.appendChild(stateLine(s.id));
+        if (a) box.appendChild(stateLine(s.id));
+        if (reveal(s.id) >= 2 && !(a && a.correct === true)) box.appendChild(H('div', 'reveal', '<b>' + TEACHER + ' showed the answer: ' + esc(show_(s.ans)) + '.</b> ' + fmt(s.why || '')));
         function check() {
           var v = numOf(inp.value); if (!inp.value.trim()) return inp.focus();
           if (isNaN(v)) { SFA.toast('Type a number, like 12 or -3.'); return; }
@@ -360,7 +363,7 @@
           m.classList.remove('run'); m.classList.add('idle');
           var b = H('div', 'tok out', esc(isFinite(out) ? numTxt(out) : '!')); m.appendChild(b);
           tried.push([v, out]); if (tried.length > 12) tried.shift();
-          var keep = mine[s.id] || { answer: '', correct: null, sent: true, kind: 'machine' }; keep.tried = tried; mine[s.id] = keep; saveLocal();
+          var keep = mine[s.id] || { answer: '', correct: null, sent: true, kind: 'machine', run: liveRun() }; keep.tried = tried; mine[s.id] = keep; saveLocal();
           draw();
         }, 750);
       }
@@ -369,6 +372,7 @@
         if (show) {
           area.appendChild(tallyFor(s.id)); var p = feed && feed.per[s.id]; if (p && p.n) area.appendChild(H('p', 'state', p.right + ' cracked it so far'));
           if (reveal(s.id) >= 2 || (MODE === 'teach' && console_ && console_.peek)) area.appendChild(H('div', 'reveal', '<b>The rule: ' + esc(s.rule.replace(/-/g, '−')) + '</b>'));
+          m.querySelector('.mlabel').textContent = reveal(s.id) >= 2 ? s.rule.replace(/-/g, '−') : '?';
           var demo = el('input', { type: 'text', inputmode: 'decimal', placeholder: 'Try a number', 'aria-label': 'Input' }), go = el('button', { type: 'button', 'class': 'btn', text: 'Feed it' });
           go.onclick = function () { var v = numOf(demo.value); if (!isNaN(v)) feedIt(v); };
           demo.onkeydown = function (e) { if (e.key === 'Enter') go.click(); };
@@ -404,7 +408,8 @@
           };
           g.onkeydown = function (e) { if (e.key === 'Enter') cb.click(); };
         }
-        if (a && a.correct === true) m.querySelector('.mlabel').textContent = s.rule.replace(/-/g, '−');
+        if (reveal(s.id) >= 2 && !(a && a.correct === true)) area.appendChild(H('div', 'reveal', '<b>' + TEACHER + ' showed the rule: ' + esc(s.rule.replace(/-/g, '−')) + '.</b> Feed it a number and check it works.'));
+        if ((a && a.correct === true) || reveal(s.id) >= 2) m.querySelector('.mlabel').textContent = s.rule.replace(/-/g, '−');
       }
       d._upd = draw; draw();
     },
@@ -433,7 +438,7 @@
     },
     end: function (s, d, show) {
       var w = head(s, d); w.appendChild(H('div', 'bigicon', '🏆')); w.appendChild(H('h1', '', fmt(s.title || 'Done!')));
-      var qs = questions(), n = qs.filter(function (x) { return mine[x.id]; }).length;
+      var qs = questions(), n = qs.filter(function (x) { return mine[x.id] && mine[x.id].answer; }).length;
       if (!show) w.appendChild(H('p', 'q', 'You answered <b>' + n + ' of ' + qs.length + '</b> questions today.'));
       if (LES.big) w.appendChild(H('p', 'sub', '<span class="kick">Remember</span><br>' + fmt(LES.big)));
       if (s.next) w.appendChild(H('p', 'sub', fmt(s.next)));
@@ -464,14 +469,15 @@
         if (isConf) b.appendChild(H('span', 'e', FACES[i]));
         else b.appendChild(H('span', 'L', letter(i)));
         var t = H('span', 't', fmt(o)); b.appendChild(t);
-        if (MODE === 'teach' && console_ && console_.names && feed && feed.per[s.id] && feed.per[s.id].who[i]) t.appendChild(H('span', 'names', esc(feed.per[s.id].who[i].join(', '))));
+        if (MODE === 'teach' && console_ && console_.names && !isConf && feed && feed.per[s.id] && feed.per[s.id].who[i]) t.appendChild(H('span', 'names', esc(feed.per[s.id].who[i].join(', '))));
         if (counts) { var pc = total ? Math.round(100 * (counts[i] || 0) / total) : 0; b.appendChild(H('span', 'pc', pc + '%')); setTimeout(function () { bar.style.width = pc + '%'; }, 60); }
-        if (show) b.disabled = true;
+        if (show || (MODE === 'student' && !selfPaced && rv >= 1)) b.disabled = true;
         else b.onclick = function () { record(s, (i + 1) + '. ' + plain(o), s.ans != null ? i === s.ans : null); d._upd(); };
         list.appendChild(b);
       });
       if (show) foot.appendChild(tallyFor(s.id));
       else if (a) foot.appendChild(stateLine(s.id));
+      if (!show && !selfPaced && rv >= 1) foot.appendChild(H('p', 'state', a ? 'Answers are closed. ' + TEACHER + ' is sharing the results.' : 'Answers are closed for this one. Watch the results.'));
       if (!show && a && !selfPaced && rv < 1) foot.appendChild(H('p', 'state', TEACHER + ' will share the class results. You can change your answer until then.'));
       if (showAns && s.why) foot.appendChild(H('div', 'reveal', '<b>' + (MODE === 'student' && a ? (picked === s.ans ? 'Yes! ' : 'Not this time. ') : '') + '</b>' + fmt(s.why)));
       else if (isConf && !show && a) foot.appendChild(H('p', 'state', 'Thanks. That helps ' + TEACHER + ' plan the next lesson.'));
@@ -514,12 +520,29 @@
 
   /* ---------------- deck ---------------- */
   var deck, dots, counter, prevB, nextB;
-  function upd() { if (slideEl) try { slideEl._upd(); } catch (e) { } refreshDots(); }
+  // Redraws keep whatever a student is in the middle of typing (and where the cursor is).
+  document.addEventListener('input', function (e) { if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) e.target.dataset.typed = '1'; }, true);
+  function fieldKey(f) { return f.tagName + '|' + (f.getAttribute('aria-label') || f.placeholder || ''); }
+  function upd() {
+    if (!slideEl) return refreshDots();
+    var keep = {}, act = document.activeElement, focusKey = null, sel = null;
+    [].forEach.call(slideEl.querySelectorAll('input[type=text],textarea'), function (f) {
+      if (f.dataset.typed) keep[fieldKey(f)] = f.value;
+      if (f === act) { focusKey = fieldKey(f); try { sel = [f.selectionStart, f.selectionEnd]; } catch (e) { } }
+    });
+    try { slideEl._upd(); } catch (e) { }
+    [].forEach.call(slideEl.querySelectorAll('input[type=text],textarea'), function (f) {
+      var k = fieldKey(f);
+      if (k in keep && f.value !== keep[k]) { f.value = keep[k]; f.dataset.typed = '1'; f.dispatchEvent(new Event('input')); }
+      if (k === focusKey && document.activeElement !== f && slideEl.contains(f)) { try { f.focus({ preventScroll: true }); if (sel) f.setSelectionRange(sel[0], sel[1]); } catch (e) { } }
+    });
+    refreshDots();
+  }
   function refreshDots() {
     if (!dots) return;
     [].forEach.call(dots.children, function (b, i) {
       var s = LES.slides[i];
-      b.className = (i === cur ? 'cur' : i < cur ? 'seen' : '') + (s.id && mine[s.id] ? ' ok' : '');
+      b.className = (i === cur ? 'cur' : i < cur ? 'seen' : '') + (s.id && mine[s.id] && mine[s.id].answer ? ' ok' : '');
     });
     if (counter) counter.textContent = (cur + 1) + ' / ' + LES.slides.length;
     var lk = locked();
@@ -589,6 +612,7 @@
 
   /* ---------------- live: students check what the teacher is showing ---------------- */
   var pollT = null;
+  function sameLive(a, beforeJson) { var b = beforeJson ? JSON.parse(beforeJson) : null; function k(x) { if (!x) return 'null'; var c = {}; Object.keys(x).forEach(function (n) { if (n !== 'at') c[n] = x[n]; }); return JSON.stringify(c); } return k(a) === k(b); }
   var polling = false, pollFails = 0;
   function pollLive() {
     clearTimeout(pollT);
@@ -599,10 +623,11 @@
       polling = false; pollFails = 0;
       var was = isLive(), before = JSON.stringify(live);
       live = j.live || null; noteLive(live);
-      if (MODE === 'student' && dropOldRun()) { render(isLive() && follow ? live.slide : cur, 0, true); if (before && JSON.parse(before || 'null')) SFA.toast(TEACHER + ' started the lesson fresh.', 3500); }
+      var dropped = MODE === 'student' ? dropOldRun() : 0;
+      if (dropped) { render(isLive() && follow ? live.slide : cur, 0, true); if (dropped === 2 && before && JSON.parse(before || 'null')) SFA.toast(TEACHER + ' started the lesson fresh.', 3500); }
       if (locked()) follow = true;
       if (isLive() && follow && live.slide !== cur) render(live.slide, live.slide > cur ? 1 : -1);
-      else if (JSON.stringify(live) !== before) upd();
+      else if (sameLive(live, before) === false) upd();   // ignore the heartbeat time, so typing isn't redrawn for nothing
       if (!was && isLive()) { follow = true; SFA.toast(TEACHER + ' is live. Your screen will follow the lesson.', 3500); }
       drawTop(); refreshDots();
       pollT = setTimeout(pollLive, isLive() ? 4500 + Math.random() * 1500 : 8000 + Math.random() * 2000);
@@ -769,15 +794,16 @@
       if (canShow) r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 1 ? ' good' : ''), text: rv >= 1 ? 'Results showing' : 'Show results to class', onclick: function () { console_.reveal[s.id] = rv >= 1 ? 0 : 1; pushLive(); consolePanel(); } }));
       if ((s.k === 'poll' && s.ans != null) || s.model || s.k === 'number' || s.k === 'machine') r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 2 ? ' good' : ''), text: rv >= 2 ? 'Answer showing' : 'Reveal the answer', onclick: function () { console_.reveal[s.id] = rv >= 2 ? (canShow ? 1 : 0) : 2; pushLive(); consolePanel(); } }));
       r2.appendChild(el('button', { type: 'button', 'class': 'btn small', text: console_.peek ? 'Hide answer here' : 'Peek at answer (only here)', onclick: function () { console_.peek = !console_.peek; upd(); consolePanel(); } }));
-      if (s.k === 'poll' || s.k === 'conf') r2.appendChild(el('button', { type: 'button', 'class': 'btn small', text: console_.names ? 'Hide names' : 'Show names', onclick: function () { console_.names = !console_.names; upd(); consolePanel(); } }));
+      if (s.k === 'poll') r2.appendChild(el('button', { type: 'button', 'class': 'btn small', text: console_.names ? 'Hide names' : 'Show names', onclick: function () { console_.names = !console_.names; upd(); consolePanel(); } }));
       sec.appendChild(r2);
       if (console_.spot && console_.spot.q === s.id) sec.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Stop spotlight', onclick: function () { console_.spot = null; pushLive(); consolePanel(); } }));
       // answers list
       if (f && f.list.length && s.k !== 'poll' && s.k !== 'conf') {
         var al = H('div', 'alist');
         f.list.slice().sort(function (a, b) { return a.time < b.time ? 1 : -1; }).forEach(function (a) {
-          var c = H('div', 'a' + (a.correct === 'yes' ? ' ok' : a.correct === 'no' ? ' no' : ''));
-          c.appendChild(H('b', '', esc(a.name || a.sid) + (a.correct === 'yes' ? ' ✓' : a.correct === 'no' ? ' ✗' : '')));
+          var lit = console_.spot && console_.spot.q === s.id && console_.spot.text === a.answer;
+          var c = H('div', 'a' + (a.correct === 'yes' ? ' ok' : a.correct === 'no' ? ' no' : '') + (lit ? ' lit' : ''));
+          c.appendChild(H('b', '', esc(a.name || a.sid) + (a.correct === 'yes' ? ' ✓' : a.correct === 'no' ? ' ✗' : '') + (lit ? ' · on screen now' : '')));
           c.appendChild(document.createTextNode(a.answer));
           if (s.k === 'open' || s.k === 'exit') { var rr = H('div', 'row'); rr.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Spotlight (no name)', onclick: function () { console_.spot = { q: s.id, text: a.answer }; pushLive(); consolePanel(); } })); c.appendChild(rr); }
           al.appendChild(c);
@@ -785,7 +811,7 @@
         sec.appendChild(al);
       }
       var not = rosterIn().filter(function (r) { return !(f && f.sids[r.sid]); });
-      if (not.length && not.length < rosterIn().length + 1) {
+      if (not.length && f && f.list.length) {
         sec.appendChild(H('h3', '', 'Not answered yet (' + not.length + ')'));
         var wd = H('div', 'who'); not.forEach(function (r) { wd.appendChild(H('span', '', esc(nice(r.name)))); }); sec.appendChild(wd);
       }

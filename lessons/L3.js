@@ -36,7 +36,7 @@ SFA_LESSON({
     { k: 'conf', min: 1, id: 'conf', q: 'How do you feel about reading the story in a graph now?' },
     { k: 'open', min: 2, id: 'prophecy', q: 'Be Gus. Make up a *3-piece story* about the water in his bucket. Then say the *graph\'s shape*, piece by piece.', ph: 'First... then... then...',
       model: 'Light rain fills the bucket slowly, then the rain stops for an hour, then Gus tips it out. Graph: up gently, flat, then down steeply.' },
-    { k: 'exit', min: 2, id: 'exit', q: 'Exit ticket: you walk to a friend\'s house, stay *an hour*, then get a lift home. Describe your *distance from home* graph, piece by piece.', ph: 'First the graph goes... then... then...',
+    { k: 'exit', min: 2, id: 'exit', q: 'You walk to a friend\'s house, stay *an hour*, then get a lift home. Describe your *distance from home* graph, piece by piece.', ph: 'First the graph goes... then... then...',
       model: 'Up gently while I walk there. Flat for the hour at my friend\'s house. Then down steeply to zero, because a car is faster than walking.' },
     { k: 'end', min: 0, title: 'Forecast: certified!', next: 'Next lesson: The Keeper\'s Vault, after *The Chain*.' }
   ]

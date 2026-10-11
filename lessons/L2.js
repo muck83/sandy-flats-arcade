@@ -38,7 +38,7 @@ SFA_LESSON({
     { k: 'conf', min: 1, id: 'conf', q: 'How do you feel about spotting what is and isn\'t a function?' },
     { k: 'open', min: 2, id: 'report', q: 'Write a *case report* for one glitch you busted. Fill in: "Suspect ..., input ... gave ... and ..."', ph: 'Suspect...',
       model: 'Suspect: the Sneak. Input 2 gave 4 and 5. One input, two outputs, so it is not a function.' },
-    { k: 'exit', min: 2, id: 'exit', q: 'Exit ticket: is this arrow diagram a *function*? Say *yes or no*, and why.', ph: 'It is / is not a function because...',
+    { k: 'exit', min: 2, id: 'exit', q: 'Is this arrow diagram a *function*? Say *yes or no*, and why.', ph: 'It is / is not a function because...',
       model: 'Yes, it is a function. 1 and 2 both go to 6, but that\'s allowed. Every input has exactly one arrow leaving.',
       fig: { kind: 'map', pairs: [[1, 6], [2, 6], [3, 8], [4, 9]] } },
     { k: 'end', min: 0, title: 'Case closed!', next: 'Next lesson: Gus\'s Forecast, after *The Weather Line*.' }

@@ -36,7 +36,7 @@ SFA_LESSON({
     { k: 'conf', min: 1, id: 'conf', q: 'How do you feel about telling linear from not linear now?' },
     { k: 'open', min: 2, id: 'case', q: 'Pick one case from the game. What was your *verdict*? What was your *evidence*?', ph: 'In Case... my verdict was... because...',
       model: 'In Case 4, I said the Square-ish table was not linear. The rates were 1, 4, 7, not the same every step.' },
-    { k: 'exit', min: 2, id: 'exit', q: 'Exit ticket: this machine claims to be *linear*. Linear or liar? Show the *evidence*.', ph: 'It is... because the jumps are...',
+    { k: 'exit', min: 2, id: 'exit', q: 'This machine claims to be *linear*. Linear or liar? Show the *evidence*.', ph: 'It is... because the jumps are...',
       model: 'Liar. The inputs go up by 1 each time, but the jumps are 1, 2, 4. Not the same, so it is not linear, and it said it was.',
       fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 1], [1, 2], [2, 4], [3, 8]] } },
     { k: 'end', min: 0, title: 'Case closed!', next: 'Next lesson: *Faster Than*, the film and the game.' }

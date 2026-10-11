@@ -35,7 +35,7 @@ SFA_LESSON({
     { k: 'conf', min: 1, id: 'conf', q: 'How do you feel about comparing speeds now?' },
     { k: 'open', min: 2, id: 'bet', q: 'On the Race Board, who did you bet would be ahead at *minute 30*? Were you right? How did you know?', ph: 'I bet... because...',
       model: 'I bet the bike. At minute 30 the bike is at 45 km, the scooter at 36 and the taxi at 35. The bike is fastest, so once it catches up it stays ahead.' },
-    { k: 'exit', min: 2, id: 'exit', q: 'Exit ticket: *A*: d = 4t. *B*: starts at 6 m, goes 3 m per second. Who is ahead at t = 4? At t = 10? Which one is proportional?', ph: 'At t = 4... At t = 10... The proportional one is...',
+    { k: 'exit', min: 2, id: 'exit', q: '*A*: d = 4t. *B*: starts at 6 m, goes 3 m per second. Who is ahead at t = 4? At t = 10? Which one is proportional?', ph: 'At t = 4... At t = 10... The proportional one is...',
       model: 'At t = 4, A is at 16 m and B is at 18 m, so B is ahead. At t = 10, A is at 40 m and B is at 36 m, so A is ahead. A is proportional: it starts at 0.' },
     { k: 'end', min: 0, title: 'Race won!', next: 'Next lesson: *Doug\'s Steps*, the film and the game.' }
   ]

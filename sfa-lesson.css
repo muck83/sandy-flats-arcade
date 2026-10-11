@@ -179,6 +179,7 @@ body.m-teach .deck,body.m-teach .lnav{width:100%}
 .alist .a .row{margin-top:6px}
 .alist .a.ok{border-color:#2b6b4c}
 .alist .a.no{border-color:#6b2b2b}
+.alist .a.lit{border-color:#FFC94A;box-shadow:0 0 0 2px rgba(255,201,74,.35)}
 .outline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;font-size:13px}
 .outline button{width:100%;text-align:left;display:flex;gap:8px;align-items:center;background:none;border:0;color:var(--ink);padding:4px 6px;border-radius:6px;cursor:pointer}
 .outline button:hover{background:var(--panel2)}
