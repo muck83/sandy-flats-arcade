@@ -12,7 +12,7 @@ body.lesson{min-height:100vh;overflow-x:hidden}
 /* ---------- the deck: a 16:9 slide that scales like a projected slide ---------- */
 .lmain{padding:12px 16px 0;display:flex;flex-direction:column;align-items:center}
 .deck{position:relative;width:min(100%,calc((100vh - 150px) * 16 / 9));aspect-ratio:16/9;container-type:inline-size;border-radius:18px;overflow:hidden;background:radial-gradient(ellipse at 50% -20%,#3a2a55 0,#1B1824 55%,#15121d 100%);border:2px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.45)}
-.slide{position:absolute;inset:0;padding:4.2cqi 5cqi 3.4cqi;display:flex;flex-direction:column;gap:1.6cqi;font-size:clamp(12px,2cqi,40px);overflow:auto;scrollbar-width:thin}
+.slide{position:absolute;inset:0;padding:4.2cqi 5cqi 3.4cqi;display:flex;flex-direction:column;gap:1.6cqi;justify-content:safe center;font-size:clamp(13px,2.25cqi,44px);overflow:auto;scrollbar-width:thin}
 .slide.in{animation:slideIn .5s cubic-bezier(.2,.8,.2,1) both}
 .slide.in.back{animation-name:slideInBack}
 .slide.out{animation:slideOut .35s ease-in both;pointer-events:none}
@@ -36,7 +36,7 @@ body.lesson{min-height:100vh;overflow-x:hidden}
 .cols.top{align-items:start}
 .grow{flex:1;min-height:0}
 .k-title{justify-content:center;align-items:center;text-align:center}
-.k-title .art{width:30cqi;max-width:300px}
+.k-title .art{width:30cqi;max-width:300px;margin:0 auto}
 .k-end{justify-content:center;align-items:center;text-align:center}
 .bigicon{font-size:5em;line-height:1;animation:bob 3s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-.12em) rotate(-3deg)}}
