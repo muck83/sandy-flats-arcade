@@ -260,6 +260,7 @@
         if (S.me) { r.appendChild(H('p', 'okline', '✓ You\'re in, ' + esc(first(S.me.name)) + '.')); r.appendChild(H('p', 'sub', 'Your answers go to ' + TEACHER + '. Press <b>Next</b> when you\'re ready.')); return; }
         r.appendChild(H('p', 'q', 'Sign in so your answers count'));
         var hold = document.getElementById('sfaAccount'); if (hold) r.appendChild(hold);
+        var alt = H('p', 'state', 'No button? Sign in on the <a href="index.html#signin" target="_blank" rel="noopener">Arcade front page</a>, then come back to this tab.'); r.appendChild(alt);
       }
       d._upd = function () { if (!r.contains(document.getElementById('sfaAccount')) || S.me) draw(); };
       draw();
@@ -790,6 +791,8 @@
       else acctDraw();
       pollLive();
       window.addEventListener('online', flush);
+      // signed in on the arcade in another tab: pick it up here
+      window.addEventListener('storage', function (e) { if (e.key === 'sfa.sync.me' && e.newValue && !S.me) location.reload(); });
     }
     if (MODE === 'screen') screenListen();
     if (MODE === 'teach') { liveChip.hidden = !console_.on; liveChip.textContent = 'Live'; }
