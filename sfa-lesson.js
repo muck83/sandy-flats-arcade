@@ -31,6 +31,7 @@
       .then(function (t) { var j; try { j = JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly.'); } if (!j.ok) throw new Error(j.error || 'failed'); return j; });
   }
   function isLive() { return !!(live && live.lesson === LID && Date.now() - live.at < LIVE_FRESH); }
+  function locked() { return MODE === 'student' && isLive() && !!live.lock; }
   function reveal(q) { return isLive() ? (live.reveal && live.reveal[q]) || 0 : 0; }
   function first(n) { n = String(n || ''); return (n.indexOf(',') >= 0 ? n.split(',')[1] : n).trim().split(' ')[0] || n; }
   function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
@@ -484,8 +485,10 @@
       b.className = (i === cur ? 'cur' : i < cur ? 'seen' : '') + (s.id && mine[s.id] ? ' ok' : '');
     });
     if (counter) counter.textContent = (cur + 1) + ' / ' + LES.slides.length;
-    if (prevB) prevB.disabled = cur === 0;
-    if (nextB) nextB.disabled = cur === LES.slides.length - 1;
+    var lk = locked();
+    if (prevB) prevB.disabled = cur === 0 || lk;
+    if (nextB) nextB.disabled = cur === LES.slides.length - 1 || lk;
+    if (dots) dots.style.pointerEvents = lk ? 'none' : '';
   }
   function render(i, dir, quiet) {
     i = Math.max(0, Math.min(LES.slides.length - 1, i));
@@ -503,6 +506,7 @@
   function go(i, byHand) {
     if (i === cur || i < 0 || i >= LES.slides.length) return;
     var dir = i > cur ? 1 : -1;
+    if (locked() && byHand) { SFA.toast(TEACHER + ' is moving the slides for everyone right now.'); return; }
     if (MODE === 'student' && byHand && isLive() && follow && i !== live.slide) { follow = false; drawTop(); }
     if (MODE === 'screen' && byHand && bc && consoleSeen) { bc.postMessage({ t: 'nav', to: i }); return; }
     render(i, dir);
@@ -515,7 +519,8 @@
     if (MODE === 'student') {
       liveChip.hidden = !isLive();
       liveChip.className = 'chip live';
-      liveChip.textContent = follow ? 'Live with ' + TEACHER : 'Back to ' + TEACHER + '\'s slide';
+      liveChip.textContent = locked() ? 'Live: ' + TEACHER + ' is moving the slides' : follow ? 'Live with ' + TEACHER : 'Back to ' + TEACHER + '\'s slide';
+      refreshDots();
       liveChip.setAttribute('aria-pressed', follow ? 'true' : 'false');
       var other = live && live.lesson !== LID && Date.now() - live.at < LIVE_FRESH;
       banner.hidden = !other;
@@ -538,6 +543,7 @@
     post({ op: 'live' }).then(function (j) {
       var was = isLive(), before = JSON.stringify(live);
       live = j.live || null;
+      if (locked()) follow = true;
       if (isLive() && follow && live.slide !== cur) render(live.slide, live.slide > cur ? 1 : -1);
       else if (JSON.stringify(live) !== before) upd();
       if (!was && isLive()) { follow = true; SFA.toast(TEACHER + ' is live. Your screen will follow the lesson.', 3500); }
@@ -590,7 +596,7 @@
   }
 
   function consoleInit() {
-    console_ = { on: false, reveal: {}, spot: null, timer: null, cls: SFA.store.get('teacher.lesson.cls', ''), names: true, peek: false, data: null, since: 0, picked: '' };
+    console_ = { on: false, lock: SFA.store.get('teacher.lesson.lock', true) !== false, reveal: {}, spot: null, timer: null, cls: SFA.store.get('teacher.lesson.cls', ''), names: true, peek: false, data: null, since: 0, picked: '' };
     if (!CFG.endpoint) { console_.offline = true; }
     else if (!Key.get()) return askKey(), false;
     var panel = H('aside', 'panel'); panel.id = 'tpanel';
@@ -599,7 +605,7 @@
     if (!console_.offline) fetchAnswers();
     setInterval(function () { if (!console_.offline) fetchAnswers(); }, 4000);
     setInterval(function () { if (console_.on) pushLive(); }, 120000);
-    tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
+    tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = !!j.live.lock; if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
     return true;
   }
   function fetchAnswers() {
@@ -632,7 +638,7 @@
   function liveObj() {
     var counts = {};
     Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length) counts[q] = feed.per[q].counts; });
-    return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: console_.spot, timer: console_.timer };
+    return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: console_.spot, timer: console_.timer, lock: console_.lock };
   }
   var pushT = null, lastCounts = '';
   function pushLive() {
@@ -660,6 +666,9 @@
     var sc = el('button', { type: 'button', 'class': 'btn', text: 'Open class screen' });
     sc.onclick = function () { window.open('lesson.html?l=' + N + '&screen', 'sfa-screen-' + LID, 'width=1280,height=760'); };
     var row = H('div', 'row'); row.appendChild(lb); row.appendChild(sc); top.appendChild(row);
+    var lk = el('label', { style: 'display:flex;gap:8px;align-items:center' }), cb = el('input', { type: 'checkbox' }); cb.checked = console_.lock;
+    cb.onchange = function () { console_.lock = cb.checked; SFA.store.set('teacher.lesson.lock', cb.checked); pushLive(); };
+    lk.appendChild(cb); lk.appendChild(document.createTextNode('Keep everyone on my slide (students can\'t move ahead or back)')); top.appendChild(lk);
     top.appendChild(H('p', 'muted', console_.on ? 'Live for ' + Math.round((Date.now() - console_.since) / 60000) + ' min. Share the class screen window, not this one.' : 'Share the class screen window. Go live so students\' devices follow you and the polls open.'));
     if (console_.err) top.appendChild(H('p', 'state bad', esc(console_.err)));
     p.appendChild(top);

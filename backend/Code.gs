@@ -270,7 +270,7 @@ function getLive() {
 function setLive(req) {
   var cache = CacheService.getScriptCache(), L = req.live;
   if (!L) { cache.remove('live'); return { ok: true, live: null }; }
-  var out = { lesson: String(L.lesson || ''), slide: Math.max(0, Math.min(200, Math.round(Number(L.slide) || 0))), at: Date.now(), reveal: {}, counts: {}, spot: null, timer: null };
+  var out = { lesson: String(L.lesson || ''), slide: Math.max(0, Math.min(200, Math.round(Number(L.slide) || 0))), at: Date.now(), reveal: {}, counts: {}, spot: null, timer: null, lock: !!L.lock };
   if (!LESSON.test(out.lesson)) throw new Error('bad lesson');
   Object.keys(L.reveal || {}).slice(0, 60).forEach(function (k) { if (QID.test(k)) out.reveal[k] = Math.max(0, Math.min(2, Number(L.reveal[k]) || 0)); });
   Object.keys(L.counts || {}).slice(0, 60).forEach(function (k) { if (QID.test(k) && Array.isArray(L.counts[k])) out.counts[k] = L.counts[k].slice(0, 12).map(num); });

@@ -65,6 +65,6 @@ The slideshows (`lessons.html`) send students' answers to a new **Responses** ta
 
 Until then, the slides still work but answers stay on each student's computer and live mode is off.
 
-- **You:** open `lessons.html?teach` (or **Lesson slideshows** on the teacher page). Open a lesson's **Console**, enter your teacher key, press **Open class screen** and share that window. Press **Go live** so students' devices follow your slides.
+- **You:** open `lessons.html?teach` (or **Lesson slideshows** on the teacher page). Open a lesson's **Console**, enter your teacher key, press **Open class screen** and share that window. Press **Go live** so students' devices follow your slides. "Keep everyone on my slide" (on by default) stops students moving ahead or back while you are live.
 - **Students:** open `lessons.html` (or the link from **Copy student link**) and sign in on the second slide.
 - **Participation:** `participation.html` shows every student's answers per lesson, with a CSV download.
