@@ -41,8 +41,22 @@
       .then(function (r) { return r.text(); })
       .then(function (t) { var j; try { j = JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly.'); } if (!j.ok) throw new Error(j.error || 'failed'); return j; });
   }
-  function isLive() { return !!(live && live.lesson === LID && Date.now() - live.at < LIVE_FRESH); }
-  function locked() { return MODE === 'student' && isLive() && !!live.lock; }
+  // Students judge "still live" by when THEY last saw the teacher's state change, not by comparing clocks:
+  // a student laptop with a wrong clock used to drop out of live mode (no lock, no follow).
+  var liveSeen = { at: null, local: 0 };
+  function noteLive(L) {
+    if (!L) { liveSeen = { at: null, local: 0 }; return; }
+    if (L.at === liveSeen.at) return;
+    var age = Date.now() - L.at;
+    liveSeen = { at: L.at, local: liveSeen.at === null ? (Math.abs(age) < LIVE_FRESH ? Date.now() - Math.max(0, age) : 0) : Date.now() };
+  }
+  function isLive() {
+    if (!live || live.lesson !== LID) return false;
+    return MODE === 'student' ? Date.now() - liveSeen.local < LIVE_FRESH : Date.now() - live.at < LIVE_FRESH;
+  }
+  // the lock also rides in counts.zlock, because older results scripts drop the lock field
+  function liveLock(L) { return !!(L && (L.lock || (L.counts && Array.isArray(L.counts.zlock) && L.counts.zlock[0] === 1))); }
+  function locked() { return MODE === 'student' && isLive() && liveLock(live); }
   function reveal(q) { return isLive() ? (live.reveal && live.reveal[q]) || 0 : 0; }
   function first(n) { n = String(n || ''); return (n.indexOf(',') >= 0 ? n.split(',')[1] : n).trim().split(' ')[0] || n; }
   function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
@@ -575,26 +589,32 @@
 
   /* ---------------- live: students check what the teacher is showing ---------------- */
   var pollT = null;
+  var polling = false, pollFails = 0;
   function pollLive() {
     clearTimeout(pollT);
-    if (!CFG.endpoint) return;
+    if (!CFG.endpoint || polling) return;   // one request at a time: switching tabs used to start extra polling loops
     if (document.visibilityState === 'hidden') { pollT = setTimeout(pollLive, 15000); return; }
+    polling = true; lastPoll = Date.now();
     post({ op: 'live' }).then(function (j) {
+      polling = false; pollFails = 0;
       var was = isLive(), before = JSON.stringify(live);
-      live = j.live || null;
+      live = j.live || null; noteLive(live);
       if (MODE === 'student' && dropOldRun()) { render(isLive() && follow ? live.slide : cur, 0, true); if (before && JSON.parse(before || 'null')) SFA.toast(TEACHER + ' started the lesson fresh.', 3500); }
       if (locked()) follow = true;
       if (isLive() && follow && live.slide !== cur) render(live.slide, live.slide > cur ? 1 : -1);
       else if (JSON.stringify(live) !== before) upd();
       if (!was && isLive()) { follow = true; SFA.toast(TEACHER + ' is live. Your screen will follow the lesson.', 3500); }
-      drawTop();
-      pollT = setTimeout(pollLive, isLive() ? 5000 + Math.random() * 1500 : 20000);
+      drawTop(); refreshDots();
+      pollT = setTimeout(pollLive, isLive() ? 4500 + Math.random() * 1500 : 8000 + Math.random() * 2000);
     }, function (e) {
+      polling = false;
       if (/unknown op/.test(e.message)) return;   // older results script: no live mode
-      pollT = setTimeout(pollLive, 20000);
+      pollFails++;
+      pollT = setTimeout(pollLive, Math.min(20000, 5000 * pollFails) + Math.random() * 2000);
     });
   }
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && MODE === 'student') pollLive(); });
+  var lastPoll = 0;
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && MODE === 'student' && Date.now() - lastPoll > 3000) pollLive(); });
 
   /* ---------------- class screen <-> console (same browser) ---------------- */
   var bc = null, consoleSeen = false;
@@ -645,7 +665,7 @@
     if (!console_.offline) fetchAnswers();
     setInterval(function () { if (!console_.offline) fetchAnswers(); }, 4000);
     setInterval(function () { if (console_.on) pushLive(); }, 120000);
-    tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = !!j.live.lock; var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
+    tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
     return true;
   }
   function fetchAnswers() {
@@ -680,6 +700,7 @@
     var counts = {};
     Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length) counts[q] = feed.per[q].counts; });
     if (console_.run) counts.zrun = encRun(console_.run);
+    if (console_.lock) counts.zlock = [1];
     return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: console_.spot, timer: console_.timer, lock: console_.lock };
   }
   var pushT = null, lastCounts = '';
