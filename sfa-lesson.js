@@ -463,6 +463,8 @@
       }
       var ta = el('textarea', { 'aria-label': 'Your answer', placeholder: s.ph || 'Type your answer', maxlength: '600' });
       ta.value = draft != null ? draft : a ? a.answer : '';
+      function fit() { ta.style.height = 'auto'; ta.style.height = Math.max(ta.scrollHeight + 4, 0) + 'px'; }
+      ta.addEventListener('input', fit); setTimeout(fit, 0);
       var btn = el('button', { type: 'button', 'class': 'btn primary', text: a ? 'Send again' : 'Send' });
       btn.onclick = function () { var v = ta.value.trim(); if (!v) { SFA.toast('Type something first. A guess is fine.'); return ta.focus(); } draft = null; record(s, v, null); d._upd(); };
       box.appendChild(ta);
@@ -499,11 +501,27 @@
     if (!quiet) slideEl.classList.add('in'); if (dir < 0) slideEl.classList.add('back');
     if (old) { if (quiet) old.remove(); else { old.classList.add('out'); if (dir < 0) old.classList.add('back'); setTimeout(function () { old.remove(); }, 380); } }
     deck.appendChild(slideEl);
+    fitWatch(slideEl);
     if (MODE === 'student') SFA.store.set('les.at.' + LID, cur);
     refreshDots();
     if (MODE === 'teach') consoleSlide();
     if (MODE === 'screen' && bc && !quiet) { }
   }
+  // shrink a slide's text a little at a time until everything fits on the 16:9 slide (laptop and class screen; phones scroll)
+  function fit(el) {
+    if (!el || !el.isConnected) return;
+    el.style.fontSize = '';
+    if (getComputedStyle(el).position !== 'absolute') return;
+    var base = parseFloat(getComputedStyle(el).fontSize), f = base;
+    while (el.scrollHeight > el.clientHeight + 2 && f > base * 0.7) { f *= 0.95; el.style.fontSize = f + 'px'; }
+  }
+  function fitWatch(el) {
+    var queued = false;
+    function later() { if (queued) return; queued = true; requestAnimationFrame(function () { queued = false; fit(el); }); }
+    fit(el); setTimeout(function () { fit(el); }, 800);
+    if (window.MutationObserver) new MutationObserver(function (ms) { if (ms.some(function (m) { return m.target.tagName !== 'TEXTAREA'; })) later(); }).observe(el, { childList: true, subtree: true, characterData: true });
+  }
+  window.addEventListener('resize', function () { fit(slideEl); });
   function go(i, byHand) {
     if (i === cur || i < 0 || i >= LES.slides.length) return;
     var dir = i > cur ? 1 : -1;
