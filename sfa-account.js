@@ -51,6 +51,11 @@
       });
     }, function () { return new Error('offline'); });
   };
+  // a Google sign-in button anywhere on the page (the lesson slides put one under an answer that couldn't send)
+  S.button = function (box) {
+    loadGis().then(function () { google.accounts.id.renderButton(box, { theme: 'filled_black', size: 'medium', shape: 'pill', text: 'signin_with' }); }, function () { box.textContent = 'Google sign-in couldn\'t load. Check the internet connection.'; });
+  };
+  S.credExpired = function () { var c = SFA.store.get('sync.cred', null); return !!(c && c.kind === 'google' && (jwt(c.token).exp || 0) * 1000 < Date.now()); };
   S.onChange(function (s) { if (s.status === 'signedout' && SFA.store.get('sync.me', null) && credExpSoon()) S.refresh(); });
 
   /* ---------- hub card ---------- */

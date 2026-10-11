@@ -202,7 +202,13 @@
     if (sendErr && /roster/.test(sendErr)) { d.className = 'state bad'; d.textContent = 'Not sent: your school account isn\'t on ' + TEACHER + '\'s class list. Tell ' + TEACHER + '.'; return d; }
     if (sendErr && /school account/.test(sendErr)) { d.className = 'state bad'; d.textContent = 'Not sent: sign in with your school (aisr.org) account.'; return d; }
     if (sendErr && !/busy|sign in/.test(sendErr)) { d.className = 'state bad'; d.textContent = 'Not sent yet (' + sendErr + '). Trying again…'; return d; }
-    if (!S.me) { d.className = 'state bad'; d.innerHTML = 'Saved here only. <a href="#" data-signin>Sign in</a> so it counts.'; return d; }
+    if (!S.me || (S.credExpired && S.credExpired())) {
+      d.className = 'state bad';
+      d.textContent = !S.me ? 'Saved here only. Sign in so it reaches ' + TEACHER + ':' : 'Your sign-in timed out, so this hasn\'t reached ' + TEACHER + '. Sign in again:';
+      if (S.button) { var gb = H('span', 'gbtn'); gb.style.cssText = 'display:inline-block;vertical-align:middle;margin-left:8px'; d.appendChild(gb); S.button(gb); }
+      else { var ln = H('a', '', 'Sign in'); ln.href = '#'; ln.setAttribute('data-signin', ''); d.appendChild(document.createTextNode(' ')); d.appendChild(ln); }
+      return d;
+    }
     d.textContent = 'Sending…'; return d;
   }
   function loadMine() {
@@ -808,7 +814,7 @@
     if (MODE === 'teach' && !consoleInit()) return;
     render(start, 1);
     if (MODE === 'student') {
-      if (saving) S.onChange(function () { acctDraw(); upd(); if (S.me && !loadMine.done) { loadMine.done = true; loadMine(); } });
+      if (saving) S.onChange(function () { acctDraw(); upd(); if (S.me && !loadMine.done) { loadMine.done = true; loadMine(); } else if (S.me && !(S.credExpired && S.credExpired())) flush(); });
       else acctDraw();
       pollLive();
       window.addEventListener('online', flush);
