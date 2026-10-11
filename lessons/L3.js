@@ -5,8 +5,9 @@ SFA_LESSON({
   big: 'A graph is a story, not a picture. Read it left to right: up, down, flat, steep.',
   slides: [
     { k: 'title', min: 1, kicker: 'Lesson 3', title: 'Gus\'s Forecast', sub: 'Every graph tells a story. Today you read them, and draw them.', art: '🌧️' },
-    { k: 'signin', min: 2, title: 'Before we start', points: ['Watch *The Weather Line*', 'Read a graph like a sentence', 'Match stories to graphs in *Gus\'s Forecast*', 'Answer a quick exit ticket'] },
-    { k: 'poll', min: 3, id: 'hook', q: 'Chip Hartley says: "This weather graph shows a mountain. Avoid the mountain!" What does it *really* show?',
+    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *The Weather Line*', 'Read a graph like a sentence', 'Match stories to graphs in *Gus\'s Forecast*', 'Answer a quick exit ticket'] },
+    { k: 'poll', min: 2, id: 'warm', warm: true, q: 'What is the weather like where you are right now?', opts: ['Sunny', 'Cloudy', 'Rainy', 'Windy', 'I can\'t see outside'] },
+    { k: 'poll', min: 2, id: 'hook', q: 'Chip Hartley says: "This weather graph shows a mountain. Avoid the mountain!" What does it *really* show?',
       opts: ['A mountain. Avoid it.', 'Rain getting heavier, then lighter again', 'Rain that never stops', 'The rain is over'], ans: 1,
       why: 'Gus whispers: "It\'s not a mountain. It\'s rain." The line goes up while the rain gets heavier, then down as it dies away. A storm passing.',
       fig: { kind: 'graph', x: [0, 6], y: [0, 10], xl: 'hours', yl: 'rain per hour', lines: [{ pts: [[0, 0], [3, 8], [6, 0]], dots: false }] } },

@@ -5,8 +5,9 @@ SFA_LESSON({
   big: 'One input can fool you. Two good inputs can crack a rule.',
   slides: [
     { k: 'title', min: 1, kicker: 'Lesson 1', title: 'Crack the Fair', sub: 'Every machine at the fair has a secret rule. Today you crack them.', art: 'machine' },
-    { k: 'signin', min: 2, title: 'Before we start', points: ['Watch *Zero 2: Sidekick*', 'Crack two machines together', 'Play *Crack the Fair* on your own', 'Answer a quick exit ticket'] },
-    { k: 'poll', min: 3, id: 'hook', q: 'A machine takes *3* and gives back *7*. What is its rule?',
+    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *Zero 2: Sidekick*', 'Crack two machines together', 'Play *Crack the Fair* on your own', 'Answer a quick exit ticket'] },
+    { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Which Sandy Flats character would you want on your team today?', opts: ['Zero', 'One', 'Gus', 'Priya', 'Marcus'] },
+    { k: 'poll', min: 2, id: 'hook', q: 'A machine takes *3* and gives back *7*. What is its rule?',
       opts: ['Add 4', 'Double it, then add 1', 'Triple it, then take away 2', 'You can\'t tell yet'], ans: 3,
       why: 'All three rules turn 3 into 7. One input isn\'t enough evidence. Cracking a rule means testing it.',
       fig: { kind: 'map', pairs: [[3, 7]] } },

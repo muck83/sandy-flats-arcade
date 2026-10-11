@@ -5,8 +5,9 @@ SFA_LESSON({
   big: 'Words, rule, table and graph are four ways of saying one true thing. Check them all, not just one.',
   slides: [
     { k: 'title', min: 1, kicker: 'Lesson 4', title: 'The Keeper\'s Vault', sub: 'Four doors. Ninety seconds. One true thing, said four ways.', art: '🔐' },
-    { k: 'signin', min: 2, title: 'Before we start', points: ['Watch *The Chain*', 'Run the Chain together: words, rule, table, graph', 'Play *The Keeper\'s Vault* on your own', 'Answer a quick exit ticket'] },
-    { k: 'poll', min: 3, id: 'hook', q: 'Words: _a taxi costs 3 per km, plus 2 to start._ Marcus types *2 × km + 3*. The door tests *1 km*: ✓. Is he right?',
+    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *The Chain*', 'Run the Chain together: words, rule, table, graph', 'Play *The Keeper\'s Vault* on your own', 'Answer a quick exit ticket'] },
+    { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Four doors in the Keeper\'s Vault. Which one would you open first?', opts: ['Door 1', 'Door 2', 'Door 3', 'Door 4'] },
+    { k: 'poll', min: 2, id: 'hook', q: 'Words: _a taxi costs 3 per km, plus 2 to start._ Marcus types *2 × km + 3*. The door tests *1 km*: ✓. Is he right?',
       opts: ['Yes. The door said ✓', 'No. His rule is wrong', 'You can\'t tell'], ans: 1,
       why: 'Test 0 km. The words say 2 (just the start). Marcus\'s rule gives 2 × 0 + 3 = 3. Right at 1 km, wrong everywhere else.',
       fig: { kind: 'table', head: ['km', 'words say', 'Marcus says'], rows: [[1, 5, 5], [0, '?', '?']] } },

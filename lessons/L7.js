@@ -5,8 +5,9 @@ SFA_LESSON({
   big: 'The slope is the speed. The big number on its own is just where you start.',
   slides: [
     { k: 'title', min: 1, kicker: 'Lesson 7', title: 'Faster Than', sub: 'Four rides, four signs, one road to the lighthouse. Which ride is really fastest?', art: '🏁' },
-    { k: 'signin', min: 2, title: 'Before we start', points: ['Watch *Faster Than*', 'Find the speed from any kind of sign', 'Play *Faster Than* and race to the lighthouse', 'Answer a quick exit ticket'] },
-    { k: 'poll', min: 3, id: 'hook', q: 'Marcus picks the taxi. "TWENTY! That\'s the biggest number on the whole stand." Its sign says *d = 20 + 0.5t*. Is 20 the speed?',
+    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *Faster Than*', 'Find the speed from any kind of sign', 'Play *Faster Than* and race to the lighthouse', 'Answer a quick exit ticket'] },
+    { k: 'poll', min: 2, id: 'warm', warm: true, q: 'What\'s the best way to get to school?', opts: ['Car', 'Bus', 'Walk', 'Bike', 'Teleport'] },
+    { k: 'poll', min: 2, id: 'hook', q: 'Marcus picks the taxi. "TWENTY! That\'s the biggest number on the whole stand." Its sign says *d = 20 + 0.5t*. Is 20 the speed?',
       opts: ['Yes. 20 is the speed.', 'No. 20 is where it starts.', 'Can\'t tell'], ans: 1,
       why: 'The 20 is a head start: 20 km down the road at minute 0. The speed is the number next to t: 0.5 km a minute.' },
     { k: 'film', min: 6, title: 'Watch: Faster Than', watch: 'Rental Rita has four rides with four kinds of sign. Watch who reaches the lighthouse first, and why Marcus gets passed.' },

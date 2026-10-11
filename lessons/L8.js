@@ -5,8 +5,9 @@ SFA_LESSON({
   big: 'Count it: dots. Measure it: a line. Then fence the inputs and outputs.',
   slides: [
     { k: 'title', min: 1, kicker: 'Lesson 8', title: 'Doug\'s Steps', sub: 'Doug the pigeon can only hop whole tiles. Today you find out why that matters.', art: '🐦' },
-    { k: 'signin', min: 2, title: 'Before we start', points: ['Watch *Doug\'s Steps*', 'Decide: dots or a line?', 'Play *Doug\'s Steps* on your own', 'Answer a quick exit ticket'] },
-    { k: 'poll', min: 3, id: 'hook', q: 'A tower holds *600 litres* and leaks *40 litres* a minute. Priya says: "It only lives from 0 to 15." What does _lives_ mean?',
+    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *Doug\'s Steps*', 'Decide: dots or a line?', 'Play *Doug\'s Steps* on your own', 'Answer a quick exit ticket'] },
+    { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Doug the pigeon hops on tiles. Would you rather fly or hop?', opts: ['Fly', 'Hop', 'Neither, I\'d take the bus'] },
+    { k: 'poll', min: 2, id: 'hook', q: 'A tower holds *600 litres* and leaks *40 litres* a minute. Priya says: "It only lives from 0 to 15." What does _lives_ mean?',
       opts: ['It only works from minute 0 to minute 15', 'The machine is alive', 'It holds 0 to 15 litres', 'I\'m not sure'], ans: 0,
       why: 'Before minute 0 there was no leak. At minute 15 the tower is empty. Outside that, it\'s just numbers pretending.',
       fig: { kind: 'graph', x: [0, 20], y: [0, 700], xl: 'minutes', yl: 'litres', lines: [{ pts: [[0, 600], [15, 0]], dots: true }] } },

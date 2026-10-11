@@ -5,8 +5,9 @@ SFA_LESSON({
   big: 'A function gives every input exactly one output. Same input in, same output out. Every time.',
   slides: [
     { k: 'title', min: 1, kicker: 'Lesson 2', title: 'Glitch Hunt', sub: 'Something in Sandy Flats gives one input two outputs. Today you hunt it down.', art: '🔍' },
-    { k: 'signin', min: 2, title: 'Before we start', points: ['Watch *Lost in Graph Land*', 'Learn the one rule every function follows', 'Hunt glitches in *Glitch Hunt*', 'Answer a quick exit ticket'] },
-    { k: 'poll', min: 3, id: 'hook', q: 'Remember _The Glitch_? Squaring Sam turns *3 into 9*, and *−3 into 9* too. Marcus shouts "Seize him!" Is Sam a glitch?',
+    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *Lost in Graph Land*', 'Learn the one rule every function follows', 'Hunt glitches in *Glitch Hunt*', 'Answer a quick exit ticket'] },
+    { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Gus wears a yellow raincoat. If you had a raincoat, what colour would it be?', opts: ['Yellow, like Gus', 'Red', 'Blue', 'Black', 'Glitter, obviously'] },
+    { k: 'poll', min: 2, id: 'hook', q: 'Remember _The Glitch_? Squaring Sam turns *3 into 9*, and *−3 into 9* too. Marcus shouts "Seize him!" Is Sam a glitch?',
       opts: ['Yes. Two inputs, same output. Glitch!', 'No. Each input still gives just one output.', 'You can\'t tell.'], ans: 1,
       why: 'Priya was right: two arrows *arriving* at the same output is fine. The broken kind is one input with two arrows *leaving*. Sam is a function.',
       fig: { kind: 'map', pairs: [[3, 9], [-3, 9], [2, 4], [-2, 4]] } },

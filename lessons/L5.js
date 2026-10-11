@@ -5,8 +5,9 @@ SFA_LESSON({
   big: 'Slope is rise over run. Any two points on a line give the same slope.',
   slides: [
     { k: 'title', min: 1, kicker: 'Lesson 5', title: 'Scorch Marks', sub: 'One is out on the Grid alone, chasing the RULE link. Today you measure the trail.', art: '🔥' },
-    { k: 'signin', min: 2, title: 'Before we start', points: ['Watch *One Alone*', 'Measure slopes together: rise over run', 'Play *Scorch Marks* on your own', 'Answer a quick exit ticket'] },
-    { k: 'poll', min: 3, id: 'hook', q: 'Stone A is *(1, −1)*. Stone B is *(5, 19)*. One says: "Across 4, up 20. So 4 over 20: one fifth." Is he right?',
+    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *One Alone*', 'Measure slopes together: rise over run', 'Play *Scorch Marks* on your own', 'Answer a quick exit ticket'] },
+    { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Would you rather climb 10 small steps or 2 giant ones?', opts: ['10 small steps', '2 giant steps', 'I\'ll take the lift'] },
+    { k: 'poll', min: 2, id: 'hook', q: 'Stone A is *(1, −1)*. Stone B is *(5, 19)*. One says: "Across 4, up 20. So 4 over 20: one fifth." Is he right?',
       opts: ['Yes, the slope is 1/5', 'No, the slope is 5', 'No, the slope is 4', 'No, the slope is 19/5'], ans: 1,
       why: 'One flipped it. The climb goes on top: rise 20 ÷ run 4 = 5. In the film he flies straight into a hedge.',
       fig: { kind: 'graph', x: [0, 6], y: [-5, 25], lines: [{ pts: [[0, -6], [6, 24]], dots: false }, { pts: [[1, -1], [5, 19]], dots: true, only: true }] } },

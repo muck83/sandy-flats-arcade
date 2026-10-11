@@ -5,8 +5,9 @@ SFA_LESSON({
   big: 'Going up is not the same as going up evenly. Linear means the same rate every step.',
   slides: [
     { k: 'title', min: 1, kicker: 'Lesson 6', title: 'Linear or Liar?', sub: 'Some machines say they are linear. Some of them are lying. Today you catch them.', art: '🕵️' },
-    { k: 'signin', min: 2, title: 'Before we start', points: ['Watch *Linear or Liar?*', 'Learn one test that busts a liar', 'Play *Linear or Liar?* as a detective', 'Answer a quick exit ticket'] },
-    { k: 'poll', min: 3, id: 'hook', q: 'In _Doors and Walls_, a door opens *1 ÷ input* wide. Marcus says: "Zero makes the BIGGEST DOOR EVER!" Is he right?',
+    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *Linear or Liar?*', 'Learn one test that busts a liar', 'Play *Linear or Liar?* as a detective', 'Answer a quick exit ticket'] },
+    { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Every detective needs a snack. What\'s yours?', opts: ['Popcorn', 'Dates', 'Chips', 'Fruit', 'No snack, I\'m focused'] },
+    { k: 'poll', min: 2, id: 'hook', q: 'In _Doors and Walls_, a door opens *1 ÷ input* wide. Marcus says: "Zero makes the BIGGEST DOOR EVER!" Is he right?',
       opts: ['Yes. Smaller input, bigger door.', 'No. Something goes wrong at zero.', 'Not sure yet.'],
       why: 'We won\'t settle it now. The game will. Keep your vote in mind for the level *The Widest Door*.',
       fig: { kind: 'table', head: ['input', 'door width'], rows: [[4, 0.25], [2, 0.5], [1, 1], [0.5, 2], [0, '?']] } },

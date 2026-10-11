@@ -259,7 +259,11 @@
     var w = H('div', 'st'); d.appendChild(w);
     return w;
   }
-  function qline(s, wrap) { wrap.appendChild(H('p', 'q', fmt(s.q))); }
+  function qline(s, wrap) {
+    if (s.warm) wrap.appendChild(H('p', 'kick', 'Warm-up · no wrong answers'));
+    wrap.appendChild(H('p', 'q', fmt(s.q)));
+    if (s.warm && MODE === 'student') wrap.appendChild(H('p', 'sub', 'Tap one so ' + TEACHER + ' can see you\'re connected.'));
+  }
   function withFig(s, d, left) {
     if (!s.fig) { d.appendChild(left); return; }
     var c = H('div', 'cols grow'); c.appendChild(left); var r = H('div', 'st'); r.appendChild(figure(s.fig)); c.appendChild(r); d.appendChild(c);
@@ -314,9 +318,11 @@
       var f = LES.film || {}, b = H('div', 'st grow');
       var card = H('div', 'fcard'); card.appendChild(H('div', 'num', esc(f.n || ''))); var t = H('div'); t.appendChild(H('b', '', esc(f.title || ''))); t.appendChild(H('small', '', 'Film ' + esc(f.n || '') + ' in the Sandy Flats Cinema' + (f.len ? ' · ' + esc(f.len) : ''))); card.appendChild(t); b.appendChild(card);
       if (s.cue) b.appendChild(H('p', 'note', fmt(s.cue)));
+      // the teacher plays the film for everyone on the shared screen in the meeting; the Cinema link stays as a backup
+      if (MODE !== 'teach') b.appendChild(H('p', 'note', '📺 <b>Watch together on ' + TEACHER + '\'s shared screen</b> in the meeting.'));
       b.appendChild(H('p', 'q', '<span class="kick">Watch for</span><br>' + fmt(s.watch)));
-      var a = H('a', 'go', '🎬 Open the Cinema'); a.href = CFG.cinema || 'https://claude.ai/artifact/EHFcVi37ZD1DyEM2u6XSe4'; a.target = '_blank'; a.rel = 'noopener';
-      var row = H('div', 'row'); row.appendChild(a); row.appendChild(H('span', 'onyours', 'Pick film ' + esc(f.n || '') + ', then come back here.')); b.appendChild(row);
+      var a = H('a', MODE === 'teach' ? 'go' : 'btn small', MODE === 'teach' ? '🎬 Open the Cinema to share' : '🎬 Open the Cinema'); a.href = CFG.cinema || 'https://claude.ai/artifact/EHFcVi37ZD1DyEM2u6XSe4'; a.target = '_blank'; a.rel = 'noopener';
+      var row = H('div', 'row'); row.appendChild(a); row.appendChild(H('span', 'onyours', MODE === 'teach' ? 'Pick film ' + esc(f.n || '') + ' and share that tab in the meeting.' : 'Can\'t see the shared screen? Open film ' + esc(f.n || '') + ' yourself.')); b.appendChild(row);
       d.appendChild(b);
     },
     poll: function (s, d, show) { choice(s, d, show, s.opts, false); },
@@ -796,6 +802,7 @@
       r2.appendChild(el('button', { type: 'button', 'class': 'btn small', text: console_.peek ? 'Hide answer here' : 'Peek at answer (only here)', onclick: function () { console_.peek = !console_.peek; upd(); consolePanel(); } }));
       if (s.k === 'poll') r2.appendChild(el('button', { type: 'button', 'class': 'btn small', text: console_.names ? 'Hide names' : 'Show names', onclick: function () { console_.names = !console_.names; upd(); consolePanel(); } }));
       sec.appendChild(r2);
+      if (s.warm) sec.appendChild(H('p', 'muted', 'Connection check: anyone still under "Not answered yet" below isn\'t signed in or isn\'t on this slide. Help them before the lesson moves on.'));
       if (console_.spot && console_.spot.q === s.id) sec.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Stop spotlight', onclick: function () { console_.spot = null; pushLive(); consolePanel(); } }));
       // answers list
       if (f && f.list.length && s.k !== 'poll' && s.k !== 'conf') {
@@ -821,7 +828,7 @@
       if (console_.timer) rt.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Stop timer', onclick: function () { console_.timer = null; pushLive(); consolePanel(); } }));
       sec.appendChild(rt);
       sec.appendChild(H('p', 'muted', 'Students see the countdown on their own screens and on the class screen.'));
-    } else sec.appendChild(H('p', 'muted', s.k === 'film' ? 'Students open the Cinema in a new tab. You can also play the film on your shared screen.' : 'Nothing to collect on this slide.'));
+    } else sec.appendChild(H('p', 'muted', s.k === 'film' ? 'Play film ' + esc((LES.film || {}).n || '') + ' on your shared screen. Students are told to watch it there; the Cinema link is their backup.' : 'Nothing to collect on this slide.'));
     p.appendChild(sec);
 
     // pick someone

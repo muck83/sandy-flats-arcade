@@ -5,8 +5,9 @@ SFA_LESSON({
   big: 'One true rule, four ways: words, rule, table and graph. And every rule has its edges.',
   slides: [
     { k: 'title', min: 1, kicker: 'Lesson 9 · The finale', title: 'The Final Chain', sub: 'The Undefined has scrambled the Chain. Today you help re-forge it, link by link.', art: 'film' },
-    { k: 'signin', min: 2, title: 'Before we start', points: ['Watch the finale, *The Final Chain*', 'Review the whole unit, one idea at a time', 'Fix the Final Chain in *The Keeper\'s Vault*', 'Answer one last exit ticket'] },
-    { k: 'poll', min: 3, id: 'hook', q: 'The true rule is *double it, add one*. The Undefined writes *add one, then double*. Is that the *same rule*?',
+    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch the finale, *The Final Chain*', 'Review the whole unit, one idea at a time', 'Fix the Final Chain in *The Keeper\'s Vault*', 'Answer one last exit ticket'] },
+    { k: 'poll', min: 2, id: 'warm', warm: true, q: 'It\'s the finale! Who is your favourite character from the whole saga?', opts: ['Zero', 'One', 'Gus', 'Priya', 'Marcus', 'Doug'] },
+    { k: 'poll', min: 2, id: 'hook', q: 'The true rule is *double it, add one*. The Undefined writes *add one, then double*. Is that the *same rule*?',
       opts: ['Yes, same words, same rule', 'No: at 3 they give 7 and 8', 'Only for big numbers', 'I\'m not sure'], ans: 1,
       why: 'Double 3, add 1: 7. Add 1 to 3, then double: 8. The order changes the output. The order is the promise.',
       fig: { kind: 'table', head: ['x', 'double, add one', 'add one, double'], rows: [[3, 7, 8]] } },

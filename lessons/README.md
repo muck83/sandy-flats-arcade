@@ -32,8 +32,8 @@ Write for a Grade 8 student who doesn't want to do the math: short sentences, on
 | `title` | `kicker`, `title`, `sub`, `art` (`'machine'`, `'film'`, `'game'` or one emoji) | nothing |
 | `signin` | `title`, `points` (2-4 "today you will" lines) | sign in with their school account |
 | `text` | `title`, `points` (2-5 short lines, they animate in one by one), optional `note` | read |
-| `film` | `title`, `watch` (what to look for, one sentence), optional `cue` ("Start at 4:00") | open the Cinema, watch |
-| `poll` | `id`, `q`, `opts` (2-5 short options), optional `ans` (index of the right option), `why` (shown when revealed) | tap one option |
+| `film` | `title`, `watch` (what to look for, one sentence), optional `cue` ("Start at 4:00") | watch on the teacher's shared screen (Cinema link as a backup) |
+| `poll` | `id`, `q`, `opts` (2-5 short options), optional `ans` (index of the right option), `why` (shown when revealed), `warm: true` (the opening no-wrong-answer connection check) | tap one option |
 | `open` | `id`, `q`, `ph` (placeholder), optional `hint`, `model` (an example answer the teacher can reveal) | type a sentence |
 | `number` | `id`, `q`, `ans` (number), optional `tol`, `hint` (shown after a wrong try), `why` (shown when right) | type a number, auto-checked |
 | `machine` | `id`, `name`, `rule` (e.g. `'2x+1'`, `'3x-2'`, `'x^2'`), `q` | feed numbers into an animated machine, then type its rule (auto-checked) |
