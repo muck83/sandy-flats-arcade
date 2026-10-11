@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Participation · Sandy Flats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css">
+<style>
+.tbl{border-collapse:collapse;margin-top:14px;font-size:14px;min-width:100%}
+.tbl th,.tbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+.tbl th{font:700 12px var(--ui);color:var(--muted);position:sticky;top:0;background:var(--bg)}
+.tbl th button{font:700 12px var(--ui);background:none;border:0;color:var(--marquee);cursor:pointer;text-decoration:underline}
+.tbl td:first-child,.tbl th:first-child{text-align:left}
+.c{display:inline-block;min-width:44px;padding:2px 6px;border-radius:6px;font:600 12px var(--mono)}
+.c0{background:var(--panel2);color:var(--muted)}.c1{background:#4a3a12;color:#FFC94A}.c2{background:#14352a;color:#5CE0B8}.c3{background:#1d5a3f;color:#fff}
+.scroll{overflow-x:auto}
+.ans td{text-align:left;white-space:normal;max-width:420px}
+.ok{color:var(--green)}.no{color:var(--red)}
+</style>
+</head><body>
+<div class="wrap">
+  <header class="topbar"><a class="brand" href="lessons.html?teach">Sandy Flats Lessons</a><h1 class="gtitle">Participation</h1><div class="chips" id="chips"></div></header>
+  <div id="body"><p class="muted" style="margin-top:16px">Loading…</p></div>
+</div>
+<script src="config.js"></script>
+<script src="sfa-kit.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SFA = window.SFA, el = SFA.el, esc = SFA.esc, CFG = window.SFA_CONFIG || {}, body = document.getElementById('body');
+  var LES = {}, left = 9, data = null, cls = SFA.store.get('teacher.lesson.cls', ''), view = null;
+  var KEY = 'sfa.classkey';
+  var Key = {
+    get: function () { try { var s = sessionStorage.getItem(KEY); if (s) return s; var r = JSON.parse(localStorage.getItem(KEY) || 'null'); if (r && r.until > Date.now()) return r.k; } catch (e) { } return ''; },
+    set: function (k, remember) { try { sessionStorage.setItem(KEY, k); if (remember) { var d = new Date(); d.setHours(23, 59, 59, 0); localStorage.setItem(KEY, JSON.stringify({ k: k, until: d.getTime() })); } } catch (e) { } },
+    del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
+  };
+  function api(op, b) {
+    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ op: op, teacherKey: Key.get() }, b || {})) })
+      .then(function (r) { return r.text(); }).then(function (t) { var j; try { j = JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly.'); } if (!j.ok) throw new Error(j.error); return j; });
+  }
+  function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
+  function askKey(msg) {
+    var inp = el('input', { type: 'password', 'class': 'num', style: 'width:22em;max-width:100%', autocomplete: 'off', 'aria-label': 'Teacher key' }), rem = el('input', { type: 'checkbox', id: 'rk' });
+    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Open', onclick: function () { Key.set(inp.value.trim(), rem.checked); load(); } });
+    inp.onkeydown = function (e) { if (e.key === 'Enter') go.click(); };
+    body.innerHTML = '';
+    body.appendChild(el('div', { 'class': 'card', style: 'margin-top:16px;max-width:640px' }, [el('h2', { text: 'Teacher key' }), el('p', { 'class': 'muted', text: msg || 'Paste the teacher key from the results script (Script properties > TEACHER_KEY). Same key as Class Results.' }), el('div', { 'class': 'row' }, [inp, go]), el('label', { 'for': 'rk', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' }, [rem, 'Remember on this computer until the end of today'])]));
+    inp.focus();
+  }
+  function fail(e) {
+    if (/teacher key/.test(e.message)) { Key.del(); return askKey('That key didn\'t work. Check it and try again.'); }
+    body.innerHTML = ''; body.appendChild(el('p', { 'class': 'say bad', style: 'margin-top:16px', text: /unknown op/.test(e.message) ? 'The results script needs updating first: paste the new Code.gs into Apps Script and deploy a new version (Deploy > Manage deployments > Edit > New version).' : 'Couldn\'t reach the results sheet. ' + e.message }));
+  }
+  function load() {
+    if (!CFG.endpoint) { body.textContent = 'Results saving isn\'t switched on for this copy of the arcade.'; return; }
+    if (!Key.get()) return askKey();
+    body.innerHTML = '<p class="muted" style="margin-top:16px">Loading…</p>';
+    api('participation').then(function (j) { data = j; draw(); }, fail);
+  }
+  function lessons() { return Object.keys(LES).map(function (k) { return LES[k]; }).sort(function (a, b) { return a.n - b.n; }); }
+  function qcount(L) { return L.slides.filter(function (s) { return s.id; }).length; }
+  function roster() { return data.roster.filter(function (r) { return !cls || r.cls === cls; }).sort(function (a, b) { return a.name < b.name ? -1 : 1; }); }
+  function cell(sid, L) { return data.cells.filter(function (c) { return c.sid === sid && c.lesson === L.id; })[0]; }
+  function draw() {
+    body.innerHTML = '';
+    var classes = []; data.roster.forEach(function (r) { if (r.cls && classes.indexOf(r.cls) < 0) classes.push(r.cls); });
+    var bar = el('div', { 'class': 'row', style: 'margin-top:14px' });
+    if (classes.length > 1) { var sel = el('select', { 'class': 'btn small', 'aria-label': 'Class' }); sel.appendChild(el('option', { value: '', text: 'All classes' })); classes.sort().forEach(function (c) { var o = el('option', { value: c, text: 'Class ' + c }); if (c === cls) o.selected = true; sel.appendChild(o); }); sel.onchange = function () { cls = sel.value; SFA.store.set('teacher.lesson.cls', cls); draw(); }; bar.appendChild(sel); }
+    bar.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Refresh', onclick: load }));
+    bar.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Download CSV', onclick: csv }));
+    body.appendChild(bar);
+    body.appendChild(el('p', { 'class': 'muted', text: 'Each cell is questions answered out of the lesson\'s questions. Click a lesson to see every answer.' }));
+    var t = el('table', { 'class': 'tbl' }), hr = el('tr');
+    hr.appendChild(el('th', { text: 'Student' }));
+    lessons().forEach(function (L) { var th = el('th'); th.appendChild(el('button', { type: 'button', text: 'L' + L.n + ' ' + L.title, onclick: function () { detail(L); } })); hr.appendChild(th); });
+    hr.appendChild(el('th', { text: 'Total' })); t.appendChild(hr);
+    roster().forEach(function (r) {
+      var tr = el('tr'), tot = 0, of = 0; tr.appendChild(el('td', { text: nice(r.name) + (r.cls && !cls ? ' · ' + r.cls : '') }));
+      lessons().forEach(function (L) {
+        var c = cell(r.sid, L), q = qcount(L), n = c ? c.answered : 0; tot += n; if (c) of += q;
+        var lvl = !n ? 0 : n < q / 2 ? 1 : n < q ? 2 : 3;
+        var td = el('td'); td.appendChild(el('span', { 'class': 'c c' + lvl, text: n ? n + '/' + q : '·', title: c ? 'Last answer ' + SFA.ago(c.last) + (c.checked ? '; ' + c.correct + ' of ' + c.checked + ' auto-checked right' : '') : 'No answers' })); tr.appendChild(td);
+      });
+      tr.appendChild(el('td', { text: of ? Math.round(100 * tot / of) + '%' : '·', title: 'Of the lessons this student opened' }));
+      t.appendChild(tr);
+    });
+    var sc = el('div', { 'class': 'scroll' }); sc.appendChild(t); body.appendChild(sc);
+    var d = el('div', { id: 'detail' }); body.appendChild(d);
+    if (view) detail(view);
+  }
+  function detail(L) {
+    view = L; var d = document.getElementById('detail'); d.innerHTML = '<p class="muted">Loading Lesson ' + L.n + '…</p>';
+    api('answers', { lesson: L.id }).then(function (j) {
+      var ids = {}; roster().forEach(function (r) { ids[r.sid] = r; });
+      d.innerHTML = ''; d.appendChild(el('h2', { style: 'margin-top:24px;font-family:var(--display);color:var(--marquee);font-weight:400', text: 'Lesson ' + L.n + ': ' + L.title }));
+      L.slides.filter(function (s) { return s.id; }).forEach(function (s) {
+        var rows = j.answers.filter(function (a) { return a.q === s.id && ids[a.sid]; });
+        var card = el('div', { 'class': 'card', style: 'margin-top:12px' });
+        card.appendChild(el('h3', { text: (s.k === 'exit' ? 'Exit ticket · ' : '') + rows.length + ' answered' }));
+        card.appendChild(el('p', { text: String(s.q || s.name).replace(/[*_]/g, '') }));
+        var t = el('table', { 'class': 'tbl ans' });
+        rows.sort(function (a, b) { return ids[a.sid].name < ids[b.sid].name ? -1 : 1; }).forEach(function (a) {
+          var tr = el('tr'); tr.appendChild(el('td', { text: nice(ids[a.sid].name) }));
+          tr.appendChild(el('td', { text: a.answer })); tr.appendChild(el('td', { 'class': a.correct === 'yes' ? 'ok' : a.correct === 'no' ? 'no' : '', text: a.correct === 'yes' ? '✓' : a.correct === 'no' ? '✗' : '' }));
+          t.appendChild(tr);
+        });
+        card.appendChild(t); d.appendChild(card);
+      });
+      d.scrollIntoView({ behavior: 'smooth' });
+    }, fail);
+  }
+  function csv() {
+    var q = function (v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+    var lines = [['Student', 'Class'].concat(lessons().map(function (L) { return 'L' + L.n + ' ' + L.title + ' (of ' + qcount(L) + ')'; })).map(q).join(',')];
+    roster().forEach(function (r) { lines.push([nice(r.name), r.cls].concat(lessons().map(function (L) { var c = cell(r.sid, L); return c ? c.answered : 0; })).map(q).join(',')); });
+    var a = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: 'lesson-participation.csv' }); document.body.appendChild(a); a.click(); a.remove();
+  }
+  window.SFA_LESSON = function (L) { LES[L.id] = L; };
+  for (var i = 1; i <= 9; i++) { var s = document.createElement('script'); s.src = 'lessons/L' + i + '.js'; s.onload = s.onerror = function () { if (--left === 0) load(); }; document.head.appendChild(s); }
+})();
+</script>
+</body></html>

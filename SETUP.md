@@ -55,3 +55,16 @@ If Google Cloud says your school account can't create projects, tell Claude. You
 - **You:** open **Class results** at the bottom of the front page and enter the teacher key. You'll see the whole class at a glance, filter by class, see the latest activity and download a CSV. The raw data is always in the Sheet too.
 - **Updating the script later:** paste the new `Code.gs`, save, then use **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**. That keeps the same URL.
 - **Editing the Roster:** the script remembers the roster for 5 minutes. After adding a student, wait 5 minutes, or run the function **clearRosterCache** once.
+
+## Lesson slideshows (polls, typed answers, participation)
+
+The slideshows (`lessons.html`) send students' answers to a new **Responses** tab, which is created the first time someone answers. They need the current `backend/Code.gs`:
+
+1. In Apps Script, replace all of Code.gs with the new `backend/Code.gs` and save.
+2. **Deploy > Manage deployments > Edit (pencil) > Version: New version > Deploy.** The web app URL stays the same.
+
+Until then, the slides still work but answers stay on each student's computer and live mode is off.
+
+- **You:** open `lessons.html?teach` (or **Lesson slideshows** on the teacher page). Open a lesson's **Console**, enter your teacher key, press **Open class screen** and share that window. Press **Go live** so students' devices follow your slides.
+- **Students:** open `lessons.html` (or the link from **Copy student link**) and sign in on the second slide.
+- **Participation:** `participation.html` shows every student's answers per lesson, with a CSV download.

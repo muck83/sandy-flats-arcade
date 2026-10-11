@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lessons · Sandy Flats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css">
+<style>
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-top:16px}
+.lcard{display:flex;flex-direction:column;gap:6px;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:16px;text-decoration:none;color:var(--ink);transition:transform .15s,border-color .15s;animation:rise .5s both}
+.lcard:hover,.lcard:focus-visible{transform:translateY(-3px);border-color:var(--marquee);outline:none}
+.lcard .n{font:800 12px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.lcard b{font:400 24px/1.1 var(--display);letter-spacing:.03em;color:var(--marquee)}
+.lcard small{color:var(--muted)}
+.lcard .bar{height:8px;border-radius:4px;background:var(--panel2);overflow:hidden;margin-top:6px}
+.lcard .bar i{display:block;height:100%;background:var(--teal)}
+.lcard .tl{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.intro{color:var(--muted);max-width:60ch;margin:10px 0 0}
+</style>
+</head><body>
+<div class="wrap">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle" id="h">Lessons</h1><div class="chips"></div></header>
+  <p class="intro" id="intro">Each lesson has a film, questions to answer, and a game. Open the lesson your teacher gives you. Your answers save when you're signed in.</p>
+  <div id="sfaAccount"></div>
+  <div class="lgrid" id="grid"></div>
+</div>
+<script src="config.js"></script>
+<script src="sfa-kit.js"></script>
+<script src="sfa-sync.js"></script>
+<script src="sfa-account.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SFA = window.SFA, el = SFA.el, esc = SFA.esc, teach = /[?&]teach/.test(location.search), all = [], MAX = 9, left = MAX;
+  if (teach) {
+    document.getElementById('h').textContent = 'Lessons · Teacher';
+    document.getElementById('intro').innerHTML = 'Open a lesson\'s <b>console</b> to run it live: polls, typed answers, who hasn\'t answered, a timer and a random picker. From the console, open the <b>class screen</b> window and share that one. Students open the <b>student link</b> on their own devices. <a href="participation.html">Participation across all lessons</a>.';
+    document.getElementById('sfaAccount').remove();
+  }
+  window.SFA_LESSON = function (L) { all.push(L); };
+  function draw() {
+    var g = document.getElementById('grid'); g.innerHTML = '';
+    all.sort(function (a, b) { return a.n - b.n; }).forEach(function (L, i) {
+      var qs = L.slides.filter(function (s) { return s.id; }), mine = SFA.store.get('les.' + L.id, {}) || {}, n = qs.filter(function (s) { return mine[s.id]; }).length;
+      var url = 'lesson.html?l=' + L.n;
+      var c = el(teach ? 'div' : 'a', { 'class': 'lcard', href: teach ? null : url, style: 'animation-delay:' + (i * 0.05) + 's' });
+      c.appendChild(el('span', { 'class': 'n', text: 'Lesson ' + L.n }));
+      c.appendChild(el('b', { text: L.title }));
+      c.appendChild(el('small', { text: '🎬 ' + (L.film ? L.film.title : '') + '  ·  🕹️ ' + L.game.title }));
+      c.appendChild(el('small', { text: qs.length + ' questions · 45 minutes' }));
+      if (teach) {
+        var row = el('div', { 'class': 'tl' });
+        row.appendChild(el('a', { 'class': 'btn small primary', href: url + '&teach', text: 'Console' }));
+        row.appendChild(el('a', { 'class': 'btn small', href: url + '&screen', target: '_blank', text: 'Class screen' }));
+        var link = el('button', { type: 'button', 'class': 'btn small', text: 'Copy student link' });
+        link.onclick = function () { var u = new URL(url, location.href).href; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { SFA.toast('Copied: ' + u); }, function () { SFA.toast(u, 6000); }); };
+        row.appendChild(link); c.appendChild(row);
+      } else if (n) { var b = el('div', { 'class': 'bar' }), i2 = el('i'); i2.style.width = Math.round(100 * n / qs.length) + '%'; b.appendChild(i2); c.appendChild(b); c.appendChild(el('small', { text: n + ' of ' + qs.length + ' answered' })); }
+      g.appendChild(c);
+    });
+  }
+  for (var i = 1; i <= MAX; i++) { var s = document.createElement('script'); s.src = 'lessons/L' + i + '.js'; s.onload = s.onerror = function () { if (--left === 0) draw(); }; document.head.appendChild(s); }
+})();
+</script>
+</body></html>

@@ -6,6 +6,7 @@
  *   Roster    sid | name | class | email | code
  *   Progress  sid | game | updated | levelsDone | levelsTotal | coreDone | coreTotal | standard | specials | assisted | tickets | levels | raw
  *   Events    time | sid | game | type | detail
+ *   Responses time | sid | lesson | q | kind | answer | correct   (lesson slideshows: polls, typed answers)
  *
  * Script properties (Project Settings > Script properties):
  *   TEACHER_KEY   long random string; the class view asks for it once
@@ -20,7 +21,8 @@
 var TABS = {
   Roster: ['sid', 'name', 'class', 'email', 'code'],
   Progress: ['sid', 'game', 'updated', 'levelsDone', 'levelsTotal', 'coreDone', 'coreTotal', 'standard', 'specials', 'assisted', 'tickets', 'levels', 'raw'],
-  Events: ['time', 'sid', 'game', 'type', 'detail']
+  Events: ['time', 'sid', 'game', 'type', 'detail'],
+  Responses: ['time', 'sid', 'lesson', 'q', 'kind', 'answer', 'correct']
 };
 var GAMES = /^g[1-9][0-9]?$/;
 var MAX_RAW = 40000;
@@ -74,6 +76,12 @@ function route(req) {
     case 'save': return save(auth(req), req);
     case 'mine': return mine(auth(req));
     case 'class': teacher(req); return classView();
+    case 'live': return { ok: true, live: getLive() };
+    case 'answer': return answer(auth(req), req);
+    case 'myAnswers': return myAnswers(auth(req), req);
+    case 'setLive': teacher(req); return setLive(req);
+    case 'answers': teacher(req); return answersFor(req);
+    case 'participation': teacher(req); return participation();
     case 'roster': teacher(req); return { ok: true, roster: rosterRows().map(function (r) { return { sid: r.sid, name: r.name, cls: r.cls, email: r.email, code: r.code }; }) };
     default: throw new Error('unknown op');
   }
@@ -208,4 +216,86 @@ function classView() {
     events = es.getRange(from, 1, n - from + 1, 5).getValues().map(function (r) { return { time: r[0] instanceof Date ? r[0].toISOString() : String(r[0]), sid: String(r[1]), game: r[2], type: r[3], detail: r[4] }; }).reverse();
   }
   return { ok: true, roster: roster, progress: prog, events: events };
+}
+
+/* ---------------- lesson slideshows ---------------- */
+var LESSON = /^L[0-9]{1,2}$/, QID = /^[a-z0-9]{1,16}$/, KINDS = /^(poll|open|number|conf|machine|exit)$/;
+
+// The Responses tab is created the first time a student answers, so an older Sheet needs no setup run
+function responsesSheet() {
+  var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName('Responses');
+  if (!sh) { sh = ss.insertSheet('Responses'); sh.appendRow(TABS.Responses); sh.setFrozenRows(1); }
+  return sh;
+}
+
+function responseRows() {
+  var sh = responsesSheet(), n = sh.getLastRow();
+  if (n < 2) return [];
+  return sh.getRange(2, 1, n - 1, 7).getValues().map(function (r) {
+    return { time: r[0] instanceof Date ? r[0].toISOString() : String(r[0]), sid: String(r[1]), lesson: String(r[2]), q: String(r[3]), kind: String(r[4]), answer: String(r[5]), correct: String(r[6]) };
+  });
+}
+
+// the newest answer per student per question
+function latest(rows) {
+  var by = {};
+  rows.forEach(function (r) { by[r.sid + '|' + r.lesson + '|' + r.q] = r; });
+  return Object.keys(by).map(function (k) { return by[k]; });
+}
+
+function answer(s, req) {
+  var lesson = String(req.lesson || ''), q = String(req.q || ''), kind = String(req.kind || '');
+  if (!LESSON.test(lesson) || !QID.test(q) || !KINDS.test(kind)) throw new Error('bad answer');
+  var correct = req.correct === true ? 'yes' : req.correct === false ? 'no' : '';
+  var row = [new Date(), s.sid, lesson, q, kind, safe(req.answer, 600), correct];
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(8000)) throw new Error('busy');
+  try { responsesSheet().appendRow(row); } finally { lock.releaseLock(); }
+  return { ok: true };
+}
+
+function myAnswers(s, req) {
+  var lesson = String(req.lesson || ''), out = {};
+  if (!LESSON.test(lesson)) throw new Error('bad lesson');
+  responseRows().forEach(function (r) { if (r.sid === s.sid && r.lesson === lesson) out[r.q] = { answer: r.answer, correct: r.correct }; });
+  return { ok: true, student: publicStudent(s), answers: out };
+}
+
+// What the teacher is showing right now. Kept in the script cache (fast, no Sheet read); it lasts 6 hours.
+function getLive() {
+  var v = CacheService.getScriptCache().get('live');
+  try { return v ? JSON.parse(v) : null; } catch (e) { return null; }
+}
+
+function setLive(req) {
+  var cache = CacheService.getScriptCache(), L = req.live;
+  if (!L) { cache.remove('live'); return { ok: true, live: null }; }
+  var out = { lesson: String(L.lesson || ''), slide: Math.max(0, Math.min(200, Math.round(Number(L.slide) || 0))), at: Date.now(), reveal: {}, counts: {}, spot: null, timer: null };
+  if (!LESSON.test(out.lesson)) throw new Error('bad lesson');
+  Object.keys(L.reveal || {}).slice(0, 60).forEach(function (k) { if (QID.test(k)) out.reveal[k] = Math.max(0, Math.min(2, Number(L.reveal[k]) || 0)); });
+  Object.keys(L.counts || {}).slice(0, 60).forEach(function (k) { if (QID.test(k) && Array.isArray(L.counts[k])) out.counts[k] = L.counts[k].slice(0, 12).map(num); });
+  if (L.spot && QID.test(String(L.spot.q || ''))) out.spot = { q: String(L.spot.q), text: safe(L.spot.text, 600) };
+  if (L.timer && Number(L.timer.end) > 0) out.timer = { end: Number(L.timer.end), total: num(L.timer.total) };
+  var json = JSON.stringify(out);
+  if (json.length > 90000) throw new Error('too big');
+  cache.put('live', json, 21600);
+  return { ok: true, live: out };
+}
+
+function answersFor(req) {
+  var lesson = String(req.lesson || '');
+  if (!LESSON.test(lesson)) throw new Error('bad lesson');
+  var rows = latest(responseRows().filter(function (r) { return r.lesson === lesson; }));
+  return { ok: true, roster: rosterRows().map(publicStudent), answers: rows };
+}
+
+function participation() {
+  var by = {};
+  latest(responseRows()).forEach(function (r) {
+    var k = r.sid + '|' + r.lesson, o = by[k] || (by[k] = { sid: r.sid, lesson: r.lesson, answered: 0, correct: 0, checked: 0, last: '' });
+    o.answered++;
+    if (r.correct) { o.checked++; if (r.correct === 'yes') o.correct++; }
+    if (r.time > o.last) o.last = r.time;
+  });
+  return { ok: true, roster: rosterRows().map(publicStudent), cells: Object.keys(by).map(function (k) { return by[k]; }) };
 }
