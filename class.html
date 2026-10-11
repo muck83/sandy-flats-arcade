@@ -432,7 +432,8 @@ a.btn{text-decoration:none;display:inline-block}
     if (!Key.get()) return askKey();
     body.innerHTML = '<p class="muted" style="margin-top:16px">Loading…</p>';
     api('roster').then(function (j) { emails = {}; j.roster.forEach(function (s) { emails[s.sid] = s.email; }); if (data) render(); }, function () { });
-    api('class').then(function (j) { data = j; render(); }, function (e) { if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); } else body.innerHTML = '<p class="say bad">Couldn\'t reach the results sheet. ' + SFA.esc(e.message) + '</p>'; });
+    var slow = setTimeout(function () { if (!data) body.innerHTML = '<p class="muted" style="margin-top:16px">Still waiting for the results sheet. Google can be slow when the whole class is online; this page keeps trying.</p>'; }, 15000);
+    api('class').then(function (j) { clearTimeout(slow); data = j; try { render(); } catch (err) { body.innerHTML = '<p class="say bad">The results loaded but the page couldn\'t show them: ' + SFA.esc(err.message) + '. Send this message to Claude.</p>'; } }, function (e) { clearTimeout(slow); if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); } else body.innerHTML = '<p class="say bad">Couldn\'t reach the results sheet. ' + SFA.esc(e.message) + '</p>'; });
   }
   SFA.esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
 
