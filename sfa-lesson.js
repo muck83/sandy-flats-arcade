@@ -166,7 +166,7 @@
   }
 
   /* ---------------- answers (student) ---------------- */
-  var queue = [], flushing = false, backendOld = false;
+  var queue = [], flushing = false, backendOld = false, sendErr = '';
   function saveLocal() { SFA.store.set('les.' + LID, mine); }
   function record(s, answer, correct) {
     mine[s.id] = { answer: String(answer), correct: correct, sent: false, kind: s.k };
@@ -182,9 +182,9 @@
     (function go() {
       S.call('answer', { lesson: LID, q: q, kind: a.kind || 'open', answer: a.answer, correct: a.correct === true ? true : a.correct === false ? false : null }).then(function () {
         if (mine[q] === a) { a.sent = true; saveLocal(); }
-        flushing = false; flush();
+        sendErr = ''; flushing = false; flush();
       }, function (e) {
-        tries++;
+        tries++; sendErr = e.message || 'failed';
         if (/busy/.test(e.message) && tries < 6) return setTimeout(go, 1500 + Math.random() * 3000 * tries);
         if (/unknown op/.test(e.message)) backendOld = true;
         if (/sign in/.test(e.message) && S.refresh && tries < 2) return S.refresh().then(function (err) { if (!err) go(); else { flushing = false; upd(); } });
@@ -199,6 +199,9 @@
     if (!saving) { d.textContent = 'Answer saved on this computer.'; return d; }
     if (a.sent) { d.className = 'state ok'; d.textContent = '✓ Sent to ' + TEACHER; return d; }
     if (backendOld) { d.textContent = 'Saved here. Answers can\'t reach ' + TEACHER + ' yet.'; return d; }
+    if (sendErr && /roster/.test(sendErr)) { d.className = 'state bad'; d.textContent = 'Not sent: your school account isn\'t on ' + TEACHER + '\'s class list. Tell ' + TEACHER + '.'; return d; }
+    if (sendErr && /school account/.test(sendErr)) { d.className = 'state bad'; d.textContent = 'Not sent: sign in with your school (aisr.org) account.'; return d; }
+    if (sendErr && !/busy|sign in/.test(sendErr)) { d.className = 'state bad'; d.textContent = 'Not sent yet (' + sendErr + '). Trying again…'; return d; }
     if (!S.me) { d.className = 'state bad'; d.innerHTML = 'Saved here only. <a href="#" data-signin>Sign in</a> so it counts.'; return d; }
     d.textContent = 'Sending…'; return d;
   }
