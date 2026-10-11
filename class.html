@@ -174,7 +174,7 @@ textarea.explain{width:100%;min-height:78px;font:500 15px var(--ui);padding:8px 
 .choice button.no{border-color:var(--red);opacity:.7}
 .choice button.yes{border-color:var(--green)}
 
-table.codes{border-collapse:collapse;width:100%;max-width:640px}table.codes td,table.codes th{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left}
+table.codes{border-collapse:collapse;width:100%;max-width:900px}table.codes td,table.codes th{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left}
 @media print{header .chips,.row .btn{display:none}body{background:#fff;color:#000}table.codes td.code{color:#000}}
 /* overlays */
 .ov{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(6,5,10,.78);padding:16px;overflow:auto}
@@ -512,13 +512,18 @@ a.btn{text-decoration:none;display:inline-block}
       body.innerHTML = '';
       body.appendChild(el('div', { 'class': 'row', style: 'margin:14px 0;gap:8px;flex-wrap:wrap' }, [
         el('button', { type: 'button', 'class': 'btn', text: '← Back to results', onclick: function () { if (data) render(); else load(); } }),
-        el('button', { type: 'button', 'class': 'btn', text: 'Print', onclick: function () { window.print(); } })
+        el('button', { type: 'button', 'class': 'btn', text: 'Print', onclick: function () { window.print(); } }),
+        el('button', { type: 'button', 'class': 'btn', text: 'Download codes (CSV)', onclick: function () {
+          var q = function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+          var csv = [['Student', 'Class', 'Email', 'Code']].concat(R.map(function (s) { return [s.name, s.cls, s.email, s.code]; })).map(function (r) { return r.map(q).join(','); }).join('\n');
+          var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'student-codes' + (cls ? '-' + cls : '') + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+        } })
       ]));
       body.appendChild(el('p', { 'class': 'muted', text: 'Each student types their own code under "Google not working? Use your student code". Give codes privately: anyone with a code can sign in as that student.' + (cls ? ' Showing class ' + cls + ' only.' : '') }));
       if (missing) body.appendChild(el('p', { 'class': 'say bad', text: missing + ' student' + (missing === 1 ? ' has' : 's have') + ' no code yet. In Apps Script, choose makeStudentCodes and press Run, then run clearRosterCache, then press Student codes again.' }));
       var tb = el('tbody');
-      R.forEach(function (s) { tb.appendChild(el('tr', {}, [el('td', { text: s.name }), el('td', { text: s.cls }), el('td', { 'class': 'code', text: s.code || '—' })])); });
-      body.appendChild(el('table', { 'class': 'codes' }, [el('thead', {}, [el('tr', {}, [el('th', { text: 'Student' }), el('th', { text: 'Class' }), el('th', { text: 'Code' })])]), tb]));
+      R.forEach(function (s) { tb.appendChild(el('tr', {}, [el('td', { text: s.name }), el('td', { text: s.cls }), el('td', { text: s.email || '—' }), el('td', { 'class': 'code', text: s.code || '—' })])); });
+      body.appendChild(el('table', { 'class': 'codes' }, [el('thead', {}, [el('tr', {}, [el('th', { text: 'Student' }), el('th', { text: 'Class' }), el('th', { text: 'Email' }), el('th', { text: 'Code' })])]), tb]));
     }, function (e) { if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); } else if (/unknown op/.test(e.message)) body.innerHTML = '<p class="say bad">The results script is older than this page. Paste the latest Code.gs and deploy a new version.</p>'; else body.innerHTML = '<p class="say bad">' + SFA.esc(e.message) + '</p>'; });
   });
   document.getElementById('lock').addEventListener('click', function () { Key.del(); data = null; askKey(); });
