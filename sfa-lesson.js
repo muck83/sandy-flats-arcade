@@ -14,7 +14,18 @@
   document.body.classList.add('lesson', 'm-' + MODE);
 
   var LES = null, cur = 0, slideEl = null, live = null, follow = true, saving = !!(S && S.on);
-  var mine = SFA.store.get('les.' + LID, {}) || {};      // this student's answers: { q: { answer, correct, sent } }
+  var mine = SFA.store.get('les.' + LID, {}) || {};      // this student's answers: { q: { answer, correct, sent, run } }
+  // "Start fresh": the teacher's run number (seconds) rides in live.counts.zrun as three 0-9999 parts, so the
+  // results script needs no change. Answers from an earlier run are cleared on students' devices and hidden on the console.
+  function encRun(t) { var x = Math.floor(t / 1000); return [Math.floor(x / 1e8), Math.floor(x / 1e4) % 1e4, x % 1e4]; }
+  function decRun(a) { return Array.isArray(a) && a.length === 3 ? ((a[0] * 1e4 + a[1]) * 1e4 + a[2]) * 1000 : 0; }
+  function liveRun() { return live && live.lesson === LID && live.counts ? decRun(live.counts.zrun) : 0; }
+  function dropOldRun() {
+    var run = liveRun(); if (!run) return false;
+    var gone = Object.keys(mine).filter(function (q) { return (mine[q].run || 0) !== run; });
+    gone.forEach(function (q) { delete mine[q]; }); if (gone.length) saveLocal();
+    return gone.length > 0;
+  }
   var console_ = null;                                    // teacher console state
   var feed = null;                                        // console data shared with the class screen
 
@@ -169,7 +180,7 @@
   var queue = [], flushing = false, backendOld = false, sendErr = '';
   function saveLocal() { SFA.store.set('les.' + LID, mine); }
   function record(s, answer, correct) {
-    mine[s.id] = { answer: String(answer), correct: correct, sent: false, kind: s.k };
+    mine[s.id] = { answer: String(answer), correct: correct, sent: false, kind: s.k, run: liveRun() };
     saveLocal(); flush(); refreshDots();
     setTimeout(function () { if (slideEl && slideEl.scrollHeight > slideEl.clientHeight + 4) slideEl.scrollTo({ top: slideEl.scrollHeight, behavior: 'smooth' }); }, 120);
   }
@@ -571,6 +582,7 @@
     post({ op: 'live' }).then(function (j) {
       var was = isLive(), before = JSON.stringify(live);
       live = j.live || null;
+      if (MODE === 'student' && dropOldRun()) { render(isLive() && follow ? live.slide : cur, 0, true); if (before && JSON.parse(before || 'null')) SFA.toast(TEACHER + ' started the lesson fresh.', 3500); }
       if (locked()) follow = true;
       if (isLive() && follow && live.slide !== cur) render(live.slide, live.slide > cur ? 1 : -1);
       else if (JSON.stringify(live) !== before) upd();
@@ -624,7 +636,7 @@
   }
 
   function consoleInit() {
-    console_ = { on: false, lock: SFA.store.get('teacher.lesson.lock', true) !== false, reveal: {}, spot: null, timer: null, cls: SFA.store.get('teacher.lesson.cls', ''), names: true, peek: false, data: null, since: 0, picked: '' };
+    console_ = { on: false, lock: SFA.store.get('teacher.lesson.lock', true) !== false, reveal: {}, spot: null, timer: null, cls: SFA.store.get('teacher.lesson.cls', ''), names: true, peek: false, data: null, since: 0, picked: '', run: 0 };
     if (!CFG.endpoint) { console_.offline = true; }
     else if (!Key.get()) return askKey(), false;
     var panel = H('aside', 'panel'); panel.id = 'tpanel';
@@ -633,7 +645,7 @@
     if (!console_.offline) fetchAnswers();
     setInterval(function () { if (!console_.offline) fetchAnswers(); }, 4000);
     setInterval(function () { if (console_.on) pushLive(); }, 120000);
-    tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = !!j.live.lock; if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
+    tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = !!j.live.lock; var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
     return true;
   }
   function fetchAnswers() {
@@ -655,6 +667,7 @@
     });
     ((console_.data && console_.data.answers) || []).forEach(function (a) {
       if (!ids[a.sid]) return; var p = per[a.q]; if (!p) return;
+      if (console_.run && Date.parse(a.time) < console_.run - 2000) return;   // from before "Start fresh"
       p.n++; p.sids[a.sid] = 1; if (a.correct === 'yes') p.right++;
       var k = parseInt(a.answer, 10) - 1;
       if (p.counts.length && k >= 0 && k < p.counts.length) { p.counts[k]++; p.who[k].push(first(name[a.sid])); }
@@ -666,6 +679,7 @@
   function liveObj() {
     var counts = {};
     Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length) counts[q] = feed.per[q].counts; });
+    if (console_.run) counts.zrun = encRun(console_.run);
     return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: console_.spot, timer: console_.timer, lock: console_.lock };
   }
   var pushT = null, lastCounts = '';
@@ -693,7 +707,18 @@
     if (console_.offline) lb.disabled = true;
     var sc = el('button', { type: 'button', 'class': 'btn', text: 'Open class screen' });
     sc.onclick = function () { window.open('lesson.html?l=' + N + '&screen', 'sfa-screen-' + LID, 'width=1280,height=760'); };
-    var row = H('div', 'row'); row.appendChild(lb); row.appendChild(sc); top.appendChild(row);
+    var fr = el('button', { type: 'button', 'class': 'btn', text: 'Start fresh' });
+    fr.title = 'Back to slide 1, clear reveals, spotlight and timer, and start counting answers from now';
+    fr.onclick = function () {
+      if (!window.confirm('Start this lesson fresh?\n\nEveryone goes back to slide 1, reveals and the timer are cleared, and students\' earlier answers are hidden here and cleared on their devices. Nothing is deleted from your Sheet.')) return;
+      console_.run = Date.now();
+      console_.reveal = {}; console_.spot = null; console_.timer = null; console_.picked = ''; console_.peek = false;
+      if (!console_.on && !console_.offline) { console_.on = true; console_.since = Date.now(); liveChip.hidden = false; }
+      computeFeed(); render(0, -1); pushLive(); consolePanel();
+      SFA.toast('Fresh start. Students\' screens reset within a few seconds.', 4000);
+    };
+    if (console_.offline) fr.disabled = true;
+    var row = H('div', 'row'); row.appendChild(lb); row.appendChild(sc); row.appendChild(fr); top.appendChild(row);
     var lk = el('label', { style: 'display:flex;gap:8px;align-items:center' }), cb = el('input', { type: 'checkbox' }); cb.checked = console_.lock;
     cb.onchange = function () { console_.lock = cb.checked; SFA.store.set('teacher.lesson.lock', cb.checked); pushLive(); };
     lk.appendChild(cb); lk.appendChild(document.createTextNode('Keep everyone on my slide (students can\'t move ahead or back)')); top.appendChild(lk);
