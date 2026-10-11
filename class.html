@@ -392,7 +392,7 @@ a.btn{text-decoration:none;display:inline-block}
 (function () {
   'use strict';
   var SFA = window.SFA, el = SFA.el, CFG = window.SFA_CONFIG || {}, body = document.getElementById('body');
-  var data = null, sortBy = 'name', cls = '', q = '';
+  var data = null, sortBy = 'name', cls = '', q = '', emails = {};
   // The key lives in this tab only, unless the teacher ticks "remember"; then until the end of the day.
   // Stored outside the sfa.teacher prefix so a student's "Clear my progress" removes it too.
   var KEY = 'sfa.classkey';
@@ -431,6 +431,7 @@ a.btn{text-decoration:none;display:inline-block}
     if (!CFG.endpoint) { document.querySelector('header .chips').style.display = 'none'; body.textContent = 'Results saving isn\'t switched on for this copy of the arcade.'; return; }
     if (!Key.get()) return askKey();
     body.innerHTML = '<p class="muted" style="margin-top:16px">Loading…</p>';
+    api('roster').then(function (j) { emails = {}; j.roster.forEach(function (s) { emails[s.sid] = s.email; }); if (data) render(); }, function () { });
     api('class').then(function (j) { data = j; render(); }, function (e) { if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); } else body.innerHTML = '<p class="say bad">Couldn\'t reach the results sheet. ' + SFA.esc(e.message) + '</p>'; });
   }
   SFA.esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
@@ -447,6 +448,7 @@ a.btn{text-decoration:none;display:inline-block}
     var R = rows(), classes = {}; data.roster.forEach(function (s) { if (s.cls) classes[s.cls] = 1; });
     R.sort(function (a, b) {
       if (sortBy === 'name') return a.s.name.localeCompare(b.s.name);
+      if (sortBy === 'email') return (emails[a.s.sid] || '').localeCompare(emails[b.s.sid] || '');
       if (sortBy === 'last') return (a.last || '').localeCompare(b.last || '');
       if (sortBy === 'lv') return b.lv - a.lv;
       var ga = a.g[sortBy], gb = b.g[sortBy]; return (gb ? gb.levelsDone : -1) - (ga ? ga.levelsDone : -1);
@@ -461,12 +463,13 @@ a.btn{text-decoration:none;display:inline-block}
     sel.addEventListener('change', function () { cls = sel.value; render(); });
     var find = el('input', { type: 'search', placeholder: 'Find a student', value: q, 'aria-label': 'Find a student' });
     find.addEventListener('input', function () { q = find.value.toLowerCase(); render(); setTimeout(function () { var f = document.querySelector('.filters input'); if (f) { f.focus(); f.setSelectionRange(q.length, q.length); } }, 0); });
-    var head = el('tr', {}, [th('Student', 'name'), th('Last played', 'last'), th('Levels', 'lv')].concat(SFA.GAMES.map(function (G) { return th(G.title, G.id); })));
+    var head = el('tr', {}, [th('Student', 'name'), th('Email', 'email'), th('Last played', 'last'), th('Levels', 'lv')].concat(SFA.GAMES.map(function (G) { return th(G.title, G.id); })));
     var tb = el('tbody');
     R.forEach(function (r) {
       var quiet = !r.last || new Date(r.last).getTime() < week;
       var tr = el('tr', { 'class': quiet ? 'quiet' : '' }, [
         el('td', { 'class': 'nm' }, [r.s.name, quiet ? el('span', { 'class': 'flag', text: r.last ? 'quiet 7d+' : 'not started' }) : null]),
+        el('td', { 'class': 'muted', style: 'font-size:13px', text: emails[r.s.sid] || '' }),
         el('td', { text: r.last ? SFA.ago(r.last) : '—' }),
         el('td', { text: String(r.lv) })
       ].concat(SFA.GAMES.map(function (G) {
@@ -529,9 +532,9 @@ a.btn{text-decoration:none;display:inline-block}
   document.getElementById('lock').addEventListener('click', function () { Key.del(); data = null; askKey(); });
   document.getElementById('csv').addEventListener('click', function () {
     if (!data) return;
-    var lines = [['student', 'class', 'game', 'levels_done', 'levels_total', 'core_done', 'core_total', 'standard', 'specials', 'assisted', 'last_played'].join(',')];
+    var lines = [['student', 'class', 'email', 'game', 'levels_done', 'levels_total', 'core_done', 'core_total', 'standard', 'specials', 'assisted', 'last_played'].join(',')];
     var names = {}; data.roster.forEach(function (s) { names[s.sid] = s; });
-    data.progress.forEach(function (p) { var s = names[p.sid] || { name: p.sid, cls: '' }; lines.push([s.name, s.cls, p.game, p.levelsDone, p.levelsTotal, p.coreDone, p.coreTotal, p.standard ? 'yes' : 'no', (p.specials || []).join('; '), p.assisted, p.updated].map(function (v) { v = String(v == null ? '' : v); if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',')); });
+    data.progress.forEach(function (p) { var s = names[p.sid] || { name: p.sid, cls: '' }; lines.push([s.name, s.cls, emails[p.sid] || '', p.game, p.levelsDone, p.levelsTotal, p.coreDone, p.coreTotal, p.standard ? 'yes' : 'no', (p.specials || []).join('; '), p.assisted, p.updated].map(function (v) { v = String(v == null ? '' : v); if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',')); });
     var a = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: 'arcade-results.csv' }); document.body.appendChild(a); a.click(); a.remove();
   });
   load();
