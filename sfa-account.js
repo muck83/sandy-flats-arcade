@@ -80,12 +80,20 @@
     function draw() {
       box.innerHTML = '';
       if (S.me) {
+        if (S.status === 'signedout') {
+          // the saved sign-in stopped working (an old Google sign-in, or a changed code): sign in again without losing anything
+          box.appendChild(el('div', { 'class': 'acct out' }, [
+            el('div', {}, [el('b', { text: nice(S.me.name) + ', your work isn\'t saving right now' }), el('small', { text: 'Type your student code again (it\'s in your school email from Mr. Crowell). Nothing you did on this computer is lost: it sends as soon as you\'re back in.' })]),
+            codeBox()
+          ]));
+          return;
+        }
         var st = { saved: 'Saved to your class ✓', saving: 'Saving…', offline: 'Offline: saves will send when you\'re back', signedout: 'Signed out' }[S.status] || '';
         box.appendChild(el('div', { 'class': 'acct' }, [
           el('div', {}, [el('b', { text: 'Signed in as ' + nice(S.me.name) }), el('small', { text: st })]),
           el('div', { 'class': 'row' }, [
             el('a', { 'class': 'btn primary', href: 'results.html', text: 'My results' }),
-            el('button', { type: 'button', 'class': 'btn', text: 'Sign out', onclick: function () { S.signOut(); location.reload(); } })
+            el('button', { type: 'button', 'class': 'btn', text: 'Sign out', onclick: function () { if (S.unsent && S.unsent() && !window.confirm('Some of your work hasn\'t reached Mr. Crowell yet. If you sign out now, it is lost.\n\nSign out anyway?')) return; S.signOut(); location.reload(); } })
           ])
         ]));
       } else {

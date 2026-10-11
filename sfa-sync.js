@@ -86,6 +86,10 @@
     }, function (e) {
       inflight = false;
       if (e.server && /sign in|bad code|not on roster|school account/.test(e.message)) { setStatus('signedout'); return; }
+      // a save the script will never take must not block the other games behind it
+      if (e.server && /too big/.test(e.message) && pending[g] && !pending[g].slim) { pending[g].raw = {}; pending[g].slim = true; SFA.store.set('sync.pending', pending); schedule(300); return; }
+      if (e.server && /bad game|too big/.test(e.message)) { delete pending[g]; SFA.store.set('sync.pending', pending); schedule(300); return; }
+      if (pending[g] && Object.keys(pending).length > 1) { var x = pending[g]; delete pending[g]; pending[g] = x; SFA.store.set('sync.pending', pending); }   // try the next game first
       setStatus(/busy/.test(e.message) ? 'saving' : 'offline'); schedule(10000 + Math.random() * 15000);   // spread retries so a class doesn't retry together
     });
   }
@@ -134,6 +138,7 @@
     SFA.store.clearStudent(); pending = {}; last = {}; setStatus('signedout');
   };
   S.mine = function () { return call('mine'); };
+  S.unsent = function () { return Object.keys(pending).length; };
 
   if (S.on) {
     S.me = SFA.store.get('sync.me', null);
