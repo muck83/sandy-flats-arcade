@@ -198,7 +198,7 @@
         tries++; sendErr = e.message || 'failed';
         if (/busy/.test(e.message) && tries < 6) return setTimeout(go, 1500 + Math.random() * 3000 * tries);
         if (/unknown op/.test(e.message)) backendOld = true;
-        if (/sign in/.test(e.message) && S.refresh && tries < 2) return S.refresh().then(function (err) { if (!err) go(); else { flushing = false; upd(); } });
+        if (/sign in/.test(e.message) && S.refresh && CFG.auth !== 'code' && tries < 2) return S.refresh().then(function (err) { if (!err) go(); else { flushing = false; upd(); } });
         flushing = false; upd();
         if (!/unknown op|sign in/.test(e.message)) setTimeout(flush, 15000);
       });
@@ -275,7 +275,7 @@
       c.appendChild(l); c.appendChild(r); d.appendChild(c);
       function draw() {
         r.innerHTML = '';
-        if (show) { r.appendChild(H('p', 'q', 'Sign in on your own device')); r.appendChild(H('p', 'sub', 'Open the lesson link, then press <b>Sign in with Google</b> and pick your school account.')); return; }
+        if (show) { r.appendChild(H('p', 'q', 'Sign in on your own device')); r.appendChild(H('p', 'sub', (CFG.auth === 'code' ? 'Open the lesson link and type the <b>student code</b> from your school email.' : 'Open the lesson link, then press <b>Sign in with Google</b> and pick your school account.'))); return; }
         if (!saving) { r.appendChild(H('p', 'sub', 'Answer saving is off for this copy, so just follow along.')); return; }
         if (S.me) { r.appendChild(H('p', 'okline', '✓ You\'re in, ' + esc(first(S.me.name)) + '.')); r.appendChild(H('p', 'sub', 'Your answers go to ' + TEACHER + '. Press <b>Next</b> when you\'re ready.')); return; }
         r.appendChild(H('p', 'q', 'Sign in so your answers count'));

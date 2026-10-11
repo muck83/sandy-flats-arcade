@@ -397,7 +397,7 @@ a.btn{text-decoration:none;display:inline-block}
   function show(msg) { body.innerHTML = ''; body.appendChild(msg); }
   if (!S || !S.on) { show(el('p', { 'class': 'muted', style: 'margin-top:16px', text: 'Results saving isn\'t switched on for this copy of the arcade.' })); return; }
   if (!S.me) {
-    show(el('div', { 'class': 'acct' }, [el('div', {}, [el('b', { text: 'Sign in to see your results' }), el('small', { text: 'Use your school Google account on the arcade front page.' })]), el('a', { 'class': 'btn primary', href: 'index.html#signin', text: 'Go to sign in' })]));
+    show(el('div', { 'class': 'acct' }, [el('div', {}, [el('b', { text: 'Sign in to see your results' }), el('small', { text: 'Use the student code from your school email, on the arcade front page.' })]), el('a', { 'class': 'btn primary', href: 'index.html#signin', text: 'Go to sign in' })]));
     return;
   }
   function draw(j) {
@@ -432,7 +432,7 @@ a.btn{text-decoration:none;display:inline-block}
     show(wrap);
   }
   function again() {
-    show(el('div', { 'class': 'acct' }, [el('div', {}, [el('b', { text: 'Sign in again to see your results' }), el('small', { text: 'Google signs you out after a while. Your progress is safe.' })]), el('a', { 'class': 'btn primary', href: 'index.html#signin', text: 'Sign in again' })]));
+    show(el('div', { 'class': 'acct' }, [el('div', {}, [el('b', { text: 'Sign in again to see your results' }), el('small', { text: 'Your sign-in ran out. Sign in again with the student code from your school email. Your progress is safe.' })]), el('a', { 'class': 'btn primary', href: 'index.html#signin', text: 'Sign in again' })]));
   }
   // roster names are "Last, First Middle"
   function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }

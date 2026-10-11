@@ -1,4 +1,4 @@
-/* Sandy Flats Arcade: sign-in strip (school Google account).
+/* Sandy Flats Arcade: sign-in strip (student code from Mr. Crowell's email, or school Google account).
    Hub: a full sign-in card in #sfaAccount. Games: a small status chip in the top bar.
    Needs sfa-sync.js first. */
 (function () {
@@ -60,11 +60,11 @@
       b.disabled = true;
       S.signInCode(c).then(function (st) { SFA.toast('Signed in as ' + nice(st.name) + '. Your work saves to your class.', 4000); }, function (e) {
         b.disabled = false;
-        SFA.toast(/bad code/.test(e.message) ? 'That code didn\'t work. Check it with Mr. Crowell.' : /sign in/.test(e.message) ? 'Code sign-in isn\'t switched on yet. Tell Mr. Crowell.' : 'Sign-in didn\'t work: ' + e.message, 5000);
+        SFA.toast(/bad code/.test(e.message) ? 'That code didn\'t work. Check the email from Mr. Crowell and type it again.' : /sign in/.test(e.message) ? 'Code sign-in isn\'t switched on yet. Tell Mr. Crowell.' : 'Sign-in didn\'t work: ' + e.message, 5000);
       });
     }
     b.addEventListener('click', go); inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
-    return el('div', { 'class': 'codebox', style: 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px' }, [el('small', { text: 'Google not working? Use your student code:' }), inp, b]);
+    return el('div', { 'class': 'codebox', style: 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px' }, [el('small', { text: CFG.auth === 'code' ? 'Your student code (check your school email):' : 'Google not working? Use your student code:' }), inp, b]);
   }
   // a Google sign-in button anywhere on the page (the lesson slides put one under an answer that couldn't send)
   S.button = function (box) {
@@ -73,7 +73,7 @@
     if (CFG.auth === 'both' || CFG.auth === 'code') box.appendChild(codeBox());
   };
   S.credExpired = function () { var c = SFA.store.get('sync.cred', null); return !!(c && c.kind === 'google' && (jwt(c.token).exp || 0) * 1000 < Date.now()); };
-  S.onChange(function (s) { if (s.status === 'signedout' && SFA.store.get('sync.me', null) && credExpSoon()) S.refresh(); });
+  S.onChange(function (s) { if (CFG.auth !== 'code' && s.status === 'signedout' && SFA.store.get('sync.me', null) && credExpSoon()) S.refresh(); });
 
   /* ---------- hub card ---------- */
   function hubCard(box) {
@@ -89,6 +89,13 @@
           ])
         ]));
       } else {
+        if (CFG.auth === 'code') {
+          box.appendChild(el('div', { 'class': 'acct out' }, [
+            el('div', {}, [el('b', { text: 'Sign in with your student code' }), el('small', { text: 'Check your school email: Mr. Crowell sent you a 6-character code. Type it below. Your levels and certificates follow you to any computer, and Mr. Crowell can see how you\'re doing.' })]),
+            codeBox()
+          ]));
+          return;
+        }
         var gbtn = el('div', { id: 'gsiBtn' });
         box.appendChild(el('div', { 'class': 'acct out' }, [
           el('div', {}, [el('b', { text: 'Sign in to save your progress' }), el('small', { text: 'Use your school Google account. Your levels and certificates follow you to any computer, and Mr. Crowell can see how you\'re doing.' })]),
@@ -116,7 +123,7 @@
     var hub = document.getElementById('sfaAccount');
     if (hub) hubCard(hub);
     else { var bar = document.querySelector('.topbar .chips'); if (bar) gameChip(bar); }
-    if (S.me && credExpSoon()) S.refresh();
+    if (CFG.auth !== 'code' && S.me && credExpSoon()) S.refresh();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
