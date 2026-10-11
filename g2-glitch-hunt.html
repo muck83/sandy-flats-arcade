@@ -2325,7 +2325,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       s.dom = { tape: tape, toks: toks, pin: pin, acc: acc };
       card(box, s, [el('small', { 'class': 'muted', text: 'Test a number:' }), toks, tape, el('div', { 'class': 'row' }, [acc]), pin]);
     });
-    function render(s) { s.dom.tape.innerHTML = s.log.length ? s.log.map(function (r) { var dup = s.log.some(function (q) { return q.x === r.x && q.y !== r.y; }); return '<span class="tr' + (dup && s.showDup ? ' clash' : '') + '">' + r.x + ' → ' + fmt(r.y) + '</span>'; }).join('') : '<span class="muted">No tests yet.</span>'; }
+    function render(s) { s.dom.tape.innerHTML = s.log.length ? s.log.map(function (r, i) { return { x: r.x, y: r.y, i: i }; }).sort(function (a, b) { return a.x - b.x || a.i - b.i; }).map(function (r) { var dup = s.log.some(function (q) { return q.x === r.x && q.y !== r.y; }); return '<span class="tr' + (dup && s.showDup ? ' clash' : '') + '">' + r.x + ' → ' + fmt(r.y) + '</span>'; }).join('') : '<span class="muted">No tests yet.</span>'; }
     sus.forEach(render);
     function ask(s, n) {
       if (busy() || closed) return; var y = s.out(n, s.log.filter(function (r) { return r.x === n; }).map(function (r) { return r.y; }));
@@ -2540,7 +2540,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     var asked = {}, tests = 0, wasted = 0;
     var sus = ['A', 'B', 'C'].map(function (m) { return { id: m, label: 'Machine ' + m, kind: 'fair', col: { A: '#E8743B', B: '#3FA66B', C: '#2E6DA4' }[m], guilty: m === lm, out: function (x, prev) { var key = m + x; asked[key] = (asked[key] || 0) + 1; tests++; if (m !== 'B' && (cand.indexOf(key) < 0 || asked[key] > 2)) wasted++; var y = rules[m](x); if (key === liar && asked[key] >= 2) y = y + 4; return y; } }; });
     place(sus.map(function (s) { return { id: s.id, kind: 'fair', label: s.label.toUpperCase(), tag: s.label.toUpperCase(), col: s.col, sc: 0.55 }; }));
-    G.setTask('The Clever Liar', job('Catch the lying machine in as few tests as you can.', 'It lies on <strong>one number</strong>, and only the <strong>2nd time</strong> you ask.', ['Read the 3 clues.', 'Tap a number on a machine <strong>twice</strong>.', 'Two different answers? Press <strong>Accuse it</strong>, then tap that number.'], 'you catch it. No wasted tests earns Efficient Detective.'));
+    G.setTask('The Clever Liar', job('Catch the lying machine in as few tests as you can.', 'It lies on <strong>one number</strong>. The 1st time you ask, it tells the truth. Ask the <strong>same number again</strong> and the answer changes.', ['Read the 3 clues.', 'Tap a number on a machine <strong>twice</strong>.', 'Two different answers? Press <strong>Accuse it</strong>, then tap that number.'], 'you catch it. No wasted tests earns Efficient Detective.'));
     G.work.appendChild(el('ul', { 'class': 'clues' }, [el('li', { text: 'Gus: it only lies on odd numbers.' }), el('li', { text: 'Priya: Machine B passed every test yesterday. (That doesn\'t prove it\'s honest today.)' }), el('li', { text: 'Mr. Dunmore: inputs above 5 are too big for it to bother with.' })]));
     var cnt = el('p', { 'class': 'muted', 'aria-live': 'polite', text: 'Tests used: 0' }); G.work.appendChild(cnt);
     tapeSuspects(G, 'S1', sus, {
