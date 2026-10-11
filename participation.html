@@ -54,12 +54,15 @@
     if (!CFG.endpoint) { body.textContent = 'Results saving isn\'t switched on for this copy of the arcade.'; return; }
     if (!Key.get()) return askKey();
     body.innerHTML = '<p class="muted" style="margin-top:16px">Loading…</p>';
-    api('participation').then(function (j) { data = j; draw(); }, fail);
+    api('participation').then(function (j) { data = j; updated = Date.now(); draw(); }, fail);
   }
   function lessons() { return Object.keys(LES).map(function (k) { return LES[k]; }).sort(function (a, b) { return a.n - b.n; }); }
   function qcount(L) { return L.slides.filter(function (s) { return s.id; }).length; }
   function roster() { return data.roster.filter(function (r) { return !cls || r.cls === cls; }).sort(function (a, b) { return a.name < b.name ? -1 : 1; }); }
   function cell(sid, L) { return data.cells.filter(function (c) { return c.sid === sid && c.lesson === L.id; })[0]; }
+  var updated = 0;
+  // the grid (and any open lesson's answers) refreshes itself every 20 seconds
+  setInterval(function () { if (data && document.visibilityState === 'visible' && Key.get()) api('participation').then(function (j) { data = j; updated = Date.now(); draw(); }, function () { }); }, 20000);
   function draw() {
     body.innerHTML = '';
     var classes = []; data.roster.forEach(function (r) { if (r.cls && classes.indexOf(r.cls) < 0) classes.push(r.cls); });
@@ -68,7 +71,7 @@
     bar.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Refresh', onclick: load }));
     bar.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Download CSV', onclick: csv }));
     body.appendChild(bar);
-    body.appendChild(el('p', { 'class': 'muted', text: 'Each cell is questions answered out of the lesson\'s questions. Click a lesson to see every answer.' }));
+    body.appendChild(el('p', { 'class': 'muted', text: 'Each cell is questions answered out of the lesson\'s questions. Click a lesson to see every answer. Updates by itself every 20 seconds' + (updated ? ' (last ' + new Date(updated).toLocaleTimeString() + ')' : '') + '. Only students who are signed in on the slides are counted.' }));
     var t = el('table', { 'class': 'tbl' }), hr = el('tr');
     hr.appendChild(el('th', { text: 'Student' }));
     lessons().forEach(function (L) { var th = el('th'); th.appendChild(el('button', { type: 'button', text: 'L' + L.n + ' ' + L.title, onclick: function () { detail(L); } })); hr.appendChild(th); });
