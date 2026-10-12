@@ -24,7 +24,7 @@
     { l: 7, n: 14, game: 'g7-faster-than.html' },
     { l: 17, n: 15, game: 'g16-family-gallery.html' },
     { l: 8, n: 16, game: 'g8-dougs-steps.html' },
-    { l: 9, n: 17, game: 'g3-keepers-vault.html' }
+    { l: 9, n: 17, game: 'g17-hold-the-chain.html' }
   ];
   var LESSON_OF = {}, NUM = {};   // game file -> lesson file number; lesson file number -> number shown
   PLAN.forEach(function (p) { if (!LESSON_OF[p.game]) LESSON_OF[p.game] = p.l; NUM[p.l] = p.n; });

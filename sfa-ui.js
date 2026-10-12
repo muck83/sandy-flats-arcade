@@ -26,7 +26,8 @@
     'g13': 'Find the start and the step of the leaking water tower, then find when the town runs dry.',
     'g14': 'Run each machine backwards to find what went in, then check it with the table, the graph and the crossing.',
     'g15': 'Square it, double it, divide 1 by it: cross the valley, climb the tower, drop into the canyon and find the input the door can\'t take.',
-    'g16': 'Name each family, match the shadows by changing one number, and test points to open Max\'s locks.'
+    'g16': 'Name each family, match the shadows by changing one number, and test points to open Max\'s locks.',
+    'g17': 'Re-forge the Chain four ways, catch the lying link, then find the edge of the Undefined\'s rule 12/x.'
   };
   var gid = (location.pathname.match(/\/(g\d+)-/) || [])[1];
   var TIER = { 'Low floor': 'Warm-up', 'Core': 'Main', 'Stretch': 'Challenge', 'Review': 'Review' };

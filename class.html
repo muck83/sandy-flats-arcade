@@ -384,7 +384,8 @@ a.btn{text-decoration:none;display:inline-block}
     { id: 'g6', title: 'Linear or Liar?', file: 'g6-linear-or-liar.html', film: 13 },
     { id: 'g7', title: 'Faster Than', file: 'g7-faster-than.html', film: 14 },
     { id: 'g16', title: 'The Family Gallery', file: 'g16-family-gallery.html', film: 15 },
-    { id: 'g8', title: 'Doug\'s Steps', file: 'g8-dougs-steps.html', film: 16 }
+    { id: 'g8', title: 'Doug\'s Steps', file: 'g8-dougs-steps.html', film: 16 },
+    { id: 'g17', title: 'Hold the Chain', file: 'g17-hold-the-chain.html', film: 17 }
   ];
   SFA.parseLevels = function (s) {
     return String(s || '').split(' ').filter(Boolean).map(function (t) { var m = t.match(/^([^.]+)\.([a-z]*):(.)$/); return m ? { id: m[1], tier: m[2], st: m[3] } : null; }).filter(Boolean);

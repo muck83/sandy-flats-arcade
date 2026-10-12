@@ -672,7 +672,7 @@ a.btn{text-decoration:none;display:inline-block}
     { id: 'bx', kind: 'O', title: 'The Blooper Reel', game: 'class', file: 'reels/bx.html', bonus: true, premiere: 'hf07dd0bc' }
   ];
   var KINDN = { R: 'From the films', D: 'Deleted scene', O: 'Outtake' };
-  var GAMEN = { g1: 'Crack the Fair', g2: 'Glitch Hunt', g3: "The Keeper's Vault", g4: "Gus's Forecast", g5: 'Scorch Marks', g6: 'Linear or Liar?', g7: 'Faster Than', g8: "Doug's Steps", g9: 'Try Zero First', g10: 'Tile Run', g11: 'Name Them Back', g12: 'Off the Edge', g13: 'Half a Rule', g14: 'Three Roads', g15: 'The Outer Machines', g16: 'The Family Gallery', 'class': 'Class unlock only' };
+  var GAMEN = { g1: 'Crack the Fair', g2: 'Glitch Hunt', g3: "The Keeper's Vault", g4: "Gus's Forecast", g5: 'Scorch Marks', g6: 'Linear or Liar?', g7: 'Faster Than', g8: "Doug's Steps", g9: 'Try Zero First', g10: 'Tile Run', g11: 'Name Them Back', g12: 'Off the Edge', g13: 'Half a Rule', g14: 'Three Roads', g15: 'The Outer Machines', g16: 'The Family Gallery', g17: 'Hold the Chain', 'class': 'Class unlock only' };
   var MIN8 = 8 * 60 * 1000, IDLE = 40 * 60 * 1000;
   function session() {
     var s = SFA.store.get('session', null), n = SFA.now();
@@ -821,7 +821,8 @@ a.btn{text-decoration:none;display:inline-block}
     13: { name: 'Half a Rule', std: 'Water Tower Engineer', specials: ['Take Off the Start First', 'Backwards to the Start', 'One Step From Empty'] },
     14: { name: 'Three Roads', std: 'Backwards Finder', specials: ['Last Thing First', "It's an Equation", 'Seven. My Favourite.'] },
     15: { name: 'The Outer Machines', std: 'Outer Machines Guide', specials: ['Knows Their Limits', 'Not a Line, a U', 'Machine Spotter'] },
-    16: { name: 'The Family Gallery', std: 'Family Gallery Guide', specials: ["Max's Locksmith", 'Two Jobs', 'The Fooling Point'] }
+    16: { name: 'The Family Gallery', std: 'Family Gallery Guide', specials: ["Max's Locksmith", 'Two Jobs', 'The Fooling Point'] },
+    17: { name: 'Hold the Chain', std: 'Keeper of the Chain', specials: ['Step and Start', 'The Order Is the Promise', 'Edge of the Domain'] }
   };
 
   /* ---------------- certificate renderer ---------------- */
@@ -964,21 +965,30 @@ a.btn{text-decoration:none;display:inline-block}
 (function(){
   var SFA=window.SFA, el=SFA.el, $=SFA.$;
   var GAMES=[
-    {g:1,id:'g1',title:'Crack the Fair',file:'g1-crack-the-fair.html',after:'Zero 2: Sidekick (replay after Episode B)',math:'Find a rule\'s start and step from inputs, then prove it.',std:'8.F.4 · 8.F.1',bg:'linear-gradient(135deg,#8E1B3A,#FF9A3C)',live:true},
-    {g:2,id:'g2',title:'Glitch Hunt',file:'g2-glitch-hunt.html',live:true,after:'Lost in Graph Land',math:'Case and bust: which suspect gives one input two outputs?',std:'8.F.1',bg:'linear-gradient(135deg,#1f6f5c,#5CE0B8)'},
-    {g:4,id:'g4',title:'Gus\'s Forecast',file:'g4-gus-forecast.html',live:true,after:'Episode A: The Weather Line',math:'Draw the story; tell the story from the graph.',std:'8.F.5',bg:'linear-gradient(135deg,#2A2140,#FFD84D)'},
-    {g:3,id:'g3',title:'The Keeper\'s Vault',file:'g3-keepers-vault.html',live:true,after:'The Chain (and Finale review)',math:'Words, rule, table and graph in every direction.',std:'8.F.1 · 8.F.2 · 8.F.4',bg:'linear-gradient(135deg,#171A22,#C9981A)'},
-    {g:5,id:'g5',title:'Scorch Marks',file:'g5-scorch-marks.html',live:true,after:'Episode C: One Alone',math:'Slope from two points with similar triangles.',std:'8.EE.6 · 8.F.4',bg:'linear-gradient(135deg,#2A2140,#FF5A5A)'},
-    {g:6,id:'g6',title:'Linear or Liar?',file:'g6-linear-or-liar.html',live:true,after:'Episode D: Linear or Liar?',math:'Case and bust: which machines only pretend to be lines?',std:'8.F.3',bg:'linear-gradient(135deg,#5B3F7A,#FF8FD1)'},
-    {g:7,id:'g7',title:'Faster Than',file:'g7-faster-than.html',live:true,after:'Episode E: Faster Than',math:'Compare racers given as tables, graphs, rules and words.',std:'8.F.2 · 8.EE.5',bg:'linear-gradient(135deg,#0E1430,#5CC8FF)'},
-    {g:8,id:'g8',title:'Doug\'s Steps',file:'g8-dougs-steps.html',live:true,after:'Episode F: Doug\'s Steps',math:'Dots or a line? Fence the domain and range.',std:'8.F.5 · domain',bg:'linear-gradient(135deg,#3A3444,#9AA0A8)'}
+    {g:9,id:'g9',film:1,title:'Try Zero First',file:'g9-try-zero-first.html',live:true,after:'Film 1: Zero: The Movie',math:'Feed zero first: it shows where a rule starts.',std:'8.F.4',bg:'linear-gradient(135deg,#3B2A5C,#FFC94A)'},
+    {g:1,id:'g1',film:2,title:'Crack the Fair',file:'g1-crack-the-fair.html',live:true,after:'Film 2: Zero 2: Sidekick',math:'Find a rule\'s start and step from inputs, then prove it.',std:'8.F.4 · 8.F.1',bg:'linear-gradient(135deg,#8E1B3A,#FF9A3C)'},
+    {g:2,id:'g2',film:3,title:'Glitch Hunt',file:'g2-glitch-hunt.html',live:true,after:'Film 3: The Glitch',math:'Case and bust: which suspect gives one input two outputs?',std:'8.F.1',bg:'linear-gradient(135deg,#1f6f5c,#5CE0B8)'},
+    {g:10,id:'g10',film:4,title:'Tile Run',file:'g10-tile-run.html',live:true,after:'Film 4: Lost in Graph Land',math:'Pairs become points; read a graph both ways; the vertical line test.',std:'8.F.1',bg:'linear-gradient(135deg,#123B4A,#7FE3A1)'},
+    {g:11,id:'g11',film:5,title:'Name Them Back',file:'g11-name-them-back.html',live:true,after:'Film 5: Name That Machine',math:'f(3) means put 3 into f: say it as a sentence, a pair and a point.',std:'8.F.1 · notation',bg:'linear-gradient(135deg,#4A1E3A,#FF8FB1)'},
+    {g:4,id:'g4',film:6,title:'Gus\'s Forecast',file:'g4-gus-forecast.html',live:true,after:'Film 6: The Weather Line',math:'Draw the story; tell the story from the graph.',std:'8.F.5',bg:'linear-gradient(135deg,#2A2140,#FFD84D)'},
+    {g:3,id:'g3',film:7,title:'The Keeper\'s Vault',file:'g3-keepers-vault.html',live:true,after:'Film 7: The Chain',math:'Words, rule, table and graph in every direction.',std:'8.F.1 · 8.F.2 · 8.F.4',bg:'linear-gradient(135deg,#171A22,#C9981A)'},
+    {g:12,id:'g12',film:8,title:'Off the Edge',file:'g12-off-the-edge.html',live:true,after:'Film 8: Where Zero Isn\'t',math:'No zero row? Walk back to input 0 to find the real start.',std:'8.F.4',bg:'linear-gradient(135deg,#1E3A2A,#B8E05C)'},
+    {g:13,id:'g13',film:9,title:'Half a Rule',file:'g13-half-a-rule.html',live:true,after:'Film 9: Start and Step',math:'Start (the output at 0) and step (the change per 1) from a story, a table and a graph.',std:'8.F.4',bg:'linear-gradient(135deg,#123050,#5CA8FF)'},
+    {g:5,id:'g5',film:10,title:'Scorch Marks',file:'g5-scorch-marks.html',live:true,after:'Film 10: One Alone',math:'Slope from two points with similar triangles.',std:'8.EE.6 · 8.F.4',bg:'linear-gradient(135deg,#2A2140,#FF5A5A)'},
+    {g:14,id:'g14',film:11,title:'Three Roads',file:'g14-three-roads.html',live:true,after:'Film 11: The Undoer',math:'Undo a machine, last step first. Check it with a table, a graph and a crossing.',std:'8.EE.7 · 8.EE.8',bg:'linear-gradient(135deg,#2B1B3F,#5CE0E0)'},
+    {g:15,id:'g15',film:12,title:'The Outer Machines',file:'g15-outer-machines.html',live:true,after:'Film 12: Doors and Walls',math:'Beyond lines: squaring, doubling, absolute value, and the input 1 ÷ x can\'t take.',std:'8.F.3 · 8.F.2',bg:'linear-gradient(135deg,#2A1A1A,#FF7A5C)'},
+    {g:6,id:'g6',film:13,title:'Linear or Liar?',file:'g6-linear-or-liar.html',live:true,after:'Film 13: Linear or Liar?',math:'Case and bust: which machines only pretend to be lines?',std:'8.F.3',bg:'linear-gradient(135deg,#5B3F7A,#FF8FD1)'},
+    {g:7,id:'g7',film:14,title:'Faster Than',file:'g7-faster-than.html',live:true,after:'Film 14: Faster Than',math:'Compare racers given as tables, graphs, rules and words.',std:'8.F.2 · 8.EE.5',bg:'linear-gradient(135deg,#0E1430,#5CC8FF)'},
+    {g:16,id:'g16',film:15,title:'The Family Gallery',file:'g16-family-gallery.html',live:true,after:'Film 15: Families',math:'Families of rules: what each number does, and testing one point to pick the rule.',std:'8.F.3 · 8.F.1',bg:'linear-gradient(135deg,#3A2A10,#FFB35C)'},
+    {g:8,id:'g8',film:16,title:'Doug\'s Steps',file:'g8-dougs-steps.html',live:true,after:'Film 16: Doug\'s Steps',math:'Dots or a line? Fence the domain and range.',std:'8.F.5 · domain',bg:'linear-gradient(135deg,#3A3444,#9AA0A8)'},
+    {g:17,id:'g17',film:17,title:'Hold the Chain',file:'g17-hold-the-chain.html',live:true,after:'Film 17: The Final Chain',math:'The finale: re-forge the Chain, catch the lying link, find the edge of 12/x.',std:'8.F.1 · 8.F.2 · 8.F.3 · 8.F.4',bg:'linear-gradient(135deg,#101018,#E6E6F0)'}
   ];
   var host=$('#games');
   GAMES.forEach(function(G){
     var info=SFA.GAMES[G.g]; var p=SFA.store.get(G.id,null);
     var doneN=p&&p.done?Object.keys(p.done).filter(function(k){return p.done[k];}).length:0;
     var card=el('article',{'class':'game'+(G.live?' live':''),'aria-label':G.title},[
-      el('div',{'class':'poster',style:'background:'+G.bg},[el('span',{'class':'gno',text:'G'+G.g}),el('b',{text:G.title})]),
+      el('div',{'class':'poster',style:'background:'+G.bg},[el('span',{'class':'gno',text:'Film '+G.film}),el('b',{text:G.title})]),
       el('div',{'class':'body'},[
         el('div',{'class':'math',text:G.math}),
         el('div',{'class':'meta',text:'After: '+G.after}),
