@@ -24,7 +24,8 @@
     'g11': 'Say each machine\'s name back three ways: sentence, pair, point.',
     'g12': 'Find the step, walk back to input 0 to find where each rule starts, then predict a row that isn\'t in the table.',
     'g13': 'Find the start and the step of the leaking water tower, then find when the town runs dry.',
-    'g14': 'Run each machine backwards to find what went in, then check it with the table, the graph and the crossing.'
+    'g14': 'Run each machine backwards to find what went in, then check it with the table, the graph and the crossing.',
+    'g16': 'Name each family, match the shadows by changing one number, and test points to open Max\'s locks.'
   };
   var gid = (location.pathname.match(/\/(g\d+)-/) || [])[1];
   var TIER = { 'Low floor': 'Warm-up', 'Core': 'Main', 'Stretch': 'Challenge', 'Review': 'Review' };

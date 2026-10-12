@@ -21,6 +21,7 @@
     { l: 15, n: 11, game: 'g14-three-roads.html' },
     { l: 6, n: 13, game: 'g6-linear-or-liar.html' },
     { l: 7, n: 14, game: 'g7-faster-than.html' },
+    { l: 17, n: 15, game: 'g16-family-gallery.html' },
     { l: 8, n: 16, game: 'g8-dougs-steps.html' },
     { l: 9, n: 17, game: 'g3-keepers-vault.html' }
   ];
