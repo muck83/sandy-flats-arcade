@@ -201,7 +201,7 @@
   function saveLocal() { SFA.store.set('les.' + LID, mine); }
   function record(s, answer, correct) {
     mine[s.id] = { answer: String(answer), correct: correct, sent: false, kind: s.k, run: liveRun() };
-    saveLocal(); flush(); refreshDots();
+    saveLocal(); flush(); refreshDots(); clearTimeout(watchT); watchT = setTimeout(watchSend, 1500);
     setTimeout(function () { if (slideEl && slideEl.scrollHeight > slideEl.clientHeight + 4) slideEl.scrollTo({ top: slideEl.scrollHeight, behavior: 'smooth' }); }, 120);
   }
   function flush() {
@@ -245,9 +245,73 @@
   function loadMine() {
     if (MODE !== 'student' || !saving || !S.me) return;
     S.call('myAnswers', { lesson: LID }).then(function (j) {
-      Object.keys(j.answers || {}).forEach(function (q) { if (!mine[q]) mine[q] = { answer: j.answers[q].answer, correct: j.answers[q].correct === 'yes' ? true : j.answers[q].correct === 'no' ? false : null, sent: true, restored: true }; });
+      Object.keys(j.answers || {}).forEach(function (q) { if (q === 'zflag') return; if (!mine[q]) mine[q] = { answer: j.answers[q].answer, correct: j.answers[q].correct === 'yes' ? true : j.answers[q].correct === 'no' ? false : null, sent: true, restored: true }; });
       saveLocal(); render(cur, 0, true); flush();
     }, function (e) { if (/unknown op/.test(e.message)) { backendOld = true; upd(); } else flush(); });
+  }
+
+  /* ---------------- focus watch (student) ----------------
+     For each question, while its slide is open: times the student left the page (another tab, window or app) before
+     answering and for how long, text pasted into an answer box, the question copied, and screenshot keys.
+     One summary row per student (q 'zflag') goes to the Responses tab; the console shows it. Browsers can't see a
+     photo taken with a phone or most screenshot tools, so these are hints for the teacher, not proof. */
+  var watch = { run: 0, q: {} }, away = null, watchSent = '', watchT = null, watchTold = false;
+  function watchFor(s) {
+    if (MODE !== 'student' || !s || !s.id) return null;
+    var run = liveRun(); if ((watch.run || 0) !== run) { watch = { run: run, q: {} }; watchSent = ''; }
+    return watch.q[s.id] || (watch.q[s.id] = [0, 0, 0, 0, 0, 0]);   // [left, seconds away, pastes, characters pasted, copies, screenshot keys]
+  }
+  function watchEnc() {
+    var parts = [];
+    Object.keys(watch.q).forEach(function (q) { var w = watch.q[q]; if (w.some(function (x) { return x > 0; })) parts.push(q + ':' + w.join(',')); });
+    return parts.length ? 'v1;' + parts.join(';') : '';
+  }
+  function watchBump(i, by) {
+    var w = watchFor(LES && LES.slides[cur]); if (!w) return;
+    w[i] += by; SFA.store.set('les.watch.' + LID, watch);
+    clearTimeout(watchT); watchT = setTimeout(watchSend, 3000);
+  }
+  function watchSend() {
+    if (!saving || !S.me) return;
+    var v = watchEnc(); if (!v || v === watchSent || v.length > 590) return;
+    S.call('answer', { lesson: LID, q: 'zflag', kind: 'open', answer: v, correct: null }).then(function () { watchSent = v; }, function () { clearTimeout(watchT); watchT = setTimeout(watchSend, 20000); });
+  }
+  function watchInit() {
+    var w0 = SFA.store.get('les.watch.' + LID, null); if (w0 && w0.q) watch = w0;
+    function onSlide() { var s = LES.slides[cur]; return s && s.id && slideEl ? s : null; }
+    function leave() {
+      var s = onSlide(); if (away || !s || mine[s.id]) return;   // only before the question is answered: after that, watching the Meet is fine
+      if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
+      away = { at: Date.now(), slide: cur };
+    }
+    function back() {
+      if (!away) return;
+      var secs = Math.round((Date.now() - away.at) / 1000), was = away.slide; away = null;
+      if (secs < 3 || was !== cur) return;
+      var w = watchFor(LES.slides[cur]); if (!w) return;
+      w[0]++; w[1] += secs; SFA.store.set('les.watch.' + LID, watch); watchSend();
+      if (secs >= 8) SFA.toast('Welcome back. ' + TEACHER + ' can see when you leave the lesson during a question.', 4000);
+    }
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') leave(); else back(); });
+    window.addEventListener('blur', leave); window.addEventListener('focus', back);
+    document.addEventListener('paste', function (e) {
+      var t = e.target; if (!slideEl || !t || !slideEl.contains(t) || !/^(INPUT|TEXTAREA)$/.test(t.tagName)) return;
+      var txt = ''; try { txt = (e.clipboardData || window.clipboardData).getData('text') || ''; } catch (x) { }
+      watchBump(2, 1); watchBump(3, txt.trim().length);
+    }, true);
+    function copied() { var sel = String(window.getSelection ? window.getSelection() : ''); if (slideEl && sel.trim().length > 8 && window.getSelection().anchorNode && slideEl.contains(window.getSelection().anchorNode) && !/^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName)) watchBump(4, 1); }
+    document.addEventListener('copy', copied, true); document.addEventListener('cut', copied, true);
+    document.addEventListener('keyup', function (e) { if (e.key === 'PrintScreen') watchBump(5, 1); }, true);
+    document.addEventListener('keydown', function (e) { if (e.metaKey && e.shiftKey && /^(3|4|5|s|S)$/.test(e.key)) watchBump(5, 1); }, true);
+    window.addEventListener('pagehide', function () { leave(); SFA.store.set('les.watch.' + LID, watch); });
+  }
+  // tell students once, on their first question, so it's fair (and it puts most of them off)
+  function watchTell() {
+    if (watchTold || MODE !== 'student' || !saving || !S.me) return;
+    var s = LES.slides[cur]; if (!s || !s.id || s.warm) return;
+    var k = 'les.watch.told'; if (SFA.store.get(k, 0)) { watchTold = true; return; }
+    watchTold = true; SFA.store.set(k, 1);
+    SFA.toast('Answer in your own words. If you leave this page or paste during a question, ' + TEACHER + ' sees it.', 6000);
   }
 
   /* ---------------- slides ---------------- */
@@ -569,7 +633,7 @@
     if (old) { if (quiet) old.remove(); else { old.classList.add('out'); if (dir < 0) old.classList.add('back'); setTimeout(function () { old.remove(); }, 380); } }
     deck.appendChild(slideEl);
     fitWatch(slideEl);
-    if (MODE === 'student') SFA.store.set('les.at.' + LID, cur);
+    if (MODE === 'student') { SFA.store.set('les.at.' + LID, cur); setTimeout(watchTell, 600); }
     refreshDots();
     if (MODE === 'teach') consoleSlide();
     if (MODE === 'screen' && bc && !quiet) { }
@@ -750,16 +814,41 @@
       var n = s.k === 'conf' ? 4 : s.opts ? s.opts.length : 0, p = per[s.id] = { n: 0, right: 0, counts: [], who: [], list: [], sids: {} };
       for (var i = 0; i < n; i++) { p.counts.push(0); p.who.push([]); }
     });
+    var flags = {};
     ((console_.data && console_.data.answers) || []).forEach(function (a) {
-      if (!ids[a.sid]) return; var p = per[a.q]; if (!p) return;
+      if (!ids[a.sid]) return;
       if (console_.run && Date.parse(a.time) < console_.run - 2000) return;   // from before "Start fresh"
+      if (a.q === 'zflag') { flags[a.sid] = decFlags(a.answer); return; }
+      var p = per[a.q]; if (!p) return;
       p.n++; p.sids[a.sid] = 1; if (a.correct === 'yes') p.right++;
       var k = parseInt(a.answer, 10) - 1;
       if (p.counts.length && k >= 0 && k < p.counts.length) { p.counts[k]++; p.who[k].push(first(name[a.sid])); }
       p.list.push({ sid: a.sid, name: name[a.sid], answer: a.answer, correct: a.correct, time: a.time });
     });
     feed = { total: roster.length, per: per };
+    console_.flags = flags;
   }
+  // a student's focus-watch summary: "v1;q:left,secs,pastes,chars,copies,shots;…" → { q: { left, secs, pastes, chars, copies, shots } }
+  function decFlags(v) {
+    var out = {}; String(v || '').split(';').slice(1).forEach(function (part) {
+      var m = /^([a-z0-9]{1,16}):([0-9,]+)$/.exec(part); if (!m) return;
+      var n = m[2].split(',').map(Number);
+      out[m[1]] = { left: n[0] || 0, secs: n[1] || 0, pastes: n[2] || 0, chars: n[3] || 0, copies: n[4] || 0, shots: n[5] || 0 };
+    });
+    return out;
+  }
+  function secsTxt(x) { return x < 60 ? x + ' s' : Math.floor(x / 60) + ' min ' + (x % 60 ? x % 60 + ' s' : ''); }
+  // strong: pasted, copied the question, screenshot key. soft: left the page before answering (could be the Meet)
+  function flagTxt(f) {
+    var t = [];
+    if (f.pastes) t.push('pasted ' + (f.chars ? f.chars + ' characters' : 'text') + (f.pastes > 1 ? ' (' + f.pastes + ' times)' : ''));
+    if (f.copies) t.push('copied the question' + (f.copies > 1 ? ' ' + f.copies + ' times' : ''));
+    if (f.shots) t.push('pressed a screenshot key');
+    if (f.left) t.push('left the page ' + (f.left > 1 ? f.left + ' times' : 'once') + ' (' + secsTxt(f.secs).trim() + ') before answering');
+    return t.join(', ');
+  }
+  function flagStrong(f) { return !!(f && (f.pastes || f.copies || f.shots)); }
+  function flagShown(f) { return !!(f && (flagStrong(f) || f.secs >= 10)); }
   function broadcast() { if (bc) bc.postMessage({ t: 'state', slide: cur, live: liveObj(), feed: feed }); }
   function liveObj() {
     var counts = {};
@@ -793,6 +882,32 @@
   }
   function pushCountsIfChanged() { if (console_.on && JSON.stringify(liveObj().counts) !== lastCounts) pushLive(); }
   function consoleSlide() { if (!console_) return; console_.picked = ''; console_.peek = false; pushLive(); consolePanel(); }
+
+  // everyone with a flag in this lesson, strongest first
+  function flagSection() {
+    var sec = H('div', 'sect'), fl = console_.flags || {}, nameOf = {}, rows = [];
+    rosterIn().forEach(function (r) { nameOf[r.sid] = nice(r.name); });
+    var slideNo = {}; LES.slides.forEach(function (s, i) { if (s.id) slideNo[s.id] = i + 1; });
+    Object.keys(fl).forEach(function (sid) {
+      if (!nameOf[sid]) return;
+      Object.keys(fl[sid]).forEach(function (q) { var f = fl[sid][q]; if (slideNo[q] && flagShown(f)) rows.push({ sid: sid, q: q, f: f, w: (flagStrong(f) ? 1e6 : 0) + f.secs }); });
+    });
+    sec.appendChild(H('h3', '', 'Check these answers' + (rows.length ? ' (' + rows.length + ')' : '')));
+    if (!rows.length) { sec.appendChild(H('p', 'muted', 'No flags yet. A student is flagged when they paste into an answer, copy a question, press a screenshot key, or leave the lesson for 10 s or more before answering.')); return sec; }
+    rows.sort(function (a, b) { return b.w - a.w; });
+    var list = H('div', 'flags');
+    var ans = {}; ((console_.data && console_.data.answers) || []).forEach(function (a) { ans[a.sid + '|' + a.q] = a.answer; });
+    rows.forEach(function (r) {
+      var d = H('div', 'flagrow' + (flagStrong(r.f) ? ' strong' : ''));
+      d.innerHTML = '<b>' + esc(nameOf[r.sid]) + '</b> · slide ' + slideNo[r.q] + ': ' + esc(flagTxt(r.f));
+      var said = ans[r.sid + '|' + r.q];
+      d.appendChild(H('div', 'said', said != null ? '“' + esc(String(said).slice(0, 300)) + '”' : '<i>No answer sent yet</i>'));
+      list.appendChild(d);
+    });
+    sec.appendChild(list);
+    sec.appendChild(H('p', 'muted', 'Orange: pasted, copied the question or pressed a screenshot key. Grey: left the page before answering, which can be innocent (looking at the Meet). Phone photos and most screenshot tools can\'t be seen.'));
+    return sec;
+  }
 
   function consolePanel() {
     var p = document.getElementById('tpanel'); if (!p || !LES) return;
@@ -837,6 +952,7 @@
       if (out.length && out.length < ros.length) { ws.appendChild(H('p', 'muted', 'Not in yet (' + out.length + ')')); var ow = H('div', 'who'); out.forEach(function (r) { ow.appendChild(H('span', '', esc(nice(r.name)))); }); ws.appendChild(ow); }
       else if (!here.length) ws.appendChild(H('p', 'muted', 'Nobody yet. Students appear here as soon as they type their code.'));
       p.appendChild(ws);
+      p.appendChild(flagSection());
     }
 
     // class filter
@@ -872,6 +988,8 @@
           var lit = console_.spot && console_.spot.q === s.id && console_.spot.text === a.answer;
           var c = H('div', 'a' + (a.correct === 'yes' ? ' ok' : a.correct === 'no' ? ' no' : '') + (lit ? ' lit' : ''));
           c.appendChild(H('b', '', esc(a.name || a.sid) + (a.correct === 'yes' ? ' ✓' : a.correct === 'no' ? ' ✗' : '') + (lit ? ' · on screen now' : '')));
+          var fl = console_.flags && console_.flags[a.sid] && console_.flags[a.sid][s.id];
+          if (flagShown(fl)) c.appendChild(H('span', 'flag' + (flagStrong(fl) ? ' strong' : ''), '⚠ ' + esc(flagTxt(fl))));
           c.appendChild(document.createTextNode(a.answer));
           if (s.k === 'open' || s.k === 'exit') { var rr = H('div', 'row'); rr.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Spotlight (no name)', onclick: function () { console_.spot = { q: s.id, text: a.answer }; pushLive(); consolePanel(); } })); c.appendChild(rr); }
           al.appendChild(c);
@@ -957,8 +1075,8 @@
     if (MODE === 'student') {
       if (saving) S.onChange(function () { acctDraw(); upd(); if (S.me && !loadMine.done) { loadMine.done = true; loadMine(); } else if (S.me && !(S.credExpired && S.credExpired())) flush(); });
       else acctDraw();
-      pollLive();
-      window.addEventListener('online', flush);
+      pollLive(); watchInit();
+      window.addEventListener('online', function () { flush(); watchSend(); });
       // signed in on the arcade in another tab: pick it up here
       window.addEventListener('storage', function (e) { if (e.key === 'sfa.sync.me' && e.newValue && !S.me) location.reload(); });
     }
