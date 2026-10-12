@@ -16,6 +16,7 @@
     { l: 3, n: 6, game: 'g4-gus-forecast.html' },
     { l: 4, n: 7, game: 'g3-keepers-vault.html' },
     { l: 13, n: 8, game: 'g12-off-the-edge.html' },
+    { l: 14, n: 9, game: 'g13-half-a-rule.html' },
     { l: 5, n: 10, game: 'g5-scorch-marks.html' },
     { l: 15, n: 11, game: 'g14-three-roads.html' },
     { l: 6, n: 13, game: 'g6-linear-or-liar.html' },

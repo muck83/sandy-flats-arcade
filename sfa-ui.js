@@ -23,6 +23,7 @@
     'g10': 'Plot Gus\'s signs, find the half tile, read the graph backwards and dodge the Vertical Line.',
     'g11': 'Say each machine\'s name back three ways: sentence, pair, point.',
     'g12': 'Find the step, walk back to input 0 to find where each rule starts, then predict a row that isn\'t in the table.',
+    'g13': 'Find the start and the step of the leaking water tower, then find when the town runs dry.',
     'g14': 'Run each machine backwards to find what went in, then check it with the table, the graph and the crossing.'
   };
   var gid = (location.pathname.match(/\/(g\d+)-/) || [])[1];
