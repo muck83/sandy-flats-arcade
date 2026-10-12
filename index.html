@@ -325,7 +325,7 @@ a.btn{text-decoration:none;display:inline-block}
   <header class="marquee">
     <div>
       <h1>Sandy Flats Arcade</h1>
-      <p>Eight games that put you inside the films. Play them in order: each one starts easy.</p>
+      <p>One game for each film. Watch the film, then play its game: each one starts easy.</p>
     </div>
     <div class="bulbs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   </header>
@@ -573,7 +573,7 @@ a.btn{text-decoration:none;display:inline-block}
     { id: 'bx', kind: 'O', title: 'The Blooper Reel', game: 'class', file: 'reels/bx.html', bonus: true, premiere: 'hf07dd0bc' }
   ];
   var KINDN = { R: 'From the films', D: 'Deleted scene', O: 'Outtake' };
-  var GAMEN = { g1: 'Crack the Fair', g2: 'Glitch Hunt', g3: "The Keeper's Vault", g4: "Gus's Forecast", g5: 'Scorch Marks', g6: 'Linear or Liar?', g7: 'Faster Than', g8: "Doug's Steps", 'class': 'Class unlock only' };
+  var GAMEN = { g1: 'Crack the Fair', g2: 'Glitch Hunt', g3: "The Keeper's Vault", g4: "Gus's Forecast", g5: 'Scorch Marks', g6: 'Linear or Liar?', g7: 'Faster Than', g8: "Doug's Steps", g9: 'Try Zero First', g10: 'Tile Run', g11: 'Name Them Back', 'class': 'Class unlock only' };
   var MIN8 = 8 * 60 * 1000, IDLE = 40 * 60 * 1000;
   function session() {
     var s = SFA.store.get('session', null), n = SFA.now();
@@ -697,7 +697,7 @@ a.btn{text-decoration:none;display:inline-block}
       return 'G' + game + '-' + pay + '-' + b32(ck, 2);
     },
     decode: function (code, name) {
-      var m = String(code || '').toUpperCase().replace(/\s+/g, '').replace(/O/g, '0').replace(/[IL]/g, '1').match(/^G([1-8])-?([0-9A-Z]{4})-?([0-9A-Z]{2})$/);
+      var m = String(code || '').toUpperCase().replace(/\s+/g, '').replace(/O/g, '0').replace(/[IL]/g, '1').match(/^G([1-9][0-9]?)-?([0-9A-Z]{4})-?([0-9A-Z]{2})$/);
       if (!m) return { ok: false, why: 'format' };
       var game = +m[1], pay = m[2], v = unb32(pay), ck = unb32(m[3]);
       if (v < 0 || ck < 0) return { ok: false, why: 'format' };
@@ -714,7 +714,10 @@ a.btn{text-decoration:none;display:inline-block}
     5: { name: 'Scorch Marks', std: 'Grid Flight Licence', specials: ['Triangle Prover', 'Same Place, Same Time', 'Where One Starts'] },
     6: { name: 'Linear or Liar?', std: 'Linear Lie Detector', specials: ['Door Master', 'Rule Maker', 'The Doubler'] },
     7: { name: 'Faster Than', std: 'Race Steward', specials: ['Faster Than Fast', 'Fact Checker', 'Helmet Keeper'] },
-    8: { name: "Doug's Steps", std: "Doug's Certified Step-Counter", specials: ['Edge Walker', 'Numbers Pretending', 'Honorary Pigeon'] }
+    8: { name: "Doug's Steps", std: "Doug's Certified Step-Counter", specials: ['Edge Walker', 'Numbers Pretending', 'Honorary Pigeon'] },
+    9: { name: 'Try Zero First', std: 'Most Useful Input', specials: ['Cracked in Two', 'Never a Million', 'Same Machine, Two Ways'] },
+    10: { name: 'Tile Run', std: 'Grid Guide', specials: ['Halves Count', 'The Cartographer', 'Input First'] },
+    11: { name: 'Name Them Back', std: 'Keeper of Names', specials: ['Looked At It Backwards', 'f of 0, f of 1', 'Dot Detective'] }
   };
 
   /* ---------------- certificate renderer ---------------- */
@@ -857,30 +860,34 @@ a.btn{text-decoration:none;display:inline-block}
 (function(){
   var SFA=window.SFA, el=SFA.el, $=SFA.$;
   var GAMES=[
-    {g:1,id:'g1',title:'Crack the Fair',file:'g1-crack-the-fair.html',after:'Zero 2: Sidekick',math:'Find a rule\'s start and step from inputs, then prove it.',std:'8.F.4 · 8.F.1',bg:'linear-gradient(135deg,#8E1B3A,#FF9A3C)',live:true},
-    {g:2,id:'g2',title:'Glitch Hunt',file:'g2-glitch-hunt.html',live:true,after:'The Glitch',math:'Case and bust: which suspect gives one input two outputs?',std:'8.F.1',bg:'linear-gradient(135deg,#1f6f5c,#5CE0B8)'},
-    {g:4,id:'g4',title:'Gus\'s Forecast',file:'g4-gus-forecast.html',live:true,after:'The Weather Line',math:'Draw the story; tell the story from the graph.',std:'8.F.5',bg:'linear-gradient(135deg,#2A2140,#FFD84D)'},
-    {g:3,id:'g3',title:'The Keeper\'s Vault',file:'g3-keepers-vault.html',live:true,after:'The Chain',math:'Words, rule, table and graph in every direction.',std:'8.F.1 · 8.F.2 · 8.F.4',bg:'linear-gradient(135deg,#171A22,#C9981A)'},
-    {g:5,id:'g5',title:'Scorch Marks',file:'g5-scorch-marks.html',live:true,after:'One Alone',math:'Slope from two points with similar triangles.',std:'8.EE.6 · 8.F.4',bg:'linear-gradient(135deg,#2A2140,#FF5A5A)'},
-    {g:6,id:'g6',title:'Linear or Liar?',file:'g6-linear-or-liar.html',live:true,after:'Linear or Liar?',math:'Case and bust: which machines only pretend to be lines?',std:'8.F.3',bg:'linear-gradient(135deg,#5B3F7A,#FF8FD1)'},
-    {g:7,id:'g7',title:'Faster Than',file:'g7-faster-than.html',live:true,after:'Faster Than',math:'Compare racers given as tables, graphs, rules and words.',std:'8.F.2 · 8.EE.5',bg:'linear-gradient(135deg,#0E1430,#5CC8FF)'},
-    {g:8,id:'g8',title:'Doug\'s Steps',file:'g8-dougs-steps.html',live:true,after:'Doug\'s Steps',math:'Dots or a line? Fence the domain and range.',std:'8.F.5 · domain',bg:'linear-gradient(135deg,#3A3444,#9AA0A8)'}
+    {g:9,id:'g9',film:1,title:'Try Zero First',file:'g9-try-zero-first.html',live:true,after:'Zero: The Movie',math:'Feed zero first: it shows where a rule starts.',std:'8.F.4',bg:'linear-gradient(135deg,#3B2A5C,#FFC94A)'},
+    {g:1,id:'g1',film:2,title:'Crack the Fair',file:'g1-crack-the-fair.html',live:true,after:'Zero 2: Sidekick',math:'Find a rule\'s start and step from inputs, then prove it.',std:'8.F.4 · 8.F.1',bg:'linear-gradient(135deg,#8E1B3A,#FF9A3C)'},
+    {g:2,id:'g2',film:3,title:'Glitch Hunt',file:'g2-glitch-hunt.html',live:true,after:'The Glitch',math:'Case and bust: which suspect gives one input two outputs?',std:'8.F.1',bg:'linear-gradient(135deg,#1f6f5c,#5CE0B8)'},
+    {g:10,id:'g10',film:4,title:'Tile Run',file:'g10-tile-run.html',live:true,after:'Lost in Graph Land',math:'Pairs become points; read a graph both ways; the vertical line test.',std:'8.F.1',bg:'linear-gradient(135deg,#123B4A,#7FE3A1)'},
+    {g:11,id:'g11',film:5,title:'Name Them Back',file:'g11-name-them-back.html',live:true,after:'Name That Machine',math:'f(3) means put 3 into f: say it as a sentence, a pair and a point.',std:'8.F.1 · notation',bg:'linear-gradient(135deg,#4A1E3A,#FF8FB1)'},
+    {g:4,id:'g4',film:6,title:'Gus\'s Forecast',file:'g4-gus-forecast.html',live:true,after:'The Weather Line',math:'Draw the story; tell the story from the graph.',std:'8.F.5',bg:'linear-gradient(135deg,#2A2140,#FFD84D)'},
+    {g:3,id:'g3',film:7,title:'The Keeper\'s Vault',file:'g3-keepers-vault.html',live:true,after:'The Chain',math:'Words, rule, table and graph in every direction.',std:'8.F.1 · 8.F.2 · 8.F.4',bg:'linear-gradient(135deg,#171A22,#C9981A)'},
+    {g:5,id:'g5',film:10,title:'Scorch Marks',file:'g5-scorch-marks.html',live:true,after:'One Alone',math:'Slope from two points with similar triangles.',std:'8.EE.6 · 8.F.4',bg:'linear-gradient(135deg,#2A2140,#FF5A5A)'},
+    {g:6,id:'g6',film:13,title:'Linear or Liar?',file:'g6-linear-or-liar.html',live:true,after:'Linear or Liar?',math:'Case and bust: which machines only pretend to be lines?',std:'8.F.3',bg:'linear-gradient(135deg,#5B3F7A,#FF8FD1)'},
+    {g:7,id:'g7',film:14,title:'Faster Than',file:'g7-faster-than.html',live:true,after:'Faster Than',math:'Compare racers given as tables, graphs, rules and words.',std:'8.F.2 · 8.EE.5',bg:'linear-gradient(135deg,#0E1430,#5CC8FF)'},
+    {g:8,id:'g8',film:16,title:'Doug\'s Steps',file:'g8-dougs-steps.html',live:true,after:'Doug\'s Steps',math:'Dots or a line? Fence the domain and range.',std:'8.F.5 · domain',bg:'linear-gradient(135deg,#3A3444,#9AA0A8)'}
   ];
   var host=$('#games');
-  var LES_OF={g1:1,g2:2,g4:3,g3:4,g5:5,g6:6,g7:7,g8:8};   // the lesson that goes with each game
-  var GOAL={g1:'Feed numbers into machines and work out their secret rules.',g2:'Catch the suspect that gives one input two outputs.',g4:'Build graphs that tell a story, and read stories from graphs.',g3:'Turn one rule into words, a table, a graph and a formula.',g5:'Find the slope between two marks, then the rule.',g6:'Spot the machines that only pretend to be lines.',g7:'Work out who is fastest when every ride shows it differently.',g8:'Dots or a line? Fence in the inputs and outputs.'};
-  function prog(G){ var p=SFA.store.get(G.id,null); var info=SFA.GAMES[G.g]||{}; var n=p&&p.done?Object.keys(p.done).filter(function(k){return p.done[k];}).length:0; var tot=({1:11,2:7,3:8,4:9,5:11,6:8,7:9,8:9})[G.g]||0; return {n:n,tot:tot}; }
+  var LES_OF={g9:10,g1:1,g2:2,g10:11,g11:12,g4:3,g3:4,g5:5,g6:6,g7:7,g8:8};   // the lesson that goes with each game (lesson file number)
+  var LES_N={g9:1,g1:2,g2:3,g10:4,g11:5,g4:6,g3:7,g5:10,g6:13,g7:14,g8:16};    // the number students see for that lesson (its film)
+  var GOAL={g1:'Feed numbers into machines and work out their secret rules.',g2:'Catch the suspect that gives one input two outputs.',g3:'Turn one rule into words, a table, a graph and a formula.',g4:'Build graphs that tell a story, and read stories from graphs.',g5:'Find the slope between two marks, then the rule.',g6:'Spot the machines that only pretend to be lines.',g7:'Work out who is fastest when every ride shows it differently.',g8:'Dots or a line? Fence in the inputs and outputs.',g9:'Feed zero first to find where a rule starts, then crack the machine.',g10:'Turn Gus\'s signs into points and read the graph both ways.',g11:'Say each machine\'s name back: sentence, pair, point.'};
+  function prog(G){ var p=SFA.store.get(G.id,null); var info=SFA.GAMES[G.g]||{}; var n=p&&p.done?Object.keys(p.done).filter(function(k){return p.done[k];}).length:0; var tot=({1:11,2:7,3:8,4:9,5:11,6:8,7:9,8:9,9:6,10:6,11:7})[G.g]||0; return {n:n,tot:tot}; }
   var next=null;
   GAMES.forEach(function(G,ix){
     var info=SFA.GAMES[G.g]; var pr=prog(G); if(!next&&!(pr.n&&pr.tot&&pr.n>=pr.tot)&&!(pr.n>0&&ix<GAMES.length-1&&prog(GAMES[ix+1]).n>0)) next={G:G,ix:ix,pr:pr};
-    var card=el('article',{'class':'game'+(G.live?' live':''),'aria-label':'Game '+(ix+1)+': '+G.title},[
-      el('div',{'class':'poster',style:'background:'+G.bg},[el('span',{'class':'gno',text:'Game '+(ix+1)}),el('b',{text:G.title})]),
+    var card=el('article',{'class':'game'+(G.live?' live':''),'aria-label':'Film '+G.film+' game: '+G.title},[
+      el('div',{'class':'poster',style:'background:'+G.bg},[el('span',{'class':'gno',text:'Film '+G.film}),el('b',{text:G.title})]),
       el('div',{'class':'body'},[
         el('div',{'class':'math',text:GOAL[G.id]||G.math}),
         el('div',{'class':'meta',text:'Watch first: '+G.after}),
         pr.n?el('div',{'class':'pbar','aria-hidden':'true'},[el('i',{style:'width:'+(pr.tot?Math.min(100,Math.round(100*pr.n/pr.tot)):10)+'%'})]):null,
         el('details',{},[el('summary',{text:'Certificates and standards'}),el('div',{text:info.std+' · '+info.specials.join(' · ')}),el('div',{text:G.std})]),
-        el('div',{'class':'act'},G.live?[el('a',{'class':'btn primary',href:G.file,text:pr.n?'Keep playing':'Play'}),LES_OF[G.id]?el('a',{'class':'btn',href:'lesson.html?l='+LES_OF[G.id],text:'📺 Lesson '+LES_OF[G.id]}):null,pr.n?el('span',{'class':'prog',text:pr.n+(pr.tot?' of '+pr.tot:'')+' levels done'}):null]:[el('span',{'class':'soon',text:'Coming soon'})])
+        el('div',{'class':'act'},G.live?[el('a',{'class':'btn primary',href:G.file,text:pr.n?'Keep playing':'Play'}),LES_OF[G.id]?el('a',{'class':'btn',href:'lesson.html?l='+LES_OF[G.id],text:'📺 Lesson '+LES_N[G.id]}):null,pr.n?el('span',{'class':'prog',text:pr.n+(pr.tot?' of '+pr.tot:'')+' levels done'}):null]:[el('span',{'class':'soon',text:'Coming soon'})])
       ])
     ]);
     host.appendChild(card);
@@ -888,7 +895,7 @@ a.btn{text-decoration:none;display:inline-block}
   (function(){
     var box=$('#nextUp'); if(!next) next={G:GAMES[0],ix:0,pr:prog(GAMES[0])};
     var started=GAMES.some(function(G){ return prog(G).n>0; });
-    box.appendChild(el('div',{},[el('div',{'class':'k',text:started?'Next up':'Start here'}),el('b',{text:'Game '+(next.ix+1)+': '+next.G.title}),el('p',{text:(GOAL[next.G.id]||'')+' Watch first: '+next.G.after+'.'})]));
+    box.appendChild(el('div',{},[el('div',{'class':'k',text:started?'Next up':'Start here'}),el('b',{text:next.G.title}),el('p',{text:(GOAL[next.G.id]||'')+' Watch first: '+next.G.after+'.'})]));
     box.appendChild(el('a',{'class':'btn primary',href:next.G.file,text:next.pr.n?'▶ Keep playing':'▶ Play'}));
   })();
   SFA.vo.init(window.VO_DATA,null);

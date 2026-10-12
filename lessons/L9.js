@@ -1,10 +1,10 @@
 SFA_LESSON({
-  id: 'L9', n: 9, title: 'The Final Chain',
+  id: 'L9', n: 17, title: 'The Final Chain',
   film: { n: 17, title: 'The Final Chain', len: '6:37' },
   game: { title: 'The Keeper\'s Vault', file: 'g3-keepers-vault.html' },
   big: 'One true rule, four ways: words, rule, table and graph. And every rule has its edges.',
   slides: [
-    { k: 'title', min: 1, kicker: 'Lesson 9 · The finale', title: 'The Final Chain', sub: 'The Undefined has scrambled the Chain. Today you help re-forge it, link by link.', art: 'film' },
+    { k: 'title', min: 1, kicker: 'Lesson 17 · The finale', title: 'The Final Chain', sub: 'The Undefined has scrambled the Chain. Today you help re-forge it, link by link.', art: 'film' },
     { k: 'signin', min: 1, title: 'Before we start', points: ['Watch the finale, *The Final Chain*', 'Review the whole unit, one idea at a time', 'Fix the Final Chain in *The Keeper\'s Vault*', 'Answer one last exit ticket'] },
     { k: 'poll', min: 2, id: 'warm', warm: true, q: 'It\'s the finale! Who is your favourite character from the whole saga?', opts: ['Zero', 'One', 'Gus', 'Priya', 'Marcus', 'Doug'] },
     { k: 'poll', min: 2, id: 'hook', q: 'The true rule is *double it, add one*. The Undefined writes *add one, then double*. Is that the *same rule*?',

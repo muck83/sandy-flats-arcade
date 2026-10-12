@@ -30,7 +30,7 @@
 <script>
 (function () {
   'use strict';
-  var SFA = window.SFA, el = SFA.el, esc = SFA.esc, teach = /[?&]teach/.test(location.search), all = [], MAX = 9, left = MAX;
+  var SFA = window.SFA, el = SFA.el, esc = SFA.esc, teach = /[?&]teach/.test(location.search), all = [], MAX = 17, left = MAX;
   if (teach) {
     document.getElementById('h').textContent = 'Lessons · Teacher';
     document.getElementById('intro').innerHTML = 'Open a lesson\'s <b>console</b> to run it live: polls, typed answers, who hasn\'t answered, a timer and a random picker. From the console, open the <b>class screen</b> window and share that one. Students open the <b>student link</b> on their own devices. <a href="participation.html">Participation across all lessons</a>.';
@@ -41,7 +41,7 @@
     var g = document.getElementById('grid'); g.innerHTML = '';
     all.sort(function (a, b) { return a.n - b.n; }).forEach(function (L, i) {
       var qs = L.slides.filter(function (s) { return s.id; }), mine = SFA.store.get('les.' + L.id, {}) || {}, n = qs.filter(function (s) { return mine[s.id]; }).length;
-      var url = 'lesson.html?l=' + L.n;
+      var url = 'lesson.html?l=' + L.id.slice(1);
       var c = el('div', { 'class': 'lcard', style: 'animation-delay:' + (i * 0.05) + 's' });
       c.appendChild(el('span', { 'class': 'n', text: 'Lesson ' + L.n }));
       c.appendChild(el('b', { text: L.title }));

@@ -18,9 +18,12 @@
     'g5': 'Measure the steps between two marks to find the slope, then find the rule.',
     'g6': 'Check each machine\'s table. Does it go up by the same amount every time, or is it lying?',
     'g7': 'Work out each ride\'s speed and decide who wins the race.',
-    'g8': 'Decide if a story needs dots or a line, then fence in the inputs and outputs.'
+    'g8': 'Decide if a story needs dots or a line, then fence in the inputs and outputs.',
+    'g9': 'Feed zero first to see where a rule starts, then crack each machine.',
+    'g10': 'Plot Gus\'s signs, find the half tile, read the graph backwards and dodge the Vertical Line.',
+    'g11': 'Say each machine\'s name back three ways: sentence, pair, point.'
   };
-  var gid = (location.pathname.match(/\/(g\d)-/) || [])[1];
+  var gid = (location.pathname.match(/\/(g\d+)-/) || [])[1];
   var TIER = { 'Low floor': 'Warm-up', 'Core': 'Main', 'Stretch': 'Challenge', 'Review': 'Review' };
 
   var css = document.createElement('style');

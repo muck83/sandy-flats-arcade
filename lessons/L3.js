@@ -1,10 +1,10 @@
 SFA_LESSON({
-  id: 'L3', n: 3, title: 'Gus\'s Forecast',
+  id: 'L3', n: 6, title: 'Gus\'s Forecast',
   film: { n: 6, title: 'The Weather Line', len: '4:56' },
   game: { title: 'Gus\'s Forecast', file: 'g4-gus-forecast.html' },
   big: 'A graph is a story, not a picture. Read it left to right: up, down, flat, steep.',
   slides: [
-    { k: 'title', min: 1, kicker: 'Lesson 3', title: 'Gus\'s Forecast', sub: 'Every graph tells a story. Today you read them, and draw them.', art: '🌧️' },
+    { k: 'title', min: 1, kicker: 'Lesson 6', title: 'Gus\'s Forecast', sub: 'Every graph tells a story. Today you read them, and draw them.', art: '🌧️' },
     { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *The Weather Line*', 'Read a graph like a sentence', 'Match stories to graphs in *Gus\'s Forecast*', 'Answer a quick exit ticket'] },
     { k: 'poll', min: 2, id: 'warm', warm: true, q: 'What is the weather like where you are right now?', opts: ['Sunny', 'Cloudy', 'Rainy', 'Windy', 'I can\'t see outside'] },
     { k: 'poll', min: 2, id: 'hook', q: 'Chip Hartley says: "This weather graph shows a mountain. Avoid the mountain!" What does it *really* show?',
@@ -39,6 +39,6 @@ SFA_LESSON({
       model: 'Light rain fills the bucket slowly, then the rain stops for an hour, then Gus tips it out. Graph: up gently, flat, then down steeply.' },
     { k: 'exit', min: 2, id: 'exit', q: 'You walk to a friend\'s house, stay *an hour*, then get a lift home. Describe your *distance from home* graph, piece by piece.', ph: 'First the graph goes... then... then...',
       model: 'Up gently while I walk there. Flat for the hour at my friend\'s house. Then down steeply to zero, because a car is faster than walking.' },
-    { k: 'end', min: 0, title: 'Forecast: certified!', next: 'Next lesson: The Keeper\'s Vault, after *The Chain*.' }
+    { k: 'end', min: 0, title: 'Forecast: certified!', next: 'Next lesson: *The Chain*, the film and its game.' }
   ]
 });

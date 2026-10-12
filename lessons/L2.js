@@ -1,10 +1,10 @@
 SFA_LESSON({
-  id: 'L2', n: 2, title: 'Glitch Hunt',
+  id: 'L2', n: 3, title: 'Glitch Hunt',
   film: { n: 3, title: 'The Glitch', len: '7:43' },
   game: { title: 'Glitch Hunt', file: 'g2-glitch-hunt.html' },
   big: 'A function gives every input exactly one output. Same input in, same output out. Every time.',
   slides: [
-    { k: 'title', min: 1, kicker: 'Lesson 2', title: 'Glitch Hunt', sub: 'The machines of Sandy Flats are changing their minds. Today you find out why that breaks the rules.', art: '🔍' },
+    { k: 'title', min: 1, kicker: 'Lesson 3', title: 'Glitch Hunt', sub: 'The machines of Sandy Flats are changing their minds. Today you find out why that breaks the rules.', art: '🔍' },
     { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *The Glitch*', 'Learn the one rule every function follows', 'Hunt glitches in *Glitch Hunt*', 'Answer a quick exit ticket'] },
     { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Gus wears a yellow raincoat. If you had a raincoat, what colour would it be?', opts: ['Yellow, like Gus', 'Red', 'Blue', 'Black', 'Glitter, obviously'] },
     { k: 'poll', min: 2, id: 'hook', q: 'Marcus presses *B4* on the vending machine and gets crisps. He presses *B4* again and gets a live pigeon. Is the machine working properly?',
@@ -41,6 +41,6 @@ SFA_LESSON({
     { k: 'exit', min: 2, id: 'exit', q: 'Is this arrow diagram a *function*? Say *yes or no*, and why.', ph: 'It is / is not a function because...',
       model: 'Yes, it is a function. 1 and 2 both go to 6, but that\'s allowed. Every input has exactly one arrow leaving.',
       fig: { kind: 'map', pairs: [[1, 6], [2, 6], [3, 8], [4, 9]] } },
-    { k: 'end', min: 0, title: 'Case closed!', next: 'Next lesson: Gus\'s Forecast, after *The Weather Line*.' }
+    { k: 'end', min: 0, title: 'Case closed!', next: 'Next lesson: *Lost in Graph Land*, the film and its game.' }
   ]
 });

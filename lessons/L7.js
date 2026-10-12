@@ -1,10 +1,10 @@
 SFA_LESSON({
-  id: 'L7', n: 7, title: 'Faster Than',
+  id: 'L7', n: 14, title: 'Faster Than',
   film: { n: 14, title: 'Faster Than', len: '5:12' },
   game: { title: 'Faster Than', file: 'g7-faster-than.html' },
   big: 'The slope is the speed. The big number on its own is just where you start.',
   slides: [
-    { k: 'title', min: 1, kicker: 'Lesson 7', title: 'Faster Than', sub: 'Four rides, four signs, one road to the lighthouse. Which ride is really fastest?', art: '🏁' },
+    { k: 'title', min: 1, kicker: 'Lesson 14', title: 'Faster Than', sub: 'Four rides, four signs, one road to the lighthouse. Which ride is really fastest?', art: '🏁' },
     { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *Faster Than*', 'Find the speed from any kind of sign', 'Play *Faster Than* and race to the lighthouse', 'Answer a quick exit ticket'] },
     { k: 'poll', min: 2, id: 'warm', warm: true, q: 'What\'s the best way to get to school?', opts: ['Car', 'Bus', 'Walk', 'Bike', 'Teleport'] },
     { k: 'poll', min: 2, id: 'hook', q: 'Marcus picks the taxi. "TWENTY! That\'s the biggest number on the whole stand." Its sign says *d = 20 + 0.5t*. Is 20 the speed?',
@@ -38,6 +38,6 @@ SFA_LESSON({
       model: 'I bet the bike. At minute 30 the bike is at 45 km, the scooter at 36 and the taxi at 35. The bike is fastest, so once it catches up it stays ahead.' },
     { k: 'exit', min: 2, id: 'exit', q: '*A*: d = 4t. *B*: starts at 6 m, goes 3 m per second. Who is ahead at t = 4? At t = 10? Which one is proportional?', ph: 'At t = 4... At t = 10... The proportional one is...',
       model: 'At t = 4, A is at 16 m and B is at 18 m, so B is ahead. At t = 10, A is at 40 m and B is at 36 m, so A is ahead. A is proportional: it starts at 0.' },
-    { k: 'end', min: 0, title: 'Race won!', next: 'Next lesson: *Doug\'s Steps*, the film and the game.' }
+    { k: 'end', min: 0, title: 'Race won!', next: 'Next lesson: *Families*, the film and its game.' }
   ]
 });

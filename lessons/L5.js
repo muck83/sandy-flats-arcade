@@ -1,10 +1,10 @@
 SFA_LESSON({
-  id: 'L5', n: 5, title: 'Scorch Marks',
+  id: 'L5', n: 10, title: 'Scorch Marks',
   film: { n: 10, title: 'One Alone', len: '5:33' },
   game: { title: 'Scorch Marks', file: 'g5-scorch-marks.html' },
   big: 'Slope is rise over run. Any two points on a line give the same slope.',
   slides: [
-    { k: 'title', min: 1, kicker: 'Lesson 5', title: 'Scorch Marks', sub: 'One is out on the Grid alone, chasing the RULE link. Today you measure the trail.', art: '🔥' },
+    { k: 'title', min: 1, kicker: 'Lesson 10', title: 'Scorch Marks', sub: 'One is out on the Grid alone, chasing the RULE link. Today you measure the trail.', art: '🔥' },
     { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *One Alone*', 'Measure slopes together: rise over run', 'Play *Scorch Marks* on your own', 'Answer a quick exit ticket'] },
     { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Would you rather climb 10 small steps or 2 giant ones?', opts: ['10 small steps', '2 giant steps', 'I\'ll take the lift'] },
     { k: 'poll', min: 2, id: 'hook', q: 'Stone A is *(1, −1)*. Stone B is *(5, 19)*. One says: "Across 4, up 20. So 4 over 20: one fifth." Is he right?',
@@ -37,6 +37,6 @@ SFA_LESSON({
       model: 'Biggest: 4 across, 20 up, so 20 ÷ 4 = 5. Smallest: 1 across, 5 up, so 5 ÷ 1 = 5. Same slope, because they are on the same line.' },
     { k: 'exit', min: 2, id: 'exit', q: 'A line goes through *(2, 5)* and *(6, 7)*. What is its slope? Describe two different stairs that show it.', ph: 'The slope is... Triangle 1... Triangle 2...',
       model: 'The slope is 1/2. Big stair: 4 across, 2 up, and 2 ÷ 4 = 1/2. Little stair: 2 across, 1 up, from (2, 5) to (4, 6). Also 1/2.' },
-    { k: 'end', min: 0, title: 'Trail measured!', next: 'Next lesson: *Linear or Liar?*, the film and the game.' }
+    { k: 'end', min: 0, title: 'Trail measured!', next: 'Next lesson: *The Undoer*, the film and its game.' }
   ]
 });

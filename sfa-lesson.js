@@ -398,17 +398,17 @@
         area.appendChild(lg);
         var a = mine[s.id];
         if (tried.length || (a && a.answer)) {
-          var g = el('input', { type: 'text', placeholder: 'The rule, like 2x + 1', 'aria-label': 'The rule', autocomplete: 'off' });
+          var g = el('input', { type: 'text', placeholder: 'The rule, like 5x − 4', 'aria-label': 'The rule', autocomplete: 'off' });
           if (a && a.answer) g.value = String(a.answer).split(' (tried')[0];
           var cb = el('button', { type: 'button', 'class': 'btn primary', text: 'Check my rule' });
           var r2 = H('div', 'row'); r2.appendChild(g); r2.appendChild(cb); area.appendChild(r2);
           if (a && a.correct === true) area.appendChild(H('div', 'fb good', '<b>Cracked it!</b> The rule is ' + esc(s.rule.replace(/-/g, '−')) + '. ' + (tried.length <= 3 ? 'Only ' + tried.length + ' input' + (tried.length === 1 ? '' : 's') + '. Pro move.' : '')));
           else if (a && a.correct === false) area.appendChild(H('div', 'fb try', 'Not quite. Feed it a number where your rule and the machine might disagree, and look again.'));
-          else area.appendChild(H('p', 'state', 'Write the rule with x, like 2x + 1 or 3(x − 2).'));
+          else area.appendChild(H('p', 'state', 'Write the rule with x, like 5x − 4 or 3(x − 2).'));
           if (a && a.answer) area.appendChild(stateLine(s.id));
           cb.onclick = function () {
             var f = parseRule(g.value); if (!g.value.trim()) return g.focus();
-            if (!f) { SFA.toast('Write it with x, like 2x + 1.'); return; }
+            if (!f) { SFA.toast('Write it with x, like 5x − 4.'); return; }
             var ok = sameRule(f, rule);
             record(s, g.value.trim() + ' (tried ' + tried.map(function (t) { return numTxt(t[0]); }).join(', ') + ')', ok);
             mine[s.id].tried = tried; saveLocal(); if (ok) { confetti(); m.querySelector('.mlabel').textContent = s.rule.replace(/-/g, '−'); }

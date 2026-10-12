@@ -1,10 +1,10 @@
 SFA_LESSON({
-  id: 'L8', n: 8, title: 'Doug\'s Steps',
+  id: 'L8', n: 16, title: 'Doug\'s Steps',
   film: { n: 16, title: 'Doug\'s Steps', len: '4:55' },
   game: { title: 'Doug\'s Steps', file: 'g8-dougs-steps.html' },
   big: 'Count it: dots. Measure it: a line. Then fence the inputs and outputs.',
   slides: [
-    { k: 'title', min: 1, kicker: 'Lesson 8', title: 'Doug\'s Steps', sub: 'Doug the pigeon can only hop whole tiles. Today you find out why that matters.', art: '🐦' },
+    { k: 'title', min: 1, kicker: 'Lesson 16', title: 'Doug\'s Steps', sub: 'Doug the pigeon can only hop whole tiles. Today you find out why that matters.', art: '🐦' },
     { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *Doug\'s Steps*', 'Decide: dots or a line?', 'Play *Doug\'s Steps* on your own', 'Answer a quick exit ticket'] },
     { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Doug the pigeon hops on tiles. Would you rather fly or hop?', opts: ['Fly', 'Hop', 'Neither, I\'d take the bus'] },
     { k: 'poll', min: 2, id: 'hook', q: 'A tower holds *600 litres* and leaks *40 litres* a minute. Priya says: "It only lives from 0 to 15." What does _lives_ mean?',
@@ -38,6 +38,6 @@ SFA_LESSON({
       model: 'At minute 15 the tower is empty: 600 − 40 × 15 = 0. After that the water would be negative, and minus water isn\'t real.' },
     { k: 'exit', min: 2, id: 'exit', q: 'Concert tickets cost *50 riyals* each. You can buy a maximum of *6*. Dots or a line? What is the domain? What is the range?', ph: 'Dots or a line... Domain... Range...',
       model: 'Dots, because you buy whole tickets. Domain: {1, 2, 3, 4, 5, 6} tickets. Range: {50, 100, 150, 200, 250, 300} riyals. (If buying 0 counts, add 0 to both.)' },
-    { k: 'end', min: 0, title: 'Doug approves. Coo.', next: 'Next lesson: the finale, *The Final Chain*.' }
+    { k: 'end', min: 0, title: 'Doug approves. Coo.', next: 'Next lesson: *The Final Chain*, the film and its game.' }
   ]
 });

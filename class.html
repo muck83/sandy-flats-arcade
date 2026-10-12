@@ -369,14 +369,17 @@ a.btn{text-decoration:none;display:inline-block}
     t.textContent = msg; t.hidden = false; clearTimeout(tt); tt = setTimeout(function () { t.hidden = true; }, ms || 2600);
   };
   SFA.GAMES = [
-    { id: 'g1', title: 'Crack the Fair', file: 'g1-crack-the-fair.html' },
-    { id: 'g2', title: 'Glitch Hunt', file: 'g2-glitch-hunt.html' },
-    { id: 'g4', title: 'Gus\'s Forecast', file: 'g4-gus-forecast.html' },
-    { id: 'g3', title: 'The Keeper\'s Vault', file: 'g3-keepers-vault.html' },
-    { id: 'g5', title: 'Scorch Marks', file: 'g5-scorch-marks.html' },
-    { id: 'g6', title: 'Linear or Liar?', file: 'g6-linear-or-liar.html' },
-    { id: 'g7', title: 'Faster Than', file: 'g7-faster-than.html' },
-    { id: 'g8', title: 'Doug\'s Steps', file: 'g8-dougs-steps.html' }
+    { id: 'g9', title: 'Try Zero First', file: 'g9-try-zero-first.html', film: 1 },
+    { id: 'g1', title: 'Crack the Fair', file: 'g1-crack-the-fair.html', film: 2 },
+    { id: 'g2', title: 'Glitch Hunt', file: 'g2-glitch-hunt.html', film: 3 },
+    { id: 'g10', title: 'Tile Run', file: 'g10-tile-run.html', film: 4 },
+    { id: 'g11', title: 'Name Them Back', file: 'g11-name-them-back.html', film: 5 },
+    { id: 'g4', title: 'Gus\'s Forecast', file: 'g4-gus-forecast.html', film: 6 },
+    { id: 'g3', title: 'The Keeper\'s Vault', file: 'g3-keepers-vault.html', film: 7 },
+    { id: 'g5', title: 'Scorch Marks', file: 'g5-scorch-marks.html', film: 10 },
+    { id: 'g6', title: 'Linear or Liar?', file: 'g6-linear-or-liar.html', film: 13 },
+    { id: 'g7', title: 'Faster Than', file: 'g7-faster-than.html', film: 14 },
+    { id: 'g8', title: 'Doug\'s Steps', file: 'g8-dougs-steps.html', film: 16 }
   ];
   SFA.parseLevels = function (s) {
     return String(s || '').split(' ').filter(Boolean).map(function (t) { var m = t.match(/^([^.]+)\.([a-z]*):(.)$/); return m ? { id: m[1], tier: m[2], st: m[3] } : null; }).filter(Boolean);

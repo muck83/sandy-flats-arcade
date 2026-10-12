@@ -107,7 +107,7 @@
   });
 
   /* ---------- sign in / out ---------- */
-  function hasLocal() { for (var i = 1; i <= 12; i++) { var P = SFA.store.get('g' + i, null); if (P && P.done && Object.keys(P.done).length) return true; } return false; }
+  function hasLocal() { for (var i = 1; i <= 30; i++) { var P = SFA.store.get('g' + i, null); if (P && P.done && Object.keys(P.done).length) return true; } return false; }
   function adopt(student, games, sums) {
     var prevSid = SFA.store.get('sync.sid', null);
     var c = cred();

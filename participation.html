@@ -118,7 +118,7 @@
     var a = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: 'lesson-participation.csv' }); document.body.appendChild(a); a.click(); a.remove();
   }
   window.SFA_LESSON = function (L) { LES[L.id] = L; };
-  for (var i = 1; i <= 9; i++) { var s = document.createElement('script'); s.src = 'lessons/L' + i + '.js'; s.onload = s.onerror = function () { if (--left === 0) load(); }; document.head.appendChild(s); }
+  for (var i = 1; i <= 17; i++) { var s = document.createElement('script'); s.src = 'lessons/L' + i + '.js'; s.onload = s.onerror = function () { if (--left === 0) load(); }; document.head.appendChild(s); }
 })();
 </script>
 <script src="sfa-nav.js"></script>

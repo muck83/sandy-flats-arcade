@@ -1,10 +1,10 @@
 SFA_LESSON({
-  id: 'L1', n: 1, title: 'Crack the Fair',
+  id: 'L1', n: 2, title: 'Crack the Fair',
   film: { n: 2, title: 'Zero 2: Sidekick', len: '5:41' },
   game: { title: 'Crack the Fair', file: 'g1-crack-the-fair.html' },
   big: 'One input can fool you. Two good inputs can crack a rule.',
   slides: [
-    { k: 'title', min: 1, kicker: 'Lesson 1', title: 'Crack the Fair', sub: 'Every machine at the fair has a secret rule. Today you crack them.', art: 'machine' },
+    { k: 'title', min: 1, kicker: 'Lesson 2', title: 'Crack the Fair', sub: 'Every machine at the fair has a secret rule. Today you crack them.', art: 'machine' },
     { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *Zero 2: Sidekick*', 'Crack two machines together', 'Play *Crack the Fair* on your own', 'Answer a quick exit ticket'] },
     { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Which Sandy Flats character would you want on your team today?', opts: ['Zero', 'One', 'Gus', 'Priya', 'Marcus'] },
     { k: 'poll', min: 2, id: 'hook', q: 'A machine takes *3* and gives back *7*. What is its rule?',
@@ -32,6 +32,6 @@ SFA_LESSON({
       model: 'Little Cousin #3. 0 gave 5 and 1 gave 8, so I guessed 3x + 5 and tested it on 2.' },
     { k: 'exit', min: 2, id: 'exit', q: 'A machine turns *0 into −4* and *1 into −1*. Write its rule. What does it give for *10*?', ph: 'The rule is... For 10 it gives...',
       model: 'The rule is 3x − 4, because it starts at −4 and goes up 3 each step. For 10 it gives 26.' },
-    { k: 'end', min: 0, title: 'Machines cracked!', next: 'Next lesson: Glitch Hunt, after *Lost in Graph Land*.' }
+    { k: 'end', min: 0, title: 'Machines cracked!', next: 'Next lesson: *The Glitch*, the film and its game.' }
   ]
 });

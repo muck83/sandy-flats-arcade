@@ -7,9 +7,23 @@
   var CFG = window.SFA_CONFIG || {}, Q = location.search, page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   if (/[?&]screen/.test(Q)) return;   // the class screen stays clean for screen sharing
   var teach = /^(class|participation|teacher)\.html$/.test(page) || (/^lessons?\.html$/.test(page) && /[?&]teach/.test(Q));
-  // which lesson each game belongs to (the lesson files say the same)
-  var LESSON_OF = { 'g1-crack-the-fair.html': 1, 'g2-glitch-hunt.html': 2, 'g4-gus-forecast.html': 3, 'g3-keepers-vault.html': 4, 'g5-scorch-marks.html': 5, 'g6-linear-or-liar.html': 6, 'g7-faster-than.html': 7, 'g8-dougs-steps.html': 8 };
-  window.SFA_LESSON_OF = LESSON_OF;
+  var PLAN = [   // film order: lesson file number, the number students see (= film), its game
+    { l: 10, n: 1, game: 'g9-try-zero-first.html' },
+    { l: 1, n: 2, game: 'g1-crack-the-fair.html' },
+    { l: 2, n: 3, game: 'g2-glitch-hunt.html' },
+    { l: 11, n: 4, game: 'g10-tile-run.html' },
+    { l: 12, n: 5, game: 'g11-name-them-back.html' },
+    { l: 3, n: 6, game: 'g4-gus-forecast.html' },
+    { l: 4, n: 7, game: 'g3-keepers-vault.html' },
+    { l: 5, n: 10, game: 'g5-scorch-marks.html' },
+    { l: 6, n: 13, game: 'g6-linear-or-liar.html' },
+    { l: 7, n: 14, game: 'g7-faster-than.html' },
+    { l: 8, n: 16, game: 'g8-dougs-steps.html' },
+    { l: 9, n: 17, game: 'g3-keepers-vault.html' }
+  ];
+  var LESSON_OF = {}, NUM = {};   // game file -> lesson file number; lesson file number -> number shown
+  PLAN.forEach(function (p) { if (!LESSON_OF[p.game]) LESSON_OF[p.game] = p.l; NUM[p.l] = p.n; });
+  window.SFA_LESSON_OF = LESSON_OF; window.SFA_LESSON_NUM = NUM; window.SFA_PLAN = PLAN;
 
   var css = '.sfanav{display:flex;flex-wrap:wrap;gap:6px;align-items:center}' +
     '.sfanav a{font:700 13px/1 var(--ui,system-ui,sans-serif);padding:7px 11px;border-radius:999px;color:var(--ink,#f4efe6);text-decoration:none;border:1px solid var(--line,rgba(255,255,255,.18));background:var(--panel2,rgba(255,255,255,.04));white-space:nowrap}' +
@@ -41,9 +55,9 @@
     nav.appendChild(liveSlot);
     nav.appendChild(link('index.html', '🕹️ Arcade', page === 'index.html' || page === ''));
     nav.appendChild(link('lessons.html', '📚 Lessons', page === 'lessons.html' || page === 'lesson.html'));
-    if (LESSON_OF[page]) nav.appendChild(link('lesson.html?l=' + LESSON_OF[page], '📺 Lesson ' + LESSON_OF[page] + ' slides', false));
+    if (LESSON_OF[page]) nav.appendChild(link('lesson.html?l=' + LESSON_OF[page], '📺 Lesson ' + (NUM[LESSON_OF[page]] || LESSON_OF[page]) + ' slides', false));
     if (page === 'lesson.html') {   // and from a lesson, straight to its game
-      var ln = +((Q.match(/[?&]l=(\d+)/) || [])[1] || 0), gf = ln === 9 ? 'g3-keepers-vault.html' : Object.keys(LESSON_OF).filter(function (f) { return LESSON_OF[f] === ln; })[0];
+      var ln = +((Q.match(/[?&]l=(\d+)/) || [])[1] || 0), gf = (PLAN.filter(function (p) { return p.l === ln; })[0] || {}).game;
       if (gf) nav.appendChild(link(gf, '🕹️ Play the game', false));
     }
     nav.appendChild(link('results.html', '⭐ My Results', page === 'results.html'));
@@ -80,7 +94,7 @@
           liveSlot.innerHTML = '';
           var big = document.getElementById('sfaLive'); if (big) big.remove();
           if (!on) return;
-          var n = L.lesson.slice(1), href = 'lesson.html?l=' + n;
+          var id = L.lesson.slice(1), n = NUM[id] || id, href = 'lesson.html?l=' + id;
           liveSlot.appendChild(link(href, '🔴 Live now: Lesson ' + n, false, 'live'));
           var anchor = document.getElementById('nextUp') || document.getElementById('grid');
           if (anchor) {

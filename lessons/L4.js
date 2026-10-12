@@ -1,10 +1,10 @@
 SFA_LESSON({
-  id: 'L4', n: 4, title: 'The Keeper\'s Vault',
+  id: 'L4', n: 7, title: 'The Keeper\'s Vault',
   film: { n: 7, title: 'The Chain', len: '8:06' },
   game: { title: 'The Keeper\'s Vault', file: 'g3-keepers-vault.html' },
   big: 'Words, rule, table and graph are four ways of saying one true thing. Check them all, not just one.',
   slides: [
-    { k: 'title', min: 1, kicker: 'Lesson 4', title: 'The Keeper\'s Vault', sub: 'Four doors. Ninety seconds. One true thing, said four ways.', art: '🔐' },
+    { k: 'title', min: 1, kicker: 'Lesson 7', title: 'The Keeper\'s Vault', sub: 'Four doors. Ninety seconds. One true thing, said four ways.', art: '🔐' },
     { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *The Chain*', 'Run the Chain together: words, rule, table, graph', 'Play *The Keeper\'s Vault* on your own', 'Answer a quick exit ticket'] },
     { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Four doors in the Keeper\'s Vault. Which one would you open first?', opts: ['Door 1', 'Door 2', 'Door 3', 'Door 4'] },
     { k: 'poll', min: 2, id: 'hook', q: 'Words: _a taxi costs 3 per km, plus 2 to start._ Marcus types *2 × km + 3*. The door tests *1 km*: ✓. Is he right?',
@@ -36,6 +36,6 @@ SFA_LESSON({
       model: 'I mixed up the start and the step. Now I put in 0 first to find the start, then 1 to find the step.' },
     { k: 'exit', min: 2, id: 'exit', q: 'A pool has *5 litres* and fills *4 litres every minute*. Write the rule. Then find the litres at 0, 1 and 3 minutes.', ph: 'The rule is... 0 gives... 1 gives... 3 gives...',
       model: 'litres = 4 × minutes + 5. At 0 minutes: 5. At 1 minute: 9. At 3 minutes: 17.' },
-    { k: 'end', min: 0, title: 'The Chain is whole!', next: 'Next lesson: Scorch Marks, after *One Alone*.' }
+    { k: 'end', min: 0, title: 'The Chain is whole!', next: 'Next lesson: *Where Zero Isn\'t*, the film and its game.' }
   ]
 });

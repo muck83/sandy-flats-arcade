@@ -1,10 +1,10 @@
 SFA_LESSON({
-  id: 'L6', n: 6, title: 'Linear or Liar?',
+  id: 'L6', n: 13, title: 'Linear or Liar?',
   film: { n: 13, title: 'Linear or Liar?', len: '5:01' },
   game: { title: 'Linear or Liar?', file: 'g6-linear-or-liar.html' },
   big: 'Going up is not the same as going up evenly. Linear means the same rate every step.',
   slides: [
-    { k: 'title', min: 1, kicker: 'Lesson 6', title: 'Linear or Liar?', sub: 'Some machines say they are linear. Some of them are lying. Today you catch them.', art: '🕵️' },
+    { k: 'title', min: 1, kicker: 'Lesson 13', title: 'Linear or Liar?', sub: 'Some machines say they are linear. Some of them are lying. Today you catch them.', art: '🕵️' },
     { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *Linear or Liar?*', 'Learn one test that busts a liar', 'Play *Linear or Liar?* as a detective', 'Answer a quick exit ticket'] },
     { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Every detective needs a snack. What\'s yours?', opts: ['Popcorn', 'Dates', 'Chips', 'Fruit', 'No snack, I\'m focused'] },
     { k: 'poll', min: 2, id: 'hook', q: 'In _Doors and Walls_, a door opens *1 ÷ input* wide. Marcus says: "Zero makes the BIGGEST DOOR EVER!" Is he right?',
@@ -40,6 +40,6 @@ SFA_LESSON({
     { k: 'exit', min: 2, id: 'exit', q: 'This machine claims to be *linear*. Linear or liar? Show the *evidence*.', ph: 'It is... because the jumps are...',
       model: 'Liar. The inputs go up by 1 each time, but the jumps are 1, 2, 4. Not the same, so it is not linear, and it said it was.',
       fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 1], [1, 2], [2, 4], [3, 8]] } },
-    { k: 'end', min: 0, title: 'Case closed!', next: 'Next lesson: *Faster Than*, the film and the game.' }
+    { k: 'end', min: 0, title: 'Case closed!', next: 'Next lesson: *Faster Than*, the film and its game.' }
   ]
 });
