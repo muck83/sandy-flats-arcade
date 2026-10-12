@@ -611,11 +611,22 @@
       if (other) { banner.innerHTML = ''; banner.appendChild(H('span', '', '<b>' + TEACHER + ' is teaching Lesson ' + esc(live.lesson.slice(1)) + ' right now.</b>')); var a = H('a', 'btn primary small', 'Join it'); a.href = 'lesson.html?l=' + live.lesson.slice(1); banner.appendChild(a); }
     }
   }
+  // A sign-in bar under the top bar on every slide, so students can sign in even while the teacher has locked the slides
+  var signBar = null, signKey = '';
+  function signDraw() {
+    if (!signBar) return;
+    var need = saving && (!S.me || S.status === 'signedout' || (S.credExpired && S.credExpired()));
+    var key = need ? 'need' : 'ok'; if (key === signKey) return; signKey = key;
+    signBar.hidden = !need; signBar.innerHTML = ''; if (!need) return;
+    signBar.appendChild(H('span', '', '<b>' + (S.me ? 'Sign in again so your answers count.' : 'Sign in so your answers count.') + '</b>'));
+    S.button(signBar);
+  }
   function acctDraw() {
+    signDraw();
     if (!acctChip) return;
     if (!saving) { acctChip.hidden = true; return; }
     if (S.me) { acctChip.textContent = '✓ ' + first(S.me.name); acctChip.className = 'chip static'; acctChip.onclick = null; }
-    else { acctChip.textContent = 'Not signed in: answers won\'t count'; acctChip.className = 'chip warn'; acctChip.onclick = function () { var k = LES.slides.findIndex(function (s) { return s.k === 'signin'; }); go(k >= 0 ? k : 0, true); }; }
+    else { acctChip.textContent = 'Not signed in: answers won\'t count'; acctChip.className = 'chip warn'; acctChip.onclick = function () { var i = signBar && signBar.querySelector('input'); if (i) { i.focus(); i.scrollIntoView({ block: 'nearest' }); } }; }
   }
 
   /* ---------------- live: students check what the teacher is showing ---------------- */
@@ -892,6 +903,7 @@
     if (MODE === 'student') { acctChip = el('button', { type: 'button', 'class': 'chip' }); topChips.appendChild(acctChip); }
     document.body.insertBefore(top, document.body.firstChild);
     banner = H('div', 'banner'); banner.hidden = true; top.after(banner);
+    if (MODE === 'student') { signBar = H('div', 'banner signbar'); signBar.hidden = true; banner.after(signBar); }
     var main = document.querySelector('.lmain');
     var col = H('div'); col.style.width = '100%'; col.style.display = 'flex'; col.style.flexDirection = 'column'; col.style.alignItems = 'center';
     deck = H('div', 'deck'); deck.setAttribute('aria-live', 'polite'); col.appendChild(deck);
