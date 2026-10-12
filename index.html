@@ -869,7 +869,7 @@ a.btn{text-decoration:none;display:inline-block}
   var host=$('#games');
   var LES_OF={g1:1,g2:2,g4:3,g3:4,g5:5,g6:6,g7:7,g8:8};   // the lesson that goes with each game
   var GOAL={g1:'Feed numbers into machines and work out their secret rules.',g2:'Catch the suspect that gives one input two outputs.',g4:'Build graphs that tell a story, and read stories from graphs.',g3:'Turn one rule into words, a table, a graph and a formula.',g5:'Find the slope between two marks, then the rule.',g6:'Spot the machines that only pretend to be lines.',g7:'Work out who is fastest when every ride shows it differently.',g8:'Dots or a line? Fence in the inputs and outputs.'};
-  function prog(G){ var p=SFA.store.get(G.id,null); var info=SFA.GAMES[G.g]||{}; var n=p&&p.done?Object.keys(p.done).filter(function(k){return p.done[k];}).length:0; var tot=({1:11,2:8,3:8,4:9,5:11,6:8,7:9,8:9})[G.g]||0; return {n:n,tot:tot}; }
+  function prog(G){ var p=SFA.store.get(G.id,null); var info=SFA.GAMES[G.g]||{}; var n=p&&p.done?Object.keys(p.done).filter(function(k){return p.done[k];}).length:0; var tot=({1:11,2:7,3:8,4:9,5:11,6:8,7:9,8:9})[G.g]||0; return {n:n,tot:tot}; }
   var next=null;
   GAMES.forEach(function(G,ix){
     var info=SFA.GAMES[G.g]; var pr=prog(G); if(!next&&!(pr.n&&pr.tot&&pr.n>=pr.tot)&&!(pr.n>0&&ix<GAMES.length-1&&prog(GAMES[ix+1]).n>0)) next={G:G,ix:ix,pr:pr};

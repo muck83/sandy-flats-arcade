@@ -2128,7 +2128,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
 })();
 </script>
 <script>/* G2 Glitch Hunt (case + bust). Source moments: the B4 crisps and the indecisive Multiplex (The Glitch), Sam wrongly accused
-   (The Glitch), Linesy and the Loop (Lost in Graph Land). Standard: 8.F.1 (a function gives each input exactly one output). */
+   (The Glitch). Kept to that one film: no graphs or vertical line test (those belong to Lost in Graph Land). Standard: 8.F.1 (a function gives each input exactly one output). */
 (function () {
   'use strict';
   var SFA = window.SFA, V = SFA.vo, el = SFA.el, $ = SFA.$;
@@ -2143,21 +2143,20 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'C1', tier: 'core', name: 'Who Glitched the Multiplex?' },
     { id: 'C2', tier: 'core', name: 'The Roundness Trap' },
     { id: 'C3', tier: 'core', name: 'Pairs on the Wall' },
-    { id: 'C4', tier: 'core', name: 'Linesy Joins the Force' },
     { id: 'S1', tier: 'stretch', name: 'The Clever Liar' },
     { id: 'S2', tier: 'stretch', name: 'Write the Confession' },
     { id: 'S3', tier: 'stretch', name: 'Is Doug a Function?' }
   ];
-  var CORE = ['C1', 'C2', 'C3', 'C4'];
+  var CORE = ['C1', 'C2', 'C3'];
   function status(P) {
     var coreN = CORE.filter(function (id) { return P.done[id]; }).length;
     var wrong = CORE.reduce(function (s, id) { return s + (P.wrongBest[id] || 0); }, 0);
-    var std = coreN === 4 && wrong <= 2 && !!P.samCleared;
-    var note = coreN < 4 ? coreN + ' of 4 cases closed' : !P.samCleared ? 'Clear Sam in "The Roundness Trap"' : wrong > 2 ? wrong + ' wrong accusations (needs 2 or fewer): replay a case to improve it' : '';
-    return { std: std, coreN: coreN, coreTotal: 4, note: note, specials: [!!P.friendOfSam, !!(P.done.S2 && P.s2 && P.s2.ok), !!(P.done.S1 && P.s1 && (P.s1.eff != null ? P.s1.eff : P.s1.wasted === 0))] };
+    var std = coreN === 3 && wrong <= 2 && !!P.samCleared;
+    var note = coreN < 3 ? coreN + ' of 3 cases closed' : !P.samCleared ? 'Clear Sam in "The Roundness Trap"' : wrong > 2 ? wrong + ' wrong accusations (needs 2 or fewer): replay a case to improve it' : '';
+    return { std: std, coreN: coreN, coreTotal: 3, note: note, specials: [!!P.friendOfSam, !!(P.done.S2 && P.s2 && P.s2.ok), !!(P.done.S1 && P.s1 && (P.s1.eff != null ? P.s1.eff : P.s1.wasted === 0))] };
   }
   var CERTS = [
-    { key: 'std', title: 'Sandy Flats Glitch Detective', sub: 'closed every case with evidence: one input, one output', by: 'Mr. Dunmore', quote: 'One input, one output. On the wall, and now in your head.', line: 'g2_cert_std', crit: 'Close cases 1 to 4, each accusation backed by evidence, with 2 or fewer wrong accusations in total, and clear Sam.', portrait: 'dunmore', portraitSrc: [380, 250, 210] },
+    { key: 'std', title: 'Sandy Flats Glitch Detective', sub: 'closed every case with evidence: one input, one output', by: 'Mr. Dunmore', quote: 'One input, one output. On the wall, and now in your head.', line: 'g2_cert_std', crit: 'Close cases 1 to 3, each accusation backed by evidence, with 2 or fewer wrong accusations in total, and clear Sam.', portrait: 'dunmore', portraitSrc: [380, 250, 210] },
     { key: 0, title: 'Friend of Sam', sub: 'cleared an innocent suspect before anyone else was accused', by: 'Squaring Sam', quote: 'Nobody ever asks. You asked.', line: 'g2_cert_sam', crit: 'In "The Roundness Trap", clear Sam first (before accusing anyone), with the right reason on the first try and at most one small hint.', portrait: 'sam', portraitSrc: [370, 230, 220], gold: 'd5' },
     { key: 1, title: 'Rule Breaker, Rule Maker', sub: 'built a liar that fools the table check', by: 'The Glitch', quote: 'Y-you made a liar on purpose? That\'s... actually really clever.', line: 'g2_s2_ok', crit: 'Challenge "Write the Confession": build a relation that passes Marcus\'s table check at 0, 1 and 2 but fails Linesy\'s test somewhere else.', portrait: 'glitch', portraitSrc: [380, 270, 200] },
     { key: 2, title: 'Efficient Detective', sub: 'caught the clever liar without wasting a single test', by: 'Gus', quote: 'You only had to look twice.', line: 'g2_s1_found', crit: 'Challenge "The Clever Liar": bust it without a wasted test (no even inputs, nothing above 5), never asking the same thing more than twice.', portrait: 'gus', portraitSrc: [380, 290, 200] }
@@ -2248,7 +2247,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
 
   /* ================= game shell ================= */
   var Gm = SFA.Game({
-    id: 'g2', no: 2, name: 'Glitch Hunt', sideTitle: 'Case notes', sideEmpty: 'Evidence you pin, suspects you clear and busts you make are written here.', levels: LEVELS, unlockStretchAfter: 'C4', certs: CERTS,
+    id: 'g2', no: 2, name: 'Glitch Hunt', sideTitle: 'Case notes', sideEmpty: 'Evidence you pin, suspects you clear and busts you make are written here.', levels: LEVELS, unlockStretchAfter: 'C3', certs: CERTS,
     blank: function () { return { wrongBest: {}, busts: [], s1: null, s2: null, samCleared: false, friendOfSam: false }; },
     status: status, artefact: artefact, portrait: portrait,
     build: function (L, G) { ({ C0: C0, C1: C1, C2: C2, C3: C3, C4: C4, S1: S1, S2: S2, S3: S3 })[L.id](G); },
@@ -2565,7 +2564,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     reset(); ST.cast = { marcus: { x: 80, f: 1, sc: 0.7 } };
     ST.graph = { points: [], label: 'YOUR LIAR' }; GR.xr = [0, 6]; GR.yr = [0, 9];
     var pts = ST.graph.points;
-    G.setTask('Write the Confession', job('Build a liar that fools Marcus but not Linesy.', 'Marcus\'s detector only checks inputs <strong>0, 1 and 2</strong>.', ['Tap the grid: put exactly <strong>one</strong> point above 0, 1 and 2.', 'Pick an input from 3 to 6. Put <strong>two</strong> points above it.', 'Press <strong>Run both tests</strong>.'], 'Marcus\'s check passes and Linesy catches your liar.'));
+    G.setTask('Write the Confession', job('Build a liar that sneaks past Marcus\'s detector.', 'Marcus\'s detector only checks inputs <strong>0, 1 and 2</strong>. Each point is (input, output).', ['Tap the grid: put exactly <strong>one</strong> point above 0, 1 and 2.', 'Pick an input from 3 to 6. Put <strong>two</strong> points above it.', 'Press <strong>Run both tests</strong>.'], 'Marcus\'s check passes, but one input has two outputs.'));
     var grid = el('div', { 'class': 'pgrid', role: 'grid', 'aria-label': 'Point grid: inputs 0 to 6 across, outputs 0 to 9 up' });
     for (var y = 9; y >= 0; y--) { var row = el('div', { 'class': 'prow', role: 'row' }); row.appendChild(el('span', { 'class': 'plab', text: String(y) })); for (var x = 0; x <= 6; x++) { (function (x, y) { row.appendChild(el('button', { type: 'button', 'class': 'pcell', role: 'gridcell', 'aria-pressed': 'false', 'aria-label': 'Point (' + x + ', ' + y + ')', onclick: function (e) { toggle(x, y, e.target); } })); })(x, y); } grid.appendChild(row); }
     var xl = el('div', { 'class': 'prow' }); xl.appendChild(el('span', { 'class': 'plab' })); for (var k = 0; k <= 6; k++) xl.appendChild(el('span', { 'class': 'plab', text: String(k) })); grid.appendChild(xl);
@@ -2580,10 +2579,10 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       var tableOK = [0, 1, 2].every(function (x) { return cnt(x) === 1; }); var clash = [3, 4, 5, 6].filter(function (x) { return cnt(x) >= 2; })[0];
       G.lock(true);
       if (!tableOK) { G.firstTry(false); G.say('Marcus\'s check: inputs 0, 1 and 2 must each have exactly one point. ' + [0, 1, 2].map(function (x) { return x + ' has ' + cnt(x); }).join(', ') + '. Fix those, then run the tests again.', 'bad'); G.after(V.say('g2_s2_badtable'), function () { G.lock(false); }); return; }
-      if (clash == null) { ST.linesy = 4; G.firstTry(false); G.say('Marcus is fooled, but Linesy finds nothing: no input past 2 has two points. That\'s still a function. Put two points above one input from 3 to 6.', 'bad'); G.after(V.say(['g2_s2_pass', 'g2_s2_badfunc']), function () { G.lock(false); }); return; }
-      ST.linesy = clash; G.P.s2 = { ok: true, points: pts.map(function (p) { return p.slice(); }), clash: clash }; G.P.done.S2 = true; G.save();
-      G.say('Marcus\'s table check passes. Then Linesy stands at input ' + clash + ' and touches twice. A liar, built on purpose.', 'good');
-      G.after(V.say(['g2_s2_pass', 'g2_c4_twice', 'g2_s2_ok']), function () { G.lock(false); GR.xr = [-4, 4]; GR.yr = [-3, 7]; G.levelDone('S2', 'Confession written: it fools a 3-input table check and fails Linesy at input ' + clash + '. You earned Rule Breaker, Rule Maker.', []); });
+      if (clash == null) { G.firstTry(false); G.say('Marcus\'s check passes, but this is no liar: every input has just one output. That\'s still a function. Put two points above one input from 3 to 6.', 'bad'); G.lock(false); return; }
+      G.P.s2 = { ok: true, points: pts.map(function (p) { return p.slice(); }), clash: clash }; G.P.done.S2 = true; G.save();
+      G.say('Marcus\'s check passes. But input ' + clash + ' has two outputs: ' + pts.filter(function (p) { return p[0] === clash; }).map(function (p) { return p[1]; }).join(' and ') + '. One input, two outputs. A liar, built on purpose.', 'good');
+      G.after(V.say(['g2_s2_ok']), function () { G.lock(false); GR.xr = [-4, 4]; GR.yr = [-3, 7]; G.levelDone('S2', 'Confession written: it fools a 3-input table check, but input ' + clash + ' has two outputs. You earned Rule Breaker, Rule Maker.', []); });
     });
     G.hintFn = function (r) { G.say(r === 1 ? 'Hint: put exactly one point above 0, 1 and 2.' : r === 2 ? 'Hint: now pick an input like 4, and put two points above it.' : 'Worked step: (0, 1), (1, 3), (2, 5), then (4, 2) and (4, 6).'); if (r >= 4) { [[0, 1], [1, 3], [2, 5], [4, 2], [4, 6]].forEach(function (p) { if (!pts.some(function (q) { return q[0] === p[0] && q[1] === p[1]; })) { var b = grid.querySelector('[aria-label="Point (' + p[0] + ', ' + p[1] + ')"]'); toggle(p[0], p[1], b); } }); } };
     V.say(['g2_s2_intro', 'g2_s2_marcus']);

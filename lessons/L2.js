@@ -34,7 +34,7 @@ SFA_LESSON({
     { k: 'machine', min: 2, id: 'fixed', name: 'The Glitch, fixed', rule: 'x+5', q: 'This is the Glitch *after* it got its rule. Feed it numbers. Does the same input always give the same output? Then type its rule.' },
     { k: 'play', min: 12, title: 'Play Glitch Hunt', minutes: 12,
       steps: ['Open the game and press *Start the case*.', 'Start with *The Snack Machine*. Read the job card.', 'Test before you accuse. Every accusation needs proof: one input, two outputs.', 'Stuck? Press *Get a hint*. That\'s what it\'s for.'],
-      aim: 'Done when the timer runs out. Aim to finish case 3, *Pairs on the Wall*.' },
+      aim: 'Done when the timer runs out. Aim to close all three cases, up to *Pairs on the Wall*.' },
     { k: 'conf', min: 1, id: 'conf', q: 'How do you feel about spotting what is and isn\'t a function?' },
     { k: 'open', min: 2, id: 'report', q: 'Write a *case report* for one glitch you busted. Fill in: "Suspect ..., input ... gave ... and ..."', ph: 'Suspect...',
       model: 'Suspect: the Sneak. Input 2 gave 4 and 5. One input, two outputs, so it is not a function.' },
