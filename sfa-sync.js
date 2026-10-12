@@ -65,8 +65,9 @@
     // a fresh object every time, so a save already on its way can't swallow this one
     pending[game] = { raw: P, summary: summary, events: ((pending[game] || {}).events || []).concat(ev).slice(-20) };
     SFA.store.set('sync.pending', pending);
-    // finished levels and certificates go quickly; everything else is batched
-    schedule(ev.length ? 600 : 20000);
+    // finished levels and certificates go quickly; everything else is batched. Never show "saved" while work waits to go.
+    if (cred() && S.status === 'saved') setStatus('saving');
+    schedule(ev.length ? 600 : 8000);
   };
 
   function schedule(ms) { clearTimeout(timer); timer = setTimeout(flush, ms); }
@@ -95,7 +96,15 @@
   }
   window.addEventListener('online', function () { schedule(500 + Math.random() * 3000); });
   window.addEventListener('pagehide', function () { if (Object.keys(pending).length) { clearTimeout(timer); flush(true); } });
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden' && Object.keys(pending).length && !inflight) { clearTimeout(timer); flush(true); } });
+  document.addEventListener('visibilitychange', function () {
+    if (!Object.keys(pending).length || inflight) return;
+    if (document.visibilityState === 'hidden') { clearTimeout(timer); flush(true); }
+    else schedule(500);   // back on the tab (or the laptop woke up): try again now
+  });
+  // leaving while saves are failing would strand work on this computer, so ask first
+  window.addEventListener('beforeunload', function (e) {
+    if (Object.keys(pending).length && (S.status === 'offline' || S.status === 'signedout') && S.me) { e.preventDefault(); e.returnValue = ''; return ''; }
+  });
 
   /* ---------- sign in / out ---------- */
   function hasLocal() { for (var i = 1; i <= 12; i++) { var P = SFA.store.get('g' + i, null); if (P && P.done && Object.keys(P.done).length) return true; } return false; }

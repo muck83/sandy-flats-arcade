@@ -122,7 +122,8 @@
     S.onChange(function (s) {
       if (!s.me) { chip.textContent = 'Not saving: sign in'; chip.style.borderColor = 'var(--red)'; chip.href = 'index.html#signin'; return; }
       chip.style.borderColor = '';
-      chip.textContent = s.status === 'saving' ? 'Saving…' : s.status === 'offline' ? 'Offline (will save)' : s.status === 'signedout' ? 'Sign in again' : '✓ ' + first(s.me.name);
+      chip.textContent = s.status === 'saving' ? 'Saving…' : s.status === 'offline' ? 'Not saved yet (retrying)' : s.status === 'signedout' ? 'Not saving: sign in again' : '✓ Saved · ' + first(s.me.name);
+      chip.style.borderColor = s.status === 'offline' || s.status === 'signedout' ? 'var(--red)' : '';
       chip.href = s.status === 'signedout' ? 'index.html#signin' : 'results.html';
     });
   }
