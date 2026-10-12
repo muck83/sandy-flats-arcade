@@ -21,7 +21,8 @@
     'g8': 'Decide if a story needs dots or a line, then fence in the inputs and outputs.',
     'g9': 'Feed zero first to see where a rule starts, then crack each machine.',
     'g10': 'Plot Gus\'s signs, find the half tile, read the graph backwards and dodge the Vertical Line.',
-    'g11': 'Say each machine\'s name back three ways: sentence, pair, point.'
+    'g11': 'Say each machine\'s name back three ways: sentence, pair, point.',
+    'g12': 'Find the step, walk back to input 0 to find where each rule starts, then predict a row that isn\'t in the table.'
   };
   var gid = (location.pathname.match(/\/(g\d+)-/) || [])[1];
   var TIER = { 'Low floor': 'Warm-up', 'Core': 'Main', 'Stretch': 'Challenge', 'Review': 'Review' };
