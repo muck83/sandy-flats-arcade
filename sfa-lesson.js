@@ -37,7 +37,9 @@
   function plain(s) { return String(s || '').replace(/[*_]/g, ''); }
   function interactive(s) { return !!s.id; }
   function questions() { return LES.slides.filter(interactive); }
-  function letter(i) { return 'ABCDE'.charAt(i); }
+  // lesson files are numbered L1-L17 in the order they were written; students see the film number (sfa-nav.js has the map)
+  function shownNum(id) { var k = String(id || '').slice(1), m = window.SFA_LESSON_NUM || {}; return m[k] || k; }
+  function letter(i) { return 'ABCDEFGH'.charAt(i); }
   function post(body) {
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
       .then(function (r) { return r.text(); })
@@ -297,7 +299,7 @@
       c.appendChild(l); c.appendChild(r); d.appendChild(c);
       function draw() {
         r.innerHTML = '';
-        if (show) { r.appendChild(H('p', 'q', 'Sign in on your own device')); r.appendChild(H('p', 'sub', 'Go to <b>' + esc(location.host + location.pathname.replace(/[^\/]*$/, '') + 'lessons.html') + '</b> and open ' + esc(LID) + '.')); r.appendChild(H('p', 'sub', (CFG.auth === 'code' ? 'Type the <b>student code</b> from your school email.' : 'Press <b>Sign in with Google</b> and pick your school account.'))); return; }
+        if (show) { r.appendChild(H('p', 'q', 'Sign in on your own device')); r.appendChild(H('p', 'sub', 'Go to <b>' + esc(location.host + location.pathname.replace(/[^\/]*$/, '') + 'lessons.html') + '</b> and open <b>Lesson ' + esc(LES.n) + ': ' + esc(LES.title) + '</b>.')); r.appendChild(H('p', 'sub', (CFG.auth === 'code' ? 'Type the <b>student code</b> from your school email.' : 'Press <b>Sign in with Google</b> and pick your school account.'))); return; }
         if (!saving) { r.appendChild(H('p', 'sub', 'Answer saving is off for this copy, so just follow along.')); return; }
         if (S.me) { r.appendChild(H('p', 'okline', '✓ You\'re in, ' + esc(first(S.me.name)) + '.')); r.appendChild(H('p', 'sub', 'Your answers go to ' + TEACHER + '. Press <b>Next</b> when you\'re ready.')); return; }
         r.appendChild(H('p', 'q', 'Sign in so your answers count'));
@@ -337,7 +339,7 @@
       d._upd = function () {
         box.innerHTML = '';
         if (show) { box.appendChild(tallyFor(s.id)); var p = feed && feed.per[s.id]; if (p && p.n) box.appendChild(H('p', 'state', p.right + ' right so far')); if (reveal(s.id) >= 2 || (MODE === 'teach' && console_ && console_.peek)) box.appendChild(H('div', 'reveal', '<b>Answer: ' + esc(show_(s.ans)) + '.</b> ' + fmt(s.why || ''))); return; }
-        var a = mine[s.id], inp = el('input', { type: 'text', inputmode: 'decimal', 'aria-label': 'Your answer', placeholder: 'Type a number', autocomplete: 'off' });
+        var a = mine[s.id], inp = el('input', { type: 'text', inputmode: s.ans < 0 ? 'text' : 'decimal', 'aria-label': 'Your answer', placeholder: 'Type a number', autocomplete: 'off' });   // iPhone number pads have no minus key
         if (a) inp.value = a.answer;
         var btn = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' });
         var row = H('div', 'row'); row.appendChild(inp); row.appendChild(btn); box.appendChild(row);
@@ -608,7 +610,7 @@
       liveChip.setAttribute('aria-pressed', follow ? 'true' : 'false');
       var other = live && live.lesson !== LID && !ended(live) && Date.now() - live.at < LIVE_FRESH;
       banner.hidden = !other;
-      if (other) { banner.innerHTML = ''; banner.appendChild(H('span', '', '<b>' + TEACHER + ' is teaching Lesson ' + esc(live.lesson.slice(1)) + ' right now.</b>')); var a = H('a', 'btn primary small', 'Join it'); a.href = 'lesson.html?l=' + live.lesson.slice(1); banner.appendChild(a); }
+      if (other) { banner.innerHTML = ''; banner.appendChild(H('span', '', '<b>' + TEACHER + ' is teaching Lesson ' + esc(shownNum(live.lesson)) + ' right now.</b>')); var a = H('a', 'btn primary small', 'Join it'); a.href = 'lesson.html?l=' + live.lesson.slice(1); banner.appendChild(a); }
     }
   }
   // A sign-in bar under the top bar on every slide, so students can sign in even while the teacher has locked the slides
@@ -728,7 +730,7 @@
       if (!console_.on || console_.offline || Date.now() - lastPush < 20000) return;
       tpost('live').then(function (j) { if (console_.on && ended(j.live) && j.live.lesson === LID && Date.now() - lastPush > 20000) { console_.on = false; clearTimeout(pushT); consolePanel(); liveChip.hidden = true; SFA.toast('The live lesson was ended from another window.', 4000); } }, function () { });
     }, 15000);
-    tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
+    if (!console_.offline) tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
     return true;
   }
   function fetchAnswers() {

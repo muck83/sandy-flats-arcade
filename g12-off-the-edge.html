@@ -1642,14 +1642,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'r2', kind: 'R', title: 'Can I Be the Sidekick NOW?', game: 'g1', file: 'reels/r2.html', from: 'Zero 2: Sidekick, about 5:10' },
     { id: 'r3', kind: 'R', title: 'It Is, Undeniably, a Doug', game: 'g2', file: 'reels/r3.html', from: 'The Glitch, about 0:30' },
     { id: 'r4', kind: 'R', title: 'Mostly Fine', game: 'g2', file: 'reels/r4.html', from: 'The Glitch, about 5:10' },
-    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g3', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
+    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g11', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
     { id: 'r6', kind: 'R', title: 'Found It With My Face', game: 'g5', file: 'reels/r6.html', from: 'Start and Step, about 4:10', egg: true },
     { id: 'd1', kind: 'D', title: 'The Multiplex 5000', game: 'g1', file: 'reels/d1.html', egg: true },
     { id: 'd2', kind: 'D', title: 'One Single Drop', game: 'g4', file: 'reels/d2.html', egg: true, premiere: 'h95c0a0cb' },
     { id: 'd3', kind: 'D', title: 'Doug Files a Report', game: 'g8', file: 'reels/d3.html', egg: true },
     { id: 'd4', kind: 'D', title: 'The Sidekick Application', game: 'g2', file: 'reels/d4.html', egg: true },
     { id: 'd5', kind: 'D', title: 'Sam Meets Linesy', game: 'g2', file: 'reels/d5.html', gold: 'Friend of Sam (Glitch Hunt)', egg: true },
-    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g6', file: 'reels/d6.html', gold: 'Door Master (Linear or Liar?)', egg: true },
+    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g15', file: 'reels/d6.html', gold: 'Knows Their Limits (The Outer Machines)', egg: true },
     { id: 'd7', kind: 'D', title: "One's Forty-Second Lap", game: 'g5', file: 'reels/d7.html', egg: true },
     { id: 'o1', kind: 'O', title: 'Across Three, Up One', game: 'g5', file: 'reels/o1.html', egg: true },
     { id: 'o2', kind: 'O', title: "Gus Can't Shout", game: 'g4', file: 'reels/o2.html' },
@@ -1796,7 +1796,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   SFA.GAMES = {
     1: { name: 'Crack the Fair', std: 'Licensed Fair Cracker', specials: ['The X-Ray Specialist', "Where Zero Isn't", 'Faker Finder'] },
     2: { name: 'Glitch Hunt', std: 'Sandy Flats Glitch Detective', specials: ['Friend of Sam', 'Rule Breaker, Rule Maker', 'Efficient Detective'] },
-    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ["The Undoer's Apprentice", 'Link Inspector', 'Fifth Door Architect'] },
+    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ['Backwards Reader', 'Link Inspector', 'Fifth Door Architect'] },
     4: { name: "Gus's Forecast", std: 'Junior Forecaster', specials: ['The Weather Line', 'Backwards Prophet'] },
     5: { name: 'Scorch Marks', std: 'Grid Flight Licence', specials: ['Triangle Prover', 'Same Place, Same Time', 'Where One Starts'] },
     6: { name: 'Linear or Liar?', std: 'Linear Lie Detector', specials: ['Door Master', 'Rule Maker', 'The Doubler'] },
@@ -2168,7 +2168,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   }
   function same(a, b) { return Math.abs(a - b) < 1e-9; }
   function ruleTxt(m, b) { var mm = same(m, 1) ? '' : same(m, -1) ? '−' : nf(m); return 'y = ' + mm + 'x' + (same(b, 0) ? '' : b > 0 ? ' + ' + nf(b) : ' − ' + nf(-b)); }
-  function checkTxt(m, b, x) { return nf(m) + '·' + nf(x) + (b >= 0 ? ' + ' + nf(b) : ' − ' + nf(-b)) + ' = ' + nf(m * x + b) + ' ✓'; }
+  function checkTxt(m, b, x) { return nf(m) + ' × ' + nf(x) + (b >= 0 ? ' + ' + nf(b) : ' − ' + nf(-b)) + ' = ' + nf(m * x + b) + ' ✓'; }
 
   /* ================= levels + certificates ================= */
   var LEVELS = [
@@ -2334,7 +2334,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   // one question with number boxes. o: {h, note, inputs:[{lab, ans}], btn, check(vals) -> true | {t, line, bad}, ok(vals, firstTry), hints:[3], vh:[3]}
   function ask(box, o) {
     var wrap = el('div', {}), tries = 0; wrap.appendChild(H3(o.h)); if (o.note) wrap.appendChild(para(o.note));
-    var ins = o.inputs.map(function (q) { var id = 'q' + (++uid); return { q: q, id: id, inp: el('input', { type: 'text', inputmode: 'decimal', 'class': 'num sm', id: id, autocomplete: 'off', 'aria-label': q.lab }) }; });
+    var ins = o.inputs.map(function (q) { var id = 'q' + (++uid); return { q: q, id: id, inp: el('input', { type: 'text', inputmode: q.ans < 0 ? 'text' : 'decimal', 'class': 'num sm', id: id, autocomplete: 'off', 'aria-label': q.lab }) }; });
     var go = el('button', { type: 'button', 'class': 'btn primary', text: o.btn || 'Check' });
     var r = el('div', { 'class': 'row' }); ins.forEach(function (x) { r.appendChild(el('label', { 'for': x.id, text: x.q.lab })); r.appendChild(x.inp); if (o.onInput) x.inp.addEventListener('input', function () { o.onInput(ins.map(function (z) { return parse(z.inp.value); })); }); }); r.appendChild(go); wrap.appendChild(r);
     box.appendChild(wrap);
@@ -2442,7 +2442,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         check: function (v) { v = v[0]; if (same(v, M.m * x1 + wrongB)) return true; if (same(v, y1)) return { t: 'That is what the TABLE says. Work out the card: ' + M.m + ' × ' + x1 + ' + ' + wrongB + '.' }; return { t: 'Card: ' + M.m + ' × ' + x1 + ' + ' + wrongB + '. Multiply first, then add.' }; },
         hints: ['Put ' + x1 + ' into Marcus\'s rule.', M.m + ' × ' + x1 + ' = ' + (M.m * x1) + '. Now add ' + wrongB + '.', M.m + ' × ' + x1 + ' + ' + wrongB + ' = ' + (M.m * x1 + wrongB) + '.'],
         vh: [C.k === 0 ? 'g12_priya_test' : null],
-        ok: function (v) { doneLine(log, 'Marcus\'s card gives ' + nf(v[0]) + ', but the table says ' + y1 + '. Wrong start.'); ST.panel = { lines: [M.m + '·' + x1 + ' + ' + wrongB + ' = ' + nf(v[0]) + ' ≠ ' + y1], x: 470, y: 214, sc: 0.75 }; G.note(M.name + ': Marcus\'s card fails'); lockSay([M.after], rule); }
+        ok: function (v) { doneLine(log, 'Marcus\'s card gives ' + nf(v[0]) + ', but the table says ' + y1 + '. Wrong start.'); ST.panel = { lines: [M.m + ' × ' + x1 + ' + ' + wrongB + ' = ' + nf(v[0]) + ' ≠ ' + y1], x: 470, y: 214, sc: 0.75 }; G.note(M.name + ': Marcus\'s card fails'); lockSay([M.after], rule); }
       });
       function rule() {
         ask(box, {
@@ -2537,8 +2537,8 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
 
   /* ================= C3: Doug's seed jar (two dots on a graph) ================= */
   var C3J = [
-    { name: 'Seed jar 1', d1: [2, 11], d2: [5, 20], m: 3, b: 5, X: 12 },
-    { name: 'Seed jar 2', d1: [3, 10], d2: [7, 18], m: 2, b: 4, X: 12 }
+    { name: 'Seed jar 1', d1: [4, 22], d2: [8, 38], m: 4, b: 6, X: 12, yr: [0, 45], ylab: 10 }, // the film's own jar: 4x + 6
+    { name: 'Seed jar 2', d1: [3, 10], d2: [7, 18], m: 2, b: 4, X: 12, yr: [0, 30], ylab: 5 }
   ];
   function C3() {
     var C = { k: 0, wrong: 0 };
@@ -2546,7 +2546,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     function jar() {
       var J = C3J[C.k], rise = J.d2[1] - J.d1[1], run = J.d2[0] - J.d1[0];
       reset('square'); ST.cast = { doug: { x: 90, f: 1, sc: 1.7 }, marcus: { x: 220, f: 1, sc: 0.85 } };
-      ST.graph = { xr: [0, 8], yr: [0, 30], ylab: 5, xn: 'week', yn: 'seeds', dots: [J.d1, J.d2], labels: true };
+      ST.graph = { xr: [0, 10], yr: J.yr, ylab: J.ylab, xn: 'week', yn: 'seeds', dots: [J.d1, J.d2], labels: true };
       G.work.innerHTML = ''; var box = G.work; box.appendChild(H3(J.name + ' (' + (C.k + 1) + ' of 2): dots at (' + J.d1.join(', ') + ') and (' + J.d2.join(', ') + ')'));
       var log = el('div', {}); box.appendChild(log);
       ask(box, {
@@ -2573,7 +2573,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
             doneLine(log, 'Week ' + J.X + ': ' + ans + ' seeds. The rule told us anyway.'); G.note(J.name + ': week ' + J.X + ' → ' + ans);
             C.k++;
             if (C.k < C3J.length) { G.say('Jar done. One more.', 'good'); lockSay(['g12_coo'], function () { box.appendChild(el('button', { type: 'button', 'class': 'btn primary', id: 'btnNextJ', text: 'Next jar →', onclick: jar })); var b = $('#btnNextJ'); if (b) b.focus(); setPhase({ h: ['Press Next jar.'], solve: jar }); }); return; }
-            G.P.wrongBest.C3 = Math.min(G.P.wrongBest.C3 == null ? 99 : G.P.wrongBest.C3, C.wrong); saveRule('C3', 'Jar 1 ' + ruleTxt(3, 5) + ', jar 2 ' + ruleTxt(2, 4));
+            G.P.wrongBest.C3 = Math.min(G.P.wrongBest.C3 == null ? 99 : G.P.wrongBest.C3, C.wrong); saveRule('C3', 'Jar 1 ' + ruleTxt(4, 6) + ', jar 2 ' + ruleTxt(2, 4));
             finish('C3', 'Both jars done. Two dots give the step; walking back to week 0 gives the start, where the line crosses the up axis.', ['g12_coo', 'g12_one_notintable']);
           }
         });
@@ -2611,7 +2611,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         hints: ['Walking back in time, the tower had more water.', 'Each hour back adds 30. Hour 2 is 2 hours back from 0.', '840 − (−30 × 2) = 840 + 60 = 900 litres.'], vh: ['g12_gus_walk', 'g12_zero_formula'],
         ok: function () {
           ST.table.rows.unshift({ x: 0, y: b, k: 'back' }, { k: 'gap' }); ST.table.ticks = [2, 6]; ST.tower.level = 0.95;
-          ST.panel = { lines: ['y = −30x + 900', '−30·6 + 900 = 720 ✓'], x: 470, y: 214, sc: 0.75 }; pop('START = 900!', 430, 340, '#5CC8FF');
+          ST.panel = { lines: ['y = −30x + 900', '−30 × 6 + 900 = 720 ✓'], x: 470, y: 214, sc: 0.75 }; pop('START = 900!', 430, 340, '#5CC8FF');
           doneLine(log, 'Start: 900 litres. Rule y = −30x + 900.'); G.note('Tower: y = −30x + 900', 'hl'); saveRule('S1', 'y = −30x + 900'); mean();
         }
       });

@@ -73,6 +73,7 @@
     '@media (min-width:901px){',
     ' body.oneScreen .wrap{max-width:1600px;padding-block:8px 8px}',
     ' body.oneScreen .topbar{padding-bottom:6px}',
+    ' body.oneScreen .topbar .gtitle{flex:1 1 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:6em}',   // the title gives way first, so the bar stays one row
     ' body.oneScreen .play{grid-template-columns:minmax(0,1fr) minmax(380px,40%);margin-top:8px;align-items:start}',
     ' body.oneScreen .play>.main{align-items:center}',
     ' body.oneScreen .play>.main .stage{width:min(100%,calc((100vh - var(--topH,60px) - 80px) * 16 / 9))}',
@@ -153,7 +154,7 @@
 
   // finishing a level or the whole game is announced loudly, so nobody wonders whether they're done
   var gname = ((document.querySelector('.gtitle') || {}).textContent || document.title || 'this game').trim();
-  var seen = null, banner = null, bannerAt = -1;
+  var seen = null, banner = null, bannerAt = -1, finishTok = 0;
   function levels() {
     return [].slice.call(lv.querySelectorAll('li>button:first-child')).map(function (b, k) {
       var t = b.querySelector('.tier');
@@ -163,7 +164,7 @@
   function nextOpen(ls, extra) { for (var j = 0; j < ls.length; j++) if (!ls[j].done && (ls[j].open || extra) && (extra == null || ls[j].extra === extra)) return ls[j]; return null; }
   function mk(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function btn(text, cls, fn) { var b = mk('button', 'btn' + (cls ? ' ' + cls : ''), text); b.type = 'button'; b.addEventListener('click', fn); return b; }
-  function dropBanner() { if (banner) banner.remove(); banner = null; bannerAt = -1; }
+  function dropBanner() { if (banner) banner.remove(); banner = null; bannerAt = -1; finishTok++; }   // a pending finish screen belongs to the banner
   function watchDone() {
     if (!lv) return;
     var ls = levels(), now = ls.map(function (l) { return l.done; });
@@ -177,7 +178,8 @@
     var allLeft = ls.filter(function (l) { return !l.done; }).length, doneN = ls.length - allLeft;
     var gameDone = !allLeft || (!hit.extra && !mainLeft);
     showBanner(ls, hit, doneN, gameDone);
-    if (gameDone) whenClear(function () { showFinish(!allLeft, main.length, nextOpen(levels(), true)); });
+    // the finish screen only shows while the student is still on the level they just finished
+    if (gameDone) { var tok = finishTok; whenClear(function () { if (tok !== finishTok) return; var c = levels().filter(function (l) { return l.cur; })[0]; if (!c || c.k !== hit.k) return; showFinish(!allLeft, main.length, nextOpen(levels(), true)); }); }
   }
   function showBanner(ls, hit, doneN, gameDone) {
     dropBanner();
@@ -186,9 +188,9 @@
     var pips = mk('span', 'pips'); ls.forEach(function (l) { pips.appendChild(mk('i', (l.done ? 'on' : '') + (l.extra ? ' x' : ''))); });
     var line = mk('span', 'lvline'); line.appendChild(pips); line.appendChild(document.createTextNode(' ' + doneN + ' of ' + ls.length + ' levels done')); banner.appendChild(line);
     var nx = nextOpen(ls), row = mk('div', 'row');
-    if (gameDone) banner.appendChild(mk('span', 'lvnext', 'You have finished ' + gname + '. Make your certificate, or try a Challenge level for a special one.'));
-    else if (nx && !document.getElementById('btnNext')) row.appendChild(btn('Next level →', 'primary', function () { nx.b.click(); }));
-    else if (nx) banner.appendChild(mk('span', 'lvnext', 'Press the Next button below to keep going.'));
+    if (gameDone) banner.appendChild(mk('span', 'lvnext', 'Make your certificate in ☰ Levels.'));   // kept short: the job card must not push the page past one screen
+    if (!gameDone && nx && !document.getElementById('btnNext')) row.appendChild(btn('Next level →', 'primary', function () { nx.b.click(); }));
+    else if (!gameDone && nx) banner.appendChild(mk('span', 'lvnext', 'Press the Next button below to keep going.'));
     if (gameDone) row.appendChild(btn('What now?', 'primary', function () { showFinish(!ls.some(function (l) { return !l.done; }), ls.filter(function (l) { return !l.extra; }).length, nextOpen(levels(), true)); }));
     if (row.firstChild) banner.appendChild(row);
     work.insertBefore(banner, kicker.nextSibling);
@@ -235,7 +237,7 @@
   // when a new level starts, bring its job card to the top of the column
   var title = document.getElementById('workH'), lastT = '';
   if (title && window.MutationObserver) new MutationObserver(function () {
-    if (title.textContent === lastT) return; lastT = title.textContent;
+    if (title.textContent === lastT) return; lastT = title.textContent; finishTok++;
     if (window.innerWidth > 900) { aside.scrollTop = 0; }
   }).observe(title, { childList: true, characterData: true, subtree: true });
 
@@ -253,4 +255,6 @@
   // measure the top bar so the stage can size itself to the screen
   function topH() { var t = document.querySelector('.topbar'); if (t) document.documentElement.style.setProperty('--topH', (t.getBoundingClientRect().bottom + 8) + 'px'); }
   window.addEventListener('resize', topH); topH(); setTimeout(topH, 500);
+  // chips come and go (sign-in state, a game's extra chip), so keep measuring when the bar changes height
+  var tbar = document.querySelector('.topbar'); if (tbar && window.ResizeObserver) new ResizeObserver(topH).observe(tbar);
 })();

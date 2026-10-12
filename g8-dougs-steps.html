@@ -1616,14 +1616,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'r2', kind: 'R', title: 'Can I Be the Sidekick NOW?', game: 'g1', file: 'reels/r2.html', from: 'Zero 2: Sidekick, about 5:10' },
     { id: 'r3', kind: 'R', title: 'It Is, Undeniably, a Doug', game: 'g2', file: 'reels/r3.html', from: 'The Glitch, about 0:30' },
     { id: 'r4', kind: 'R', title: 'Mostly Fine', game: 'g2', file: 'reels/r4.html', from: 'The Glitch, about 5:10' },
-    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g3', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
+    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g11', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
     { id: 'r6', kind: 'R', title: 'Found It With My Face', game: 'g5', file: 'reels/r6.html', from: 'Start and Step, about 4:10', egg: true },
     { id: 'd1', kind: 'D', title: 'The Multiplex 5000', game: 'g1', file: 'reels/d1.html', egg: true },
     { id: 'd2', kind: 'D', title: 'One Single Drop', game: 'g4', file: 'reels/d2.html', egg: true, premiere: 'h95c0a0cb' },
     { id: 'd3', kind: 'D', title: 'Doug Files a Report', game: 'g8', file: 'reels/d3.html', egg: true },
     { id: 'd4', kind: 'D', title: 'The Sidekick Application', game: 'g2', file: 'reels/d4.html', egg: true },
     { id: 'd5', kind: 'D', title: 'Sam Meets Linesy', game: 'g2', file: 'reels/d5.html', gold: 'Friend of Sam (Glitch Hunt)', egg: true },
-    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g6', file: 'reels/d6.html', gold: 'Door Master (Linear or Liar?)', egg: true },
+    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g15', file: 'reels/d6.html', gold: 'Knows Their Limits (The Outer Machines)', egg: true },
     { id: 'd7', kind: 'D', title: "One's Forty-Second Lap", game: 'g5', file: 'reels/d7.html', egg: true },
     { id: 'o1', kind: 'O', title: 'Across Three, Up One', game: 'g5', file: 'reels/o1.html', egg: true },
     { id: 'o2', kind: 'O', title: "Gus Can't Shout", game: 'g4', file: 'reels/o2.html' },
@@ -1770,7 +1770,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   SFA.GAMES = {
     1: { name: 'Crack the Fair', std: 'Licensed Fair Cracker', specials: ['The X-Ray Specialist', "Where Zero Isn't", 'Faker Finder'] },
     2: { name: 'Glitch Hunt', std: 'Sandy Flats Glitch Detective', specials: ['Friend of Sam', 'Rule Breaker, Rule Maker', 'Efficient Detective'] },
-    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ["The Undoer's Apprentice", 'Link Inspector', 'Fifth Door Architect'] },
+    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ['Backwards Reader', 'Link Inspector', 'Fifth Door Architect'] },
     4: { name: "Gus's Forecast", std: 'Junior Forecaster', specials: ['The Weather Line', 'Backwards Prophet'] },
     5: { name: 'Scorch Marks', std: 'Grid Flight Licence', specials: ['Triangle Prover', 'Same Place, Same Time', 'Where One Starts'] },
     6: { name: 'Linear or Liar?', std: 'Linear Lie Detector', specials: ['Door Master', 'Rule Maker', 'The Doubler'] },
@@ -2125,16 +2125,18 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
 </style>
 <script>/* G8 Doug's Steps, locked to Episode F "Doug's Steps": tiles at x = 0…6 with heights y = 2x + 1 (domain {0,…,6}, range the odd numbers
    1…13), Door A at 8 (not in the range) and Door B at 9 (x = 4), One's continuous flight (domain 0 to 6, range 1 to 13), the count/measure
-   sort, the way home y = 3x − 1 on 1…4 (range 2, 5, 8, 11), plus the water tower from Start and Step (y = 600 − 40x on 0…15).
+   sort, the way home y = 3x − 1 on 1…4 (range 2, 5, 8, 11) and its doors (5 and 11 open; 6 needs x = 7/3; 14 needs x = 5, outside
+   the domain), Marcus's "Add a tile!". Kept to this one film: the water tower (Start and Step) and Gus's half tile in Graph Land
+   (Lost in Graph Land) were taken out in the audit; level ids L5, S1, S2 were kept so saved progress still counts.
    Standards: domain and range, discrete vs continuous (8.F.1 / 8.F.5 context), 8.F.4 modelling. */
 (function () {
   'use strict';
   var SFA = window.SFA, V = SFA.vo, el = SFA.el, $ = SFA.$;
   var S = SFA.Stage($('#stage')), E = S.E, c = E.c, GY = E.GY;
   function fmt(n) { return V.fmt(n); }
-  // reads 5, -5, +5, .5, 5., 3/4, -3/4, 1 1/4 (mixed number) and ignores a unit word after the number ("0.5 km")
+  // reads 5, -5, +5, .5, 5., 3/4, -3/4, 1 1/4 (mixed number); ignores "x =" in front and a unit word after the number ("0.5 km")
   function parseNum(s) {
-    s = String(s == null ? '' : s).trim().replace(/[−–—]/g, '-').replace(/\s*(?![xy]$)[a-z]+\.?$/i, '').replace(/^\+\s*/, '').replace(/^-\s+/, '-');
+    s = String(s == null ? '' : s).trim().replace(/^[a-z]\s*=\s*/i, '').replace(/[−–—]/g, '-').replace(/\s*(?![xy]$)[a-z]+\.?$/i, '').replace(/^\+\s*/, '').replace(/^-\s+/, '-');
     var D = '(\\d+\\.?\\d*|\\.\\d+)';
     if (new RegExp('^-?' + D + '$').test(s)) return +s;
     var m = s.match(/^(-?)(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
@@ -2152,7 +2154,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'L2', tier: 'core', name: 'Which Door?' },
     { id: 'L3', tier: 'core', name: 'Dots or Line?' },
     { id: 'L4', tier: 'core', name: 'The Way Home' },
-    { id: 'L5', tier: 'core', name: 'The Tower Returns' },
+    { id: 'L5', tier: 'core', name: 'Doors on the Way Home' },
     { id: 'S1', tier: 'stretch', name: 'Is Zero Allowed?' },
     { id: 'S2', tier: 'stretch', name: 'The Half Tile' },
     { id: 'S3', tier: 'stretch', name: 'Story Maker' }
@@ -2164,14 +2166,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     return { std: n === 5, coreN: n, coreTotal: 5, note: '', specials: [!!P.edge, !!(P.done.S2 && P.done.S3), pig] };
   }
   var CERTS = [
-    { key: 'std', title: "Doug's Certified Step-Counter", sub: 'fenced every domain and range, and chose dots or a line', by: 'Mr. Dunmore', quote: 'Doug has approved. Doug rarely approves. Frame it.', line: 'g8_cert_std', crit: 'Finish the five core levels: the tile table with its domain and range, the right door, dots or line, the way home, and the water tower with its fences.', portrait: 'doug', portraitSrc: [380, 330, 200] },
-    { key: 0, title: 'Edge Walker', sub: 'knew exactly which edges are in, and which are out', by: 'Priya', quote: 'Zero to fifteen. Not a drop more. You found the edges.', line: 'g8_cert_edge', crit: 'Stretch "Is Zero Allowed?": every edge question right first time.', portrait: 'priya', portraitSrc: [370, 250, 220] },
-    { key: 1, title: 'Numbers Pretending', sub: 'can tell real inputs from numbers pretending', by: 'Zero', quote: 'Outside the fence, they\'re just numbers pretending.', line: 'g8_cert_pretend', crit: 'Stretch: explain the half tile, and match every graph to its story.', portrait: 'zero', portraitSrc: [390, 270, 180] },
+    { key: 'std', title: "Doug's Certified Step-Counter", sub: 'fenced every domain and range, and chose dots or a line', by: 'Mr. Dunmore', quote: 'Doug has approved. Doug rarely approves. Frame it.', line: 'g8_cert_std', crit: 'Finish the five core levels: the tile table with its domain and range, the right door, dots or line, the way home, and the doors on the way home.', portrait: 'doug', portraitSrc: [380, 330, 200] },
+    { key: 0, title: 'Edge Walker', sub: 'knew exactly which edges are in, and which are out', by: 'Zero', quote: 'Domain is what you\'re allowed to put in. Range is what you can get out.', line: 'g8_l1_swap', crit: 'Stretch "Is Zero Allowed?": every edge question right first time.', portrait: 'zero', portraitSrc: [390, 270, 180] },
+    { key: 1, title: 'Numbers Pretending', sub: 'can tell real inputs from numbers pretending', by: 'Zero', quote: 'Outside the fence, they\'re just numbers pretending.', line: 'g8_cert_pretend', crit: 'Stretch: explain to Marcus why there is no half tile, and match every graph to its story.', portrait: 'zero', portraitSrc: [390, 270, 180] },
     { key: 2, title: 'Honorary Pigeon', sub: 'walked every stretch level with barely a hint', by: 'Gus', quote: 'Doug.', line: 'g8_cert_pigeon', crit: 'A secret.', portrait: 'doug', portraitSrc: [380, 330, 200], secret: true }
   ];
   function artefact(C, P) {
-    if (C.key === 'std') return ['Tiles y = 2x + 1: domain {0,…,6}, range {1, 3, …, 13}', 'Door B at 9 → x = 4. Door A at 8 is out of range', 'Doug: dots. One\'s flight: a line, 0 to 6 → 1 to 13', 'Tower y = 600 − 40x: domain 0 to 15, range 0 to 600'];
-    if (C.key === 0) return ['In: minute 0 (600 L), minute 15 (0 L)', 'Out: minute −1, minute 15.5, 650 litres'];
+    if (C.key === 'std') return ['Tiles y = 2x + 1: domain {0,…,6}, range {1, 3, …, 13}', 'Door B at 9 → x = 4. Door A at 8 is out of range', 'Doug: dots. One\'s flight: a line, 0 to 6 → 1 to 13', 'Way home y = 3x − 1: doors 5 and 11 open; 6 and 14 out of reach'];
+    if (C.key === 0) return ['In: tile 0 (height 1), tile 6 (height 13)', 'Out: tile 7, tile 3.5, height 0'];
     if (C.key === 1) return ['Half tile: ' + (P.halfTile || ''), 'Stories matched: ' + (P.stories || '')];
     return ['Every stretch level, barely a hint. Coo.'];
   }
@@ -2210,13 +2212,17 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     build: function (L) { ST.mode = 'tiles'; ST.tower = false; ST.graph = null; ST.fence = null; ST.one = null; ST.gap = false; ST.tags = false; ST.extra = null; ST.doorOpen = false; ST.doug = 0; ST.dougT = null; ST.cast = { zero: { x: 70, f: 1 }, one: { x: 130, f: 1 }, priya: { x: 880, f: -1 } }; ({ L0: L0, L1: L1, L2: L2, L3: L3, L4: L4, L5: L5, S1: S1, S2: S2, S3: S3 })[L.id](); }
   });
   G.stage = S; window.__gm = function () { return G; };
+  // a right answer clears the last wrong-answer message, so a red note never sits under green boxes
+  var firstTry0 = G.firstTry; G.firstTry = function (ok) { if (ok) G.say(''); firstTry0(ok); };
   // clarity pass: the job card text (goal, numbered steps, done-when) and which step is "now"
   function job(goal, steps, doneWhen, extra) { return '<span class="goal">' + goal + '</span>' + (extra ? extra : '') + '<ol class="steps">' + steps.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol>' + (doneWhen ? '<span class="donewhen"><b>Done when:</b> ' + doneWhen + '</span>' : ''); }
   function stepAt(n) { [].forEach.call(document.querySelectorAll('#task ol.steps li'), function (x, i) { x.className = i < n - 1 ? 'did' : i === n - 1 ? 'now' : 'todo'; }); }
   function setJob(goal, steps, doneWhen, extra) { G.setTask(G.lv(G.curId).name, job(goal, steps, doneWhen, extra)); stepAt(1); }
   function busy() { return G.busy; }
   function stamp() { var ep = G.epoch; return function () { return ep !== G.epoch; }; }
-  function num(id, label, w) { return el('input', { type: 'text', inputmode: 'decimal', 'class': 'num sm', id: id, 'aria-label': label, autocomplete: 'off', style: w ? 'width:' + w : null }); }
+  function num(id, label, w) { var n = el('input', { type: 'text', inputmode: 'decimal', 'class': 'num sm', id: id, 'aria-label': label, autocomplete: 'off', style: w ? 'width:' + w : null }); n.addEventListener('keydown', enterKey); return n; }
+  // Enter in an answer box presses the nearest main (yellow) button, as a click would
+  function enterKey(e) { if (e.key !== 'Enter' || e.isComposing) return; for (var a = e.target.parentNode; a && a !== document.body; a = a.parentNode) { var bs = [].filter.call(a.querySelectorAll('button.btn.primary'), function (b) { return !b.disabled && b.offsetParent !== null; }); if (bs.length) { e.preventDefault(); bs[0].click(); return; } if (a === G.work) return; } }
   function row() { return el('div', { 'class': 'row', style: 'margin-top:6px' }, [].slice.call(arguments)); }
   function check(inp, ok) { inp.classList.toggle('ok', !!ok); inp.classList.toggle('bad', !ok); return !!ok; }
   function done(id, text, lines) { stepAt(99); G.P.done[id] = true; G.P['r' + id] = G.P['r' + id] == null ? G.levelMaxRung : Math.min(G.P['r' + id], G.levelMaxRung); G.save(); if (CORE.every(function (c2) { return G.P.done[c2]; }) && !status(G.P).std && CORE.indexOf(id) >= 0) lines = (lines || []).concat(['g8_notyet']); return G.levelDone(id, text, lines); }
@@ -2229,11 +2235,11 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     ST.cast = { effie: { x: 80, f: 1, sc: 0.5 }, marcus: { x: 880, f: -1 } };
     setJob('Sort each card: do you count it or measure it?', ['Read a card. Ask: can you have <strong>half</strong> of one? (Half a minute: yes. Half a hop: no.)', 'No halves: tap <strong>Count</strong> (dots). Halves OK: tap <strong>Measure</strong> (line).'], 'all 8 cards are green.');
     var cards = [['Number of hops Doug makes', 'count', 'g8_l0_hops'], ['How long Doug flies', 'measure', 'g8_l0_fly'], ['Number of seeds Doug eats', 'count'], ['How high the water is', 'measure', 'g8_l0_water'], ['Tickets sold for the fair', 'count'], ['Temperature at noon', 'measure'], ['People on a bus', 'count'], ['Distance walked to school', 'measure']];
-    var box = el('div', { 'class': 'sortlist tight' }); G.work.appendChild(box); var right = 0;
+    var box = el('div', { 'class': 'sortlist tight' }); G.work.appendChild(box); var right = 0, goodB = {};
     cards.forEach(function (cd) { var fb = el('small', { 'class': 'muted' }), ok = false; var d = el('div', { 'class': 'sortrow' }, [el('div', { 'class': 'sl' }, [el('b', { text: cd[0] })])]); var r = el('div', { 'class': 'row' });
-      [['Count', 'count', 'Count: dots'], ['Measure', 'measure', 'Measure: a line']].forEach(function (o) { r.appendChild(el('button', { type: 'button', 'class': 'btn small', text: o[0], 'aria-label': o[2] + ' (' + cd[0] + ')', onclick: function () { if (ok) return; if (o[1] === cd[1]) { ok = true; right++; G.firstTry(true); d.classList.add('ok'); this.classList.add('picked'); this.title = cd[1] === 'count' ? 'Counted in whole steps: dots.' : 'Measured, any value in between: a line.'; fb.className = 'good'; fb.textContent = ''; stepAt(2); V.say(cd[2] || (SFA.rng() < 0.5 ? 'doug_coo1' : 'doug_coo2')); if (right === cards.length) { stepAt(99); G.P.done.L0 = true; G.levelDone('L0', 'Count it (hops, seeds, tickets, people): dots. Measure it (time, height, temperature, distance): a line.', []); } } else { G.firstTry(false); fb.className = 'bad'; fb.textContent = 'Not that one. Can you have half of one? No halves: Count. Halves OK: Measure. Tap the other one.'; V.say('g8_l0_bad'); } } })); });
+      [['Count', 'count', 'Count: dots'], ['Measure', 'measure', 'Measure: a line']].forEach(function (o) { r.appendChild(goodB[cd[0] + o[1]] = el('button', { type: 'button', 'class': 'btn small', text: o[0], 'aria-label': o[2] + ' (' + cd[0] + ')', onclick: function () { if (ok) return; if (o[1] === cd[1]) { ok = true; right++; G.firstTry(true); d.classList.add('ok'); this.classList.add('picked'); this.title = cd[1] === 'count' ? 'Counted in whole steps: dots.' : 'Measured, any value in between: a line.'; fb.className = 'good'; fb.textContent = ''; stepAt(2); V.say(cd[2] || (SFA.rng() < 0.5 ? 'doug_coo1' : 'doug_coo2')); if (right === cards.length) { stepAt(99); G.P.done.L0 = true; G.levelDone('L0', 'Count it (hops, seeds, tickets, people): dots. Measure it (time, height, temperature, distance): a line.', []); } } else { G.firstTry(false); fb.className = 'bad'; fb.textContent = 'Not that one. Can you have half of one? No halves: Count. Halves OK: Measure. Tap the other one.'; V.say('g8_l0_bad'); } } })); });
       d.appendChild(r); d.appendChild(fb); box.appendChild(d); });
-    G.hintFn = function (r) { V.say('g8_l0_bad'); G.say(r === 1 ? 'Hint: can there be half a hop? Half a minute?' : 'Hint: hops, seeds, tickets and people are counted.'); };
+    G.hintFn = function (r) { V.say(r >= 4 ? 'g8_h4' : 'g8_l0_bad'); G.say(r === 1 ? 'Hint: can there be half a hop? Half a minute?' : r < 4 ? 'Hint: hops, seeds, tickets and people are counted. Time, height, temperature and distance are measured.' : 'Shown: one card is sorted for you. The next one is yours.'); if (r >= 4) { var cd = cards.filter(function (q, i) { return !box.children[i].classList.contains('ok'); })[0]; if (cd) goodB[cd[0] + cd[1]].click(); } };
     V.say(['g8_intro1', 'g8_intro2', 'g8_intro3', 'g8_l0_s']);
   }
 
@@ -2247,11 +2253,11 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     var dom = chips('domChips', 'Domain: inputs Doug can use', [-1, 0, 1, 2, 3, 3.5, 4, 5, 6, 7]), ran = chips('ranChips', 'Range: heights Doug can reach', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
     p2.appendChild(el('h3', { text: '2. Domain: tap every tile number Doug can stand on' })); p2.appendChild(dom); p2.appendChild(el('h3', { text: '3. Range: tap every height he can reach' })); p2.appendChild(ran); dom.addEventListener('click', function () { stepAt(ran.value().length ? 4 : 2); }); ran.addEventListener('click', function () { stepAt(dom.value().length ? 4 : 3); });
     var fb = el('button', { type: 'button', 'class': 'btn primary', text: 'Set the fences' }); p2.appendChild(row(fb));
-    hb.addEventListener('click', function () { var ok = ins.map(function (n, x) { return check(n, parseNum(n.value) === 2 * x + 1); }).every(Boolean); if (ok) { G.firstTry(true); ST.tags = true; G.note('heights: 1, 3, 5, 7, 9, 11, 13'); p2.hidden = false; stepAt(2); try { fb.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { } V.say(['g8_l1_heights', 'g8_l1_odd', 'g8_l1_def']); } else { G.firstTry(false); G.say('Fix the red boxes. Height = 2 × tile + 1 (tile 3: 2 × 3 + 1). Then check again.', 'bad'); V.say('g8_l1_bad'); } });
+    hb.addEventListener('click', function () { var ok = ins.map(function (n, x) { return check(n, parseNum(n.value) === 2 * x + 1); }).every(Boolean); if (ok) { G.firstTry(true); ST.tags = true; G.note('heights: 1, 3, 5, 7, 9, 11, 13'); p2.hidden = false; stepAt(2); try { fb.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { } G.say('Every height is odd: 2 × a whole number is even, and + 1 makes it odd.', 'good'); V.say(['g8_l1_heights', 'g8_l1_def']); } else { G.firstTry(false); G.say('Fix the red boxes. Height = 2 × tile + 1 (tile 3: 2 × 3 + 1). Then check again.', 'bad'); V.say('g8_l1_bad'); } });
     fb.addEventListener('click', function () { var d = dom.value(), r = ran.value(); var okD = sameSet(d, [0, 1, 2, 3, 4, 5, 6]), okR = sameSet(r, [1, 3, 5, 7, 9, 11, 13]);
       if (okD && okR) { G.firstTry(true); G.note('domain {0, 1, 2, 3, 4, 5, 6}'); G.note('range {1, 3, 5, 7, 9, 11, 13}'); done('L1', 'Domain: {0, 1, 2, 3, 4, 5, 6} (whole tiles only). Range: {1, 3, 5, 7, 9, 11, 13} (odd heights only).', ['g8_l1_sidekick', 'doug_coo1']); }
-      else { G.firstTry(false); var msg = !okD ? (sameSet(d, [1, 3, 5, 7]) ? 'Those look like heights. The domain is the tile numbers (the inputs). Fix the domain and set the fences again.' : d.indexOf(3.5) >= 0 ? 'There is no tile at 3.5. The static eats it. Tap 3.5 again to take it out.' : d.indexOf(7) >= 0 || d.indexOf(-1) >= 0 ? 'The tiles only go from 0 to 6. Take −1 and 7 out of the domain.' : 'The domain is every tile number: tap each one from 0 to 6.') : (r.indexOf(8) >= 0 ? '8 needs tile 3.5. It isn\'t reachable. Take 8 out of the range.' : 'The range is every height in your table, and nothing else. Tap exactly those.'); G.say(msg, 'bad'); V.say(!okD ? 'g8_l1_swap' : 'g8_l1_odd'); } });
-    G.hintFn = function (r) { V.say(r === 4 ? 'g8_h4' : r === 1 ? 'g8_h1' : 'g8_l1_def'); G.say(r === 1 ? 'Hint: domain = the inputs (tile numbers). Range = the outputs (heights).' : r === 2 ? 'Hint: the domain is 0 to 6, whole numbers.' : 'Worked step: heights 1, 3, 5, 7, 9, 11, 13. Those are the range.'); if (r >= 4) ins.forEach(function (n, x) { n.value = String(2 * x + 1); }); };
+      else { G.firstTry(false); var msg = !okD ? (sameSet(d, [1, 3, 5, 7]) ? 'Those look like heights. The domain is the tile numbers (the inputs). Fix the domain and set the fences again.' : d.indexOf(3.5) >= 0 ? 'There is no tile at 3.5. The static eats it. Tap 3.5 again to take it out.' : d.indexOf(7) >= 0 || d.indexOf(-1) >= 0 ? 'The tiles only go from 0 to 6. Take −1 and 7 out of the domain.' : 'The domain is every tile number: tap each one from 0 to 6.') : (r.indexOf(8) >= 0 ? '8 needs tile 3.5. It isn\'t reachable. Take 8 out of the range.' : 'The range is every height in your table, and nothing else. Tap exactly those.'); G.say(msg, 'bad'); V.say(!okD ? 'g8_l1_swap' : 'g8_l1_def'); } });
+    G.hintFn = function (r) { V.say(r === 4 ? 'g8_h4' : 'g8_l1_def'); G.say(r === 1 ? 'Hint: domain = the inputs (tile numbers). Range = the outputs (heights).' : r === 2 ? 'Hint: the domain is 0 to 6, whole numbers.' : 'Worked step: heights 1, 3, 5, 7, 9, 11, 13. Those are the range.'); if (r >= 4) { if (p2.hidden) ins.forEach(function (n, x) { n.value = String(2 * x + 1); }); else { [].forEach.call(document.querySelectorAll('#domChips .tile,#ranChips .tile'), function (b) { var v = +b.textContent.replace('−', '-'), want = b.parentNode.id === 'domChips' ? [0, 1, 2, 3, 4, 5, 6] : [1, 3, 5, 7, 9, 11, 13]; if ((b.getAttribute('aria-pressed') === 'true') !== (want.indexOf(v) >= 0)) b.click(); }); stepAt(4); } G.say(p2.hidden ? 'Shown: the heights are filled in. Press Check heights.' : 'Shown: the fences are tapped in. Press Set the fences.'); } };
     V.say('g8_l1_s');
   }
 
@@ -2273,69 +2279,95 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     ST.tags = false;
     setJob('Choose dots or a line for Doug and for One. Then fence One\'s line.', ['Doug\'s hops: tap <strong>Dots</strong> or <strong>Line</strong>.', 'One\'s flight: tap <strong>Dots</strong> or <strong>Line</strong>.', 'Fill One\'s domain, range, and where One reaches height 8.', 'Press <strong>Check</strong>.'], 'every box is right.', '<span class="jx">Doug hops tile to tile. One flies along the same rule, y = 2x + 1, from x = 0 to x = 6.</span>');
     var q = el('div', {}); G.work.appendChild(q); var step = 0;
-    function mc(title, opts, ans, after) { var d = el('div', {}, [el('h3', { text: title })]); var r = el('div', { 'class': 'row' }); opts.forEach(function (o) { r.appendChild(el('button', { type: 'button', 'class': 'btn', text: o, onclick: function () { if (d.dataset.done) return; if (o === ans) { d.dataset.done = 1; G.firstTry(true); after(); } else { G.firstTry(false); G.say('Not that one. Doug counts whole hops (no half hops). One flies through every point in between. Tap the other one.', 'bad'); V.say('g8_l3_bad'); if (o.indexOf('Line') === 0 && title.indexOf('Doug') >= 0) { refuse(); V.say('g8_refuse'); } } } })); }); d.appendChild(r); q.appendChild(d); }
+    function mc(title, opts, ans, after) { var d = el('div', {}, [el('h3', { text: title })]); d.ans = ans; var r = el('div', { 'class': 'row' }); opts.forEach(function (o) { r.appendChild(el('button', { type: 'button', 'class': 'btn', text: o, onclick: function () { if (d.dataset.done) return; if (o === ans) { d.dataset.done = 1; G.firstTry(true); after(); } else { G.firstTry(false); G.say('Not that one. Doug counts whole hops (no half hops). One flies through every point in between. Tap the other one.', 'bad'); V.say('g8_l3_bad'); if (o.indexOf('Line') === 0 && title.indexOf('Doug') >= 0) { refuse(); V.say('g8_refuse'); } } } })); }); d.appendChild(r); q.appendChild(d); }
     mc("1. Doug's hops: dots or a line?", ['Dots', 'Line'], 'Dots', function () { stepAt(2); ST.graph = null; V.say('g8_l3_s'); G.note('Doug: dots');
       mc("2. One's flight: dots or a line?", ['Dots', 'Line'], 'Line', function () { stepAt(3); ST.one = { from: 0, to: 6, t0: S.now(), dur: 2.5 }; G.note('One: a line'); V.say(['g8_l3_line', 'g8_l3_between', 'g8_l3_inf']);
         var p = el('div', {}); q.appendChild(p); var d0 = num('d0', 'One\'s domain: from'), d1 = num('d1', 'One\'s domain: to'), r0 = num('r0', 'One\'s range: from'), r1 = num('r1', 'One\'s range: to'), x8 = num('x8', 'Input where One reaches height 8');
         p.appendChild(el('h3', { text: '3. One\'s line: domain and range' })); p.addEventListener('input', function () { if ([d0, d1, r0, r1, x8].every(function (x) { return x.value.trim(); })) stepAt(4); }); p.appendChild(row(el('span', { text: 'Domain: every number from' }), d0, el('span', { text: 'to' }), d1)); p.appendChild(row(el('span', { text: 'Range: every height from' }), r0, el('span', { text: 'to' }), r1)); p.appendChild(row(el('label', { 'for': 'x8', text: 'One reaches height 8 at x =' }), x8, el('button', { type: 'button', 'class': 'btn primary', text: 'Check', onclick: chk })));
         function chk() { var ok = check(d0, parseNum(d0.value) === 0) & check(d1, parseNum(d1.value) === 6) & check(r0, parseNum(r0.value) === 1) & check(r1, parseNum(r1.value) === 13) & check(x8, same(parseNum(x8.value), 3.5)); if (ok) { G.firstTry(true); G.note('One: domain 0 to 6, range 1 to 13; 8 at x = 3.5'); var gone = stamp(); G.lock(true); V.say(['g8_l3_dom', 'g8_l3_today', 'g8_l3_ok']).then(function () { if (gone()) return; G.lock(false); done('L3', 'Doug\'s hops are dots: domain {0,…,6}. One\'s flight is a line: every input from 0 to 6, every height from 1 to 13, so height 8 is reachable at x = 3.5 on the line, but not by Doug.', []); }); } else { G.firstTry(false); G.say('Fix the red boxes. The line runs from x = 0 (height 1) to x = 6 (height 13). For height 8, solve 2x + 1 = 8. Then check again.', 'bad'); } }
       }); });
-    G.hintFn = function (r) { V.say(r === 4 ? 'g8_h4' : 'g8_h1'); G.say(r === 1 ? 'Hint: can Doug stand between tiles? Can One fly between them?' : 'Hint: 2x + 1 = 8 means x = 3.5.'); };
+    function l3show() { var open = [].filter.call(q.children, function (d) { return d.ans && !d.dataset.done; })[0]; if (open) { [].filter.call(open.querySelectorAll('button'), function (b) { return b.textContent === open.ans; })[0].click(); return; } [['#d0', 0], ['#d1', 6], ['#r0', 1], ['#r1', 13], ['#x8', 3.5]].forEach(function (f) { var i = $(f[0]); if (i) i.value = String(f[1]); }); stepAt(4); }
+    G.hintFn = function (r) { V.say(r === 4 ? 'g8_h4' : 'g8_l3_bad'); G.say(r === 1 ? 'Hint: can Doug stand between tiles? Can One fly between them?' : r < 4 ? 'Hint: 2x + 1 = 8 means x = 3.5. One\'s line runs from x = 0 (height 1) to x = 6 (height 13).' : 'Shown: the next answer is done for you. Read it, then do the rest.'); if (r >= 4) l3show(); };
   }
 
   /* ================= L4: the way home ================= */
   function L4() {
-    ST.mode = 'graph'; ST.graph = { xr: [-0.5, 5.5], yr: [0, 14], ylab: 2, f: function (x) { return 3 * x - 1; }, x0: 1, x1: 4, dots: true, label: 'NEW TILES: y = 3x − 1' }; ST.cast = { zero: { x: 70, f: 1 }, marcus: { x: 880, f: -1 } };
+    ST.mode = 'graph'; ST.graph = { xr: [-1, 6], yr: [0, 14], ylab: 2, f: function (x) { return 3 * x - 1; }, x0: 1, x1: 4, dots: true, label: 'NEW TILES: y = 3x − 1' }; ST.cast = { zero: { x: 70, f: 1 }, marcus: { x: 880, f: -1 } };
     setJob('Find the heights of the new tiles. Is 8 one of them?', ['Type the height of each tile in the table.', 'Is 8 in this range? Tap <strong>Yes</strong> or <strong>No</strong>.', 'Press <strong>Check</strong>.'], 'all 4 heights and your answer are right.', '<span class="jx">New tiles at x = 1, 2, 3, 4. Height: y = 3x − 1.</span>');
     var ins = [1, 2, 3, 4].map(function (x) { return num('w' + x, 'Height at input ' + x, '3em'); }); var tb4 = el('table', { 'class': 'cmp' }); tb4.innerHTML = '<thead><tr><th>x</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead>'; tb4.appendChild(el('tbody', {}, [el('tr', {}, [el('th', { text: 'y' })].concat(ins.map(function (n) { return el('td', {}, [n]); })))])); G.work.appendChild(el('h3', { text: '1. Range: the height at each x' })); G.work.appendChild(el('div', { 'class': 'scroll-x' }, [tb4])); G.work.addEventListener('input', function () { if (ins.every(function (n) { return n.value.trim(); })) stepAt(2); });
     var e8 = el('div', { 'class': 'row' }); G.work.appendChild(el('h3', { text: '2. Is 8 in this range?' })); G.work.appendChild(e8); var ans8 = null;
     ['Yes', 'No'].forEach(function (o) { e8.appendChild(el('button', { type: 'button', 'class': 'btn small', 'aria-pressed': 'false', text: o, onclick: function (e) { ans8 = o; stepAt(3); [].forEach.call(e8.children, function (b) { b.setAttribute('aria-pressed', String(b === e.target)); }); } })); });
     G.work.appendChild(row(el('button', { type: 'button', 'class': 'btn primary', text: 'Check', onclick: function () { var ok = ins.map(function (n, i) { return check(n, parseNum(n.value) === 3 * (i + 1) - 1); }).every(Boolean); if (ok && ans8 === 'Yes') { G.firstTry(true); G.note('y = 3x − 1 on {1,2,3,4}: range {2, 5, 8, 11}'); var gone = stamp(); G.lock(true); V.say(['g8_l4_dom', 'g8_l4_range', 'g8_l4_eight', 'g8_l4_ok']).then(function () { if (gone()) return; G.lock(false); done('L4', 'Domain {1, 2, 3, 4}, range {2, 5, 8, 11}. This time 8 IS in the range (at x = 3). Different rule, different range.', []); }); } else { G.firstTry(false); G.say(ok ? (ans8 ? 'Look at your heights: is 8 one of them? Change your answer and check again.' : 'Tap Yes or No: is 8 one of your heights? Then check again.') : 'Fix the red boxes: height = 3 × x − 1 (x = 1: 3 × 1 − 1 = 2). Then check again.', 'bad'); } } })));
-    G.hintFn = function (r) { V.say(r === 4 ? 'g8_h4' : 'g8_l4_range'); G.say('Hint: 3 × 1 − 1 = 2, then add 3 each time.'); };
+    G.hintFn = function (r) { V.say(r === 4 ? 'g8_h4' : 'g8_l4_range'); G.say(r < 3 ? 'Hint: 3 × 1 − 1 = 2, then add 3 each time.' : r === 3 ? 'Worked step: 3 × 1 − 1 = 2, 3 × 2 − 1 = 5, 3 × 3 − 1 = 8, 3 × 4 − 1 = 11. Is 8 in that list?' : 'Shown: the heights are filled in, and 8 is in the list (tile 3). Press Check.'); if (r >= 4) { ins.forEach(function (n, i) { n.value = String(3 * (i + 1) - 1); }); e8.children[0].click(); } };
     V.say('g8_l4_s');
   }
 
-  /* ================= L5: the tower returns ================= */
+  /* ================= L5: doors on the way home (the film's second rule, y = 3x − 1 on tiles 1…4) ================= */
   function L5() {
-    ST.mode = 'graph'; ST.tower = true; ST.graph = null; ST.cast = { priya: { x: 880, f: -1 }, marcus: { x: 70, f: 1 } };
-    setJob('Write the tower\'s rule. Then fence its domain and range.', ['Fill the rule: start + step × minutes (going down = a minus step). Then when it is empty.', 'Tap <strong>Dots</strong> or <strong>Line</strong>.', 'Fill the fences: domain in minutes, range in litres.', 'Press <strong>Set the fences</strong>.'], 'everything is right.', '<span class="jx">600 litres at minute 0. 40 litres leak out every minute.</span>');
-    var m = num('tm', 'Step (litres per minute, minus for going down)'), b = num('tb', 'Start (litres)'), dry = num('dry', 'Minute the tower is empty');
-    G.work.appendChild(row(el('b', { text: '1.' }), el('span', { text: 'litres = ' }), b, el('span', { text: '+' }), m, el('span', { text: '× minutes' }))); G.work.appendChild(row(el('b', { text: '1.', style: 'visibility:hidden' }), el('label', { 'for': 'dry', text: 'Empty at minute' }), dry));
-    var dl = el('div', { 'class': 'row' }); var kind = null; ['Dots', 'Line'].forEach(function (o) { dl.appendChild(el('button', { type: 'button', 'class': 'btn small', 'aria-pressed': 'false', text: o, onclick: function (e) { kind = o; stepAt(3); [].forEach.call(dl.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x === e.target)); }); } })); }); dl.insertBefore(el('b', { text: '2. Dots or a line?' }), dl.firstChild); dl.style.marginTop = '6px'; G.work.appendChild(dl);
-    var d0 = num('fd0', 'Domain from'), d1 = num('fd1', 'Domain to'), r0 = num('fr0', 'Range from'), r1 = num('fr1', 'Range to');
-    G.work.appendChild(row(el('b', { text: '3.' }), el('span', { text: 'Domain (minutes) from' }), d0, el('span', { text: 'to' }), d1)); G.work.appendChild(row(el('b', { text: '3.', style: 'visibility:hidden' }), el('span', { text: 'Range (litres) from' }), r0, el('span', { text: 'to' }), r1)); [d0, d1, r0, r1].forEach(function (x) { x.addEventListener('input', function () { stepAt([d0, d1, r0, r1].every(function (y) { return y.value.trim(); }) ? 4 : 3); }); });
-    G.work.appendChild(row(el('button', { type: 'button', 'class': 'btn primary', text: 'Set the fences', onclick: chk })));
-    function chk() { if (busy()) return; var ok = check(b, parseNum(b.value) === 600) & check(m, parseNum(m.value) === -40) & check(dry, parseNum(dry.value) === 15);
-      var D0 = parseNum(d0.value), D1 = parseNum(d1.value), R0 = parseNum(r0.value), R1 = parseNum(r1.value);
-      var okF = check(d0, D0 === 0) & check(d1, D1 === 15) & check(r0, R0 === 0) & check(r1, R1 === 600);
-      ST.graph = { xr: [-2, 18], yr: [-100, 700], f: function (x) { return 600 - 40 * x; }, x0: D0 != null ? Math.max(-2, D0) : -2, x1: D1 != null ? Math.min(18, D1) : 18, line: kind === 'Line', dots: kind === 'Dots' }; ST.fence = { x0: D0, x1: D1 };
-      if (ok && okF && kind === 'Line') { G.firstTry(true); G.note('tower: y = 600 − 40x, line, domain 0 to 15, range 0 to 600'); var gone = stamp(); G.lock(true); V.say(['g8_l5_dry', 'g8_l5_ok']).then(function () { if (gone()) return; G.lock(false); done('L5', 'litres = 600 − 40 × minutes, a line (time and water are measured), domain 0 to 15 minutes, range 0 to 600 litres. Outside the fences, the numbers are pretending.', ['doug_coo1', 'g8_end']); }); }
-      else { G.firstTry(false); var msg = !ok ? 'Fix the red boxes. Start 600, step −40 (it goes down). It is empty when 600 − 40 × minutes = 0.' : kind !== 'Line' ? 'Water and time are measured, so tap Line. Then set the fences again.' : (D1 === 600 || R1 === 15) ? 'Swapped: the domain is minutes, the range is litres. Swap them back.' : (D0 != null && D0 < 0) ? 'Minus minutes? Before minute 0 there was no leak. Start the domain at 0.' : (D1 != null && D1 > 15) || (R0 != null && R0 < 0) ? 'After minute 15 the water would be negative: minus water. Stop the fences there.' : 'Fix the red boxes: domain 0 to 15 minutes, range 0 to 600 litres.'; G.say(msg, 'bad'); V.say(msg.indexOf('Minus minutes') === 0 ? ['g8_l5_crater', 'g8_l5_input'] : msg.indexOf('minus water') >= 0 ? ['g8_l5_minus', 'g8_l5_nosuch'] : msg.indexOf('Swapped') === 0 ? 'g8_l5_input' : 'g8_h3'); } }
-    G.hintFn = function (r) { V.say(r === 4 ? 'g8_h4' : 'g8_h3'); G.say(r === 1 ? 'Hint: 600 at minute 0, and 40 less each minute.' : r === 2 ? 'Hint: 600 ÷ 40 = 15 minutes until empty.' : 'Worked step: domain 0 to 15, range 0 to 600, a line.'); };
-    V.say('g8_l5_s');
+    var HOME = function (x) { return 3 * x - 1; }, dougAt = 1, DOORS = [11, 6, 5, 14];
+    ST.mode = 'graph'; ST.graph = { xr: [-1, 6.5], yr: [0, 16], ylab: 2, f: HOME, x0: 1, x1: 4, dots: true, label: 'THE WAY HOME: y = 3x − 1' }; ST.cast = { zero: { x: 70, f: 1 }, marcus: { x: 880, f: -1 } };
+    var opened = {};
+    ST.extra = function (Gp, t, T) {
+      DOORS.forEach(function (h) { var y = Gp.y(h), x = Gp.x(5.35), st = opened[h]; c.save(); c.fillStyle = st === 'open' ? '#FFE58A' : st === 'shut' ? '#5A5A62' : '#3FA66B'; c.strokeStyle = E.INK; c.lineWidth = 2; E.rr(x - 30, y - 11, 60, 22, 4); E.txt('DOOR ' + h, x, y, '12px "Luckiest Guy",sans-serif', st === 'open' ? '#3A2200' : '#fff'); c.restore(); });
+      for (var x2 = 1; x2 <= 4; x2++) E.tag('(' + x2 + ', ' + HOME(x2) + ')', Gp.x(x2), Gp.y(HOME(x2)) + 22, '#9BDCFF');
+      E.pigeon(Gp.x(dougAt), Gp.y(HOME(dougAt)) - 8, 1, T, false, { sc: 0.9 });
+    };
+    setJob('Which doors on the way home can Doug reach?', ['Pick a door. Undo the rule: <strong>add 1</strong>, then <strong>divide by 3</strong>.', 'A whole tile from 1 to 4? Type it and press <strong>Hop!</strong>', 'Not a tile Doug has? Press <strong>No tile</strong>.'], 'all 4 doors are sorted.', '<span class="jx">The way home has tiles x = 1, 2, 3, 4 only. Height: y = 3x − 1. Heights: 2, 5, 8, 11.</span>');
+    var box = el('div', { 'class': 'sortlist' }); G.work.appendChild(box); var right = 0, firstAll = true, rowsBy = {};
+    function need(h) { return (h + 1) / 3; }
+    DOORS.forEach(function (h) {
+      var x = need(h), reach = Number.isInteger(x) && x >= 1 && x <= 4, ok = false;
+      var fb = el('small', { 'class': 'muted' }), inp = num('door' + h, 'Tile for door ' + h, '3em');
+      var hop = el('button', { type: 'button', 'class': 'btn small primary', text: 'Hop!' }), no = el('button', { type: 'button', 'class': 'btn small', text: 'No tile' });
+      var d = el('div', { 'class': 'sortrow' }, [el('div', { 'class': 'sl' }, [el('b', { text: 'Door ' + h }), el('span', { text: 'height ' + h })]), el('div', { 'class': 'row' }, [el('label', { 'for': 'door' + h, text: 'x =' }), inp, hop, no]), fb]);
+      rowsBy[h] = { hop: hop, no: no, inp: inp, x: x, reach: reach, done: function () { return ok; } };
+      function win(msg, lines) { ok = true; right++; d.classList.add('ok'); fb.className = 'good'; fb.textContent = msg; inp.disabled = true; hop.disabled = true; no.disabled = true; G.firstTry(true); stepAt(2); var gone = stamp(); G.lock(true); V.say(lines).then(function () { if (gone()) return; G.lock(false); if (right === DOORS.length) { G.P.wayHome = 'doors 5 (tile 2) and 11 (tile 4); 6 and 14 out of reach'; done('L5', 'Doors 5 and 11 open: tiles 2 and 4. Door 6 needs x = 7/3, not a whole tile. Door 14 needs x = 5, and the way home has no tile 5. The rule gives 14 at x = 5, but 5 is outside the domain: a number pretending.', ['g8_l4_ok', 'doug_coo1', 'g8_end']); } }); }
+      function miss(msg, line) { firstAll = false; G.firstTry(false); fb.className = 'bad'; fb.textContent = msg; if (line) V.say(line); }
+      hop.addEventListener('click', function () { if (busy() || ok) return; var v = parseNum(inp.value);
+        if (v == null) { fb.className = 'bad'; fb.textContent = inp.value.trim() ? 'I can\'t read that. Type just the tile number, like 3 (or press No tile).' : 'Type a tile number first (or press No tile).'; return; }
+        if (reach && v === x) { check(inp, true); dougAt = x; opened[h] = 'open'; G.note('door ' + h + ': 3x − 1 = ' + h + ' → tile ' + x); return win('Hop! 3 × ' + x + ' − 1 = ' + h + '. Tile ' + x + ' opens door ' + h + '.', ['doug_coo1']); }
+        check(inp, false);
+        if (!reach && same(v, x)) return miss(Number.isInteger(x) ? '3 × ' + x + ' − 1 = ' + h + ', but there is no tile ' + x + ': the way home only has tiles 1 to 4. ' + x + ' is outside the domain. Press No tile.' : 'There is no tile at ' + fmt(Math.round(x * 100) / 100) + '. Doug only stands on whole tiles. Press No tile.', Number.isInteger(x) ? 'g8_l2_static' : 'g8_refuse');
+        if (!Number.isInteger(v)) return miss('Doug only stands on whole tiles. Undo the rule: ' + h + ' + 1 = ' + (h + 1) + ', then ÷ 3.', 'g8_refuse');
+        miss('Check it: 3 × ' + v + ' − 1 = ' + (3 * v - 1) + ', not ' + h + '. Undo the rule: ' + h + ' + 1 = ' + (h + 1) + ', then ÷ 3.');
+      });
+      no.addEventListener('click', function () { if (busy() || ok) return;
+        if (!reach) { opened[h] = 'shut'; G.note('door ' + h + ': no tile (x = ' + (Number.isInteger(x) ? x : (h + 1) + '/3') + ')'); return win(Number.isInteger(x) ? 'Right: it needs x = ' + x + ', and the way home stops at tile 4. Outside the domain.' : 'Right: it needs x = ' + (h + 1) + '/3, about ' + fmt(Math.round(x * 100) / 100) + '. No half tiles, no third tiles.', Number.isInteger(x) ? ['g8_l2_static'] : ['g8_refuse']); }
+        miss('There is a tile for this one. Undo the rule: ' + h + ' + 1 = ' + (h + 1) + ', and ' + (h + 1) + ' ÷ 3 = ' + x + '. Is ' + x + ' one of the tiles?');
+      });
+      d.appendChild(fb); box.appendChild(d);
+    });
+    G.hintFn = function (r) { var h = DOORS.filter(function (q) { return !rowsBy[q].done(); })[0]; if (h == null) return; var R = rowsBy[h]; V.say(r >= 4 ? 'g8_h4' : 'g8_l4_range');
+      G.say(r === 1 ? 'Hint: undo the rule. Add 1 to the height, then divide by 3. Is the answer a whole tile from 1 to 4?' : r === 2 ? 'Hint: the tile heights are 2, 5, 8 and 11. Only those doors can open.' : r === 3 ? 'Worked step: door ' + h + ': ' + h + ' + 1 = ' + (h + 1) + ', ÷ 3 = ' + (Number.isInteger(R.x) ? R.x : (h + 1) + '/3') + '. ' + (R.reach ? 'Tile ' + R.x + '. Type it and hop.' : 'Not a tile Doug has: No tile.') : 'Shown: door ' + h + ' is done for you. The next one is yours.');
+      if (r >= 4) { if (R.reach) { R.inp.value = String(R.x); R.hop.click(); } else R.no.click(); } };
+    V.say('g8_l4_s');
   }
 
-  /* ================= S1: is zero allowed? ================= */
+  /* ================= S1: is zero allowed? (the edges of Doug's fences) ================= */
   function S1() {
-    ST.mode = 'graph'; ST.tower = true; ST.graph = { xr: [-2, 18], yr: [-100, 700], f: function (x) { return 600 - 40 * x; }, x0: 0, x1: 15, line: true }; ST.fence = { x0: 0, x1: 15 }; ST.cast = { priya: { x: 880, f: -1 } };
-    setJob('Decide if each one is inside the tower\'s fences.', ['Read one. Ask: is there a leak then? Is there that much water?', 'Tap <strong>In</strong> or <strong>Out</strong>.', 'Do all 5.'], 'all 5 are right. (All right first time = Edge Walker.)', '<span class="jx">Fences: minutes 0 to 15, litres 0 to 600.</span>');
-    var Q = [['Minute 0', true, 'In: the leak starts with 600 litres.'], ['Minute 15', true, 'In: 0 litres, the moment it is empty.'], ['Minute 15.5', false, 'Out: it would be −20 litres. Minus water.'], ['Minute −1', false, 'Out: before minute 0 there was no leak.'], ['650 litres', false, 'Out of the range: the tower only ever held 600.']];
-    var box = el('div', { 'class': 'sortlist' }); G.work.appendChild(box); var right = 0, firstTry = true;
+    ST.tags = true; ST.cast = { priya: { x: 880, f: -1 } };
+    setJob('Decide if each one is inside Doug\'s fences.', ['Read one. Ask: is it a real tile? Is it a height a tile has?', 'Tap <strong>In</strong> or <strong>Out</strong>.', 'Do all 6.'], 'all 6 are right. (All right first time = Edge Walker.)', '<span class="jx">Domain: tiles 0, 1, 2, 3, 4, 5, 6. Range: heights 1, 3, 5, 7, 9, 11, 13.</span>');
+    var Q = [['Tile 0', true, 'In: tile 0 is a real tile. Height 2 × 0 + 1 = 1.'], ['Tile 6', true, 'In: the last tile. Height 13.'], ['Tile 7', false, 'Out: the tiles stop at 6. 2 × 7 + 1 = 15 is just a number pretending.', 'g8_l2_static'], ['Tile 3.5', false, 'Out: no half tiles. Half a hop isn\'t a thing.', 'g8_refuse'], ['Height 0', false, 'Out of the range: the lowest tile, tile 0, has height 1.'], ['Height 13', true, 'In the range: tile 6 has height 13.']];
+    var box = el('div', { 'class': 'sortlist tight' }); G.work.appendChild(box); var right = 0, firstTry = true, good = [];
     Q.forEach(function (q) { var fb = el('small', { 'class': 'muted' }), ok = false, d = el('div', { 'class': 'sortrow' }, [el('div', { 'class': 'sl' }, [el('b', { text: q[0] })])]), r = el('div', { 'class': 'row' });
-      [['In', true], ['Out', false]].forEach(function (o) { r.appendChild(el('button', { type: 'button', 'class': 'btn small', text: o[0], onclick: function () { if (ok) return; if (o[1] === q[1]) { ok = true; right++; d.classList.add('ok'); this.classList.add('picked'); stepAt(3); fb.className = 'good'; fb.textContent = q[2]; G.firstTry(true); G.note(q[0] + ': ' + (q[1] ? 'in' : 'out')); if (right === Q.length) { G.P.edge = G.P.edge || firstTry; G.save(); done('S1', 'Edges: minute 0 and minute 15 are in; −1, 15.5 and 650 litres are out.' + (firstTry ? ' You earned Edge Walker.' : G.P.edge ? ' (You already hold Edge Walker.)' : ' (Edge Walker needs every answer right first time.)'), firstTry ? ['g8_s1_ok'] : []); } } else { firstTry = false; G.firstTry(false); fb.className = 'bad'; fb.textContent = 'Not that one. Is there a leak at that minute? Is there that much water? Tap the other one.'; V.say('g8_h3'); } } })); });
+      [['In', true], ['Out', false]].forEach(function (o) { var b = el('button', { type: 'button', 'class': 'btn small', text: o[0], onclick: function () { if (ok || busy()) return; if (o[1] === q[1]) { ok = true; right++; d.classList.add('ok'); this.classList.add('picked'); stepAt(3); G.firstTry(true); fb.className = 'good'; fb.textContent = q[2]; G.note(q[0] + ': ' + (q[1] ? 'in' : 'out')); if (q[3]) V.say(q[3]); else V.say(SFA.rng() < 0.5 ? 'doug_coo1' : 'doug_coo2'); if (right === Q.length) { G.P.edge = G.P.edge || firstTry; G.save(); done('S1', 'Edges: tile 0, tile 6 and height 13 are in. Tile 7, tile 3.5 and height 0 are out.' + (firstTry ? ' You earned Edge Walker.' : G.P.edge ? ' (You already hold Edge Walker.)' : ' (Edge Walker needs every answer right first time.)'), firstTry ? ['g8_l1_swap'] : []); } } else { firstTry = false; G.firstTry(false); fb.className = 'bad'; fb.textContent = 'Not that one. Is it a real tile (0 to 6, whole)? Is it a height one of the tiles has? Tap the other one.'; V.say('g8_l1_def'); } } }); r.appendChild(b); if (o[1] === q[1]) good.push(b); });
       d.appendChild(r); d.appendChild(fb); box.appendChild(d); });
-    G.hintFn = function (r) { V.say('g8_h3'); G.say('Hint: the fence includes both ends: 0 and 15.'); };
-    V.say('g8_s1_s');
+    G.hintFn = function (r) { V.say(r >= 4 ? 'g8_h4' : 'g8_l1_def'); G.say(r === 1 ? 'Hint: the fence includes both ends. Tile 0 and tile 6 are real tiles.' : r === 2 ? 'Hint: domain = tile numbers 0 to 6, whole only. Range = the heights in your table: 1, 3, 5, …, 13.' : r === 3 ? 'Worked step: height 0 would need tile −0.5. No such tile, so height 0 is out.' : 'Shown: one is done for you. The next one is yours.'); if (r >= 4) { var b = good.filter(function (x) { return !x.closest('.sortrow').classList.contains('ok'); })[0]; if (b) b.click(); } };
+    V.say('g8_l1_def');
   }
 
-  /* ================= S2: the half tile ================= */
+  /* ================= S2: the half tile (Marcus: "Add a tile!") ================= */
   function S2() {
-    ST.tags = true; ST.gap = true;
-    setJob('Explain why Doug can\'t stand at 3.5.', ['Tap a <strong>?</strong> gap in the sentence.', 'Pick the words that fit. The next gap opens by itself.', 'Press <strong>File it</strong>.'], 'your sentence is right.', '<span class="jx">In <i>Lost in Graph Land</i>, Gus stood on a half tile at (2.5, 6). Same kind of rule, but today Doug can\'t.</span>');
-    var fr; fr = SFA.frame(['In Graph Land the path was', { id: 'a', options: ['a line', 'dots'] }, ', so halves were in the domain. Today the static leaves', { id: 'b', options: ['only whole tiles', 'every number'] }, ', so Doug\'s graph is', { id: 'c', options: ['dots', 'a line'] }, 'and 3.5 is', { id: 'd', options: ['not in the domain', 'in the domain'] }, '.']);
-    G.work.appendChild(fr.node); fr.node.addEventListener('click', function () { stepAt(fr.complete() ? 3 : 2); }); G.work.appendChild(row(el('button', { type: 'button', 'class': 'btn primary', text: 'File it', onclick: function () { var v = fr.value(); if (fr.complete() && v.a === 'a line' && v.b === 'only whole tiles' && v.c === 'dots' && v.d === 'not in the domain') { G.P.halfTile = 'a line then (halves allowed); whole tiles now, so dots, and 3.5 is out'; G.firstTry(true); done('S2', 'Same kind of rule, different domain: a line allows every input in between; a bridge of tiles allows only whole inputs.', ['g8_s2_ok']); } else { G.firstTry(false); G.say(!fr.complete() ? 'Fill every gap first: tap a ? gap, then pick its words.' : 'Some gaps are wrong. Which one let you stand anywhere: the path in Graph Land, or today\'s tiles? Tap a gap to change it, then file it again.', 'bad'); } } })));
-    G.hintFn = function (r) { V.say('g8_h1'); G.say('Hint: Graph Land\'s path was a line. Today only the tiles are safe.'); };
-    V.say('g8_s2_s');
+    ST.tags = true; ST.gap = true; ST.cast.marcus = { x: 930, f: -1 };
+    setJob('Explain to Marcus why Doug can\'t reach Door A.', ['Tap a <strong>?</strong> gap in the sentence.', 'Pick the words that fit. The next gap opens by itself.', 'Press <strong>File it</strong>.'], 'your sentence is right.', '<span class="jx">Marcus: "Then put it in the range! Add a tile!" Door A is at height 8. Tile heights: y = 2x + 1.</span>');
+    var fr = SFA.frame(['Height 8 needs tile', { id: 'a', options: ['3.5', '4', '8'] }, '. Doug\'s domain is', { id: 'b', options: ['only whole tiles, 0 to 6', 'every number from 0 to 6'] }, ', so 8 is', { id: 'c', options: ['not in the range', 'in the range'] }, '. We can\'t add a tile, because the domain is', { id: 'd', options: ['the inputs the tiles allow', 'whatever we want it to be'] }, '.']);
+    var ANS = { a: '3.5', b: 'only whole tiles, 0 to 6', c: 'not in the range', d: 'the inputs the tiles allow' };
+    G.work.appendChild(fr.node); fr.node.addEventListener('click', function () { stepAt(fr.complete() ? 3 : 2); });
+    var file = el('button', { type: 'button', 'class': 'btn primary', text: 'File it', onclick: function () { if (busy()) return; var v = fr.value(); if (fr.complete() && Object.keys(ANS).every(function (k) { return v[k] === ANS[k]; })) { G.P.halfTile = '8 needs tile 3.5; only whole tiles, so 8 is out of the range'; G.firstTry(true); var gone = stamp(); G.lock(true); V.say(['g8_l2_static', 'g8_l2_sorry']).then(function () { if (gone()) return; G.lock(false); done('S2', 'Undo the rule: 8 − 1 = 7, 7 ÷ 2 = 3.5. There is no tile 3.5, so 8 is not in the range. The tiles set the domain; wanting a tile doesn\'t add one.', ['g8_s2_ok']); }); } else { G.firstTry(false); var wrongK = Object.keys(ANS).filter(function (k) { return v[k] && v[k] !== ANS[k]; })[0]; G.say(!fr.complete() ? 'Fill every gap first: tap a ? gap, then pick its words.' : wrongK === 'a' ? 'Check the first gap: undo 2x + 1 = 8. Take away 1, then halve.' : wrongK === 'b' ? 'Check the second gap: can Doug stand between tiles?' : wrongK === 'c' ? 'Check the third gap: is 8 one of the heights 1, 3, 5, …, 13?' : 'Check the last gap: who decides the domain, the tiles or Marcus?', 'bad'); } } });
+    G.work.appendChild(row(file));
+    G.hintFn = function (r) { V.say(r >= 4 ? 'g8_h4' : 'g8_l2_nohalf'); G.say(r === 1 ? 'Hint: undo the rule for 8: 8 − 1 = 7, 7 ÷ 2 = 3.5. Is there a tile 3.5?' : r === 2 ? 'Hint: every tile height is odd: 1, 3, 5, …, 13. Is 8 one of them?' : r === 3 ? 'Worked step: 3.5 · only whole tiles, 0 to 6 · not in the range · the inputs the tiles allow.' : 'Shown: the sentence is filled in. Read it, then press File it.');
+      if (r >= 4) { Object.keys(ANS).forEach(function (k) { var sb = fr.node.querySelector('.slot[data-id="' + k + '"]'); sb.click(); var tb = [].filter.call(fr.node.querySelectorAll('.tiles .tile'), function (x) { return x.textContent === ANS[k]; })[0]; if (tb) tb.click(); }); stepAt(3); } };
+    V.say(['g8_l2_m', 'g8_l2_add']);
   }
 
   /* ================= S3: story maker ================= */
@@ -2352,7 +2384,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     GR.forEach(function (gr, i) { var fb = el('small', { 'class': 'muted' }), ok = false; var sel = el('select', { 'class': 'num', id: 'story' + i, 'aria-label': 'Story for ' + gr.name, style: 'width:100%' }); sel.appendChild(el('option', { value: '', text: 'choose a story…' })); stories.forEach(function (s) { sel.appendChild(el('option', { value: s, text: s })); });
       sel.addEventListener('change', function () { stepAt(3); }); sel.style.flex = '1 1 100%'; sel.style.fontSize = '15px'; sel.style.padding = '6px 8px'; var d = el('div', { 'class': 'sortrow' }, [el('div', { 'class': 'sl' }, [el('b', { text: gr.name }), el('span', { text: (gr.g.dots ? 'dots' : 'a line') + ', inputs ' + gr.g.x0 + ' to ' + gr.g.x1 })]), el('div', { 'class': 'row' }, [el('button', { type: 'button', 'class': 'btn small', text: 'Show', 'aria-label': 'Show ' + gr.name, onclick: function () { ST.graph = Object.assign({ label: gr.name }, gr.g); stepAt(2); } }), el('button', { type: 'button', 'class': 'btn small primary', text: 'Match', 'aria-label': 'Match ' + gr.name, onclick: function () { if (ok) return; if (sel.value === gr.ans) { ok = true; right++; matched.push(gr.name + ': ' + gr.ans.split(',')[0]); d.classList.add('ok'); fb.className = 'good'; fb.textContent = 'Matched: ' + gr.ans + '.'; G.firstTry(true); if (right === 3) { G.P.stories = matched.join('; '); G.save(); done('S3', 'All three matched. Tickets are counted (dots, 1 to 5). The candle and the bucket are measured (lines, with fences at their start and end).', ['g8_s3_ok']); } } else { G.firstTry(false); fb.className = 'bad'; fb.textContent = !sel.value ? 'Choose a story from the list first, then press Match.' : sel.value.indexOf('seeds') >= 0 ? (gr.g.dots ? 'Seeds are counted, so dots are right, but this graph goes up 5 each time, not 3. Pick another story.' : 'Seeds are counted: that needs dots, not a line. Pick another story.') : 'Not this one. Press Show and look: dots or a line? Where does it start and stop? Pick another story.'; } } })]), sel, fb]); var mb = d.querySelector('.btn.primary'), mrow = el('div', { 'class': 'row', style: 'flex:1 1 100%;min-width:0;flex-wrap:nowrap;gap:6px' }); sel.style.flex = '1 1 0'; sel.style.width = '0'; sel.style.minWidth = '0'; d.insertBefore(mrow, fb); mrow.appendChild(sel); mrow.appendChild(mb); box.appendChild(d); });
     ST.graph = Object.assign({ label: 'Graph 1' }, GR[0].g);
-    G.hintFn = function (r) { V.say('g8_h1'); G.say(r === 1 ? 'Hint: dots means counted; a line means measured.' : 'Hint: which graph goes DOWN? That one is burning.'); };
+    G.hintFn = function (r) { V.say(r >= 4 ? 'g8_h4' : 'g8_l0_bad'); G.say(r === 1 ? 'Hint: dots means counted; a line means measured.' : r === 2 ? 'Hint: which graph goes DOWN? That one is burning.' : r === 3 ? 'Worked step: Graph 1 is dots (tickets), Graph 2 goes down (the candle), Graph 3 goes up as a line (the bucket).' : 'Shown: one graph is matched for you. The next one is yours.'); if (r >= 4) { var i = [0, 1, 2].filter(function (j) { return !box.children[j].classList.contains('ok'); })[0]; if (i != null) { var sel = $('#story' + i); sel.value = GR[i].ans; box.children[i].querySelector('.btn.primary').click(); } } };
     V.say('g8_s3_s');
   }
 
@@ -2376,7 +2408,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
 #task .donewhen{display:block;margin-top:5px;font-size:.92em;color:var(--muted)}
 #task .donewhen b{color:var(--teal)}
 #workBody .num{padding:6px 8px}
-#workBody h3{margin:10px 0 4px}
+#workBody h3{margin:10px 0 4px;text-transform:none;letter-spacing:.01em}
 #workBody .cmp th,#workBody .cmp td{padding:3px 5px}
 #workBody .cmp input.num{text-align:center;padding-inline:4px}
 .sortlist{display:flex;flex-direction:column;gap:5px;margin-top:8px}

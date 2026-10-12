@@ -1628,14 +1628,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'r2', kind: 'R', title: 'Can I Be the Sidekick NOW?', game: 'g1', file: 'reels/r2.html', from: 'Zero 2: Sidekick, about 5:10' },
     { id: 'r3', kind: 'R', title: 'It Is, Undeniably, a Doug', game: 'g2', file: 'reels/r3.html', from: 'The Glitch, about 0:30' },
     { id: 'r4', kind: 'R', title: 'Mostly Fine', game: 'g2', file: 'reels/r4.html', from: 'The Glitch, about 5:10' },
-    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g3', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
+    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g11', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
     { id: 'r6', kind: 'R', title: 'Found It With My Face', game: 'g5', file: 'reels/r6.html', from: 'Start and Step, about 4:10', egg: true },
     { id: 'd1', kind: 'D', title: 'The Multiplex 5000', game: 'g1', file: 'reels/d1.html', egg: true },
     { id: 'd2', kind: 'D', title: 'One Single Drop', game: 'g4', file: 'reels/d2.html', egg: true, premiere: 'h95c0a0cb' },
     { id: 'd3', kind: 'D', title: 'Doug Files a Report', game: 'g8', file: 'reels/d3.html', egg: true },
     { id: 'd4', kind: 'D', title: 'The Sidekick Application', game: 'g2', file: 'reels/d4.html', egg: true },
     { id: 'd5', kind: 'D', title: 'Sam Meets Linesy', game: 'g2', file: 'reels/d5.html', gold: 'Friend of Sam (Glitch Hunt)', egg: true },
-    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g6', file: 'reels/d6.html', gold: 'Door Master (Linear or Liar?)', egg: true },
+    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g15', file: 'reels/d6.html', gold: 'Knows Their Limits (The Outer Machines)', egg: true },
     { id: 'd7', kind: 'D', title: "One's Forty-Second Lap", game: 'g5', file: 'reels/d7.html', egg: true },
     { id: 'o1', kind: 'O', title: 'Across Three, Up One', game: 'g5', file: 'reels/o1.html', egg: true },
     { id: 'o2', kind: 'O', title: "Gus Can't Shout", game: 'g4', file: 'reels/o2.html' },
@@ -1782,7 +1782,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   SFA.GAMES = {
     1: { name: 'Crack the Fair', std: 'Licensed Fair Cracker', specials: ['The X-Ray Specialist', "Where Zero Isn't", 'Faker Finder'] },
     2: { name: 'Glitch Hunt', std: 'Sandy Flats Glitch Detective', specials: ['Friend of Sam', 'Rule Breaker, Rule Maker', 'Efficient Detective'] },
-    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ["The Undoer's Apprentice", 'Link Inspector', 'Fifth Door Architect'] },
+    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ['Backwards Reader', 'Link Inspector', 'Fifth Door Architect'] },
     4: { name: "Gus's Forecast", std: 'Junior Forecaster', specials: ['The Weather Line', 'Backwards Prophet'] },
     5: { name: 'Scorch Marks', std: 'Grid Flight Licence', specials: ['Triangle Prover', 'Same Place, Same Time', 'Where One Starts'] },
     6: { name: 'Linear or Liar?', std: 'Linear Lie Detector', specials: ['Door Master', 'Rule Maker', 'The Doubler'] },
@@ -2072,6 +2072,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       });
       tapeEl.innerHTML = h + '</tbody></table>';
       [].forEach.call(tapeEl.querySelectorAll('.stepchip'), function (b) { b.addEventListener('click', function () { if (M.onStepPick) M.onStepPick(+b.dataset.i, rows); }); });
+      if (M.onRender) M.onRender(rows);
     }
     if (M.fuel) {
       var fed = M.fed, tk = Math.max(1, 6 - fed);
@@ -2532,7 +2533,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     crack(L, {
       faker: true, m: 3, b: 7, label: 'TOTALLY NORMAL', col: '#A35FC0',
       extra: function (w) {
-        bustBox = el('div', { hidden: '' }, [el('p', { 'class': 'say', style: 'margin:6px 0 0', text: 'On the tape (below this card), tap two "step per 1" numbers that are different. A real × ☐ + ☐ machine has the same step everywhere.' })]);
+        bustBox = el('div', { hidden: '' }, [el('p', { 'class': 'say', style: 'margin:6px 0 0', text: 'Tap two steps that are different (here, or in the tape below). A real × ☐ + ☐ machine has the same step everywhere.' }), el('div', { 'class': 'row', id: 's3steps', style: 'margin-top:6px' })]);
         var acc = el('button', { type: 'button', 'class': 'btn', id: 'btnAccuse', text: 'Accuse: it\'s not a × ☐ + ☐ machine', onclick: function () { openBust(); } });
         qBox = el('div', { hidden: '' }); w.appendChild(stepH('4. Think it\'s lying? Accuse it')); w.appendChild(el('div', { 'class': 'row' }, [acc])); w.appendChild(bustBox); w.appendChild(qBox);
       },
@@ -2549,7 +2550,9 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     });
     playIntro(['g1_s3_intro']);
     function openBust() {
-      if (P.s3.bust) return; M.showSteps = true; M.sortTape = true; M.pickSteps = []; bustBox.hidden = false; renderTape();
+      if (P.s3.bust) return; M.showSteps = true; M.sortTape = true; M.pickSteps = [];
+      M.onRender = function (rows) { var box = $('#s3steps'); if (!box) return; box.innerHTML = ''; rows.forEach(function (r, i) { if (!i) return; var d = (r.y - rows[i - 1].y) / (r.x - rows[i - 1].x); var lab = Number.isInteger(d) ? fmt(d) : d.toFixed(2); box.appendChild(el('button', { type: 'button', 'class': 'tile stepchip', 'aria-pressed': String(M.pickSteps.indexOf(i) >= 0), 'aria-label': 'Step from input ' + fmt(rows[i - 1].x) + ' to ' + fmt(r.x) + ': ' + lab, html: '<small>' + fmt(rows[i - 1].x) + '→' + fmt(r.x) + '</small> ' + lab, onclick: function () { if (M.onStepPick) M.onStepPick(i, rows); } })); }); };
+      bustBox.hidden = false; renderTape();
       if (M.tape.length < 3) say('Feed at least 3 numbers (step 1) so there are two steps to compare.', 'bad');
       M.onStepPick = function (i, rows) {
         if (P.s3.bust) return; var ps = M.pickSteps; var at = ps.indexOf(i); if (at >= 0) ps.splice(at, 1); else ps.push(i); if (ps.length > 2) ps.shift(); renderTape();

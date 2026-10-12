@@ -311,6 +311,8 @@ ol.proof li>span:first-child{display:block;margin-bottom:4px}
 .num.xs{width:3.8em;font-size:16px;padding:5px 6px}
 .num.wide{width:8.5em}
 .s1t td,.s1t th{padding:3px 6px}
+.mcard .scroll-x,.mcard .stack{min-width:0;max-width:100%}
+@media (max-width:480px){.s1t td,.s1t th{padding:3px 3px}.s1t .num.xs{width:3.1em;padding:5px 4px}}
 .tile.glow,.mcard.glow,.pp.glow{animation:glow 1s ease-in-out infinite alternate}
 .panelp .tile{font:600 20px var(--mono);min-width:1.8em;text-align:center}
 .job .panelp{padding:4px 6px}
@@ -1660,14 +1662,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'r2', kind: 'R', title: 'Can I Be the Sidekick NOW?', game: 'g1', file: 'reels/r2.html', from: 'Zero 2: Sidekick, about 5:10' },
     { id: 'r3', kind: 'R', title: 'It Is, Undeniably, a Doug', game: 'g2', file: 'reels/r3.html', from: 'The Glitch, about 0:30' },
     { id: 'r4', kind: 'R', title: 'Mostly Fine', game: 'g2', file: 'reels/r4.html', from: 'The Glitch, about 5:10' },
-    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g3', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
+    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g11', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
     { id: 'r6', kind: 'R', title: 'Found It With My Face', game: 'g5', file: 'reels/r6.html', from: 'Start and Step, about 4:10', egg: true },
     { id: 'd1', kind: 'D', title: 'The Multiplex 5000', game: 'g1', file: 'reels/d1.html', egg: true },
     { id: 'd2', kind: 'D', title: 'One Single Drop', game: 'g4', file: 'reels/d2.html', egg: true, premiere: 'h95c0a0cb' },
     { id: 'd3', kind: 'D', title: 'Doug Files a Report', game: 'g8', file: 'reels/d3.html', egg: true },
     { id: 'd4', kind: 'D', title: 'The Sidekick Application', game: 'g2', file: 'reels/d4.html', egg: true },
     { id: 'd5', kind: 'D', title: 'Sam Meets Linesy', game: 'g2', file: 'reels/d5.html', gold: 'Friend of Sam (Glitch Hunt)', egg: true },
-    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g6', file: 'reels/d6.html', gold: 'Door Master (Linear or Liar?)', egg: true },
+    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g15', file: 'reels/d6.html', gold: 'Knows Their Limits (The Outer Machines)', egg: true },
     { id: 'd7', kind: 'D', title: "One's Forty-Second Lap", game: 'g5', file: 'reels/d7.html', egg: true },
     { id: 'o1', kind: 'O', title: 'Across Three, Up One', game: 'g5', file: 'reels/o1.html', egg: true },
     { id: 'o2', kind: 'O', title: "Gus Can't Shout", game: 'g4', file: 'reels/o2.html' },
@@ -1814,7 +1816,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   SFA.GAMES = {
     1: { name: 'Crack the Fair', std: 'Licensed Fair Cracker', specials: ['The X-Ray Specialist', "Where Zero Isn't", 'Faker Finder'] },
     2: { name: 'Glitch Hunt', std: 'Sandy Flats Glitch Detective', specials: ['Friend of Sam', 'Rule Breaker, Rule Maker', 'Efficient Detective'] },
-    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ["The Undoer's Apprentice", 'Link Inspector', 'Fifth Door Architect'] },
+    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ['Backwards Reader', 'Link Inspector', 'Fifth Door Architect'] },
     4: { name: "Gus's Forecast", std: 'Junior Forecaster', specials: ['The Weather Line', 'Backwards Prophet'] },
     5: { name: 'Scorch Marks', std: 'Grid Flight Licence', specials: ['Triangle Prover', 'Same Place, Same Time', 'Where One Starts'] },
     6: { name: 'Linear or Liar?', std: 'Linear Lie Detector', specials: ['Door Master', 'Rule Maker', 'The Doubler'] },
@@ -2202,7 +2204,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'S1', tier: 'stretch', name: 'Then One, Two, Ten' },
     { id: 'S2', tier: 'stretch', name: 'Build the Machine' }
   ];
-  var CORE = ['C1', 'C2', 'C3'], MAXWRONG = 5;
+  var CORE = ['C1', 'C2', 'C3'], MAXWRONG = 7;
   function wrongSum(P) { return CORE.reduce(function (s, id) { return s + (P.wrongBest[id] || 0); }, 0); }
   function status(P) {
     var coreN = CORE.filter(function (id) { return P.done[id]; }).length, w = wrongSum(P);
@@ -2727,7 +2729,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       { y0: 18, y1: 20, who: "Mr. Dunmore's machine" }, { y0: 18, y1: 20, who: "Mr. Dunmore's machine, steps the other way round", flip: true }
     ];
     var C = { k: 0, wrong: 0, order3: null };
-    G.setTask('Build the Machine', job('Build a two-step machine that matches each clue.', '', ['Tap a step\'s sign to switch it between <strong>×</strong> and <strong>+</strong>.', 'Type the numbers. Press <strong>Run 0 and 1</strong>.'], 'all 4 clues are built (<b id="s2n">0</b> of 4).'));
+    G.setTask('Build the Machine', job('Build a two-step machine that matches each clue.', '', ['Tap a step\'s sign to switch it between <strong>×</strong> and <strong>+</strong>.', 'Type the numbers. To take away, use <strong>+</strong> and a minus number (+ −4).', 'Press <strong>Run 0 and 1</strong>.'], 'all 4 clues are built (<b id="s2n">0</b> of 4).'));
     var clue = el('p', { 'class': 'pin', id: 's2clue', style: 'margin:0;display:block;line-height:1.5' }); G.work.appendChild(clue);
     var ops = ['x', '+'], slots = [0, 1].map(function (i) {
       var opB = el('button', { type: 'button', 'class': 'tile', 'aria-label': 'Step ' + (i + 1) + ' sign, tap to switch', text: '×' }), inp = box('?', 'Step ' + (i + 1) + ' number');

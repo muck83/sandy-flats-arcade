@@ -1631,14 +1631,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'r2', kind: 'R', title: 'Can I Be the Sidekick NOW?', game: 'g1', file: 'reels/r2.html', from: 'Zero 2: Sidekick, about 5:10' },
     { id: 'r3', kind: 'R', title: 'It Is, Undeniably, a Doug', game: 'g2', file: 'reels/r3.html', from: 'The Glitch, about 0:30' },
     { id: 'r4', kind: 'R', title: 'Mostly Fine', game: 'g2', file: 'reels/r4.html', from: 'The Glitch, about 5:10' },
-    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g3', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
+    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g11', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
     { id: 'r6', kind: 'R', title: 'Found It With My Face', game: 'g5', file: 'reels/r6.html', from: 'Start and Step, about 4:10', egg: true },
     { id: 'd1', kind: 'D', title: 'The Multiplex 5000', game: 'g1', file: 'reels/d1.html', egg: true },
     { id: 'd2', kind: 'D', title: 'One Single Drop', game: 'g4', file: 'reels/d2.html', egg: true, premiere: 'h95c0a0cb' },
     { id: 'd3', kind: 'D', title: 'Doug Files a Report', game: 'g8', file: 'reels/d3.html', egg: true },
     { id: 'd4', kind: 'D', title: 'The Sidekick Application', game: 'g2', file: 'reels/d4.html', egg: true },
     { id: 'd5', kind: 'D', title: 'Sam Meets Linesy', game: 'g2', file: 'reels/d5.html', gold: 'Friend of Sam (Glitch Hunt)', egg: true },
-    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g6', file: 'reels/d6.html', gold: 'Door Master (Linear or Liar?)', egg: true },
+    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g15', file: 'reels/d6.html', gold: 'Knows Their Limits (The Outer Machines)', egg: true },
     { id: 'd7', kind: 'D', title: "One's Forty-Second Lap", game: 'g5', file: 'reels/d7.html', egg: true },
     { id: 'o1', kind: 'O', title: 'Across Three, Up One', game: 'g5', file: 'reels/o1.html', egg: true },
     { id: 'o2', kind: 'O', title: "Gus Can't Shout", game: 'g4', file: 'reels/o2.html' },
@@ -1785,7 +1785,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   SFA.GAMES = {
     1: { name: 'Crack the Fair', std: 'Licensed Fair Cracker', specials: ['The X-Ray Specialist', "Where Zero Isn't", 'Faker Finder'] },
     2: { name: 'Glitch Hunt', std: 'Sandy Flats Glitch Detective', specials: ['Friend of Sam', 'Rule Breaker, Rule Maker', 'Efficient Detective'] },
-    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ["The Undoer's Apprentice", 'Link Inspector', 'Fifth Door Architect'] },
+    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ['Backwards Reader', 'Link Inspector', 'Fifth Door Architect'] },
     4: { name: "Gus's Forecast", std: 'Junior Forecaster', specials: ['The Weather Line', 'Backwards Prophet'] },
     5: { name: 'Scorch Marks', std: 'Grid Flight Licence', specials: ['Triangle Prover', 'Same Place, Same Time', 'Where One Starts'] },
     6: { name: 'Linear or Liar?', std: 'Linear Lie Detector', specials: ['Door Master', 'Rule Maker', 'The Doubler'] },
@@ -2136,7 +2136,10 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
 </script>
 <script>/* G5 Scorch Marks, locked to Episode C "One Alone": the link's trail y = 5x − 6, stones A(1, −1) and B(5, 19), lock L(4, 14),
    the Surveyor's stair triangles (1,5), (2,10), (4,20), survey table 2→7, 5→13, 11→25, the decoy D1(0, 8)→D2(4, 0) with slope −2.
-   Standards: 8.EE.6 (similar slope triangles), 8.F.4 (rate of change from two points); stretch previews 8.EE.8 (the crossing). */
+   Standards: 8.EE.6 (similar slope triangles), 8.F.4 (rate of change from two points).
+   Audit: the old stretch level S2 "The Crossing" (Zero 2x + 3 meets One 5x − 6 at (3, 9)) came from The Undoer, not One Alone, and
+   Three Roads (g14) now teaches it, so it was removed. Its id and its special (Same Place, Same Time) stay reserved: the special keeps
+   bit 1 of the certificate code and shows only to students who already earned it. */
 (function () {
   'use strict';
   var SFA = window.SFA, V = SFA.vo, el = SFA.el, $ = SFA.$;
@@ -2167,7 +2170,6 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'L5', tier: 'core', name: 'Backwards and Downhill' },
     { id: 'L6', tier: 'core', name: 'Find the Lock' },
     { id: 'S1', tier: 'stretch', name: 'From Any Two Marks' },
-    { id: 'S2', tier: 'stretch', name: 'The Crossing' },
     { id: 'S3', tier: 'stretch', name: 'Why Triangles?' },
     { id: 'S4', tier: 'stretch', name: 'Not a Line' }
   ];
@@ -2180,7 +2182,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   var CERTS = [
     { key: 'std', title: 'Grid Flight Licence', sub: 'measured the trail by rise over run, and found the lock', by: 'One', quote: 'Fast. Certain. And this time, correct.', line: 'g5_cert_std', crit: 'Finish the six core levels: read the stones, rise over run, the stair table (3 triangles) with the reason they fit, the survey marks, backwards and downhill, and the lock.', portrait: 'one', portraitSrc: [370, 270, 220] },
     { key: 0, title: 'Triangle Prover', sub: 'proved why a line has one slope everywhere', by: 'Priya', quote: 'You didn\'t just see it. You proved it.', line: 'g5_cert_prover', crit: 'Stretch: put the "Why Triangles?" proof in order, and show three marks are not a line with two triangles. At most one small hint in each.', portrait: 'priya', portraitSrc: [370, 250, 220] },
-    { key: 1, title: 'Same Place, Same Time', sub: 'found where Zero and One meet, from their rules', by: 'Zero and One', quote: 'This is a coincidence. It\'s an equation.', line: 'g5_s2_eq', crit: 'Stretch "The Crossing": set both rules before running the clock, then find the meeting point.', portrait: 'zero', portraitSrc: [390, 270, 180] },
+    { key: 1, title: 'Same Place, Same Time', sub: 'found where Zero and One meet, from their rules', by: 'Zero and One', quote: 'This is a coincidence. It\'s an equation.', line: 'g5_s2_eq', crit: 'Earned in an older version of this game (the crossing now lives in Three Roads).', portrait: 'zero', portraitSrc: [390, 270, 180], secret: true },
     { key: 2, title: 'Where One Starts', sub: 'found whole rules from two marks, with no zero stone', by: 'One', quote: 'I needed to find out where I start. You found it for me.', line: 'g5_cert_start', crit: 'Stretch "From Any Two Marks": three rules, including a fraction slope, with no rung 3 or 4 hints.', portrait: 'one', portraitSrc: [370, 270, 220] }
   ];
   function artefact(C, P) {
@@ -2221,10 +2223,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     id: 'g5', no: 5, name: 'Scorch Marks', levels: LEVELS, unlockStretchAfter: 'L6', certs: CERTS, sideTitle: 'Measurements', sideEmpty: 'Your rises, runs and slopes are written here.',
     blank: function () { return { ratioOK: false, simOK: false }; },
     status: status, artefact: artefact, portrait: portrait,
-    build: function (L) { ({ L0: L0, L1: L1, L2: L2, L3: L3, L4: L4, L5: L5, L6: L6, S1: S1, S2: S2, S3: S3, S4: S4 })[L.id](); }
+    build: function (L) { ({ L0: L0, L1: L1, L2: L2, L3: L3, L4: L4, L5: L5, L6: L6, S1: S1, S3: S3, S4: S4 })[L.id](); }
   });
   G.stage = S;
   window.__gm = function () { return G; };
+  // a level saved by an older version (S2) no longer exists: start from the first open level instead
+  if (G.P.cur && !G.lv(G.P.cur)) G.P.cur = null;
+  // Enter in a box presses the button on its row (Check, Record, Measure...)
+  G.work.addEventListener('keydown', function (e) { if (e.key !== 'Enter' || !e.target.matches || !e.target.matches('input[type=text]')) return; var vis = function (x) { return !x.disabled && x.offsetParent !== null; }, r = e.target.closest('.row'); var b = r && [].filter.call(r.querySelectorAll('button'), vis).pop(); if (!b) b = [].filter.call(G.work.querySelectorAll('button.primary'), function (x) { return vis(x) && (e.target.compareDocumentPosition(x) & 4); })[0]; if (b) { e.preventDefault(); b.click(); } });
   function busy() { return G.busy; }
   function num(id, label, w) { return el('input', { type: 'text', inputmode: 'decimal', 'class': 'num sm', id: id, 'aria-label': label, autocomplete: 'off', style: w ? 'width:' + w : null }); }
   function row() { return el('div', { 'class': 'row', style: 'margin-top:6px' }, [].slice.call(arguments)); }
@@ -2256,7 +2262,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       a.focus();
     }
     function finish() { ST.grid.stairs.forEach(function (s) { s.hl = false; s.on = true; }); ST.grid.lines = [{ m: 5, b: 0, col: '#FFD23F', x0: 0, x1: 3 }]; done('L0', 'Every stair is 1 across and 5 up. When every step is the same, the stairs make a straight line.', ['g5_l0_ok']); }
-    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_h1' : 'g5_l0_bad'); G.say(r <= 1 ? 'Hint: count the grid squares along the bottom of the stair, then up its side.' : 'Hint: every stair is 1 square across. Count how many squares up.'); if (r >= 3) { $('#l0a').value = '1'; } };
+    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_h1' : 'g5_l0_bad'); G.say(r <= 1 ? 'Hint: count the grid squares along the bottom of the stair, then up its side.' : 'Hint: every stair is 1 square across. Count how many squares up.'); if (r >= 3) { $('#l0a').value = '1'; } if (r >= 4) { $('#l0u').value = '5'; G.say('Watch: 1 across, 5 up. Press Measure stair.'); } };
     V.say(['g5_intro1', 'g5_intro2', 'g5_intro3', 'g5_l0_s']); stair();
   }
 
@@ -2322,7 +2328,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     G.work.appendChild(h1); G.work.appendChild(size); G.work.appendChild(sizeLab); peekStage(size);
     G.work.appendChild(recRow); G.work.appendChild(el('div', { 'class': 'scroll-x' }, [tbl]));
     var part2 = el('div', { hidden: '' }); G.work.appendChild(part2);
-    var recs = {};
+    var recs = {}, sc2 = null, rsn = null;
     function upd() { var r = +size.value; sizeLab.textContent = 'Triangle from A, run ' + r + '. Count its rise on the Grid.'; ST.grid.tris = [{ ax: 1, ay: -1, run: r, rise: 5 * r, col: '#FFD23F', o: { riseLabel: 'rise ?' } }]; Object.keys(recs).forEach(function (k) { if (+k !== r) ST.grid.tris.unshift({ ax: 1, ay: -1, run: +k, rise: 5 * k, col: 'rgba(92,224,184,.8)', o: { noLabels: true, noFill: true, lw: 2 } }); }); }
     size.addEventListener('input', upd);
     rec.addEventListener('click', function () {
@@ -2336,7 +2342,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       part2.hidden = false; part2.innerHTML = ''; [h1, size, sizeLab, recRow].forEach(function (e) { e.hidden = true; }); G.work.insertBefore(part2, G.work.firstChild);
       var sc = el('input', { type: 'range', id: 'scale', min: '1', max: '5', step: '0.5', value: '1', 'aria-label': 'Grow the little triangle (scale factor)', style: 'width:100%' }); var sl = el('p', { 'class': 'muted', 'aria-live': 'polite' });
       part2.appendChild(el('h3', { text: '3. Grow the little stair until it fits the big one' })); stepAt(3); part2.appendChild(sc); part2.appendChild(sl);
-      var reasons = el('div', { 'class': 'choice', hidden: '' });
+      var reasons = el('div', { 'class': 'choice', hidden: '' }); sc2 = sc; rsn = reasons;
       function u2() { var k = +sc.value; ST.grid.tris = [{ ax: 1, ay: -1, run: 4, rise: 20, col: 'rgba(255,210,63,.6)', o: { noLabels: true } }, { ax: 1, ay: -1, run: k, rise: 5 * k, col: k === 4 ? '#3BFF8A' : '#5CE0B8', o: { runLabel: 'run ' + frac(k), riseLabel: 'rise ' + frac(5 * k) } }]; sl.textContent = 'Little stair × ' + k + ': run ' + frac(k) + ', rise ' + frac(5 * k) + (k === 4 ? '. It fits exactly.' : k > 4 ? '. Too big now.' : '.'); if (k === 4 && reasons.hidden) { reasons.hidden = false; stepAt(4); G.note('little stair × 4 = big stair'); V.say(['g5_l3_fit', 'g5_l3_why']); } }
       sc.addEventListener('input', u2); peekStage(sc); u2();
       part2.appendChild(reasons); reasons.appendChild(el('h3', { text: '4. Why do they fit?' }));
@@ -2346,7 +2352,18 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       sc.focus();
     }
     upd();
-    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_h1' : r === 2 ? 'g5_l3_s' : 'g5_h3'); G.say(r === 1 ? 'Hint: for run 1, count up from −1 to the top corner of the triangle.' : r === 2 ? 'Hint: each extra 1 across adds 5 up.' : 'Worked step: run 2 gives rise 10, and 10 ÷ 2 = 5.'); if (r >= 3) { rise.value = String(5 * (+size.value)); } if (r >= 4) slope.value = '5'; };
+    G.hintFn = function (r) {
+      if (sc2) { // parts 3-4: grow the little stair, then the reason
+        V.say(r === 1 ? 'g5_l3_bad' : r === 4 ? 'g5_h4' : 'g5_l3_same');
+        G.say(r === 1 ? 'Hint: drag the slider until the green stair covers the big yellow one exactly.' : r === 2 ? 'Hint: the big stair is run 4, rise 20. Make the little one × 4.' : 'Worked step: × 4 turns run 1, rise 5 into run 4, rise 20. Every side × 4, so rise ÷ run stays 5.');
+        if (r >= 3 && rsn.hidden) { sc2.value = '4'; sc2.dispatchEvent(new Event('input')); }
+        if (r >= 3) [].forEach.call(rsn.querySelectorAll('button'), function (b) { if (/same factor/.test(b.textContent)) b.classList.add('glow'); });
+        return;
+      }
+      var k = +size.value; (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_h1' : r === 2 ? 'g5_l3_s' : 'g5_h3');
+      G.say(r === 1 ? 'Hint: count up from −1 to the top corner of the glowing triangle.' : r === 2 ? 'Hint: each extra 1 across adds 5 up.' : 'Worked step: run ' + k + ' gives rise ' + 5 * k + ', and ' + 5 * k + ' ÷ ' + k + ' = 5.');
+      if (r >= 3) { rise.value = String(5 * k); } if (r >= 4) slope.value = '5';
+    };
     V.say(['g5_l3_q', 'g5_l3_s']);
   }
 
@@ -2363,7 +2380,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       b.addEventListener('click', function () { var DY = parseNum(dy.value), DX = parseNum(dx.value), fy = p[3] - p[1], fx = p[2] - p[0], rev = DY === -fy && DX === -fx; var ok = check(dx, DX === fx || rev) & check(dy, DY === fy || rev) & check(s, same(parseNum(s.value), 2)); if (ok) { G.firstTry(true); G.note(rev ? '(' + p[2] + ',' + p[3] + ')→(' + p[0] + ',' + p[1] + '): ' + fmt(-fy) + '/' + fmt(-fx) + ' = 2' : '(' + p[0] + ',' + p[1] + ')→(' + p[2] + ',' + p[3] + '): ' + fy + '/' + fx + ' = 2'); k++; if (k < 2) { V.say('g5_l4_next'); one(); } else done('L4', '6/3 = 2 and 12/6 = 2. The same slope between any two marks: that is what makes it a line.', ['g5_l4_ok']); } else { G.firstTry(false); G.say('Fix the red boxes. Across = ' + p[2] + ' − ' + p[0] + '. Up = ' + p[3] + ' − ' + p[1] + '. Slope = up ÷ across.', 'bad'); V.say('g5_l4_bad'); } });
       dx.focus();
     }
-    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r <= 2 ? 'g5_l4_bad' : 'g5_h3'); G.say(r === 1 ? 'Hint: subtract the outputs, then subtract the inputs, in the same order.' : r === 2 ? 'Hint: from 2 to 5 is 3 across. From 7 to 13 is 6 up.' : 'Worked step: 6 ÷ 3 = 2.'); var p = pairs[k]; if (r >= 3) { $('#dy').value = p[3] - p[1]; $('#dx').value = p[2] - p[0]; } if (r >= 4) $('#s4').value = '2'; };
+    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r <= 2 ? 'g5_l4_bad' : 'g5_h3'); var p = pairs[k]; G.say(r === 1 ? 'Hint: subtract the outputs, then subtract the inputs, in the same order.' : r === 2 ? 'Hint: from ' + p[0] + ' to ' + p[2] + ' is ' + (p[2] - p[0]) + ' across. From ' + p[1] + ' to ' + p[3] + ' is ' + (p[3] - p[1]) + ' up.' : 'Worked step: ' + (p[3] - p[1]) + ' ÷ ' + (p[2] - p[0]) + ' = 2.'); if (r >= 3) { $('#dy').value = p[3] - p[1]; $('#dx').value = p[2] - p[0]; } if (r >= 4) $('#s4').value = '2'; };
     V.say('g5_l4_s'); one();
   }
 
@@ -2391,7 +2408,10 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       b.addEventListener('click', function () { var R1 = parseNum(ri.value), R2 = parseNum(ru.value), S1 = parseNum(s.value); var ok = check(ri, R1 === -8) & check(ru, R2 === 4) & check(s, same(S1, -2)); if (ok) { G.firstTry(true); G.say('Minus 8 over 4: minus 2. Downhill. So whose trail is it?', 'good'); which.hidden = false; stepAt(4); } else { G.firstTry(false); G.say(R1 === 8 ? 'It falls, so the rise is negative: −8. Fix the rise and slope.' : 'Run: from 0 across to 4. Rise: from 8 down to 0 (minus). Then divide rise ÷ run.', 'bad'); V.say('g5_l5_neg'); } });
       V.say(['g5_l5_decoy', 'g5_l5_dq']);
     }
-    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_l5_gus' : 'g5_h3'); G.say(r === 1 ? 'Hint: going backwards flips the direction of BOTH the rise and the run.' : r === 2 ? 'Hint: negative ÷ negative is positive.' : 'Worked step: backwards is −20 ÷ −4 = 5. The grey trail: −8 ÷ 4 = −2.'); };
+    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_l5_gus' : 'g5_h3'); G.say(r === 1 ? 'Hint: going backwards flips the direction of BOTH the rise and the run.' : r === 2 ? 'Hint: negative ÷ negative is positive. Downhill (left to right) means a negative rise.' : 'Worked step: backwards is −20 ÷ −4 = 5. The grey trail: −8 ÷ 4 = −2.');
+      if (r < 3) return; var f = function (id, v) { var e = $('#' + id); if (e && e.offsetParent !== null && !e.value) e.value = v; };
+      f('bu', '-4'); f('br', '-20'); f('bs', '5'); if (r >= 4) { f('du', '4'); f('dr', '-8'); f('ds', '-2'); }
+      [].forEach.call(G.work.querySelectorAll('button'), function (b) { if (b.offsetParent !== null && (b.textContent === 'It falls' || /^Slope 5/.test(b.textContent))) b.classList.add('glow'); }); };
     V.say(['g5_l5_priya', 'g5_l5_gus']); back();
   }
 
@@ -2413,7 +2433,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     b3.addEventListener('click', function () { if (busy()) return; var v = parseNum(ny.value); if (v == null) { check(ny, false); G.say('I can\'t read that number. Type the output at input 4, like 12.'); return; } ST.grid.net = { x: 4, y: v };
       if (v === 14) { ST.grid.net.ok = true; check(ny, true); G.say(''); G.firstTry(true); G.lock(true); ST.grid.lock = lock; ST.grid.fly = { t0: S.now(), dur: 2, path: function (q) { return [1 + 3 * q, -1 + 15 * q]; } }; G.note('lock at (4, 14) = 5×4 − 6'); G.after(G.after(S.wait(2100), function () { return V.say(['g5_l6_caught', 'g5_sidekick', 'g5_news']); }), function () { G.lock(false); done('L6', 'y = 5 × 4 − 6 = 14. The RULE link is locked at (4, 14). You needed both: the step (5) and the start (−6).', []); }); }
       else { ST.grid.net.ok = false; G.firstTry(false); G.say(v === 20 ? '5 × 4 = 20 forgets the start. Take away 6 and try again.' : 'Use the rule: work out 5 × 4, then take away 6.', 'bad'); V.say('g5_l6_miss2'); } });
-    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_l6_start' : 'g5_h3'); G.say(r === 1 ? 'Hint: the slope says how fast, not where it starts.' : r === 2 ? 'Hint: from (1, −1), one step back is (0, −1 − 5).' : 'Worked step: start −6, so at input 4: 5 × 4 − 6.'); if (r >= 3 && !p2.hidden) st.value = '-6'; if (r >= 4 && !p3.hidden) ny.value = '14'; };
+    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_l6_start' : 'g5_h3'); G.say(r === 1 ? 'Hint: the slope says how fast, not where it starts.' : r === 2 ? 'Hint: from (1, −1), one step back is (0, −1 − 5).' : 'Worked step: start −6, so at input 4: 5 × 4 − 6.'); if (r >= 3 && p2.hidden) t1.value = '5'; if (r >= 3 && !p2.hidden) st.value = '-6'; if (r >= 4 && !p3.hidden) ny.value = '14'; };
     t1.focus();
   }
 
@@ -2433,26 +2453,8 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         else { G.firstTry(false); G.say(!same(M2, m) ? 'Fix the slope first: (second y − first y) ÷ (second x − first x).' : !same(B2, b) ? 'Slope is right. Fix the start: from a mark, take away one slope for each step back to input 0.' : 'Slope and start are right. Now work out slope × ' + X + ' + start.', 'bad'); if (!same(M2, m) && !Number.isInteger(m)) V.say('g5_s1_frac'); } });
       ms.focus();
     }
-    G.hintFn = function (r) { var p = set[k], m = (p[3] - p[1]) / (p[2] - p[0]); V.say(r <= 2 ? 'g5_h1' : 'g5_h3'); G.say(r === 1 ? 'Hint: up ' + (p[3] - p[1]) + ', across ' + (p[2] - p[0]) + '.' : r === 2 ? 'Hint: the slope is ' + (p[3] - p[1]) + '/' + (p[2] - p[0]) + '. Simplify it.' : 'Worked step: slope ' + frac(m) + '. Start = ' + br(fmt(p[1])) + ' − ' + br(frac(m)) + ' × ' + br(fmt(p[0])) + '.'); function br(t) { return /^[−-]/.test(t) ? '(' + t + ')' : t; } if (r >= 3) $('#m1').value = frac(m); };
+    G.hintFn = function (r) { var p = set[k], m = (p[3] - p[1]) / (p[2] - p[0]); V.say(r <= 2 ? 'g5_h1' : 'g5_h3'); G.say(r === 1 ? 'Hint: up ' + (p[3] - p[1]) + ', across ' + (p[2] - p[0]) + '.' : r === 2 ? 'Hint: the slope is ' + (p[3] - p[1]) + '/' + (p[2] - p[0]) + '. Simplify it.' : 'Worked step: slope ' + frac(m) + '. Start = ' + br(fmt(p[1])) + ' − ' + br(frac(m)) + ' × ' + br(fmt(p[0])) + '.'); function br(t) { return /^[−-]/.test(t) ? '(' + t + ')' : t; } if (r >= 3) $('#m1').value = frac(m); if (r >= 4) { var b0 = p[1] - m * p[0], X = p[2] + 2; $('#b1').value = frac(b0); $('#p1').value = frac(m * X + b0); G.say('Watch: slope ' + frac(m) + ', start ' + frac(b0) + ', so at input ' + X + ': ' + frac(m) + ' × ' + X + ' + ' + br(frac(b0)) + ' = ' + frac(m * X + b0) + '. Press Check.'); } };
     V.say('g5_s1_s'); one();
-  }
-
-  /* ================= S2: the crossing (The Undoer, 3:20) ================= */
-  function S2() {
-    ST.cast = { zero: { x: 90, f: 1, sc: 0.7 }, one: { x: 870, f: -1, sc: 0.6 } };
-    ST.grid = { box: [230, 64, 690, 448], xr: [-1, 5], yr: [-8, 20], ylab: 4, ymajor: 4, stones: [{ x: 1, y: -1, col: '#FF7A7A', tag: 'scorch (1, −1)', dx: 60 }, { x: 2, y: 4, col: '#FF7A7A', tag: 'scorch (2, 4)', dx: 56 }, { x: 0, y: 3, col: '#FFA23A', tag: 'Zero (0, 3)', dx: -50 }] };
-    G.setTask('The Crossing', job('Find where Zero and One meet.', ['Write both rules. Zero: <strong>starts at 3, adds 2 every step</strong>. One: goes through <strong>(1, −1)</strong> and <strong>(2, 4)</strong>. Press <strong>Set rules</strong>.', 'Find where they meet. Type it, press <strong>They meet here</strong>. Drag the clock to check.'], 'you find where they meet.')); stepAt(1);
-    var zm = num('zm', 'Zero slope'), zb = num('zb', 'Zero start'), om = num('om', 'One slope'), ob = num('ob', 'One start'), setB = el('button', { type: 'button', 'class': 'btn primary', text: 'Set rules' });
-    G.work.appendChild(el('h3', { text: '1. Write both rules' })); G.work.appendChild(row(el('b', { text: 'Zero: y =' }), zm, el('span', { text: 'x +' }), zb)); G.work.appendChild(row(el('b', { text: 'One: y =' }), om, el('span', { text: 'x +' }), ob)); G.work.appendChild(row(setB));
-    var clock = el('input', { type: 'range', id: 'clk', min: '0', max: '5', step: '1', value: '0', 'aria-label': 'Step number (input)', style: 'width:100%' }); var cl = el('p', { 'class': 'muted', 'aria-live': 'polite' });
-    var mx = num('mx', 'Meeting input'), my = num('my', 'Meeting output'), mB = el('button', { type: 'button', 'class': 'btn primary', text: 'They meet here' });
-    G.work.appendChild(el('h3', { text: '2. Find where they meet (drag the clock to check)' })); G.work.appendChild(clock); G.work.appendChild(cl); G.work.appendChild(row(lab('Meet at (', 'mx'), mx, el('span', { text: ',' }), my, el('span', { text: ')' }), mB));
-    var rulesOK = false, scrubbedFirst = false;
-    clock.addEventListener('input', function () { if (!rulesOK) scrubbedFirst = true; var x = +clock.value, z = 2 * x + 3, o = 5 * x - 6; ST.grid.stones = ST.grid.stones.filter(function (s) { return !s.live; }).concat([{ x: x, y: z, col: '#FFA23A', live: true, tag: 'Zero ' + z, dx: -44 }, { x: x, y: o, col: '#FF5A5A', live: true, tag: 'One ' + fmt(o), dx: 50, dy: 30 }]); cl.textContent = 'Step ' + x + ': Zero at ' + z + ', One at ' + fmt(o) + (z === o ? '. SAME PLACE.' : '. Gap ' + Math.abs(z - o) + '.'); });
-    setB.addEventListener('click', function () { var ok = check(zm, parseNum(zm.value) === 2) & check(zb, parseNum(zb.value) === 3) & check(om, parseNum(om.value) === 5) & check(ob, parseNum(ob.value) === -6); if (ok) { rulesOK = true; ST.grid.lines = [{ m: 2, b: 3, col: '#FFA23A' }, { m: 5, b: -6, col: '#FF5A5A' }]; G.note('Zero y = 2x + 3; One y = 5x − 6'); G.say('Rules set. Now find where they meet, then run the clock to check.', 'good'); stepAt(2); V.say('g5_s2_set'); } else { G.firstTry(false); var zOK = parseNum(zm.value) === 2 && parseNum(zb.value) === 3; G.say((zOK ? '' : 'Zero: his step (2 each step) goes in the first box, his start (3) in the second. ') + 'One: slope = up ÷ across from (1, −1) to (2, 4). Start = one step back from (1, −1).', 'bad'); } });
-    mB.addEventListener('click', function () { if (busy()) return; var x = parseNum(mx.value), y = parseNum(my.value); if (x === 3 && y === 9) { check(mx, true); check(my, true); G.P.s2rulesFirst = G.P.s2rulesFirst || (rulesOK && !scrubbedFirst && G.levelMaxRung <= 2); G.save(); ST.grid.stones.push({ x: 3, y: 9, col: '#3BFF8A', tag: '(3, 9)', dx: 40 }); G.lock(true); G.after(V.say(['g5_s2_gus', 'g5_s2_coinc', 'g5_s2_eq']), function () { G.lock(false); done('S2', 'At input 3 both rules give 9: 2 × 3 + 3 = 5 × 3 − 6. Same place, same time.' + (G.P.s2rulesFirst ? ' You earned Same Place, Same Time.' : ' (The special needs both rules set before you run the clock.)'), []); }); } else { check(mx, false); check(my, false); G.firstTry(false); G.say('Not there. Drag the clock and look for SAME PLACE, or find where 2x + 3 and 5x − 6 give the same output.', 'bad'); } });
-    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)(r === 1 ? 'g5_s2_zero' : 'g5_s2_gus'); G.say(r === 1 ? 'Hint: Zero is y = 2x + 3. One climbs 5 per step from (1, −1).' : r === 2 ? 'Hint: they start 9 apart and One gains 3 every step.' : 'Worked step: 2x + 3 = 5x − 6 when 9 = 3x.'); };
-    V.say(['g5_s2_zero', 'g5_s2_set']);
   }
 
   /* ================= S3: why triangles? ================= */
@@ -2478,7 +2480,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     var v = el('div', { 'class': 'row', hidden: '' }, [el('button', { type: 'button', 'class': 'btn', text: 'One straight line', onclick: function () { G.firstTry(false); G.say('A straight line has the same slope between any two marks. Your slopes are 2 and 4/3. Are they the same? Pick again.', 'bad'); } }), el('button', { type: 'button', 'class': 'btn', text: 'Not a line', onclick: function () { G.P.notLine = 'P→Q 4/2 = 2, Q→R 4/3: different, so not a line'; G.firstTry(true); done('S4', 'P→Q has slope 2 and Q→R has slope 4/3. Different slopes, so the three marks are not on one line.', ['g5_s4_ok']); } })]);
     G.work.appendChild(v);
     go.addEventListener('click', function () { var ok = check(a, same(parseNum(a.value), 2)) & check(b, same(parseNum(b.value), 4 / 3)); if (ok) { G.note('P→Q 2, Q→R 4/3'); v.hidden = false; stepAt(3); G.say('Two triangles, two different slopes. So is it one straight line?'); } else { G.firstTry(false); G.say('Fix the red box. P→Q: up 4, across 2. Q→R: up 4, across 3. Type up ÷ across; fractions are fine.', 'bad'); } });
-    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)('g5_h1'); G.say(r === 1 ? 'Hint: rise ÷ run for each triangle.' : r === 2 ? 'Hint: Q→R is up 4 across 3. Type 4/3.' : 'Worked step: 4 ÷ 2 = 2, but 4 ÷ 3 = 4/3.'); };
+    G.hintFn = function (r) { (r === 4 ? function () { V.say('g5_h4'); } : V.say)('g5_h1'); G.say(r === 1 ? 'Hint: rise ÷ run for each triangle.' : r === 2 ? 'Hint: Q→R is up 4 across 3. Type 4/3.' : 'Worked step: 4 ÷ 2 = 2, but 4 ÷ 3 = 4/3. Not the same.'); if (r >= 3) a.value = '2'; if (r >= 4) b.value = '4/3'; };
     V.say('g5_s4_s'); a.focus();
   }
 

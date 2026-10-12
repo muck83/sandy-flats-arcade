@@ -25,7 +25,7 @@ SFA_LESSON({
       fig: { kind: 'table', head: ['in', 'out'], rows: [[0, 5], [1, 8], [10, '?']] } },
     { k: 'machine', min: 3, id: 'mb', name: 'Machine B', rule: '3x-2', q: 'Your turn. Crack Machine B in as few inputs as you can.' },
     { k: 'play', min: 12, title: 'Play Crack the Fair', minutes: 12,
-      steps: ['Open the game and press *Play*.', 'Start at *Level 1 (Warm-up)*. Read the *Your job* card.', 'Feed numbers, guess the rule, then test it.', 'Stuck? Press *Get a hint*. That\'s what it\'s for.'],
+      steps: ['Open the game and press *Start the Fair*.', 'Start at *Feed the Multiplex*. Read the *Your job* card.', 'Feed numbers, guess the rule, then test it.', 'Stuck? Press *Get a hint*. That\'s what it\'s for.'],
       aim: 'Done when the timer runs out. Aim for at least 4 levels.' },
     { k: 'conf', min: 1, id: 'conf', q: 'How do you feel about cracking machine rules now?' },
     { k: 'open', min: 2, id: 'hard', q: 'Which machine in the game was *hardest*? What was its rule? How did you crack it?', ph: 'The hardest one was...',

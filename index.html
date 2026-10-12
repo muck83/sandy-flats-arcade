@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head><body>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sandy Flats Arcade</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
 <style>/* Sandy Flats Arcade: shared kit styles.
@@ -321,6 +321,28 @@ a.btn{text-decoration:none;display:inline-block}
 .seq tr.g td{color:var(--marquee);font-weight:700}
 </style>
 
+<style>/* front page only: one "Next up", then a short list of all games in film order */
+.glist{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.grow{display:grid;grid-template-columns:64px minmax(0,1fr) 170px auto;gap:6px 14px;align-items:center;background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:8px 12px 8px 8px}
+.grow.next{border-color:var(--marquee);box-shadow:0 0 0 3px rgba(255,201,74,.18)}
+.grow .fno{width:64px;height:52px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-shadow:2px 2px 0 #1b1a22;line-height:1}
+.grow .fno small{font:700 10px var(--ui);letter-spacing:.12em;text-transform:uppercase}
+.grow .fno b{font-family:var(--display);font-weight:400;font-size:24px}
+.grow .gt{min-width:0}
+.grow .gt b{display:block;font-family:var(--display);font-weight:400;font-size:20px;letter-spacing:.03em;color:var(--marquee);line-height:1.15}
+.grow .gt>span{display:block;font-size:14px;color:var(--muted);line-height:1.35}
+.grow .gp{font:600 13px var(--mono);color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.grow .gp.started{color:var(--green)}
+.grow .ga{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.grow .tag{display:inline-block;font:800 10px/1.4 var(--ui);letter-spacing:.12em;text-transform:uppercase;color:#231800;background:var(--marquee);border-radius:999px;padding:1px 8px;margin-left:8px;vertical-align:4px}
+@media (max-width:720px){
+  .grow{grid-template-columns:52px minmax(0,1fr);padding:8px}
+  .grow .fno{width:52px;height:46px}.grow .fno b{font-size:20px}
+  .grow .gp{grid-column:2}
+  .grow .ga{grid-column:1 / -1;justify-content:flex-start}
+}
+</style>
+</head><body>
 <div class="wrap">
   <header class="marquee">
     <div>
@@ -333,9 +355,9 @@ a.btn{text-decoration:none;display:inline-block}
 
   <section class="shelf" aria-labelledby="gH">
     <div class="nextup" id="nextUp"></div>
-    <h2 id="gH">The games</h2>
-    <p>About 30 minutes each. Finish the main levels to earn the certificate. Challenge levels are for extra certificates.</p>
-    <div class="games" id="games"></div>
+    <h2 id="gH">All the games</h2>
+    <p>One game for each film, in film order. Play the game for the film you just watched. Each one starts easy and takes about 30 minutes.</p>
+    <ol class="glist" id="games"></ol>
     <p style="margin-top:14px"><a class="btn" href="lessons.html">📺 Lesson slideshows: films, questions and polls</a></p>
   </section>
 
@@ -555,14 +577,14 @@ a.btn{text-decoration:none;display:inline-block}
     { id: 'r2', kind: 'R', title: 'Can I Be the Sidekick NOW?', game: 'g1', file: 'reels/r2.html', from: 'Zero 2: Sidekick, about 5:10' },
     { id: 'r3', kind: 'R', title: 'It Is, Undeniably, a Doug', game: 'g2', file: 'reels/r3.html', from: 'The Glitch, about 0:30' },
     { id: 'r4', kind: 'R', title: 'Mostly Fine', game: 'g2', file: 'reels/r4.html', from: 'The Glitch, about 5:10' },
-    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g3', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
+    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g11', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
     { id: 'r6', kind: 'R', title: 'Found It With My Face', game: 'g5', file: 'reels/r6.html', from: 'Start and Step, about 4:10', egg: true },
     { id: 'd1', kind: 'D', title: 'The Multiplex 5000', game: 'g1', file: 'reels/d1.html', egg: true },
     { id: 'd2', kind: 'D', title: 'One Single Drop', game: 'g4', file: 'reels/d2.html', egg: true, premiere: 'h95c0a0cb' },
     { id: 'd3', kind: 'D', title: 'Doug Files a Report', game: 'g8', file: 'reels/d3.html', egg: true },
     { id: 'd4', kind: 'D', title: 'The Sidekick Application', game: 'g2', file: 'reels/d4.html', egg: true },
     { id: 'd5', kind: 'D', title: 'Sam Meets Linesy', game: 'g2', file: 'reels/d5.html', gold: 'Friend of Sam (Glitch Hunt)', egg: true },
-    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g6', file: 'reels/d6.html', gold: 'Door Master (Linear or Liar?)', egg: true },
+    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g15', file: 'reels/d6.html', gold: 'Knows Their Limits (The Outer Machines)', egg: true },
     { id: 'd7', kind: 'D', title: "One's Forty-Second Lap", game: 'g5', file: 'reels/d7.html', egg: true },
     { id: 'o1', kind: 'O', title: 'Across Three, Up One', game: 'g5', file: 'reels/o1.html', egg: true },
     { id: 'o2', kind: 'O', title: "Gus Can't Shout", game: 'g4', file: 'reels/o2.html' },
@@ -709,7 +731,7 @@ a.btn{text-decoration:none;display:inline-block}
   SFA.GAMES = {
     1: { name: 'Crack the Fair', std: 'Licensed Fair Cracker', specials: ['The X-Ray Specialist', "Where Zero Isn't", 'Faker Finder'] },
     2: { name: 'Glitch Hunt', std: 'Sandy Flats Glitch Detective', specials: ['Friend of Sam', 'Rule Breaker, Rule Maker', 'Efficient Detective'] },
-    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ["The Undoer's Apprentice", 'Link Inspector', 'Fifth Door Architect'] },
+    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ['Backwards Reader', 'Link Inspector', 'Fifth Door Architect'] },
     4: { name: "Gus's Forecast", std: 'Junior Forecaster', specials: ['The Weather Line', 'Backwards Prophet'] },
     5: { name: 'Scorch Marks', std: 'Grid Flight Licence', specials: ['Triangle Prover', 'Same Place, Same Time', 'Where One Starts'] },
     6: { name: 'Linear or Liar?', std: 'Linear Lie Detector', specials: ['Door Master', 'Rule Maker', 'The Doubler'] },
@@ -888,27 +910,36 @@ a.btn{text-decoration:none;display:inline-block}
   var LES_OF={g9:10,g1:1,g2:2,g10:11,g11:12,g4:3,g3:4,g12:13,g13:14,g5:5,g14:15,g15:16,g6:6,g7:7,g16:17,g8:8,g17:9};   // the lesson that goes with each game (lesson file number)
   var LES_N={g9:1,g1:2,g2:3,g10:4,g11:5,g4:6,g3:7,g12:8,g13:9,g5:10,g14:11,g15:12,g6:13,g7:14,g16:15,g8:16,g17:17};    // the number students see for that lesson (its film)
   var GOAL={g1:'Feed numbers into machines and work out their secret rules.',g2:'Catch the suspect that gives one input two outputs.',g3:'Turn one rule into words, a table, a graph and a formula.',g4:'Build graphs that tell a story, and read stories from graphs.',g5:'Find the slope between two marks, then the rule.',g6:'Spot the machines that only pretend to be lines.',g7:'Work out who is fastest when every ride shows it differently.',g8:'Dots or a line? Fence in the inputs and outputs.',g9:'Feed zero first to find where a rule starts, then crack the machine.',g10:'Turn Gus\'s signs into points and read the graph both ways.',g11:'Say each machine\'s name back: sentence, pair, point.',g12:'Walk a table back to input 0 to find where the rule really starts.',g13:'Find the start and the step of the leaking water tower.',g14:'Run machines backwards to find what went in, three different ways.',g15:'Square it, double it, flip it: meet the machines that aren\'t lines.',g16:'Find out what each number in a rule does, then test points to pick the right rule.',g17:'Re-forge the Chain four ways and catch the lying link.'};
-  function prog(G){ var p=SFA.store.get(G.id,null); var info=SFA.GAMES[G.g]||{}; var n=p&&p.done?Object.keys(p.done).filter(function(k){return p.done[k];}).length:0; var tot=({1:11,2:7,3:8,4:9,5:11,6:8,7:9,8:9,9:6,10:6,11:7,12:6,13:7,14:7,15:6,16:6,17:7})[G.g]||0; return {n:n,tot:tot}; }
-  var next=null;
+  // each game's level ids and its core (certificate) levels, copied from the games' LEVELS and CORE lists.
+  // Counting only these ids keeps old saves of levels that were later removed out of the totals.
+  var LV={"g1":{"all":["L0","L1","L2","L3","L4","L5","L6","S1","S2","S3","S4"],"core":["L2","L3","L4","L5","L6"]},"g10":{"all":["L0","C1","C2","C3","S1","S2"],"core":["C1","C2","C3"]},"g11":{"all":["W0","C1","C2","C3","S1","S2","S3"],"core":["C1","C2","C3"]},"g12":{"all":["W0","C1","C2","C3","S1","S2"],"core":["C1","C2","C3"]},"g13":{"all":["W0","C1","C2","C3","S1","S2","S3"],"core":["C1","C2","C3"]},"g14":{"all":["W0","C1","C2","C3","S1","S2","S3"],"core":["C1","C2","C3"]},"g15":{"all":["L0","C1","C2","C3","S1","S2"],"core":["C1","C2","C3"]},"g16":{"all":["C0","C1","C2","C3","S1","S2"],"core":["C1","C2","C3"]},"g17":{"all":["W0","C1","C2","C3","S1","S2","S3"],"core":["C1","C2","C3"]},"g2":{"all":["C0","C1","C2","C3","S1","S2","S3"],"core":["C1","C2","C3"]},"g3":{"all":["D0","V1","V2","N1","S1","S2","S3"],"core":["V1","V2","N1"]},"g4":{"all":["F0","F1","F2","F3","F4","F5","S1","S2","S3"],"core":["F1","F2","F3","F4","F5"]},"g5":{"all":["L0","L1","L2","L3","L4","L5","L6","S1","S3","S4"],"core":["L1","L2","L3","L4","L5","L6"]},"g6":{"all":["L0","C1","C2","C3","C4","S2"],"core":["C1","C2","C3","C4"]},"g7":{"all":["R0","R1","R2","R3","R4","R5","S1","S2","S3"],"core":["R1","R2","R3","R4","R5"]},"g8":{"all":["L0","L1","L2","L3","L4","L5","S1","S2","S3"],"core":["L1","L2","L3","L4","L5"]},"g9":{"all":["W0","C1","C2","C3","S1","S2"],"core":["C1","C2","C3"]}};
+  function prog(G){ var p=SFA.store.get(G.id,null)||{}, d=p.done||{}, L=LV[G.id]||{all:[],core:[]};
+    var n=L.all.filter(function(k){return d[k];}).length, c=L.core.filter(function(k){return d[k];}).length;
+    return {n:n,tot:L.all.length,core:c,coreTot:L.core.length,cert:L.core.length>0&&c>=L.core.length}; }
+  // Next up: the game of the lesson or game this student opened last (once its certificate is done, the next film's game);
+  // with no history, the first game in film order without its certificate.
+  var last=null; try{ last=JSON.parse(localStorage.getItem('sfa.lastgame')||'null'); }catch(e){}
+  var lastIx=-1; if(last&&last.file) GAMES.forEach(function(G,ix){ if(G.file===last.file) lastIx=ix; });
+  var nextIx=-1, k;
+  if(lastIx>=0){ nextIx=lastIx; while(nextIx<GAMES.length-1&&prog(GAMES[nextIx]).cert) nextIx++; }
+  else { for(k=0;k<GAMES.length;k++){ if(!prog(GAMES[k]).cert){ nextIx=k; break; } } if(nextIx<0) nextIx=GAMES.length-1; }
+  var next={G:GAMES[nextIx],ix:nextIx,pr:prog(GAMES[nextIx])};
   GAMES.forEach(function(G,ix){
-    var info=SFA.GAMES[G.g]; var pr=prog(G); if(!next&&!(pr.n&&pr.tot&&pr.n>=pr.tot)&&!(pr.n>0&&ix<GAMES.length-1&&prog(GAMES[ix+1]).n>0)) next={G:G,ix:ix,pr:pr};
-    var card=el('article',{'class':'game'+(G.live?' live':''),'aria-label':'Film '+G.film+' game: '+G.title},[
-      el('div',{'class':'poster',style:'background:'+G.bg},[el('span',{'class':'gno',text:'Film '+G.film}),el('b',{text:G.title})]),
-      el('div',{'class':'body'},[
-        el('div',{'class':'math',text:GOAL[G.id]||G.math}),
-        el('div',{'class':'meta',text:'Watch first: '+G.after}),
-        pr.n?el('div',{'class':'pbar','aria-hidden':'true'},[el('i',{style:'width:'+(pr.tot?Math.min(100,Math.round(100*pr.n/pr.tot)):10)+'%'})]):null,
-        el('details',{},[el('summary',{text:'Certificates and standards'}),el('div',{text:info.std+' · '+info.specials.join(' · ')}),el('div',{text:G.std})]),
-        el('div',{'class':'act'},G.live?[el('a',{'class':'btn primary',href:G.file,text:pr.n?'Keep playing':'Play'}),LES_OF[G.id]?el('a',{'class':'btn',href:'lesson.html?l='+LES_OF[G.id],text:'📺 Lesson '+LES_N[G.id]}):null,pr.n?el('span',{'class':'prog',text:pr.n+(pr.tot?' of '+pr.tot:'')+' levels done'}):null]:[el('span',{'class':'soon',text:'Coming soon'})])
-      ])
+    var pr=prog(G), isNext=ix===nextIx;
+    var status=pr.cert?'✓ Certificate'+(pr.n<pr.tot?' · '+pr.n+'/'+pr.tot:''):pr.n?pr.n+' of '+pr.tot+' levels':'Not started';
+    var row=el('li',{'class':'grow'+(isNext?' next':''),'aria-label':'Film '+G.film+': '+G.title},[
+      el('div',{'class':'fno',style:'background:'+G.bg,'aria-hidden':'true'},[el('small',{text:'Film'}),el('b',{text:String(G.film)})]),
+      el('div',{'class':'gt'},[el('b',{},[G.title,isNext?el('span',{'class':'tag',text:'Next up'}):null]),el('span',{text:GOAL[G.id]||G.math})]),
+      el('div',{'class':'gp'+(pr.n?' started':'')},[el('span',{text:status}),pr.n?el('div',{'class':'pbar','aria-hidden':'true'},[el('i',{style:'width:'+(pr.tot?Math.min(100,Math.round(100*pr.n/pr.tot)):0)+'%'})]):null]),
+      el('div',{'class':'ga'},[el('a',{'class':'btn small'+(isNext?' primary':''),href:G.file,text:pr.n?'Keep playing':'Play'}),LES_OF[G.id]?el('a',{'class':'btn small',href:'lesson.html?l='+LES_OF[G.id],text:'📺 Lesson '+LES_N[G.id]}):null])
     ]);
-    host.appendChild(card);
+    host.appendChild(row);
   });
   (function(){
-    var box=$('#nextUp'); if(!next) next={G:GAMES[0],ix:0,pr:prog(GAMES[0])};
-    var started=GAMES.some(function(G){ return prog(G).n>0; });
-    box.appendChild(el('div',{},[el('div',{'class':'k',text:started?'Next up':'Start here'}),el('b',{text:next.G.title}),el('p',{text:(GOAL[next.G.id]||'')+' Watch first: '+next.G.after+'.'})]));
-    box.appendChild(el('a',{'class':'btn primary',href:next.G.file,text:next.pr.n?'▶ Keep playing':'▶ Play'}));
+    var box=$('#nextUp'), started=GAMES.some(function(G){ return prog(G).n>0; }), pr=next.pr;
+    var line=pr.n?'You have done '+pr.n+' of '+pr.tot+' levels. Pick up where you stopped.':(GOAL[next.G.id]||'')+' Watch the film first: '+next.G.after+'.';
+    box.appendChild(el('div',{},[el('div',{'class':'k',text:(started?'Next up':'Start here')+' · Film '+next.G.film}),el('b',{text:next.G.title}),el('p',{text:line})]));
+    box.appendChild(el('a',{'class':'btn primary',href:next.G.file,text:pr.n?'▶ Keep playing':'▶ Play'}));
   })();
   SFA.vo.init(window.VO_DATA,null);
   function vault(){ SFA.reels.renderVault($('#vault'),{onPlay:vault}); }

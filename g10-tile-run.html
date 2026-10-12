@@ -1647,14 +1647,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'r2', kind: 'R', title: 'Can I Be the Sidekick NOW?', game: 'g1', file: 'reels/r2.html', from: 'Zero 2: Sidekick, about 5:10' },
     { id: 'r3', kind: 'R', title: 'It Is, Undeniably, a Doug', game: 'g2', file: 'reels/r3.html', from: 'The Glitch, about 0:30' },
     { id: 'r4', kind: 'R', title: 'Mostly Fine', game: 'g2', file: 'reels/r4.html', from: 'The Glitch, about 5:10' },
-    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g3', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
+    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g11', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
     { id: 'r6', kind: 'R', title: 'Found It With My Face', game: 'g5', file: 'reels/r6.html', from: 'Start and Step, about 4:10', egg: true },
     { id: 'd1', kind: 'D', title: 'The Multiplex 5000', game: 'g1', file: 'reels/d1.html', egg: true },
     { id: 'd2', kind: 'D', title: 'One Single Drop', game: 'g4', file: 'reels/d2.html', egg: true, premiere: 'h95c0a0cb' },
     { id: 'd3', kind: 'D', title: 'Doug Files a Report', game: 'g8', file: 'reels/d3.html', egg: true },
     { id: 'd4', kind: 'D', title: 'The Sidekick Application', game: 'g2', file: 'reels/d4.html', egg: true },
     { id: 'd5', kind: 'D', title: 'Sam Meets Linesy', game: 'g2', file: 'reels/d5.html', gold: 'Friend of Sam (Glitch Hunt)', egg: true },
-    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g6', file: 'reels/d6.html', gold: 'Door Master (Linear or Liar?)', egg: true },
+    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g15', file: 'reels/d6.html', gold: 'Knows Their Limits (The Outer Machines)', egg: true },
     { id: 'd7', kind: 'D', title: "One's Forty-Second Lap", game: 'g5', file: 'reels/d7.html', egg: true },
     { id: 'o1', kind: 'O', title: 'Across Three, Up One', game: 'g5', file: 'reels/o1.html', egg: true },
     { id: 'o2', kind: 'O', title: "Gus Can't Shout", game: 'g4', file: 'reels/o2.html' },
@@ -1801,7 +1801,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   SFA.GAMES = {
     1: { name: 'Crack the Fair', std: 'Licensed Fair Cracker', specials: ['The X-Ray Specialist', "Where Zero Isn't", 'Faker Finder'] },
     2: { name: 'Glitch Hunt', std: 'Sandy Flats Glitch Detective', specials: ['Friend of Sam', 'Rule Breaker, Rule Maker', 'Efficient Detective'] },
-    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ["The Undoer's Apprentice", 'Link Inspector', 'Fifth Door Architect'] },
+    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ['Backwards Reader', 'Link Inspector', 'Fifth Door Architect'] },
     4: { name: "Gus's Forecast", std: 'Junior Forecaster', specials: ['The Weather Line', 'Backwards Prophet'] },
     5: { name: 'Scorch Marks', std: 'Grid Flight Licence', specials: ['Triangle Prover', 'Same Place, Same Time', 'Where One Starts'] },
     6: { name: 'Linear or Liar?', std: 'Linear Lie Detector', specials: ['Door Master', 'Rule Maker', 'The Doubler'] },
@@ -2557,7 +2557,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     var ROUNDS = [{ y: 11, x: 5, what: 'the EXIT door' }, { y: 9, x: 4, what: 'a safe tile on the way' }, { y: 8, x: 3.5, what: 'one more safe tile' }], ri = 0, C = { wrong: 0, stage: 1 };
     ST.gus = { x: 2.5, y: 6 }; addTile(2.5, 6, 'path', false);
     [[0, 1], [1, 3], [2, 5], [3, 7], [2.5, 6]].forEach(function (p) { dot(p[0], p[1], '#FFFFFF', false); });
-    ST.line = { x0: 0, x1: 6, col: 'rgba(143,211,255,.6)', w: 3 }; ST.exitRow = 11;
+    ST.line = { x0: 0, x1: 5.5, col: 'rgba(143,211,255,.6)', w: 3 }; ST.exitRow = 11;
     G.setTask('Read It Backwards', job('Start at an output. Find its input.', 'Gus can see a door high up: EXIT, output 11. But at which input? Read the graph backwards.', ['Start at the output on the up axis. Slide across to the line.', 'Drop straight down. Read the input.', 'Write the spot as a pair: input first.'], 'you have found 3 spots (<b id="c2n">0</b> of 3).'));
     var head = el('p', { 'class': 'bigpair', id: 'c2q' });
     var h1 = stepH('1. Slide across from the output to the line');
@@ -2583,11 +2583,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
         px.disabled = py.disabled = pchk.disabled = false; rd.textContent = 'Straight down from the line: input ' + fmt(x) + '.'; G.say('On the line. Straight down lands on input ' + fmt(x) + '.', 'good'); G.rung = 0;
         setTimeout(function () { px.focus(); }, 50); return;
       }
+      if (x === 0) { G.say('Slide across first: move the slider until your finger touches the line.', 'bad'); return; }
       C.wrong++; G.firstTry(false);
-      G.say(x === 0 ? 'Slide across first: move the slider until your finger touches the line.' : 'Not on the line yet. At input ' + fmt(x) + ' the line is at output ' + fmt(lineY) + ', ' + (lineY < R.y ? 'below' : 'above') + ' ' + R.y + '. Slide ' + (lineY < R.y ? 'further right' : 'back left') + '.', 'bad');
+      G.say('Not on the line yet. At input ' + fmt(x) + ' the line is at output ' + fmt(lineY) + ', ' + (lineY < R.y ? 'below' : 'above') + ' ' + R.y + '. Slide ' + (lineY < R.y ? 'further right' : 'back left') + '.', 'bad');
     });
     function checkPair() {
-      if (busy() || C.stage !== 2) return; var R = ROUNDS[ri], a = num(px.value), b = num(py.value);
+      if (busy() || C.stage !== 2) return; var R = ROUNDS[ri];
+      var both = !py.value.trim() && px.value.match(/^\s*\(?\s*([^,;()]+?)\s*[,;]\s*([^,;()]+?)\s*\)?\s*$/); if (both) { px.value = both[1]; py.value = both[2]; }
+      var a = num(px.value), b = num(py.value);
       if (isNaN(a) || isNaN(b)) { G.say('Type a number in both boxes.', 'bad'); return; }
       if (tooBig(a) || tooBig(b)) return;
       if (same(a, R.x) && same(b, R.y)) {

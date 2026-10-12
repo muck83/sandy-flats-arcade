@@ -1633,14 +1633,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'r2', kind: 'R', title: 'Can I Be the Sidekick NOW?', game: 'g1', file: 'reels/r2.html', from: 'Zero 2: Sidekick, about 5:10' },
     { id: 'r3', kind: 'R', title: 'It Is, Undeniably, a Doug', game: 'g2', file: 'reels/r3.html', from: 'The Glitch, about 0:30' },
     { id: 'r4', kind: 'R', title: 'Mostly Fine', game: 'g2', file: 'reels/r4.html', from: 'The Glitch, about 5:10' },
-    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g3', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
+    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g11', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
     { id: 'r6', kind: 'R', title: 'Found It With My Face', game: 'g5', file: 'reels/r6.html', from: 'Start and Step, about 4:10', egg: true },
     { id: 'd1', kind: 'D', title: 'The Multiplex 5000', game: 'g1', file: 'reels/d1.html', egg: true },
     { id: 'd2', kind: 'D', title: 'One Single Drop', game: 'g4', file: 'reels/d2.html', egg: true, premiere: 'h95c0a0cb' },
     { id: 'd3', kind: 'D', title: 'Doug Files a Report', game: 'g8', file: 'reels/d3.html', egg: true },
     { id: 'd4', kind: 'D', title: 'The Sidekick Application', game: 'g2', file: 'reels/d4.html', egg: true },
     { id: 'd5', kind: 'D', title: 'Sam Meets Linesy', game: 'g2', file: 'reels/d5.html', gold: 'Friend of Sam (Glitch Hunt)', egg: true },
-    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g6', file: 'reels/d6.html', gold: 'Door Master (Linear or Liar?)', egg: true },
+    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g15', file: 'reels/d6.html', gold: 'Knows Their Limits (The Outer Machines)', egg: true },
     { id: 'd7', kind: 'D', title: "One's Forty-Second Lap", game: 'g5', file: 'reels/d7.html', egg: true },
     { id: 'o1', kind: 'O', title: 'Across Three, Up One', game: 'g5', file: 'reels/o1.html', egg: true },
     { id: 'o2', kind: 'O', title: "Gus Can't Shout", game: 'g4', file: 'reels/o2.html' },
@@ -1787,7 +1787,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   SFA.GAMES = {
     1: { name: 'Crack the Fair', std: 'Licensed Fair Cracker', specials: ['The X-Ray Specialist', "Where Zero Isn't", 'Faker Finder'] },
     2: { name: 'Glitch Hunt', std: 'Sandy Flats Glitch Detective', specials: ['Friend of Sam', 'Rule Breaker, Rule Maker', 'Efficient Detective'] },
-    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ["The Undoer's Apprentice", 'Link Inspector', 'Fifth Door Architect'] },
+    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ['Backwards Reader', 'Link Inspector', 'Fifth Door Architect'] },
     4: { name: "Gus's Forecast", std: 'Junior Forecaster', specials: ['The Weather Line', 'Backwards Prophet'] },
     5: { name: 'Scorch Marks', std: 'Grid Flight Licence', specials: ['Triangle Prover', 'Same Place, Same Time', 'Where One Starts'] },
     6: { name: 'Linear or Liar?', std: 'Linear Lie Detector', specials: ['Door Master', 'Rule Maker', 'The Doubler'] },
@@ -2167,7 +2167,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   var CERTS = [
     { key: 'std', title: 'Sandy Flats Glitch Detective', sub: 'closed every case with evidence: one input, one output', by: 'Mr. Dunmore', quote: 'One input, one output. On the wall, and now in your head.', line: 'g2_cert_std', crit: 'Close cases 1 to 3, each accusation backed by evidence, with 2 or fewer wrong accusations in total, and clear Sam.', portrait: 'dunmore', portraitSrc: [380, 250, 210] },
     { key: 0, title: 'Friend of Sam', sub: 'cleared an innocent suspect before anyone else was accused', by: 'Squaring Sam', quote: 'Nobody ever asks. You asked.', line: 'g2_cert_sam', crit: 'In "The Roundness Trap", clear Sam first (before accusing anyone), with the right reason on the first try and at most one small hint.', portrait: 'sam', portraitSrc: [370, 230, 220], gold: 'd5' },
-    { key: 1, title: 'Rule Breaker, Rule Maker', sub: 'built a liar that fools the table check', by: 'The Glitch', quote: 'Y-you made a liar on purpose? That\'s... actually really clever.', line: 'g2_s2_ok', crit: 'Challenge "Write the Confession": build a relation that passes Marcus\'s table check at 0, 1 and 2 but fails Linesy\'s test somewhere else.', portrait: 'glitch', portraitSrc: [380, 270, 200] },
+    { key: 1, title: 'Rule Breaker, Rule Maker', sub: 'built a liar that fools the table check', by: 'The Glitch', quote: 'Y-you made a liar on purpose? That\'s... actually really clever.', line: 'g2_s2_ok', crit: 'Challenge "Write the Confession": build a relation that passes Marcus\'s table check at 0, 1 and 2 but gives one input two outputs somewhere else.', portrait: 'glitch', portraitSrc: [380, 270, 200] },
     { key: 2, title: 'Efficient Detective', sub: 'caught the clever liar without wasting a single test', by: 'Gus', quote: 'You only had to look twice.', line: 'g2_s1_found', crit: 'Challenge "The Clever Liar": bust it without a wasted test (no even inputs, nothing above 5), never asking the same thing more than twice.', portrait: 'gus', portraitSrc: [380, 290, 200] }
   ];
   function artefact(C, P) {
@@ -2366,11 +2366,11 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     reset(); ST.cast = { priya: { x: 80, f: 1, sc: 0.75 } };
     var sus = [
       { id: 'mx', label: 'The Multiplex', blurb: '× 4, − 3', kind: 'mux', talkAs: 'machine', out: function (x) { return 4 * x - 3; }, innocentLine: 'g2_inn_mx' },
-      { id: 'f', label: 'Machine f', blurb: 'f(x) = 3x − 1', kind: 'machf', talkAs: 'machf', out: function (x) { return 3 * x - 1; }, innocentLine: 'g2_inn_f' },
-      { id: 'g', label: 'Machine g', blurb: 'g(x) = 10 − x', kind: 'machg', talkAs: 'machg', out: function (x) { return 10 - x; }, innocentLine: 'g2_inn_g' },
+      { id: 'f', label: 'The Adder', blurb: '+ 5', kind: 'fair', col: '#2E6DA4', talkAs: 'mach', out: function (x) { return x + 5; } },
+      { id: 'g', label: 'The Copycat', blurb: '× 1', kind: 'fair', col: '#B85A2B', talkAs: 'mach', out: function (x) { return x; } },
       { id: 'gl', label: 'The Shaky One', blurb: 'no label', kind: 'glitch', talkAs: 'glitch', guilty: true, out: function (x, prev) { var y, k = 0; do { y = Math.floor(SFA.rng() * 25) - 2; } while (prev.indexOf(y) >= 0 && ++k < 20); if (prev.indexOf(y) >= 0) y = Math.max.apply(null, prev) + 1 + x; return y; } }
     ];
-    place(sus.map(function (s) { return { id: s.id, kind: s.kind, label: s.label, tag: s.label.replace('The ', '').toUpperCase(), talkAs: s.talkAs, sc: s.kind === 'glitch' ? 0.85 : 0.6 }; }));
+    place(sus.map(function (s) { return { id: s.id, kind: s.kind, label: s.label, tag: s.label.replace('The ', '').toUpperCase(), col: s.col, talkAs: s.talkAs, sc: s.kind === 'glitch' ? 0.85 : 0.6 }; }));
     G.setTask('Who Glitched the Multiplex?', job('Find the machine that gives one number two different answers.', '', ['Tap a number on a machine. Try the same number <strong>twice</strong>.', 'Two different answers? Press <strong>Accuse it</strong>.', 'Tap the number that proves it.'], 'you catch the glitch with proof.'));
     var T = tapeSuspects(G, 'C1', sus, {
       inputs: [0, 1, 2, 3, 4, 5],
@@ -2420,7 +2420,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       { id: 'sam', label: 'Squaring Sam', kind: 'sam', talkAs: 'sam', pairs: [[-3, 9], [-2, 4], [2, 4], [3, 9]] },
       { id: 'dbl', label: 'The Doubler', kind: 'fair', col: '#2E6DA4', talkAs: 'mach', pairs: [[1, 2], [2, 4], [3, 6], [4, 8]] },
       { id: 'snk', label: 'The Sneak', kind: 'fair', col: '#5A3A6E', talkAs: 'mach', guilty: true, pairs: [[1, 3], [2, 4], [2, 5], [3, 6]] },
-      { id: 'lf', label: 'Little f', kind: 'littlef', talkAs: 'littlef', pairs: [[1, 5], [2, 6], [3, 7], [5, 9]] }
+      { id: 'lf', label: 'The Plus Four', kind: 'fair', col: '#1E8579', talkAs: 'mach', pairs: [[1, 5], [2, 6], [3, 7], [5, 9]] }
     ];
     place(sus.map(function (s) { return { id: s.id, kind: s.kind, label: s.label, tag: s.label.toUpperCase(), col: s.col, talkAs: s.talkAs, sc: s.kind === 'sam' ? 0.62 : s.kind === 'littlef' ? 0.9 : 0.55 }; }));
     var C = { wrong: 0, accused: false, cleared: false, reasonTries: 0, closed: false };

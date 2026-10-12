@@ -1634,14 +1634,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'r2', kind: 'R', title: 'Can I Be the Sidekick NOW?', game: 'g1', file: 'reels/r2.html', from: 'Zero 2: Sidekick, about 5:10' },
     { id: 'r3', kind: 'R', title: 'It Is, Undeniably, a Doug', game: 'g2', file: 'reels/r3.html', from: 'The Glitch, about 0:30' },
     { id: 'r4', kind: 'R', title: 'Mostly Fine', game: 'g2', file: 'reels/r4.html', from: 'The Glitch, about 5:10' },
-    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g3', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
+    { id: 'r5', kind: 'R', title: 'The Clock Is a Toaster', game: 'g11', file: 'reels/r5.html', from: 'Name That Machine, about 1:20' },
     { id: 'r6', kind: 'R', title: 'Found It With My Face', game: 'g5', file: 'reels/r6.html', from: 'Start and Step, about 4:10', egg: true },
     { id: 'd1', kind: 'D', title: 'The Multiplex 5000', game: 'g1', file: 'reels/d1.html', egg: true },
     { id: 'd2', kind: 'D', title: 'One Single Drop', game: 'g4', file: 'reels/d2.html', egg: true, premiere: 'h95c0a0cb' },
     { id: 'd3', kind: 'D', title: 'Doug Files a Report', game: 'g8', file: 'reels/d3.html', egg: true },
     { id: 'd4', kind: 'D', title: 'The Sidekick Application', game: 'g2', file: 'reels/d4.html', egg: true },
     { id: 'd5', kind: 'D', title: 'Sam Meets Linesy', game: 'g2', file: 'reels/d5.html', gold: 'Friend of Sam (Glitch Hunt)', egg: true },
-    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g6', file: 'reels/d6.html', gold: 'Door Master (Linear or Liar?)', egg: true },
+    { id: 'd6', kind: 'D', title: 'Val Tries the Door', game: 'g15', file: 'reels/d6.html', gold: 'Knows Their Limits (The Outer Machines)', egg: true },
     { id: 'd7', kind: 'D', title: "One's Forty-Second Lap", game: 'g5', file: 'reels/d7.html', egg: true },
     { id: 'o1', kind: 'O', title: 'Across Three, Up One', game: 'g5', file: 'reels/o1.html', egg: true },
     { id: 'o2', kind: 'O', title: "Gus Can't Shout", game: 'g4', file: 'reels/o2.html' },
@@ -1788,7 +1788,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   SFA.GAMES = {
     1: { name: 'Crack the Fair', std: 'Licensed Fair Cracker', specials: ['The X-Ray Specialist', "Where Zero Isn't", 'Faker Finder'] },
     2: { name: 'Glitch Hunt', std: 'Sandy Flats Glitch Detective', specials: ['Friend of Sam', 'Rule Breaker, Rule Maker', 'Efficient Detective'] },
-    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ["The Undoer's Apprentice", 'Link Inspector', 'Fifth Door Architect'] },
+    3: { name: "The Keeper's Vault", std: "Keeper's Apprentice", specials: ['Backwards Reader', 'Link Inspector', 'Fifth Door Architect'] },
     4: { name: "Gus's Forecast", std: 'Junior Forecaster', specials: ['The Weather Line', 'Backwards Prophet'] },
     5: { name: 'Scorch Marks', std: 'Grid Flight Licence', specials: ['Triangle Prover', 'Same Place, Same Time', 'Where One Starts'] },
     6: { name: 'Linear or Liar?', std: 'Linear Lie Detector', specials: ['Door Master', 'Rule Maker', 'The Doubler'] },
@@ -2140,8 +2140,12 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
 <style>@media (max-width:480px){.cmp .num.sm{width:2.9em!important;font-size:16px;padding:7px 4px}.cmp th,.cmp td{padding:4px 4px}}</style>
 <script>/* G6 Linear or Liar? (case + bust), locked to Episode D "Linear or Liar?": Steady's uneven-gap table 0,2,3,6 → 1,5,7,13 (linear, 2x + 1),
    Sam's U (−2,4)…(2,4) (not linear, but honest), Linny's table 0,1,2,3 → 3,5,9,17 (the liar: jumps 2, 4, 8), the lightning round
-   y = 3x − 2, y = x² + 1, y = 4, y = 1/x, and the Square-ish table 0,1,3,4 → 0,1,9,16. Stretch: the 1/x door (Doors and Walls),
-   fool the detector, the Doubler. Standard: 8.F.3. */
+   y = 3x − 2, y = x² + 1, y = 4, y = 1/x, and the Square-ish table 0,1,3,4 → 0,1,9,16. Stretch: fool the Gap Inspector's detector.
+   Standard: 8.F.3.
+   Audit: the old warm-up (the ADD 2 / DOUBLE IT lift race) and stretch levels S1 "The Widest Door" (1/x) and S3 "The Doubler's Lead"
+   came from Doors and Walls, which The Outer Machines (g15) now teaches. The warm-up (id L0) is now Effie's equal-jumps test from this
+   film; S1 and S3 are removed. Their specials (Door Master, The Doubler) keep their bits in the certificate code and show only to
+   students who already earned them. */
 (function () {
   'use strict';
   var SFA = window.SFA, V = SFA.vo, el = SFA.el, $ = SFA.$;
@@ -2162,14 +2166,12 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   function same(a, b) { if (a == null) return false; if (Math.abs(a - b) < 1e-6) return true; return Math.abs(b * 100 - Math.round(b * 100)) > 1e-6 && Math.abs(a - b) <= 0.0051; }
 
   var LEVELS = [
-    { id: 'L0', tier: 'low', name: 'The Lift Race' },
+    { id: 'L0', tier: 'low', name: 'Equal Jumps' },
     { id: 'C1', tier: 'core', name: 'Case 1: Steady' },
     { id: 'C2', tier: 'core', name: 'Case 2: Sam' },
     { id: 'C3', tier: 'core', name: 'Case 3: Linny' },
     { id: 'C4', tier: 'core', name: 'Case 4: Lightning Round' },
-    { id: 'S1', tier: 'stretch', name: 'The Widest Door' },
-    { id: 'S2', tier: 'stretch', name: 'Fool the Detector' },
-    { id: 'S3', tier: 'stretch', name: "The Doubler's Lead" }
+    { id: 'S2', tier: 'stretch', name: 'Fool the Detector' }
   ];
   var CORE = ['C1', 'C2', 'C3', 'C4'];
   function status(P) {
@@ -2178,9 +2180,9 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   }
   var CERTS = [
     { key: 'std', title: 'Linear Lie Detector', sub: 'filed every case with evidence: linear, honest curve, or liar', by: 'Effie', quote: 'Names for the honest ones, and names for the liars. Filed.', line: 'g6_cert_std', crit: 'File cases 1 to 4 with the right verdict and evidence, arresting at most one honest machine in total.', portrait: 'effie', portraitSrc: [400, 300, 160] },
-    { key: 0, title: 'Door Master', sub: 'found why no input gives the widest door, and why zero is a wall', by: 'The Door Machine', quote: 'Little one... you knew where you didn\'t belong. And why.', line: 'g6_cert_door', crit: 'Stretch "The Widest Door": explain that smaller inputs always give a wider door (so there is no widest), and that zero is a wall because 1 can\'t be split into 0 parts. At most one small hint.', portrait: 'recip', portraitSrc: [330, 60, 300], gold: 'd6' },
-    { key: 1, title: 'Rule Maker', sub: 'built a liar that fools a three-input detector', by: 'The Doubler robot', quote: 'TWELVE. I TRIED VERY HARD. YOU TRIED HARDER.', line: 'g6_cert_rule', crit: 'Stretch "Fool the Detector": a table that looks linear at 0, 1 and 2, then breaks, and you bust it yourself.', portrait: 'marcus', portraitSrc: [370, 250, 220], gold: 'o6' },
-    { key: 2, title: 'The Doubler', sub: 'found when doubling overtakes adding, every time', by: 'Marcus', quote: 'I always liked big numbers. Now I know how to get there.', line: 'g6_cert_dbl', crit: 'Stretch "The Doubler\'s Lead": the overtaking bell for all three races, and the rule that doubling always passes any adding lift.', portrait: 'marcus', portraitSrc: [370, 250, 220] }
+    { key: 0, title: 'Door Master', sub: 'found why no input gives the widest door, and why zero is a wall', by: 'The Door Machine', quote: 'Little one... you knew where you didn\'t belong. And why.', line: 'g6_cert_door', crit: 'Stretch "The Widest Door": explain that smaller inputs always give a wider door (so there is no widest), and that zero is a wall because 1 can\'t be split into 0 parts. At most one small hint.', portrait: 'recip', portraitSrc: [330, 60, 300], gold: 'd6', secret: true },
+    { key: 1, title: 'Rule Maker', sub: 'built a liar that fools a three-input detector', by: 'Effie', quote: 'Going up is not the same as going up evenly.', line: 'g6_c3_evenly', crit: 'Stretch "Fool the Detector": a table that looks linear at 0, 1 and 2, then breaks, and you bust it yourself.', portrait: 'effie', portraitSrc: [400, 300, 160], gold: 'o6' },
+    { key: 2, title: 'The Doubler', sub: 'found when doubling overtakes adding, every time', by: 'Marcus', quote: 'I always liked big numbers. Now I know how to get there.', line: 'g6_cert_dbl', crit: 'Stretch "The Doubler\'s Lead": the overtaking bell for all three races, and the rule that doubling always passes any adding lift.', portrait: 'marcus', portraitSrc: [370, 250, 220], secret: true }
   ];
   function artefact(C, P) {
     if (C.key === 'std') return ['Steady: 4/2 = 2/1 = 6/3 = 2, LINEAR (y = 2x + 1)', 'Sam: a U, NOT LINEAR but honest', 'Linny: jumps 2, 4, 8, LIAR (ruler says 9, real 17)', 'Lightning: 3x − 2 and y = 4 are lines; x² + 1 and 1/x are not'];
@@ -2193,12 +2195,10 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   /* ================= stage: the Linear Lineup ================= */
   var ST = { scene: 'lineup', file: null, stamp: null, sus: [], lifts: null, door: null };
   S.draw = function (t, T) {
-    if (ST.scene === 'door') { E.fairBG(T, {}); c.save(); c.fillStyle = 'rgba(30,20,10,.25)'; c.fillRect(0, -40, 960, 620); c.restore(); E.recipMachine(560, t, { door: ST.door == null ? 0 : Math.min(2, ST.door), talk: S.talk('recip'), screen: ST.doorScreen || null, shake: ST.doorShake ? Math.sin(t * 50) * 4 : 0 }); E.kid('marcus', 120, GY, 1, S.talk('marcus'), null, false, T, { sc: 0.75 }); E.kid('priya', 210, GY, 1, S.talk('priya'), null, false, T, { sc: 0.75 }); return; }
     E.bg({ scene: 'class', board: 'none', tod: 'night', cast: {} }, t, {});
     E.txt('LINEAR LINEUP', 342, 150, '40px "Patrick Hand",cursive', '#FFE27A');
     // frozen Gus by the window, Doug on his hood
     c.save(); c.filter = 'grayscale(1) brightness(1.15)'; c.translate(612, GY); c.scale(0.62, 0.62); c.translate(-612, -GY); E.kid('gus', 612, GY, -1, S.talk('gus'), null, false, 0.3, {}); E.hat(608, GY - 150, 0.95, 0); c.restore(); c.filter = 'none';
-    if (ST.scene === 'lifts' && ST.lifts) { [['ADD 2', ST.lifts.a, '#2E6DA4', 300], ['DOUBLE IT', ST.lifts.d, '#E8743B', 470]].forEach(function (L) { var h = Math.min(330, L[1] * 26); c.save(); c.fillStyle = '#7A7A84'; c.strokeStyle = E.INK; c.lineWidth = 3; E.rr(L[3] - 50, GY - 14 - h, 100, h, 4); for (var f = 0; f < Math.min(12, L[1]); f++) { c.fillStyle = L[2]; E.rr(L[3] - 44, GY - 14 - (f + 1) * 26 + 3, 88, 20, 3); } E.txt(L[0], L[3], GY + 4, '18px "Luckiest Guy",sans-serif', '#FFE14D'); E.txt(String(L[1]), L[3], GY - 30 - h, '24px "Luckiest Guy",sans-serif', '#fff'); c.restore(); }); }
     ST.sus.forEach(function (s) { E.podium(s.x); c.save(); c.translate(s.x, GY - 62); c.scale(0.8, 0.8); c.translate(-s.x, -(GY - 62)); if (s.k === 'steady') E.steadyM(s.x, T, S.talk('steady')); else if (s.k === 'linny') E.linnyM(s.x, T, S.talk('linny')); else if (s.k === 'eraser') E.eraserC(s.x, GY - 60, T, S.talk('eraser'), {}); c.restore(); if (s.label) E.txt(s.label, s.x, GY + 2, '16px "Luckiest Guy",sans-serif', '#FFE14D'); });
     if (ST.samWindow) { c.save(); c.beginPath(); c.rect(560, 60, 110, 100); c.clip(); E.sam(615, T, S.talk('sam'), { sad: ST.samSad }); c.restore(); }
     E.pigeon(640, GY - 120, -1, T, false, { sc: 0.6 });
@@ -2212,10 +2212,14 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   var G = SFA.Game({
     id: 'g6', no: 6, name: 'Linear or Liar?', levels: LEVELS, unlockStretchAfter: 'C4', certs: CERTS, sideTitle: 'Case files', sideEmpty: 'Verdicts and evidence you file are written here.',
     blank: function () { return { wrongBest: {} }; }, status: status, artefact: artefact, portrait: portrait,
-    build: function (L) { G.liveArrests = 0; ST.scene = 'lineup'; ST.file = null; ST.stamp = null; ST.sus = []; ST.samWindow = false; ST.samSad = false; ST.lifts = null; ST.cast = { zero: { x: 80, f: 1 }, marcus: { x: 160, f: 1 }, priya: { x: 860, f: -1 }, effie: { x: 920, f: -1, sc: 0.5 } }; ({ L0: L0, C1: C1, C2: C2, C3: C3, C4: C4, S1: S1, S2: S2, S3: S3 })[L.id](); },
+    build: function (L) { G.liveArrests = 0; ST.scene = 'lineup'; ST.file = null; ST.stamp = null; ST.sus = []; ST.samWindow = false; ST.samSad = false; ST.cast = { zero: { x: 80, f: 1 }, marcus: { x: 160, f: 1 }, priya: { x: 860, f: -1 }, effie: { x: 920, f: -1, sc: 0.5 } }; ({ L0: L0, C1: C1, C2: C2, C3: C3, C4: C4, S2: S2 })[L.id](); },
     chips: function (Gm) { var x = $('#chExtra'); x.hidden = false; var w = CORE.reduce(function (s, id) { var b = Gm.P.wrongBest[id], live = id === Gm.curId ? (Gm.liveArrests || 0) : null; return s + (live == null ? (b || 0) : b == null ? live : Math.min(b, live)); }, 0); x.innerHTML = 'Honest machines arrested <b>' + w + '</b>'; }
   });
   G.stage = S; window.__gm = function () { return G; };
+  // a level saved by an older version (S1, S3) no longer exists: start from the first open level instead
+  if (G.P.cur && !G.lv(G.P.cur)) G.P.cur = null;
+  // Enter in a box presses the button for that box (Check rates, Check predictions, Run the detector...)
+  G.work.addEventListener('keydown', function (e) { if (e.key !== 'Enter' || !e.target.matches || !e.target.matches('input[type=text]')) return; var vis = function (x) { return !x.disabled && x.offsetParent !== null; }, r = e.target.closest('.row'); var b = r && [].filter.call(r.querySelectorAll('button'), vis).pop(); if (!b) b = [].filter.call(G.work.querySelectorAll('button.primary, button.btn'), function (x) { return vis(x) && !x.dataset.v && (e.target.compareDocumentPosition(x) & 4); })[0]; if (b) { e.preventDefault(); b.click(); } });
   function busy() { return G.busy; }
   function num(id, label, w) { return el('input', { type: 'text', inputmode: 'decimal', 'class': 'num sm', id: id, 'aria-label': label, autocomplete: 'off', style: w ? 'width:' + w : null }); }
   function row() { return el('div', { 'class': 'row', style: 'margin-top:6px' }, [].slice.call(arguments)); }
@@ -2242,17 +2246,39 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     return box;
   }
 
-  /* ================= L0: the lift race (low floor) ================= */
+  /* ================= L0: equal jumps (low floor) ================= */
+  // Effie's rule from the film: "Linear means the same step every time. Equal jumps for equal steps."
   function L0() {
-    ST.scene = 'lifts'; ST.lifts = { a: 0, d: 1 }; ST.cast = { marcus: { x: 120, f: 1 }, priya: { x: 820, f: -1 } };
-    G.setTask('The Lift Race', job('Find the lift that climbs the same amount every time.', ['Press <strong>Ring the bell</strong> 4 times. Watch both lifts.', 'Pick the lift that climbs the same amount every bell.'], 'you pick the steady lift.', 'One lift <strong>adds 2 floors</strong> every bell. The other <strong>doubles</strong>.')); stepAt(1);
-    var bell = 0, log = el('p', { 'class': 'muted', 'aria-live': 'polite' }), ring = el('button', { type: 'button', 'class': 'btn primary', text: '🔔 Ring the bell (0 of 4)' });
-    G.work.appendChild(row(ring)); G.work.appendChild(log); var q = el('div', { hidden: '' }); G.work.appendChild(q);
-    ring.addEventListener('click', function () { if (busy() || bell >= 4) return; bell++; ring.textContent = '🔔 Ring the bell (' + bell + ' of 4)'; ST.lifts = { a: 2 * bell, d: Math.pow(2, bell) }; log.textContent = 'Bell ' + bell + ': ADD 2 has ' + ST.lifts.a + ' floors, DOUBLE IT has ' + ST.lifts.d + '.'; G.note('bell ' + bell + ': +2 → ' + ST.lifts.a + ', double → ' + ST.lifts.d); if (bell === 2) V.say('g6_l0_tied'); if (bell === 4) { ring.disabled = true; G.after(V.say('g6_l0_off'), function () { q.hidden = false; stepAt(2); }); } });
-    q.appendChild(el('h3', { text: '2. Which lift climbs the same amount every bell?' })); var r = el('div', { 'class': 'row' }); q.appendChild(r);
-    ['ADD 2', 'DOUBLE IT'].forEach(function (o) { r.appendChild(el('button', { type: 'button', 'class': 'btn', text: o, onclick: function () { if (o === 'ADD 2') { G.firstTry(true); G.P.done.L0 = true; G.save(); G.levelDone('L0', 'ADD 2 climbs 2 every bell: a steady, linear climb. DOUBLE IT climbs 1, 2, 4, 8: faster and faster. That is not linear.', ['g6_l0_ok']); } else { G.firstTry(false); G.say('DOUBLE IT jumped 1, then 2, then 4, then 8: not the same each time. Look at the other lift\'s jumps.', 'bad'); V.say('g6_l0_bad'); } } })); });
-    G.hintFn = function (r2) { V.say('g6_l0_bad'); G.say('Hint: compare the jumps, bell to bell.'); };
-    V.say(['g6_l0_s']);
+    var CARDS = [{ name: 'A', xs: [0, 1, 2, 3], ys: [1, 3, 5, 7] }, { name: 'B', xs: [0, 1, 2, 3], ys: [0, 1, 4, 9] }], k = 0;
+    G.setTask('Equal Jumps', job('Find the practice card that could stand guard.', ['Card A: type how much y jumps each time. Press <strong>Check jumps</strong>.', 'Card B: do the same.', 'Pick the card with equal jumps.'], 'you pick the linear card.', 'Effie\'s guard test: <strong>linear</strong> means the same jump every time x goes up by 1.')); stepAt(1);
+    var box = el('div', {}); G.work.appendChild(box); var pickBox = el('div', { hidden: '' }); G.work.appendChild(pickBox);
+    function card() {
+      var C = CARDS[k]; ST.file = { type: 'table', title: 'PRACTICE CARD ' + C.name, x: 250, y: 30, xs: C.xs, ys: C.ys };
+      box.innerHTML = ''; box.appendChild(el('h3', { text: (k + 1) + '. Card ' + C.name + ': x goes 0, 1, 2, 3. How much does y jump each time?' }));
+      var ins = [0, 1, 2].map(function (i) { return num('j' + i, 'Jump from ' + C.ys[i] + ' to ' + C.ys[i + 1], '4em'); });
+      var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Check jumps' });
+      box.appendChild(row.apply(null, [].concat.apply([], ins.map(function (n, i) { return [el('span', { 'class': 'mono', text: 'y ' + C.ys[i] + '→' + C.ys[i + 1] + ': +' }), n]; })).concat([b])));
+      b.addEventListener('click', function () {
+        if (busy()) return; var ok = ins.map(function (n, i) { return check(n, same(parseNum(n.value), C.ys[i + 1] - C.ys[i])); }).every(Boolean);
+        if (!ok) { G.firstTry(false); var i0 = ins.map(function (n, i) { return n.classList.contains('bad') ? i : -1; }).filter(function (i) { return i >= 0; })[0]; G.say('Fix the red box: from ' + C.ys[i0] + ' to ' + C.ys[i0 + 1] + ', how much does y go up?', 'bad'); V.say('g6_h1'); return; }
+        G.firstTry(true); var j = C.ys.slice(1).map(function (y, i) { return y - C.ys[i]; }); ST.file.jumps = j.map(function (d) { return '+' + d; }); ST.file.gaps = ['+1', '+1', '+1'];
+        G.note('Card ' + C.name + ': jumps ' + j.join(', '));
+        G.say('Card ' + C.name + ' jumps ' + j.join(', ') + (j[0] === j[1] && j[1] === j[2] ? ': the same every time.' : ': the jumps change.'), 'good');
+        b.disabled = true; ins.forEach(function (n) { n.disabled = true; });
+        k++; if (k < CARDS.length) { stepAt(2); (function (ep) { setTimeout(function () { if (ep === G.epoch) card(); }, 900); })(G.epoch); } else pick();
+      });
+      ins[0].focus();
+    }
+    function pick() {
+      stepAt(3); pickBox.hidden = false; pickBox.appendChild(el('h3', { text: '3. Which card could stand guard (is linear)?' }));
+      var r = el('div', { 'class': 'row' }); pickBox.appendChild(r);
+      [['Card A: jumps 2, 2, 2', true], ['Card B: jumps 1, 3, 5', false]].forEach(function (o) { r.appendChild(el('button', { type: 'button', 'class': 'btn', text: o[0], onclick: function () { if (busy()) return; if (o[1]) { G.firstTry(true); G.P.done.L0 = true; G.save(); G.levelDone('L0', 'Card A is linear: y jumps 2 every time x goes up 1. Card B goes up every time too, but by 1, then 3, then 5. Going up is not the same as going up evenly.', ['g6_c3_evenly']); } else { G.firstTry(false); G.say('Card B does go up every time, but the jumps are 1, 3, 5: not equal. Which card jumps the same amount every time?', 'bad'); V.say('g6_intro3'); } } })); });
+    }
+    G.hintFn = function (r) { V.say(r === 1 ? 'g6_intro3' : r === 4 ? 'g6_h4' : 'g6_h1'); var C = CARDS[Math.min(k, 1)];
+      G.say(k >= CARDS.length ? (r === 1 ? 'Hint: linear means equal jumps.' : 'Hint: Card A jumps 2, 2, 2. That is the one.') : r === 1 ? 'Hint: a jump is the next y take away this y.' : r === 2 ? 'Hint: from ' + C.ys[0] + ' to ' + C.ys[1] + ' is +' + (C.ys[1] - C.ys[0]) + '.' : 'Worked step: the jumps are ' + C.ys.slice(1).map(function (y, i) { return y - C.ys[i]; }).join(', ') + '.');
+      if (r >= 3 && k < CARDS.length) C.ys.slice(1).forEach(function (y, i) { var e = $('#j' + i); if (e && !e.disabled) e.value = String(y - C.ys[i]); });
+      if (r >= 3 && k >= CARDS.length) [].forEach.call(pickBox.querySelectorAll('button'), function (b) { if (/^Card A/.test(b.textContent)) b.classList.add('glow'); }); };
+    V.say(['g6_intro1', 'g6_intro2', 'g6_intro3']); card();
   }
 
   /* ================= C1: Steady ================= */
@@ -2266,7 +2292,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     function pick(x) { if (busy() || closed) return; if (x === 'lin') { closed = true; G.firstTry(wrong === 0); stampNow('LINEAR ✓', '#1E7B4E'); G.note('VERDICT Steady: LINEAR (y = 2x + 1)', 'pick'); G.lock(true); G.after(V.say(['g6_c1_thanks', 'g6_c1_testing']), function () { G.lock(false); close('C1', wrong, 'Filed: Steady is linear. Its raw jumps differ because its gaps differ, but jump ÷ gap is 2 every time: y = 2x + 1. Honest machines arrested: ' + wrong + '.', []); }); }
       else { G.firstTry(false); if (x === 'liar') { wrong++; G.liveArrests = wrong; G.updateChips(); G.note('Wrongful arrest: Steady', 'pre'); G.say('Steady is not lying: its rate is 2 at every step. Pick another verdict. (Honest machines arrested: ' + wrong + ')', 'bad'); V.say('g6_c1_wrong'); } else G.say('Not that one: Steady\'s rate is 2, 2, 2, the same every step. Which verdict means that?', 'bad'); } }
     G.hintFn = function (r) { V.say(r === 1 ? 'g6_c1_zero' : r === 2 ? 'g6_c1_priya' : r === 4 ? 'g6_h4' : 'g6_h3'); G.say(r === 1 ? 'Hint: look at the inputs first. They jump by 2, then 1, then 3.' : r === 2 ? 'Hint: 4 ÷ 2, 2 ÷ 1, 6 ÷ 3.' : 'Worked step: every rate is 2, so it is linear.'); if (r >= 3) ['rate0', 'rate1', 'rate2'].forEach(function (id) { var e = $('#' + id); if (e) e.value = '2'; }); };
-    V.say(['g6_intro1', 'g6_intro2', 'g6_intro3', 'g6_badge', 'g6_c1_steady', 'g6_c1_marcus']);
+    V.say((G.P.done.L0 ? [] : ['g6_intro1', 'g6_intro2', 'g6_intro3']).concat(['g6_badge', 'g6_c1_steady', 'g6_c1_marcus']));
   }
 
   /* ================= C2: Sam ================= */
@@ -2292,10 +2318,10 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     G.setTask('Case 3: Linny', job('Decide: is Linny linear, honest, or a liar?', ['Fill the step meter: <strong>output jump ÷ input gap</strong>. Press <strong>Check rates</strong>.', 'Predict the output at input 4, two ways. Press <strong>Check predictions</strong>.', 'Press a verdict button.'], 'your verdict is filed.', 'Linny says "every number goes up, so I\'m linear".')); stepAt(1);
     var wrong = 0, closed = false, v = verdicts(pick, false);
     var nx = el('div', { hidden: '' }); var ln = num('nextLine', 'If Linny were a line, the output at input 4', '4em'), lr = num('nextReal', 'Linny\'s real pattern: the output at input 4', '4em'), nb = el('button', { type: 'button', 'class': 'btn', text: 'Check predictions' });
-    nx.appendChild(el('h3', { text: '2. Predict the output at input 4' })); nx.appendChild(row(el('label', { 'for': 'nextLine', text: 'A line (add 2 again):' }), ln, el('label', { 'for': 'nextReal', text: 'Linny (double the climb):' }), lr, nb));
+    nx.appendChild(el('h3', { text: '2. Predict the output at input 4' })); nx.appendChild(row(el('label', { 'for': 'nextLine', text: 'A line (adds 2 every step: 3, 5, 7, …):' }), ln, el('label', { 'for': 'nextReal', text: 'Linny (double the climb):' }), lr, nb));
     G.work.appendChild(stepMeter(xs, ys, function () { ST.file.gaps = ['+1', '+1', '+1']; ST.file.jumps = ['+2', '+4', '+8']; G.note('Linny: jumps 2, 4, 8 for gaps of 1'); nx.hidden = false; stepAt(2); V.say(['g6_c3_jumps', 'g6_c3_ok']); ln.focus(); }));
     G.work.appendChild(nx);
-    nb.addEventListener('click', function () { var ok = check(ln, parseNum(ln.value) === 19) & check(lr, parseNum(lr.value) === 33); if (ok) { G.firstTry(true); G.note('next: a line says 19, Linny says 33'); ST.file = { type: 'graph', title: 'CASE FILE 3: LINNY', x: 230, y: 24, w: 300, h: 230, xr: [-1, 4], yr: [0, 18], pts: [[0, 3], [1, 5], [2, 9], [3, 17]], ruler: [[0, 3], [3, 9]] }; enable(v); stepAt(3); V.say(['g6_c3_evenly', 'g6_c3_ruler']); G.say('A line would add 2 again (19). Linny doubles her climb (17 + 16 = 33). On the graph, the ruler through the first two dots says 9 at input 3, but the real dot is at 17.'); } else { G.firstTry(false); G.say('Fix the red box. A line adds the same jump again: work out 17 + 2. Linny doubles her last jump (8 → 16): work out 17 + 16.', 'bad'); } });
+    nb.addEventListener('click', function () { var lv = parseNum(ln.value), ok = check(ln, lv === 11) & check(lr, parseNum(lr.value) === 33); if (ok) { G.firstTry(true); G.note('input 4: a line says 11, Linny says 33'); ST.file = { type: 'graph', title: 'CASE FILE 3: LINNY', x: 230, y: 24, w: 300, h: 230, xr: [-1, 4], yr: [0, 18], pts: [[0, 3], [1, 5], [2, 9], [3, 17]], ruler: [[0, 3], [3, 9]] }; enable(v); stepAt(3); V.say(['g6_c3_evenly', 'g6_c3_ruler']); G.say('A line would keep adding 2: 3, 5, 7, 9, 11. Linny doubles her climb: 17 + 16 = 33. On the graph, the ruler through the first two dots says 9 at input 3, but the real dot is at 17.'); } else { G.firstTry(false); G.say(lv === 19 ? '19 adds 2 to Linny\'s 17, but a line never gets to 17. From 3 it adds 2 every step: 3, 5, 7, 9, … What is it at input 4?' : 'Fix the red box. A line starts at 3 and adds 2 every step: 3, 5, 7, 9, … Linny doubles her last jump (8 → 16): work out 17 + 16.', 'bad'); } });
     G.work.appendChild(el('h3', { text: '3. Verdict' })); G.work.appendChild(v);
     function pick(x) { if (busy() || closed) return; if (x === 'liar') { closed = true; G.firstTry(wrong === 0); stampNow('LIAR ✗', '#C0392B'); G.note('VERDICT Linny: LIAR (claimed linear, jumps 2, 4, 8)', 'hl'); ST.sus = [{ k: 'eraser', x: 470, label: 'THE ERASER?!' }]; G.lock(true); G.after(V.say(['g6_c3_enth', 'g6_c3_nosuch', 'g6_c3_eraser']), function () { G.lock(false); close('C3', wrong, 'Busted: Linny claimed to be linear, but her jumps are 2, 4, 8 for equal steps. Going up is not the same as going up evenly. It was the Eraser in disguise. Honest machines arrested: ' + wrong + '.', []); }); }
       else { G.firstTry(false); G.say(x === 'lin' ? 'Every number goes up, but by 2, then 4, then 8. Not evenly, so she is not linear. Did she say she was? Pick again.' : 'Linny DID claim to be linear, and she isn\'t. A false claim makes her a liar. Pick again.', 'bad'); V.say(x === 'lin' ? 'g6_c3_evenly' : 'g6_c3_bad'); } }
@@ -2324,27 +2350,6 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     V.say('g6_c4_s');
   }
 
-  /* ================= S1: the widest door (Doors and Walls) ================= */
-  function S1() {
-    ST.scene = 'door'; ST.door = 0; ST.doorScreen = null; var tried = [];
-    G.setTask('The Widest Door', job('Find the input that opens the door widest.', ['Drag the slider, or type an input and press <strong>Feed it</strong>. Try small ones, like 0.1 or 0.01.', 'Press <strong>Try input 0</strong>.', 'Answer the two questions.'], 'both answers are right.', 'The Door Machine opens <strong>1 ÷ input</strong> wide.')); stepAt(1);
-    var sl = el('input', { type: 'range', id: 'doorX', min: '0.1', max: '5', step: '0.1', value: '4', 'aria-label': 'Input to the door machine', style: 'width:100%' }), rd = el('p', { 'class': 'muted', 'aria-live': 'polite' }), tin = num('doorIn', 'Type any input', '6em'), tb = el('button', { type: 'button', 'class': 'btn small', text: 'Feed it' });
-    G.work.appendChild(sl); G.work.appendChild(rd); G.work.appendChild(row(el('label', { 'for': 'doorIn', text: 'Or type an input:' }), tin, tb));
-    function feed(x) { if (x === 0) { ST.door = 0; ST.doorScreen = '1 ÷ 0 = ?'; ST.doorShake = true; setTimeout(function () { ST.doorShake = false; }, 900); rd.textContent = 'Input 0: the machine refuses. You can\'t split 1 into zero equal parts: there\'s no answer.'; G.note('input 0: refused (a wall)', 'pre'); G.lock(true); G.after(V.say(['g6_s1_big', 'g6_s1_zero', 'g6_s1_wall']), function () { G.lock(false); ask(); stepAt(3); }); return; }
-      var w = 1 / x; ST.door = w; ST.doorScreen = '1 ÷ ' + fmt(x) + ' = ' + fmt(+w.toFixed(3)); tried.push(x); G.P.doorMin = Math.min(G.P.doorMin || 99, x); rd.textContent = 'Input ' + fmt(x) + ': the door opens ' + fmt(+w.toFixed(3)) + ' wide.' + (w > 2 ? ' (Wider than the frame can show!)' : ''); if (x < 0.5 && !asked && ask) { ask(); stepAt(2); G.say('Now press "Try input 0" too, then answer the questions below.'); } }
-    sl.addEventListener('input', function () { feed(+sl.value); }); tb.addEventListener('click', function () { var v = parseNum(tin.value); if (v == null || v < 0) { G.say('Type a number that is 0 or bigger, like 0.5.', 'bad'); return; } feed(v); if (v > 0 && v < 0.1) G.note('input ' + fmt(v) + ': door ' + fmt(+(1 / v).toFixed(2))); });
-    feed(4); var asked = false, q = el('div', { hidden: '' }); G.work.appendChild(q);
-    var zeroBtn = el('button', { type: 'button', 'class': 'btn', text: 'Try input 0', onclick: function () { feed(0); } }); G.work.appendChild(row(zeroBtn));
-    function ask() { if (asked) return; asked = true; q.hidden = false; V.say('g6_s1_q');
-      var part = {}; function mc(title, opts, key) { q.appendChild(el('h3', { text: title })); var b = el('div', { 'class': 'choice' }); opts.forEach(function (o) { b.appendChild(el('button', { type: 'button', text: o[0], onclick: function (e) { if (part[key]) return; if (o[1]) { part[key] = 1; e.target.classList.add('yes'); G.firstTry(true); if (part.w && part.z) finish(); } else { e.target.classList.add('no'); G.firstTry(false); part[key + 'bad'] = 1; G.say(o[2], 'bad'); V.say('g6_s1_bad'); } } })); }); q.appendChild(b); }
-      mc('Which input gives the widest door?', [['0, because it\'s the smallest input.', false, 'Zero isn\'t allowed: the machine can\'t take it.'], ['0.1, the smallest one on the slider.', false, 'Try 0.01 in the box. Is that door even wider?'], ['None. A smaller positive input always gives a wider door, so there is no widest, and 0 isn\'t allowed.', true]], 'w');
-      mc('Why is zero a wall?', [['Because 1 can\'t be split into 0 parts: no number works for 1 ÷ 0.', true], ['Because 1 ÷ 0 = 0, so the door is shut.', false, 'If 1 ÷ 0 were 0, then 0 × 0 would be 1. It isn\'t.'], ['Because 1 ÷ 0 is infinity, the biggest door of all.', false, 'Infinity isn\'t a number the machine can output. There is no answer at all.']], 'z');
-      function finish() { var ok = !part.wbad && !part.zbad && G.levelMaxRung <= 1 && tried.some(function (x) { return x < 0.5; }); G.P.doorMaster = G.P.doorMaster || ok; G.P.done.S1 = true; G.save(); G.levelDone('S1', 'No input gives the widest door: smaller inputs always open it wider, and 0 is a wall because 1 can\'t be split into 0 parts.' + (ok ? ' You earned Door Master.' : ' (Door Master needs both answers right first time, at most one small hint, and an input below 0.5 tried.)'), ok ? ['g6_s1_ok'] : []); }
-    }
-    G.hintFn = function (r) { V.say(r === 1 ? 'g6_s1_bad' : 'g6_s1_wall'); G.say(r === 1 ? 'Hint: slide the input smaller. What happens to the door?' : r === 2 ? 'Hint: type 0.01, then 0.001.' : 'Worked step: 1 ÷ 0.01 = 100, 1 ÷ 0.001 = 1000. There is always a smaller input, so there is no widest door.'); if (!asked && r >= 2) ask(); };
-    V.say(['g6_s1_s']);
-  }
-
   /* ================= S2: fool the detector ================= */
   function S2() {
     ST.sus = [{ k: 'steady', x: 470, label: 'DETECTOR' }];
@@ -2358,25 +2363,9 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       if (j[0] !== j[1]) { G.firstTry(false); G.say('The detector checks 0, 1, 2: jumps ' + j[0] + ' and ' + j[1] + ' differ, so it catches you. Make the jump from 0 to 1 the same as from 1 to 2.', 'bad'); V.say('g6_s2_caught'); return; }
       if (j[2] === j[0] && j[3] === j[0]) { G.firstTry(false); G.say('That is a line all the way: every jump is ' + j[0] + '. Change the output at input 3 or 4 so its jump is different.', 'bad'); V.say('g6_s2_line'); return; }
       G.P.ruleTable = ys.map(function (y, x) { return x + '→' + fmt(y); }).join(', '); G.save(); V.say('g6_s2_fooled'); G.say('Fooled him! Now bust your own liar.', 'good'); stepAt(3); bust.hidden = false; bust.innerHTML = ''; bust.appendChild(el('h3', { text: 'Now bust it: at which input does the climb change?' })); var r = el('div', { 'class': 'row' });
-      [3, 4].forEach(function (x) { r.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'Input ' + x, onclick: function () { var first = j[2] !== j[0] ? 3 : 4; if (x === first) { G.P.ruleBust = x; G.P.ruleMaker = true; G.P.done.S2 = true; G.save(); G.firstTry(true); G.levelDone('S2', 'Your table looks linear at 0, 1 and 2 (jumps of ' + j[0] + '), then breaks at input ' + x + '. Three checked inputs can\'t prove a rule is linear. You earned Rule Maker.', ['g6_s2_ok']); } else { G.firstTry(false); G.say(first === 4 ? 'Not yet: into input 3 it still climbs ' + fmt(j[0]) + ', same as before. Look at the jump into input 4.' : 'The climb already changed before that. Look at the jump into input 3.', 'bad'); } } })); }); bust.appendChild(r); });
+      [3, 4].forEach(function (x) { r.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'Input ' + x, onclick: function () { var first = j[2] !== j[0] ? 3 : 4; if (x === first) { G.P.ruleBust = x; G.P.ruleMaker = true; G.P.done.S2 = true; G.save(); G.firstTry(true); G.levelDone('S2', 'Your table looks linear at 0, 1 and 2 (jumps of ' + j[0] + '), then breaks at input ' + x + '. Three checked inputs can\'t prove a rule is linear. You earned Rule Maker.', ['g6_c3_evenly']); } else { G.firstTry(false); G.say(first === 4 ? 'Not yet: into input 3 it still climbs ' + fmt(j[0]) + ', same as before. Look at the jump into input 4.' : 'The climb already changed before that. Look at the jump into input 3.', 'bad'); } } })); }); bust.appendChild(r); });
     G.hintFn = function (r) { V.say(r === 1 ? 'g6_s2_s' : 'g6_h3'); G.say(r === 1 ? 'Hint: make 0, 1, 2 climb evenly, like 1, 3, 5.' : 'Worked step: 1, 3, 5, then 10, 20. The climb jumps at input 3.'); if (r >= 4) [1, 3, 5, 10, 20].forEach(function (v, i) { ins[i].value = String(v); }); };
     V.say('g6_s2_s');
-  }
-
-  /* ================= S3: the Doubler's lead ================= */
-  function S3() {
-    ST.scene = 'lifts'; ST.lifts = { a: 0, d: 1 }; ST.cast = { marcus: { x: 120, f: 1 }, priya: { x: 820, f: -1 } };
-    G.setTask("The Doubler's Lead", job('Find when the doubling lift gets ahead for good.', ['Press <strong>Show bells 0 to 8</strong> to see every lift.', 'For each adding lift, type the first bell where doubling is ahead <strong>and stays ahead</strong>.', 'Pick what happens in general. Press <strong>Check</strong>.'], 'all three bells and your answer are right.', 'Doubling starts at <strong>1 floor</strong>. Adding lifts start at 0.')); stepAt(1);
-    var races = [2, 5, 10], ans = [3, 5, 6], ins = races.map(function (k, i) { return num('db' + i, 'Bell where doubling passes the +' + k + ' lift for good', '4em'); });
-    var tbl = el('div', { 'class': 'scroll-x' }); var show = el('button', { type: 'button', 'class': 'btn primary', text: 'Show bells 0 to 8' }); G.work.appendChild(el('h3', { text: '1. See the floors' })); G.work.appendChild(row(show)); G.work.appendChild(tbl);
-    G.work.appendChild(el('h3', { text: '2. Doubling is ahead for good from bell...' }));
-    races.forEach(function (k, i) { G.work.appendChild(row(el('label', { 'for': 'db' + i, text: 'Against ADD ' + k + ': from bell' }), ins[i])); });
-    show.addEventListener('click', function () { stepAt(2); var h = '<table class="cmp"><thead><tr><th>bell</th>' + [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (b) { return '<th>' + b + '</th>'; }).join('') + '</tr></thead><tbody><tr><th>double</th>' + [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (b) { return '<td>' + Math.pow(2, b) + '</td>'; }).join('') + '</tr>' + races.map(function (k) { return '<tr><th>+' + k + '</th>' + [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (b) { return '<td>' + k * b + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>'; tbl.innerHTML = h; });
-    var q = el('div', { 'class': 'choice' }); var chosen = null; [['Doubling always passes any adding lift eventually, however big the step.', true], ['A big enough adding step stays ahead forever.', false]].forEach(function (o) { q.appendChild(el('button', { type: 'button', text: o[0], onclick: function (e) { chosen = o[1]; stepAt(3); [].forEach.call(q.children, function (b) { b.classList.remove('yes'); b.classList.remove('no'); }); e.target.classList.add(o[1] ? 'yes' : 'no'); } })); });
-    G.work.appendChild(el('h3', { text: '3. And in general?' })); G.work.appendChild(q); var b = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' }); G.work.appendChild(row(b));
-    b.addEventListener('click', function () { var ok = ins.map(function (n, i) { return check(n, parseNum(n.value) === ans[i]); }).every(Boolean); if (ok && chosen === true) { G.P.doubler = true; G.P.done.S3 = true; G.save(); G.firstTry(true); G.levelDone('S3', 'Doubling passes +2 at bell 3, +5 at bell 5 and +10 at bell 6. However big the adding step, doubling gets there: its jumps keep growing. You earned The Doubler.', ['g6_s3_ok']); } else { G.firstTry(false); G.say(ok ? 'Your bells are right. Now pick the true sentence under "And in general?": can an adding lift stay ahead forever?' : 'Fix the red boxes. In the table, find the first bell where doubling is bigger, and stays bigger after that.', 'bad'); V.say('g6_s3_bad'); } });
-    G.hintFn = function (r) { V.say('g6_s3_bad'); G.say(r === 1 ? 'Hint: show the bells. Doubling: 1, 2, 4, 8, 16, 32, 64.' : 'Hint: +2 is tied at bells 1 and 2, then behind from bell 3.'); if (r >= 2) show.click(); };
-    V.say('g6_s3_s');
   }
 
   G.boot('Press <strong>Start the lineup</strong>. While the Chain is broken, only linear machines may guard the Hall. Some applicants are lying.');

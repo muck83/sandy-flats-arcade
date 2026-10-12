@@ -29,10 +29,17 @@
   var LESSON_OF = {}, NUM = {};   // game file -> lesson file number; lesson file number -> number shown
   PLAN.forEach(function (p) { if (!LESSON_OF[p.game]) LESSON_OF[p.game] = p.l; NUM[p.l] = p.n; });
   window.SFA_LESSON_OF = LESSON_OF; window.SFA_LESSON_NUM = NUM; window.SFA_PLAN = PLAN;
+  // remember the last game a student opened (or the game of the last lesson they opened), so the front page's "Next up" follows the class
+  if (!teach) {
+    var lastG = LESSON_OF[page] ? page : '';
+    if (page === 'lesson.html') { var lq = +((Q.match(/[?&]l=(\d+)/) || [])[1] || 0); lastG = (PLAN.filter(function (p) { return p.l === lq; })[0] || {}).game || ''; }
+    if (lastG) try { localStorage.setItem('sfa.lastgame', JSON.stringify({ file: lastG, at: Date.now() })); } catch (e) { }
+  }
 
   var css = '.sfanav{display:flex;flex-wrap:wrap;gap:6px;align-items:center}' +
     '.sfanav a{font:700 13px/1 var(--ui,system-ui,sans-serif);padding:7px 11px;border-radius:999px;color:var(--ink,#f4efe6);text-decoration:none;border:1px solid var(--line,rgba(255,255,255,.18));background:var(--panel2,rgba(255,255,255,.04));white-space:nowrap}' +
     '.sfanav a:hover,.sfanav a:focus-visible{border-color:var(--marquee,#FFC94A);outline:none}' +
+    '.sfanav a.ic{padding:7px 9px}' +
     '.sfanav a.on{background:var(--marquee,#FFC94A);color:#231800;border-color:transparent}' +
     '.sfanav a.live{background:#E5484D;color:#fff;border-color:transparent;animation:sfanavPulse 2s ease-in-out infinite}' +
     '@keyframes sfanavPulse{50%{box-shadow:0 0 0 4px rgba(229,72,77,.3)}}' +
@@ -60,12 +67,17 @@
     nav.appendChild(liveSlot);
     nav.appendChild(link('index.html', '🕹️ Arcade', page === 'index.html' || page === ''));
     nav.appendChild(link('lessons.html', '📚 Lessons', page === 'lessons.html' || page === 'lesson.html'));
-    if (LESSON_OF[page]) nav.appendChild(link('lesson.html?l=' + LESSON_OF[page], '📺 Lesson ' + (NUM[LESSON_OF[page]] || LESSON_OF[page]) + ' slides', false));
+    if (LESSON_OF[page]) nav.appendChild(link('lesson.html?l=' + LESSON_OF[page], '📺 Lesson ' + (NUM[LESSON_OF[page]] || LESSON_OF[page]), false));
     if (page === 'lesson.html') {   // and from a lesson, straight to its game
       var ln = +((Q.match(/[?&]l=(\d+)/) || [])[1] || 0), gf = (PLAN.filter(function (p) { return p.l === ln; })[0] || {}).game;
       if (gf) nav.appendChild(link(gf, '🕹️ Play the game', false));
     }
     nav.appendChild(link('results.html', '⭐ My Results', page === 'results.html'));
+    // on a game page the top bar also holds the game's chips: show Arcade, Lessons and My Results as icons so it stays on one row
+    if (LESSON_OF[page]) [].forEach.call(nav.children, function (a) {
+      if (a.tagName !== 'A' || /^lesson\.html/.test(a.getAttribute('href'))) return;
+      var t = a.textContent, ic = t.split(' ')[0]; a.title = t.slice(ic.length + 1); a.setAttribute('aria-label', a.title); a.textContent = ic; a.classList.add('ic');
+    });
   }
 
   function place() {
@@ -104,7 +116,7 @@
           var anchor = document.getElementById('nextUp') || document.getElementById('grid');
           if (anchor) {
             var box = document.createElement('div'); box.id = 'sfaLive'; box.className = 'sfalive';
-            box.innerHTML = '<span><b>Your teacher is teaching Lesson ' + n + ' right now.</b></span>';
+            box.innerHTML = '<span><b>Mr. Crowell is teaching Lesson ' + n + ' right now.</b></span>';
             var a = document.createElement('a'); a.href = href; a.textContent = '▶ Join the lesson'; box.appendChild(a);
             anchor.parentNode.insertBefore(box, anchor);
           }

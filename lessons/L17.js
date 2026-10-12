@@ -5,7 +5,7 @@ SFA_LESSON({
   big: 'Every rule belongs to a family you can see in its shape. Each number in a rule has one job. To match a rule to a graph, test a point. If two rules tie, test another.',
   slides: [
     { k: 'title', min: 1, kicker: 'Lesson 15', title: 'The Family Gallery', sub: 'Maximus Million has the WORDS link. He will only give it back if you can name his family. Today you learn to tell rule families apart.', art: '🖼️' },
-    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *Families*', 'Name a rule\'s family from its *shape*', 'Test points to open *Max\'s lock*', 'Play *The Family Gallery*'] },
+    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch *Families*', 'Name a rule\'s family from its *shape*', 'Test points to open *Max\'s lock* in *The Family Gallery*', 'Answer a quick exit ticket'] },
     { k: 'poll', min: 2, id: 'warm', warm: true, q: 'Max has a gallery full of family portraits. If your portrait hung in a gallery, what would be in it?', opts: ['Me and my family', 'Me and my friends', 'My pet', 'Just me, looking amazing', 'A pigeon. Obviously.'] },
     { k: 'poll', min: 2, id: 'hook', q: 'Two rules: *y = x²* and *y = 2ˣ*. Put in *2*: both give *4*. Are they the same rule?',
       opts: ['Yes. Same answer, same rule.', 'No. They could still be different.', 'You can\'t ever tell.'], ans: 1,
