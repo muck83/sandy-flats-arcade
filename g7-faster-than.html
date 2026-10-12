@@ -1634,7 +1634,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     { id: 'bx', kind: 'O', title: 'The Blooper Reel', game: 'class', file: 'reels/bx.html', bonus: true, premiere: 'hf07dd0bc' }
   ];
   var KINDN = { R: 'From the films', D: 'Deleted scene', O: 'Outtake' };
-  var GAMEN = { g1: 'Crack the Fair', g2: 'Glitch Hunt', g3: "The Keeper's Vault", g4: "Gus's Forecast", g5: 'Scorch Marks', g6: 'Linear or Liar?', g7: 'Faster Than', g8: "Doug's Steps", g9: 'Try Zero First', g10: 'Tile Run', g11: 'Name Them Back', g12: 'Off the Edge', g13: 'Half a Rule', g14: 'Three Roads', g16: 'The Family Gallery', 'class': 'Class unlock only' };
+  var GAMEN = { g1: 'Crack the Fair', g2: 'Glitch Hunt', g3: "The Keeper's Vault", g4: "Gus's Forecast", g5: 'Scorch Marks', g6: 'Linear or Liar?', g7: 'Faster Than', g8: "Doug's Steps", g9: 'Try Zero First', g10: 'Tile Run', g11: 'Name Them Back', g12: 'Off the Edge', g13: 'Half a Rule', g14: 'Three Roads', g15: 'The Outer Machines', g16: 'The Family Gallery', 'class': 'Class unlock only' };
   var MIN8 = 8 * 60 * 1000, IDLE = 40 * 60 * 1000;
   function session() {
     var s = SFA.store.get('session', null), n = SFA.now();
@@ -1782,6 +1782,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     12: { name: 'Off the Edge', std: 'Real Start-Finder', specials: ['Off the Edge', 'Tower Reader', 'Wrong-Start Spotter'] },
     13: { name: 'Half a Rule', std: 'Water Tower Engineer', specials: ['Take Off the Start First', 'Backwards to the Start', 'One Step From Empty'] },
     14: { name: 'Three Roads', std: 'Backwards Finder', specials: ['Last Thing First', "It's an Equation", 'Seven. My Favourite.'] },
+    15: { name: 'The Outer Machines', std: 'Outer Machines Guide', specials: ['Knows Their Limits', 'Not a Line, a U', 'Machine Spotter'] },
     16: { name: 'The Family Gallery', std: 'Family Gallery Guide', specials: ["Max's Locksmith", 'Two Jobs', 'The Fooling Point'] }
   };
 

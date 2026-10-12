@@ -34,6 +34,7 @@
     { id: 'g13', title: 'Half a Rule', file: 'g13-half-a-rule.html', film: 9 },
     { id: 'g5', title: 'Scorch Marks', file: 'g5-scorch-marks.html', film: 10 },
     { id: 'g14', title: 'Three Roads', file: 'g14-three-roads.html', film: 11 },
+    { id: 'g15', title: 'The Outer Machines', file: 'g15-outer-machines.html', film: 12 },
     { id: 'g6', title: 'Linear or Liar?', file: 'g6-linear-or-liar.html', film: 13 },
     { id: 'g7', title: 'Faster Than', file: 'g7-faster-than.html', film: 14 },
     { id: 'g16', title: 'The Family Gallery', file: 'g16-family-gallery.html', film: 15 },

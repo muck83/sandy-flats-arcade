@@ -19,6 +19,7 @@
     { l: 14, n: 9, game: 'g13-half-a-rule.html' },
     { l: 5, n: 10, game: 'g5-scorch-marks.html' },
     { l: 15, n: 11, game: 'g14-three-roads.html' },
+    { l: 16, n: 12, game: 'g15-outer-machines.html' },
     { l: 6, n: 13, game: 'g6-linear-or-liar.html' },
     { l: 7, n: 14, game: 'g7-faster-than.html' },
     { l: 17, n: 15, game: 'g16-family-gallery.html' },
