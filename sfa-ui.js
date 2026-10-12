@@ -22,7 +22,8 @@
     'g9': 'Feed zero first to see where a rule starts, then crack each machine.',
     'g10': 'Plot Gus\'s signs, find the half tile, read the graph backwards and dodge the Vertical Line.',
     'g11': 'Say each machine\'s name back three ways: sentence, pair, point.',
-    'g12': 'Find the step, walk back to input 0 to find where each rule starts, then predict a row that isn\'t in the table.'
+    'g12': 'Find the step, walk back to input 0 to find where each rule starts, then predict a row that isn\'t in the table.',
+    'g14': 'Run each machine backwards to find what went in, then check it with the table, the graph and the crossing.'
   };
   var gid = (location.pathname.match(/\/(g\d+)-/) || [])[1];
   var TIER = { 'Low floor': 'Warm-up', 'Core': 'Main', 'Stretch': 'Challenge', 'Review': 'Review' };
@@ -202,7 +203,7 @@
     var ov = S.overlay('sfaDone', 'Game complete'), b = ov.body; b.innerHTML = '';
     ov.dlg.classList.add('donedlg');
     var h = ov.dlg.querySelector('h2'); if (h) h.textContent = '🏆 You finished ' + gname + (/[?!.]$/.test(gname) ? '' : '!');
-    b.appendChild(mk('p', 'donebig', every ? 'You cleared every level. That is the whole game, done.' : 'You cleared all ' + mainN + ' main levels. That means this game is done.'));
+    b.appendChild(mk('p', 'donebig', every ? 'You cleared every level. That is the whole game, done.' : 'You cleared the warm-up and every main level. That means this game is done.'));
     var ul = mk('ul', 'donelist');
     var notSaving = /Not saving/.test((document.querySelector('.topbar') || {}).textContent || '');
     ul.appendChild(mk('li', '', notSaving ? 'Your results are NOT reaching your teacher yet. Sign in at the top right so they count.' : 'Your results are saved for your teacher.'));
