@@ -52,8 +52,10 @@
     var age = Date.now() - L.at;
     liveSeen = { at: L.at, local: liveSeen.at === null ? (Math.abs(age) < LIVE_FRESH ? Date.now() - Math.max(0, age) : 0) : Date.now() };
   }
+  // "End live lesson" leaves an end marker (counts.zend) rather than nothing, so a late or repeated update can't look live
+  function ended(L) { return !!(L && L.counts && Array.isArray(L.counts.zend) && L.counts.zend[0] === 1); }
   function isLive() {
-    if (!live || live.lesson !== LID) return false;
+    if (!live || live.lesson !== LID || ended(live)) return false;
     return MODE === 'student' ? Date.now() - liveSeen.local < LIVE_FRESH : Date.now() - live.at < LIVE_FRESH;
   }
   // the lock also rides in counts.zlock, because older results scripts drop the lock field
@@ -604,7 +606,7 @@
       liveChip.textContent = locked() ? 'Live: ' + TEACHER + ' is moving the slides' : follow ? 'Live with ' + TEACHER : 'Back to ' + TEACHER + '\'s slide';
       refreshDots();
       liveChip.setAttribute('aria-pressed', follow ? 'true' : 'false');
-      var other = live && live.lesson !== LID && Date.now() - live.at < LIVE_FRESH;
+      var other = live && live.lesson !== LID && !ended(live) && Date.now() - live.at < LIVE_FRESH;
       banner.hidden = !other;
       if (other) { banner.innerHTML = ''; banner.appendChild(H('span', '', '<b>' + TEACHER + ' is teaching Lesson ' + esc(live.lesson.slice(1)) + ' right now.</b>')); var a = H('a', 'btn primary small', 'Join it'); a.href = 'lesson.html?l=' + live.lesson.slice(1); banner.appendChild(a); }
     }
@@ -696,7 +698,12 @@
     if (!console_.offline) fetchAnswers();
     setInterval(function () { if (!console_.offline) fetchAnswers(); }, 4000);
     setInterval(function () { if (console_.on) pushLive(); }, 120000);
-    tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
+    // a console left open in another tab or device must not keep the class live after you end it elsewhere
+    setInterval(function () {
+      if (!console_.on || console_.offline || Date.now() - lastPush < 20000) return;
+      tpost('live').then(function (j) { if (console_.on && ended(j.live) && j.live.lesson === LID && Date.now() - lastPush > 20000) { console_.on = false; clearTimeout(pushT); consolePanel(); liveChip.hidden = true; SFA.toast('The live lesson was ended from another window.', 4000); } }, function () { });
+    }, 15000);
+    tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
     return true;
   }
   function fetchAnswers() {
@@ -734,12 +741,28 @@
     if (console_.lock) counts.zlock = [1];
     return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: console_.spot, timer: console_.timer, lock: console_.lock };
   }
-  var pushT = null, lastCounts = '';
+  var pushT = null, lastCounts = '', lastPush = 0;
   function pushLive() {
     live = liveObj(); upd(); broadcast();
     if (!console_.on || console_.offline) return;
     clearTimeout(pushT);
-    pushT = setTimeout(function () { var L = liveObj(); lastCounts = JSON.stringify(L.counts); tpost('setLive', { live: L }).catch(function (e) { SFA.toast('Couldn\'t update the class: ' + e.message, 4000); }); }, 300);
+    pushT = setTimeout(function () { if (!console_.on) return; var L = liveObj(); lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); tpost('setLive', { live: L }).catch(function (e) { SFA.toast('Couldn\'t update the class: ' + e.message, 4000); }); }, 300);
+  }
+  function endLive() {
+    clearTimeout(pushT);
+    var tries = 0, endObj = { lesson: LID, slide: cur, reveal: {}, counts: { zend: [1] }, spot: null, timer: null, lock: false };
+    live = endObj; upd(); broadcast();
+    function send() {
+      if (console_.on) return;   // gone live again meanwhile
+      tries++;
+      tpost('setLive', { live: endObj }).then(function () {
+        if (tries === 1) { SFA.toast('Live lesson ended.'); setTimeout(send, 3000); }   // send it twice: an update already on its way can land after the first
+      }, function (e) {
+        if (console_.on) return;
+        if (tries < 4) setTimeout(send, 2000 * tries); else SFA.toast('Couldn\'t end the live lesson: ' + e.message + '. Press Go live, then End live lesson again.', 6000);
+      });
+    }
+    send();
   }
   function pushCountsIfChanged() { if (console_.on && JSON.stringify(liveObj().counts) !== lastCounts) pushLive(); }
   function consoleSlide() { if (!console_) return; console_.picked = ''; console_.peek = false; pushLive(); consolePanel(); }
@@ -753,7 +776,7 @@
     lb.onclick = function () {
       console_.on = !console_.on;
       if (console_.on) { console_.since = Date.now(); pushLive(); SFA.toast('Live. Students\' screens now follow your slides.'); }
-      else tpost('setLive', { live: null }).then(function () { SFA.toast('Live lesson ended.'); });
+      else endLive();
       consolePanel(); liveChip.hidden = !console_.on;
     };
     if (console_.offline) lb.disabled = true;
