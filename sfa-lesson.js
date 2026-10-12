@@ -617,12 +617,26 @@
     if (!signBar) return;
     var need = saving && (!S.me || S.status === 'signedout' || (S.credExpired && S.credExpired()));
     var key = need ? 'need' : 'ok'; if (key === signKey) return; signKey = key;
-    signBar.hidden = !need; signBar.innerHTML = ''; if (!need) return;
-    signBar.appendChild(H('span', '', '<b>' + (S.me ? 'Sign in again so your answers count.' : 'Sign in so your answers count.') + '</b>'));
-    S.button(signBar);
+    signBar.hidden = !need; signBar.innerHTML = ''; document.body.classList.toggle('gated', need); if (!need) return;
+    // a sign-in screen in front of the slides: the lesson opens once the student is in
+    var card = H('div', 'gatecard');
+    card.appendChild(H('div', 'bigicon', '🔑'));
+    card.appendChild(H('h2', '', S.me ? 'Sign in again to keep going' : 'Sign in to join the lesson'));
+    card.appendChild(H('p', 'sub', 'Type the 6-character <b>student code</b> from ' + TEACHER + '\'s email. Then the slides open.'));
+    S.button(card);
+    signBar.appendChild(card);
+    setTimeout(function () { var i = signBar.querySelector('input'); if (i) i.focus(); }, 50);
+  }
+  // tell the console this student is in (once per lesson, and again after "Start fresh")
+  function sayHere() {
+    if (MODE !== 'student' || !saving || !S.me || (S.credExpired && S.credExpired())) return;
+    var run = liveRun(), k = 'les.here.' + LID, was = SFA.store.get(k, null);
+    if (was && was.sid === S.me.sid && was.run === run) return;
+    SFA.store.set(k, { sid: S.me.sid, run: run });
+    S.call('answer', { lesson: LID, q: 'here', kind: 'open', answer: 'joined', correct: null }).catch(function () { SFA.store.del(k); });
   }
   function acctDraw() {
-    signDraw();
+    signDraw(); sayHere();
     if (!acctChip) return;
     if (!saving) { acctChip.hidden = true; return; }
     if (S.me) { acctChip.textContent = '✓ ' + first(S.me.name); acctChip.className = 'chip static'; acctChip.onclick = null; }
@@ -648,7 +662,7 @@
       if (isLive() && follow && live.slide !== cur) render(live.slide, live.slide > cur ? 1 : -1);
       else if (sameLive(live, before) === false) upd();   // ignore the heartbeat time, so typing isn't redrawn for nothing
       if (!was && isLive()) { follow = true; SFA.toast(TEACHER + ' is live. Your screen will follow the lesson.', 3500); }
-      drawTop(); refreshDots();
+      drawTop(); refreshDots(); if (dropped || liveRun()) sayHere();
       pollT = setTimeout(pollLive, isLive() ? 4500 + Math.random() * 1500 : 8000 + Math.random() * 2000);
     }, function (e) {
       polling = false;
@@ -811,6 +825,17 @@
     top.appendChild(H('p', 'muted', console_.on ? 'Live for ' + Math.round((Date.now() - console_.since) / 60000) + ' min. Share the class screen window, not this one.' : 'Share the class screen window. Go live so students\' devices follow you and the polls open.'));
     if (console_.err) top.appendChild(H('p', 'state bad', esc(console_.err)));
     p.appendChild(top);
+    // who has signed in to this lesson (since "Start fresh")
+    if (console_.data) {
+      var inS = {}; ((console_.data.answers || [])).forEach(function (a) { if (console_.run && Date.parse(a.time) < console_.run - 2000) return; inS[a.sid] = 1; });
+      var ros = rosterIn(), here = ros.filter(function (r) { return inS[r.sid]; }), out = ros.filter(function (r) { return !inS[r.sid]; });
+      var ws = H('div', 'sect');
+      ws.appendChild(H('h3', '', 'In the lesson: ' + here.length + ' of ' + ros.length));
+      var hw = H('div', 'who'); here.forEach(function (r) { hw.appendChild(H('span', 'in', esc(nice(r.name)))); }); if (here.length) ws.appendChild(hw);
+      if (out.length && out.length < ros.length) { ws.appendChild(H('p', 'muted', 'Not in yet (' + out.length + ')')); var ow = H('div', 'who'); out.forEach(function (r) { ow.appendChild(H('span', '', esc(nice(r.name)))); }); ws.appendChild(ow); }
+      else if (!here.length) ws.appendChild(H('p', 'muted', 'Nobody yet. Students appear here as soon as they type their code.'));
+      p.appendChild(ws);
+    }
 
     // class filter
     var roster = (console_.data && console_.data.roster) || [], classes = [];
@@ -903,7 +928,7 @@
     if (MODE === 'student') { acctChip = el('button', { type: 'button', 'class': 'chip' }); topChips.appendChild(acctChip); }
     document.body.insertBefore(top, document.body.firstChild);
     banner = H('div', 'banner'); banner.hidden = true; top.after(banner);
-    if (MODE === 'student') { signBar = H('div', 'banner signbar'); signBar.hidden = true; banner.after(signBar); }
+    if (MODE === 'student') { signBar = H('div', 'gate'); signBar.hidden = true; document.body.appendChild(signBar); }
     var main = document.querySelector('.lmain');
     var col = H('div'); col.style.width = '100%'; col.style.display = 'flex'; col.style.flexDirection = 'column'; col.style.alignItems = 'center';
     deck = H('div', 'deck'); deck.setAttribute('aria-live', 'polite'); col.appendChild(deck);

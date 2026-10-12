@@ -292,6 +292,7 @@ function answersFor(req) {
 function participation() {
   var by = {};
   latest(responseRows()).forEach(function (r) {
+    if (r.q === 'here') return;   // "joined the lesson" marker from the slides, not an answer
     var k = r.sid + '|' + r.lesson, o = by[k] || (by[k] = { sid: r.sid, lesson: r.lesson, answered: 0, correct: 0, checked: 0, last: '' });
     o.answered++;
     if (r.correct) { o.checked++; if (r.correct === 'yes') o.correct++; }

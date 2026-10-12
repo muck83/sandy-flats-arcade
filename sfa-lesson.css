@@ -212,3 +212,10 @@ body.m-screen .k-open .q,body.m-screen .k-exit .q{font-size:1.9em;line-height:1.
 body.m-screen .k-open .tally,body.m-screen .k-exit .tally{font-size:1.3em}
 .ans textarea{overflow:hidden}
 @media (max-width:760px){.ans textarea{min-height:7em}}
+.gate{position:fixed;inset:0;z-index:60;background:rgba(12,10,20,.86);backdrop-filter:blur(4px);display:grid;place-items:center;padding:16px}
+.gate[hidden]{display:none}
+.gatecard{background:var(--panel);border:2px solid var(--marquee);border-radius:18px;padding:28px 30px;max-width:460px;width:100%;text-align:center}
+.gatecard h2{margin:.2em 0 .3em;font:400 1.8em var(--display);color:var(--marquee)}
+.gatecard .codebox{justify-content:center}
+.gatecard .codebox input{font-size:1.2em;width:9em!important}
+.who span.in{border-color:#2b6b4c;color:#9ff0c9}
