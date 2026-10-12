@@ -450,7 +450,7 @@
       if (!show) w.appendChild(H('p', 'q', 'You answered <b>' + n + ' of ' + qs.length + '</b> questions today.'));
       if (LES.big) w.appendChild(H('p', 'sub', '<span class="kick">Remember</span><br>' + fmt(LES.big)));
       if (s.next) w.appendChild(H('p', 'sub', fmt(s.next)));
-      if (!show) { var row = H('div', 'row'); row.style.justifyContent = 'center'; var a = H('a', 'go', '🏆 My Results'); a.href = 'results.html'; row.appendChild(a); var b = H('a', 'btn', 'All lessons'); b.href = 'lessons.html'; row.appendChild(b); w.appendChild(row); }
+      if (!show) { var row = H('div', 'row'); row.style.justifyContent = 'center'; var a = H('a', 'go', '🏆 My Results'); a.href = 'results.html'; row.appendChild(a); var gm = H('a', 'btn', '🕹️ Play ' + esc(LES.game.title)); gm.href = LES.game.file; row.appendChild(gm); var b = H('a', 'btn', 'All lessons'); b.href = 'lessons.html'; row.appendChild(b); w.appendChild(row); }
     }
   };
   function show_(v) { return numTxt(v); }

@@ -42,7 +42,7 @@
     all.sort(function (a, b) { return a.n - b.n; }).forEach(function (L, i) {
       var qs = L.slides.filter(function (s) { return s.id; }), mine = SFA.store.get('les.' + L.id, {}) || {}, n = qs.filter(function (s) { return mine[s.id]; }).length;
       var url = 'lesson.html?l=' + L.n;
-      var c = el(teach ? 'div' : 'a', { 'class': 'lcard', href: teach ? null : url, style: 'animation-delay:' + (i * 0.05) + 's' });
+      var c = el('div', { 'class': 'lcard', style: 'animation-delay:' + (i * 0.05) + 's' });
       c.appendChild(el('span', { 'class': 'n', text: 'Lesson ' + L.n }));
       c.appendChild(el('b', { text: L.title }));
       c.appendChild(el('small', { text: '🎬 ' + (L.film ? L.film.title : '') + '  ·  🕹️ ' + L.game.title }));
@@ -54,11 +54,21 @@
         var link = el('button', { type: 'button', 'class': 'btn small', text: 'Copy student link' });
         link.onclick = function () { var u = new URL(url, location.href).href; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { SFA.toast('Copied: ' + u); }, function () { SFA.toast(u, 6000); }); };
         row.appendChild(link); c.appendChild(row);
-      } else if (n) { var b = el('div', { 'class': 'bar' }), i2 = el('i'); i2.style.width = Math.round(100 * n / qs.length) + '%'; b.appendChild(i2); c.appendChild(b); c.appendChild(el('small', { text: n + ' of ' + qs.length + ' answered' })); }
+      } else {
+        // the lesson and its game side by side, each with how far this student has got
+        if (n) { var b = el('div', { 'class': 'bar' }), i2 = el('i'); i2.style.width = Math.round(100 * n / qs.length) + '%'; b.appendChild(i2); c.appendChild(b); c.appendChild(el('small', { text: n + ' of ' + qs.length + ' questions answered' })); }
+        var gid = (L.game.file.match(/^(g\d+)/) || [])[1], gp = gid ? SFA.store.get(gid, null) : null, gn = gp && gp.done ? Object.keys(gp.done).filter(function (k) { return gp.done[k]; }).length : 0;
+        if (gn) c.appendChild(el('small', { text: '🕹️ ' + gn + ' game level' + (gn === 1 ? '' : 's') + ' done' }));
+        var srow = el('div', { 'class': 'tl' });
+        srow.appendChild(el('a', { 'class': 'btn small primary', href: url, text: n ? '📺 Back to the lesson' : '📺 Open the lesson' }));
+        srow.appendChild(el('a', { 'class': 'btn small', href: L.game.file, text: '🕹️ ' + (gn ? 'Keep playing' : 'Play') + ' ' + L.game.title }));
+        c.appendChild(srow);
+      }
       g.appendChild(c);
     });
   }
   for (var i = 1; i <= MAX; i++) { var s = document.createElement('script'); s.src = 'lessons/L' + i + '.js'; s.onload = s.onerror = function () { if (--left === 0) draw(); }; document.head.appendChild(s); }
 })();
 </script>
+<script src="sfa-nav.js"></script>
 </body></html>
