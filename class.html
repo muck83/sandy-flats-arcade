@@ -341,6 +341,17 @@ a.btn{text-decoration:none;display:inline-block}
 .sv-sum{font-size:14px;line-height:1.5}
 @media print{.topbar .chips,.sv-actions{display:none}.sv-film{break-inside:avoid}}
 .grid tr:hover td{background:var(--panel)}
+/* the student column stays put while the games scroll sideways; the headings stay put while the list scrolls down */
+.tablewrap{max-height:72vh;overflow:auto}
+.grid th:first-child,.grid td.nm{position:sticky;left:0;z-index:1;background:var(--panel);box-shadow:2px 0 0 var(--line)}
+.grid th:first-child{z-index:3;background:var(--bg)}
+.grid th{z-index:2}
+.grid tr:hover td.nm{background:var(--panel2)}
+.gpick summary{cursor:pointer;font:700 14px var(--ui);padding:7px 10px;border-radius:10px;border:2px solid var(--line);background:#0E0C14;color:var(--ink);list-style:none}
+.gpick[open]{flex-basis:100%}
+.gpick .glist{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;padding:10px;background:var(--panel);border:2px solid var(--line);border-radius:12px}
+.gpick .glist .row{flex-basis:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gopt{font:600 13px var(--ui);display:inline-flex;align-items:center;gap:4px;cursor:pointer}
 .cell{display:flex;align-items:center;gap:6px}
 .bar{width:54px;height:8px;border-radius:99px;background:var(--panel2);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--teal)}
@@ -422,6 +433,11 @@ a.btn{text-decoration:none;display:inline-block}
   'use strict';
   var SFA = window.SFA, el = SFA.el, CFG = window.SFA_CONFIG || {}, body = document.getElementById('body');
   var data = null, sortBy = 'name', cls = '', q = '', emails = {};
+  // which game columns to show (and the email column): remembered on this computer
+  function getPref(k, d) { try { var v = localStorage.getItem('sfa.class.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function setPref(k, v) { try { localStorage.setItem('sfa.class.' + k, JSON.stringify(v)); } catch (e) { } }
+  var showGames = getPref('games', null), showEmail = getPref('email', true), pickOpen = false;
+  function gamesShown() { return SFA.GAMES.filter(function (G) { return !showGames || showGames.indexOf(G.id) >= 0; }); }
   // The key lives in this tab only, unless the teacher ticks "remember"; then until the end of the day.
   // Stored outside the sfa.teacher prefix so a student's "Clear my progress" removes it too.
   var KEY = 'sfa.classkey';
@@ -639,18 +655,35 @@ a.btn{text-decoration:none;display:inline-block}
     sel.addEventListener('change', function () { cls = sel.value; render(); });
     var find = el('input', { type: 'search', placeholder: 'Find a student', value: q, 'aria-label': 'Find a student' });
     find.addEventListener('input', function () { q = find.value.toLowerCase(); render(); setTimeout(function () { var f = document.querySelector('.filters input'); if (f) { f.focus(); f.setSelectionRange(q.length, q.length); } }, 0); });
-    var head = el('tr', {}, [th('Student', 'name'), th('Email', 'email'), th('Last played', 'last'), th('Levels', 'lv'), th('Lessons', 'les')].concat(SFA.GAMES.map(function (G) { return th(G.title, G.id); })));
+    var GS = gamesShown();
+    var head = el('tr', {}, [th('Student', 'name'), showEmail ? th('Email', 'email') : null, th('Last played', 'last'), th('Levels', 'lv'), th('Lessons', 'les')].concat(GS.map(function (G) { return th('Film ' + G.film + ' · ' + G.title, G.id); })));
+    // game picker
+    var pick = el('details', { 'class': 'gpick' }); pick.open = pickOpen; pick.addEventListener('toggle', function () { pickOpen = pick.open; });
+    pick.appendChild(el('summary', { text: 'Choose games to show (' + GS.length + ' of ' + SFA.GAMES.length + ')' }));
+    var gl = el('div', { 'class': 'glist' });
+    function setGames(ids) { showGames = ids && ids.length === SFA.GAMES.length ? null : ids; setPref('games', showGames); render(); }
+    gl.appendChild(el('div', { 'class': 'row' }, [
+      el('button', { type: 'button', 'class': 'btn small', text: 'All games', onclick: function () { setGames(null); } }),
+      el('button', { type: 'button', 'class': 'btn small', text: 'None', onclick: function () { setGames([]); } }),
+      (function () { var l = el('label', { 'class': 'gopt' }), c = el('input', { type: 'checkbox' }); c.checked = showEmail; c.addEventListener('change', function () { showEmail = c.checked; setPref('email', showEmail); render(); }); l.appendChild(c); l.appendChild(document.createTextNode(' Email column')); return l; })()
+    ]));
+    SFA.GAMES.forEach(function (G) {
+      var l = el('label', { 'class': 'gopt' }), c = el('input', { type: 'checkbox' }); c.checked = GS.indexOf(G) >= 0;
+      c.addEventListener('change', function () { var ids = gamesShown().map(function (x) { return x.id; }).filter(function (id) { return id !== G.id; }); if (c.checked) ids.push(G.id); setGames(SFA.GAMES.filter(function (x) { return ids.indexOf(x.id) >= 0; }).map(function (x) { return x.id; })); });
+      l.appendChild(c); l.appendChild(document.createTextNode(' Film ' + G.film + ' · ' + G.title)); gl.appendChild(l);
+    });
+    pick.appendChild(gl);
     var tb = el('tbody');
     R.forEach(function (r) {
       var quiet = !r.last || new Date(r.last).getTime() < week;
       var tr = el('tr', { 'class': quiet ? 'quiet' : '' }, [
         el('td', { 'class': 'nm' }, [el('a', { href: '#', 'class': 'who', title: 'Everything ' + r.s.name + ' has done, film by film', onclick: function (e) { e.preventDefault(); studentView(r.s.sid); } }, [r.s.name]), quiet ? el('span', { 'class': 'flag', text: r.last ? 'quiet 7d+' : 'no games yet' }) : null]),
-        el('td', { 'class': 'muted', style: 'font-size:13px', text: emails[r.s.sid] || '' }),
+        showEmail ? el('td', { 'class': 'muted', style: 'font-size:13px', text: emails[r.s.sid] || '' }) : null,
         el('td', { text: r.last ? SFA.ago(r.last) : '—' }),
         el('td', { text: String(r.lv) }),
         (function () { var p = per[r.s.sid]; if (!les.by) return el('td', { 'class': 'muted', text: '…' }); if (!p) return el('td', { 'class': 'muted', text: '·' });
           return el('td', { title: p.n + ' answers in ' + Object.keys(p.les).length + ' lessons' + (p.c ? ', ' + p.r + ' of ' + p.c + ' marked questions right' : ''), text: Object.keys(p.les).length + ' · ' + (p.c ? Math.round(100 * p.r / p.c) + '%' : p.n + ' ans') + (flagged[r.s.sid] ? ' ⚠' : '') }); })()
-      ].concat(SFA.GAMES.map(function (G) {
+      ].concat(GS.map(function (G) {
         var p = r.g[G.id]; if (!p) return el('td', { 'class': 'muted', text: '·' });
         var pct = p.levelsTotal ? Math.round(100 * p.levelsDone / p.levelsTotal) : 0;
         var info = p.levelsDone + '/' + p.levelsTotal + ' levels · assisted ' + p.assisted + (p.specials.length ? ' · ' + p.specials.join(', ') : '');
@@ -672,9 +705,9 @@ a.btn{text-decoration:none;display:inline-block}
     body.innerHTML = '';
     body.appendChild(el('div', {}, [
       tiles,
-      el('div', { 'class': 'filters' }, [sel, find, el('span', { 'class': 'muted', text: 'Click a name to see everything that student has done, film by film. Tap a column heading to sort. ★ standard · ✦ specials.' })]),
+      el('div', { 'class': 'filters' }, [sel, find, pick, el('span', { 'class': 'muted', text: 'Click a name to see everything that student has done, film by film. Tap a column heading to sort. ★ standard · ✦ specials.' })]),
       el('div', { 'class': 'two' }, [
-        el('div', { 'class': 'card scroll-x', style: 'padding:6px 8px' }, [el('table', { 'class': 'grid' }, [el('thead', {}, [head]), tb])]),
+        el('div', { 'class': 'card scroll-x tablewrap', style: 'padding:0 8px 6px 0' }, [el('table', { 'class': 'grid' }, [el('thead', {}, [head]), tb])]),
         el('div', { 'class': 'card' }, [el('h2', { text: 'Latest' }), feed.childNodes.length ? feed : el('p', { 'class': 'muted', text: 'Nothing yet. Results appear here as students play.' })])
       ])
     ]));
