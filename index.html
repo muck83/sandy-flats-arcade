@@ -335,7 +335,16 @@ a.btn{text-decoration:none;display:inline-block}
 .grow .gp.started{color:var(--green)}
 .grow .ga{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .grow .tag{display:inline-block;font:800 10px/1.4 var(--ui);letter-spacing:.12em;text-transform:uppercase;color:#231800;background:var(--marquee);border-radius:999px;padding:1px 8px;margin-left:8px;vertical-align:4px}
+.myres{margin-top:12px;background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:10px 14px}
+.myres .mh{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:space-between}
+.myres .mh b{font-family:var(--display);font-weight:400;font-size:20px;letter-spacing:.03em;color:var(--marquee)}
+.myres .mh a{font-size:14px}
+.myres .tots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px}
+.myres .tot{background:var(--panel2);border-radius:10px;padding:8px 10px;min-width:0}
+.myres .tot b{display:block;font-family:var(--display);font-weight:400;font-size:26px;color:var(--marquee);line-height:1}
+.myres .tot small{display:block;color:var(--muted);font-size:13px;line-height:1.25}
 @media (max-width:720px){
+  .myres .tots{grid-template-columns:repeat(2,minmax(0,1fr))}
   .grow{grid-template-columns:52px minmax(0,1fr);padding:8px}
   .grow .fno{width:52px;height:46px}.grow .fno b{font-size:20px}
   .grow .gp{grid-column:2}
@@ -355,6 +364,7 @@ a.btn{text-decoration:none;display:inline-block}
 
   <section class="shelf" aria-labelledby="gH">
     <div class="nextup" id="nextUp"></div>
+    <div class="myres" id="myRes" hidden></div>
     <h2 id="gH">All the games</h2>
     <p>One game for each film, in film order. Play the game for the film you just watched. Each one starts easy and takes about 30 minutes.</p>
     <ol class="glist" id="games"></ol>
@@ -965,5 +975,49 @@ a.btn{text-decoration:none;display:inline-block}
 <script src="config.js"></script>
 <script src="sfa-sync.js"></script>
 <script src="sfa-account.js"></script>
+<script>
+/* "My results" strip: the signed-in student's own totals. Games come from the results script (every device);
+   lesson answers come from this browser, where the slides keep each student's answers. */
+(function () {
+  'use strict';
+  var SFA = window.SFA, S = SFA && SFA.sync, box = document.getElementById('myRes');
+  if (!S || !S.on || !box) return;
+  function lessons() {
+    var n = 0, checked = 0, right = 0, joined = 0, sid = S.me && S.me.sid;
+    for (var i = 1; i <= 17; i++) {
+      var m = SFA.store.get('les.L' + i, null), here = SFA.store.get('les.here.L' + i, null), k = 0;
+      if (!m) continue;
+      Object.keys(m).forEach(function (q) {
+        var a = m[q]; if (q === 'here' || q === 'zflag' || !a || !a.answer) return;
+        k++; if (a.correct === true || a.correct === 'yes') { checked++; right++; } else if (a.correct === false || a.correct === 'no') checked++;
+      });
+      if (k && (!here || !sid || here.sid === sid)) { joined++; n += k; }
+    }
+    return { n: n, joined: joined, pct: checked ? Math.round(100 * right / checked) : null };
+  }
+  function tot(v, label) { return SFA.el('div', { 'class': 'tot' }, [SFA.el('b', { text: String(v) }), SFA.el('small', { text: label })]); }
+  function draw(games) {
+    var lv = 0, std = 0, sp = 0;
+    (games || []).forEach(function (g) { lv += Number(g.levelsDone) || 0; std += g.standard ? 1 : 0; sp += (g.specials || []).length; });
+    var L = lessons(), first = String(S.me.name || '').split(',').reverse()[0].trim().split(' ')[0];
+    box.innerHTML = '';
+    box.appendChild(SFA.el('div', { 'class': 'mh' }, [SFA.el('b', { text: (first ? first + '\u2019s' : 'My') + ' results' }), SFA.el('a', { href: 'results.html', text: 'See every game →' })]));
+    box.appendChild(SFA.el('div', { 'class': 'tots' }, [
+      tot(lv, 'levels cleared'),
+      tot(std + sp, 'certificates (' + std + ' standard)'),
+      tot(L.joined, L.joined === 1 ? 'lesson joined' : 'lessons joined'),
+      tot(L.pct == null ? L.n : L.pct + '%', L.pct == null ? 'lesson answers' : 'right in lessons (' + L.n + ' answers)')
+    ]));
+    box.hidden = false;
+  }
+  var busy = false, shownFor = '';
+  S.onChange(function () {
+    if (!S.me) { box.hidden = true; shownFor = ''; return; }
+    if (busy || shownFor === S.me.sid) return;
+    busy = true;
+    S.mine().then(function (j) { busy = false; shownFor = S.me && S.me.sid; draw(j.games); }, function () { busy = false; });
+  });
+})();
+</script>
 <script src="sfa-nav.js"></script>
 </body></html>
