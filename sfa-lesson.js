@@ -199,11 +199,11 @@
   }
 
   /* ---------------- answers (student) ---------------- */
-  var queue = [], flushing = false, backendOld = false, sendErr = '';
+  var queue = [], flushing = false, sendSeq = 0, backendOld = false, sendErr = '';
   function saveLocal() { SFA.store.set('les.' + LID, mine); }
   function record(s, answer, correct) {
     mine[s.id] = { answer: String(answer), correct: correct, sent: false, kind: s.k, run: liveRun() };
-    saveLocal(); flush(); refreshDots(); clearTimeout(watchT); watchT = setTimeout(watchSend, 1500);
+    saveLocal(); flush(); refreshDots(); clearTimeout(watchT); watchT = setTimeout(watchSend, 15000 + Math.random() * 10000);
     setTimeout(function () { if (slideEl && slideEl.scrollHeight > slideEl.clientHeight + 4) slideEl.scrollTo({ top: slideEl.scrollHeight, behavior: 'smooth' }); }, 120);
   }
   function flush() {
@@ -213,12 +213,17 @@
     flushing = true; upd();
     var q = todo[0], a = mine[q], tries = 0;
     (function go() {
+      var done = false, my = ++sendSeq;
+      // a request the Sheet never answers would hold every later answer back: after 25 s, try again
+      var hang = setTimeout(function () { if (done || my !== sendSeq) return; done = true; tries++; sendErr = 'busy'; upd(); go(); }, 25000);
       S.call('answer', { lesson: LID, q: q, kind: a.kind || 'open', answer: a.answer, correct: a.correct === true ? true : a.correct === false ? false : null }).then(function () {
-        if (mine[q] === a) { a.sent = true; saveLocal(); }
+        clearTimeout(hang); if (mine[q] === a) { a.sent = true; saveLocal(); }   // a late reply still counts: the row is in the Sheet
+        if (my !== sendSeq) return; done = true;
         sendErr = ''; flushing = false; flush();
       }, function (e) {
+        clearTimeout(hang); if (done || my !== sendSeq) return; done = true;
         tries++; sendErr = e.message || 'failed';
-        if (/busy/.test(e.message) && tries < 6) return setTimeout(go, 1500 + Math.random() * 3000 * tries);
+        if (/busy/.test(e.message)) return setTimeout(go, Math.min(12000, 1500 + Math.random() * 2500 * tries));   // the Sheet is busy with the class's answers: keep going, never give up
         if (/unknown op/.test(e.message)) backendOld = true;
         if (/sign in/.test(e.message) && S.refresh && CFG.auth !== 'code' && tries < 2) return S.refresh().then(function (err) { if (!err) go(); else { flushing = false; upd(); } });
         flushing = false; upd();
@@ -242,7 +247,7 @@
       else { var ln = H('a', '', 'Sign in'); ln.href = '#'; ln.setAttribute('data-signin', ''); d.appendChild(document.createTextNode(' ')); d.appendChild(ln); }
       return d;
     }
-    d.textContent = 'Sending…'; return d;
+    d.textContent = sendErr && /busy/.test(sendErr) ? 'Sending… (lots of answers arriving at once, keep going: it will get there)' : 'Sending…'; return d;
   }
   function loadMine() {
     if (MODE !== 'student' || !saving || !S.me) return;
@@ -273,9 +278,14 @@
     w[i] += by; SFA.store.set('les.watch.' + LID, watch);
     clearTimeout(watchT); watchT = setTimeout(watchSend, 3000);
   }
+  var watchLast = 0;
   function watchSend() {
     if (!saving || !S.me) return;
     var v = watchEnc(); if (!v || v === watchSent || v.length > 590) return;
+    // answers come first: the flag summary waits until this student's answers are in, and goes at most every 20 s
+    var wait = flushing || Object.keys(mine).some(function (k) { return !mine[k].sent; }) ? 8000 : Math.max(0, watchLast + 20000 - Date.now());
+    if (wait) { clearTimeout(watchT); watchT = setTimeout(watchSend, wait + Math.random() * 3000); return; }
+    watchLast = Date.now();
     S.call('answer', { lesson: LID, q: 'zflag', kind: 'open', answer: v, correct: null }).then(function () { watchSent = v; }, function () { clearTimeout(watchT); watchT = setTimeout(watchSend, 20000); });
   }
   function watchInit() {
@@ -822,21 +832,25 @@
       if (!console_.on || console_.offline || Date.now() - lastPush < 20000) return;
       tpost('live').then(function (j) { if (console_.on && ended(j.live) && j.live.lesson === LID && Date.now() - lastPush > 20000) { console_.on = false; clearTimeout(pushT); consolePanel(); liveChip.hidden = true; SFA.toast('The live lesson was ended from another window.', 4000); } }, function () { });
     }, 15000);
-    if (!console_.offline) tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
+    if (!console_.offline) tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); } }, function () { });
     return true;
   }
   // one request at a time: the Sheet can take longer than the 4 s between checks, and an older reply landing after a
   // newer one would make answers vanish and come back. Unchanged replies don't redraw, so buttons don't jump under the mouse.
-  var fetching = 0, fetchSeq = 0, lastData = '';
+  var fetching = 0, fetchSeq = 0, applied = 0, lastData = '';
   function fetchAnswers() {
-    if (fetching && Date.now() - fetching < 25000) return; fetching = Date.now(); var my = ++fetchSeq;
+    if (fetching && Date.now() - fetching < 10000) return;   // a slow Sheet still gets a fresh request every 10 s
+    fetching = Date.now(); var my = ++fetchSeq;
     tpost('answers', { lesson: LID }).then(function (j) {
-      if (my !== fetchSeq) return; fetching = 0; var js = JSON.stringify(j), wasErr = !!console_.err;
+      if (my === fetchSeq) fetching = 0;
+      if (my < applied) return;   // only an older reply than one already shown is dropped
+      applied = my; console_.got = Date.now(); var js = JSON.stringify(j), wasErr = !!console_.err;
       console_.err = ''; if (js === lastData && !wasErr) return; lastData = js;
       console_.data = j; computeFeed(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
     },
       function (e) {
-        if (my !== fetchSeq) return; fetching = 0;
+        if (my === fetchSeq) fetching = 0;
+        if (my < applied) return;
         if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); return; }
         console_.err = /unknown op/.test(e.message) ? 'The results script needs updating before answers and live mode work: paste the new Code.gs and deploy a new version (see SETUP.md).' : 'Can\'t reach the results sheet right now. Retrying.';
         consolePanel();
@@ -844,7 +858,7 @@
   }
   // answer times come from Google's clock, "Start fresh" from this laptop's: skew (server minus here, measured on every
   // live update) lines them up, so a laptop clock that runs fast can't hide the class's new answers
-  function beforeRun(a) { return !!console_.run && Date.parse(a.time) < console_.run + (console_.skew || 0) - 5000; }
+  function beforeRun(a) { return !!console_.run && !console_.showOld && Date.parse(a.time) < console_.run + (console_.skew || 0) - 5000; }
   function rosterIn() { var r = (console_.data && console_.data.roster) || []; return console_.cls ? r.filter(function (x) { return x.cls === console_.cls; }) : r; }
   function computeFeed() {
     var roster = rosterIn(), ids = {}, name = {};
@@ -903,7 +917,7 @@
     live = liveObj(); upd(); broadcast();
     if (!console_.on || console_.offline) return;
     clearTimeout(pushT);
-    pushT = setTimeout(function () { if (!console_.on) return; var L = liveObj(); lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) console_.skew = j.live.at - Math.round((t0 + Date.now()) / 2); }).catch(function (e) { SFA.toast('Couldn\'t update the class: ' + e.message, 4000); }); }, 300);
+    pushT = setTimeout(function () { if (!console_.on) return; var L = liveObj(); lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) { var sk = j.live.at - Math.round((t0 + Date.now()) / 2), moved = Math.abs(sk - (console_.skew || 0)) > 3000; console_.skew = sk; if (moved && console_.data) { computeFeed(); consolePanel(); upd(); broadcast(); } } }).catch(function (e) { SFA.toast('Couldn\'t update the class: ' + e.message, 4000); }); }, 300);
   }
   function endLive() {
     clearTimeout(pushT);
@@ -958,6 +972,14 @@
     d.addEventListener('toggle', function () { if (d.open !== was) { was = o[key] = d.open; } });   // only the teacher's own clicks are remembered
     return d;
   }
+  // how old the answers on screen are, so a stalled connection to the Sheet is obvious
+  function freshTick() {
+    var e = document.getElementById('fresh'); if (!e) return;
+    var a = console_.got ? Math.round((Date.now() - console_.got) / 1000) : -1;
+    e.className = 'state ' + (a >= 0 && a < 20 ? 'ok' : 'bad');
+    e.textContent = a < 0 ? 'Waiting for answers from your Sheet…' : a < 20 ? '● Answers up to date (checked ' + a + ' s ago)' : '● Answers last arrived ' + a + ' s ago. Still trying; if this keeps growing, reload this page.';
+  }
+  setInterval(freshTick, 1000);
   function consolePanel() {
     var p = document.getElementById('tpanel'); if (!p || !LES) return;
     var s = LES.slides[cur], keep = p.scrollTop, whoSec = null; p.innerHTML = '';
@@ -978,7 +1000,7 @@
     fr.title = 'Back to slide 1, clear reveals, spotlight and timer, and start counting answers from now';
     fr.onclick = function () {
       if (!window.confirm('Start this lesson fresh?\n\nEveryone goes back to slide 1, reveals and the timer are cleared, and students\' earlier answers are hidden here and cleared on their devices. Nothing is deleted from your Sheet.')) return;
-      console_.run = Date.now();
+      console_.run = Date.now(); console_.showOld = false;
       console_.reveal = {}; console_.spot = null; console_.timer = null; console_.picked = ''; console_.peek = false;
       if (!console_.on && !console_.offline) { console_.on = true; console_.since = Date.now(); liveChip.hidden = false; }
       computeFeed(); render(0, -1); pushLive(); consolePanel();
@@ -987,10 +1009,13 @@
     if (console_.offline) fr.disabled = true;
     var row = H('div', 'row'); row.appendChild(lb); row.appendChild(sc); row.appendChild(fr); top.appendChild(row);
     var hd = console_.hidden || {};
+    if (hd.fresh && !console_.showOld) { var hf = H('p', 'state bad', hd.fresh + ' answer' + (hd.fresh > 1 ? 's are' : ' is') + ' hidden because ' + (hd.fresh > 1 ? 'they' : 'it') + ' arrived before you pressed Start fresh. '); hf.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Show them', onclick: function () { console_.showOld = true; computeFeed(); consolePanel(); upd(); broadcast(); } })); top.appendChild(hf); }
     if (hd.cls) top.appendChild(H('p', 'state bad', hd.cls + ' answer' + (hd.cls > 1 ? 's' : '') + ' in this lesson ' + (hd.cls > 1 ? 'are' : 'is') + ' from students outside Class ' + esc(console_.cls) + ', so they\'re hidden. Choose "All classes" under Settings to see them.'));
     top.appendChild(H('p', 'muted', console_.on ? 'Live for ' + Math.round((Date.now() - console_.since) / 60000) + ' min. Share the class screen window, not this one.' : 'Share the class screen window. Go live so students\' devices follow you and the polls open.'));
     if (console_.err) top.appendChild(H('p', 'state bad', esc(console_.err)));
+    if (!console_.offline) { var fr2 = H('p', 'state' + (console_.got && Date.now() - console_.got < 20000 ? ' ok' : ' bad'), ''); fr2.id = 'fresh'; top.appendChild(fr2); }
     p.appendChild(top);
+    freshTick();
 
     // this slide
     var sec = H('div', 'sect'); sec.appendChild(H('h3', '', 'This slide · planned ' + (s.min || 0) + ' min'));
