@@ -64,6 +64,8 @@
   function liveLock(L) { return !!(L && (L.lock || (L.counts && Array.isArray(L.counts.zlock) && L.counts.zlock[0] === 1))); }
   function locked() { return MODE === 'student' && isLive() && liveLock(live); }
   function reveal(q) { return isLive() ? (live.reveal && live.reveal[q]) || 0 : 0; }
+  // the class screen and console show the class's answers when the teacher shows them, or all along with "as they come in"
+  function onScreen(q) { return MODE !== 'student' && (reveal(q) >= 1 || !!(live && live.auto && isLive())); }
   function first(n) { n = String(n || ''); return (n.indexOf(',') >= 0 ? n.split(',')[1] : n).trim().split(' ')[0] || n; }
   function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
   function confetti() {
@@ -347,6 +349,30 @@
     return H('div', 'spot', '<small>From the class</small>' + esc(live.spot.text));
   }
 
+  // typed answers, newest first, no names: the class reads each other's thinking
+  function answerWall(s) {
+    var p = feed && feed.per[s.id], w = H('div', 'wall');
+    var list = p ? p.list.filter(function (a) { return String(a.answer).trim(); }).sort(function (a, b) { return a.time < b.time ? 1 : -1; }) : [];
+    if (!list.length) { w.appendChild(H('p', 'state', 'Answers appear here as they arrive.')); return w; }
+    list.slice(0, 24).forEach(function (a) { w.appendChild(H('div', 'card', esc(String(a.answer).slice(0, 220)))); });
+    if (list.length > 24) w.appendChild(H('p', 'state', '+' + (list.length - 24) + ' more on the console'));
+    return w;
+  }
+  // number and machine answers grouped by value, most common first; ticks only once the answer is revealed
+  function answerGroups(s) {
+    var p = feed && feed.per[s.id], g = {}, order = [], w = H('div', 'groups');
+    (p ? p.list : []).forEach(function (a) {
+      var k = String(a.answer).trim().replace(/\s+/g, ' ').slice(0, 40); if (!k) return;
+      if (!g[k]) { g[k] = { n: 0, ok: a.correct === 'yes' }; order.push(k); } g[k].n++;
+    });
+    if (!order.length) { w.appendChild(H('p', 'state', 'Answers appear here as they arrive.')); return w; }
+    var showRight = reveal(s.id) >= 2 || (MODE === 'teach' && console_ && console_.peek);
+    order.sort(function (a, b) { return g[b].n - g[a].n; }).slice(0, 12).forEach(function (k) {
+      w.appendChild(H('span', 'grp' + (showRight && g[k].ok ? ' ok' : ''), esc(k.replace(/-/g, '−')) + ' <b>×' + g[k].n + '</b>'));
+    });
+    return w;
+  }
+
   var KINDS = {
     title: function (s, d) {
       var w = head(s, d);
@@ -402,7 +428,7 @@
       var box = H('div', 'ans'); left.appendChild(box); withFig(s, d, left);
       d._upd = function () {
         box.innerHTML = '';
-        if (show) { box.appendChild(tallyFor(s.id)); var p = feed && feed.per[s.id]; if (p && p.n) box.appendChild(H('p', 'state', p.right + ' right so far')); if (reveal(s.id) >= 2 || (MODE === 'teach' && console_ && console_.peek)) box.appendChild(H('div', 'reveal', '<b>Answer: ' + esc(show_(s.ans)) + '.</b> ' + fmt(s.why || ''))); return; }
+        if (show) { box.appendChild(tallyFor(s.id)); var p = feed && feed.per[s.id]; if (p && p.n) box.appendChild(H('p', 'state', p.right + ' right so far')); if (onScreen(s.id)) box.appendChild(answerGroups(s)); if (reveal(s.id) >= 2 || (MODE === 'teach' && console_ && console_.peek)) box.appendChild(H('div', 'reveal', '<b>Answer: ' + esc(show_(s.ans)) + '.</b> ' + fmt(s.why || ''))); return; }
         var a = mine[s.id], inp = el('input', { type: 'text', inputmode: s.ans < 0 ? 'text' : 'decimal', 'aria-label': 'Your answer', placeholder: 'Type a number', autocomplete: 'off' });   // iPhone number pads have no minus key
         if (a) inp.value = a.answer;
         var btn = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' });
@@ -445,6 +471,7 @@
         area.innerHTML = '';
         if (show) {
           area.appendChild(tallyFor(s.id)); var p = feed && feed.per[s.id]; if (p && p.n) area.appendChild(H('p', 'state', p.right + ' cracked it so far'));
+          if (onScreen(s.id)) area.appendChild(answerGroups(s));
           if (reveal(s.id) >= 2 || (MODE === 'teach' && console_ && console_.peek)) area.appendChild(H('div', 'reveal', '<b>The rule: ' + esc(s.rule.replace(/-/g, '−')) + '</b>'));
           m.querySelector('.mlabel').textContent = reveal(s.id) >= 2 ? s.rule.replace(/-/g, '−') : '?';
           var demo = el('input', { type: 'text', inputmode: 'decimal', placeholder: 'Try a number', 'aria-label': 'Input' }), go = el('button', { type: 'button', 'class': 'btn', text: 'Feed it' });
@@ -533,7 +560,7 @@
       var rv = reveal(s.id), selfPaced = MODE === 'student' && !isLive();
       var counts = null;
       if (show && feed && feed.per[s.id]) counts = feed.per[s.id].counts;
-      if (show && MODE === 'screen' && !rv) counts = null;
+      if (show && MODE === 'screen' && !onScreen(s.id)) counts = null;
       if (MODE === 'student' && rv >= 1 && live.counts && live.counts[s.id]) counts = live.counts[s.id];
       var total = counts ? counts.reduce(function (x, y) { return x + y; }, 0) : 0;
       var showAns = s.ans != null && (rv >= 2 || (selfPaced && a) || (MODE === 'teach' && console_ && console_.peek));
@@ -572,6 +599,7 @@
       if (show) {
         box.appendChild(tallyFor(s.id));
         if (sp) box.appendChild(sp);
+        if (onScreen(s.id)) box.appendChild(answerWall(s));
         if (s.model && (rv >= 2 || (MODE === 'teach' && console_ && console_.peek))) box.appendChild(H('div', 'reveal', '<b>One good answer:</b> ' + fmt(s.model)));
         return;
       }
@@ -780,7 +808,7 @@
   }
 
   function consoleInit() {
-    console_ = { on: false, lock: SFA.store.get('teacher.lesson.lock', true) !== false, reveal: {}, spot: null, timer: null, cls: SFA.store.get('teacher.lesson.cls', ''), names: true, peek: false, data: null, since: 0, picked: '', run: 0 };
+    console_ = { on: false, lock: SFA.store.get('teacher.lesson.lock', true) !== false, reveal: {}, spot: null, timer: null, cls: SFA.store.get('teacher.lesson.cls', ''), names: true, peek: false, data: null, since: 0, picked: '', run: 0, auto: SFA.store.get('teacher.lesson.auto', true) !== false, skew: 0 };
     if (!CFG.endpoint) { console_.offline = true; }
     else if (!Key.get()) return askKey(), false;
     var panel = H('aside', 'panel'); panel.id = 'tpanel';
@@ -805,6 +833,9 @@
         consolePanel();
       });
   }
+  // answer times come from Google's clock, "Start fresh" from this laptop's: skew (server minus here, measured on every
+  // live update) lines them up, so a laptop clock that runs fast can't hide the class's new answers
+  function beforeRun(a) { return !!console_.run && Date.parse(a.time) < console_.run + (console_.skew || 0) - 5000; }
   function rosterIn() { var r = (console_.data && console_.data.roster) || []; return console_.cls ? r.filter(function (x) { return x.cls === console_.cls; }) : r; }
   function computeFeed() {
     var roster = rosterIn(), ids = {}, name = {};
@@ -814,10 +845,11 @@
       var n = s.k === 'conf' ? 4 : s.opts ? s.opts.length : 0, p = per[s.id] = { n: 0, right: 0, counts: [], who: [], list: [], sids: {} };
       for (var i = 0; i < n; i++) { p.counts.push(0); p.who.push([]); }
     });
-    var flags = {};
+    var flags = {}, hidden = { cls: 0, fresh: 0 }, allIds = {};
+    ((console_.data && console_.data.roster) || []).forEach(function (r) { allIds[r.sid] = 1; });
     ((console_.data && console_.data.answers) || []).forEach(function (a) {
-      if (!ids[a.sid]) return;
-      if (console_.run && Date.parse(a.time) < console_.run - 2000) return;   // from before "Start fresh"
+      if (!ids[a.sid]) { if (allIds[a.sid] && a.q !== 'here' && a.q !== 'zflag' && !beforeRun(a)) hidden.cls++; return; }
+      if (beforeRun(a)) { hidden.fresh++; return; }   // from before "Start fresh"
       if (a.q === 'zflag') { flags[a.sid] = decFlags(a.answer); return; }
       var p = per[a.q]; if (!p) return;
       p.n++; p.sids[a.sid] = 1; if (a.correct === 'yes') p.right++;
@@ -826,7 +858,7 @@
       p.list.push({ sid: a.sid, name: name[a.sid], answer: a.answer, correct: a.correct, time: a.time });
     });
     feed = { total: roster.length, per: per };
-    console_.flags = flags;
+    console_.flags = flags; console_.hidden = hidden;
   }
   // a student's focus-watch summary: "v1;q:left,secs,pastes,chars,copies,shots;…" → { q: { left, secs, pastes, chars, copies, shots } }
   function decFlags(v) {
@@ -855,14 +887,14 @@
     Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length) counts[q] = feed.per[q].counts; });
     if (console_.run) counts.zrun = encRun(console_.run);
     if (console_.lock) counts.zlock = [1];
-    return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: console_.spot, timer: console_.timer, lock: console_.lock };
+    return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: console_.spot, timer: console_.timer, lock: console_.lock, auto: console_.auto };
   }
   var pushT = null, lastCounts = '', lastPush = 0;
   function pushLive() {
     live = liveObj(); upd(); broadcast();
     if (!console_.on || console_.offline) return;
     clearTimeout(pushT);
-    pushT = setTimeout(function () { if (!console_.on) return; var L = liveObj(); lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); tpost('setLive', { live: L }).catch(function (e) { SFA.toast('Couldn\'t update the class: ' + e.message, 4000); }); }, 300);
+    pushT = setTimeout(function () { if (!console_.on) return; var L = liveObj(); lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) console_.skew = j.live.at - Math.round((t0 + Date.now()) / 2); }).catch(function (e) { SFA.toast('Couldn\'t update the class: ' + e.message, 4000); }); }, 300);
   }
   function endLive() {
     clearTimeout(pushT);
@@ -939,12 +971,17 @@
     var lk = el('label', { style: 'display:flex;gap:8px;align-items:center' }), cb = el('input', { type: 'checkbox' }); cb.checked = console_.lock;
     cb.onchange = function () { console_.lock = cb.checked; SFA.store.set('teacher.lesson.lock', cb.checked); pushLive(); };
     lk.appendChild(cb); lk.appendChild(document.createTextNode('Keep everyone on my slide (students can\'t move ahead or back)')); top.appendChild(lk);
+    var ak = el('label', { style: 'display:flex;gap:8px;align-items:center' }), acb = el('input', { type: 'checkbox' }); acb.checked = console_.auto;
+    acb.onchange = function () { console_.auto = acb.checked; SFA.store.set('teacher.lesson.auto', acb.checked); pushLive(); consolePanel(); };
+    ak.appendChild(acb); ak.appendChild(document.createTextNode('Show answers on the class screen as they come in (no names; polls stay open and the right answer stays hidden until you reveal it)')); top.appendChild(ak);
+    var hd = console_.hidden || {};
+    if (hd.cls) top.appendChild(H('p', 'state bad', hd.cls + ' answer' + (hd.cls > 1 ? 's' : '') + ' in this lesson ' + (hd.cls > 1 ? 'are' : 'is') + ' from students outside Class ' + esc(console_.cls) + ', so they\'re hidden. Choose "All classes" below to see them.'));
     top.appendChild(H('p', 'muted', console_.on ? 'Live for ' + Math.round((Date.now() - console_.since) / 60000) + ' min. Share the class screen window, not this one.' : 'Share the class screen window. Go live so students\' devices follow you and the polls open.'));
     if (console_.err) top.appendChild(H('p', 'state bad', esc(console_.err)));
     p.appendChild(top);
     // who has signed in to this lesson (since "Start fresh")
     if (console_.data) {
-      var inS = {}; ((console_.data.answers || [])).forEach(function (a) { if (console_.run && Date.parse(a.time) < console_.run - 2000) return; inS[a.sid] = 1; });
+      var inS = {}; ((console_.data.answers || [])).forEach(function (a) { if (beforeRun(a)) return; inS[a.sid] = 1; });
       var ros = rosterIn(), here = ros.filter(function (r) { return inS[r.sid]; }), out = ros.filter(function (r) { return !inS[r.sid]; });
       var ws = H('div', 'sect');
       ws.appendChild(H('h3', '', 'In the lesson: ' + here.length + ' of ' + ros.length));
@@ -973,8 +1010,9 @@
       var pb = H('div', 'pbar'), bi = H('i'); bi.style.width = (tot ? 100 * n / tot : 0) + '%'; pb.appendChild(bi); sec.appendChild(pb);
       if (s.k === 'number' || s.k === 'machine') sec.appendChild(H('p', 'muted', f.right + ' got it right'));
       var rv = console_.reveal[s.id] || 0, r2 = H('div', 'row');
-      var canShow = s.k === 'poll' || s.k === 'conf';
-      if (canShow) r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 1 ? ' good' : ''), text: rv >= 1 ? 'Results showing' : 'Show results to class', onclick: function () { console_.reveal[s.id] = rv >= 1 ? 0 : 1; pushLive(); consolePanel(); } }));
+      var canShow = true;
+      if (s.k === 'poll' || s.k === 'conf') r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 1 ? ' good' : ''), text: rv >= 1 ? 'Results showing' : 'Show results to class', onclick: function () { console_.reveal[s.id] = rv >= 1 ? 0 : 1; pushLive(); consolePanel(); } }));
+      else r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 1 ? ' good' : ''), text: rv >= 1 ? 'Answers showing' : 'Show answers to class', onclick: function () { console_.reveal[s.id] = rv >= 1 ? 0 : 1; pushLive(); consolePanel(); } }));
       if ((s.k === 'poll' && s.ans != null) || s.model || s.k === 'number' || s.k === 'machine') r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 2 ? ' good' : ''), text: rv >= 2 ? 'Answer showing' : 'Reveal the answer', onclick: function () { console_.reveal[s.id] = rv >= 2 ? (canShow ? 1 : 0) : 2; pushLive(); consolePanel(); } }));
       r2.appendChild(el('button', { type: 'button', 'class': 'btn small', text: console_.peek ? 'Hide answer here' : 'Peek at answer (only here)', onclick: function () { console_.peek = !console_.peek; upd(); consolePanel(); } }));
       if (s.k === 'poll') r2.appendChild(el('button', { type: 'button', 'class': 'btn small', text: console_.names ? 'Hide names' : 'Show names', onclick: function () { console_.names = !console_.names; upd(); consolePanel(); } }));

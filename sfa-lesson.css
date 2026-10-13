@@ -226,3 +226,10 @@ body.m-screen .k-open .tally,body.m-screen .k-exit .tally{font-size:1.3em}
 .flagrow .said{margin-top:4px;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
 .alist .a .flag{display:block;margin-top:4px;font:600 12px var(--ui);color:var(--muted)}
 .alist .a .flag.strong{color:#FFB46B}
+/* class answers on the class screen: typed answers as cards, numbers grouped */
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(14em,1fr));gap:.5em;margin-top:.6em;max-height:52vh;overflow:auto}
+.wall .card{background:var(--panel2);border:1px solid var(--line);border-radius:.6em;padding:.5em .7em;font-size:.8em;line-height:1.3;overflow-wrap:anywhere;animation:rise .4s both}
+.groups{display:flex;flex-wrap:wrap;gap:.4em;margin-top:.6em}
+.groups .grp{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:.25em .8em;font:600 .85em var(--mono)}
+.groups .grp b{color:var(--marquee);margin-left:.3em}
+.groups .grp.ok{border-color:#2b6b4c;color:#9ff0c9}
