@@ -329,7 +329,7 @@ a.btn{text-decoration:none;display:inline-block}
 .flag{font:700 10px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--red);margin-left:6px}
 .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
 .filters select,.filters input{font:600 14px var(--ui);padding:7px 10px;border-radius:10px;border:2px solid var(--line);background:#0E0C14;color:var(--ink)}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px;margin-top:14px}
 .tl{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
 .tl b{display:block;font-family:var(--display);font-weight:400;font-size:28px;color:var(--marquee);line-height:1.05}
 .tl small{color:var(--muted)}
@@ -340,7 +340,7 @@ a.btn{text-decoration:none;display:inline-block}
 </style></head><body>
 <div class="wrap">
   <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Class Results</h1>
-    <div class="chips"><button type="button" class="chip" id="refresh">Refresh</button><button type="button" class="chip" id="csv">Download CSV</button><button type="button" class="chip" id="codes">Student codes</button><button type="button" class="chip" id="lock">Lock</button></div></header>
+    <div class="chips"><button type="button" class="chip" id="refresh">Refresh</button><button type="button" class="chip" id="ansCsv">Download all lesson answers</button><button type="button" class="chip" id="csv">Game progress CSV</button><button type="button" class="chip" id="codes">Student codes</button><button type="button" class="chip" id="lock">Lock</button></div></header>
   <div id="body"></div>
 </div>
 <script src="config.js"></script>
@@ -416,8 +416,8 @@ a.btn{text-decoration:none;display:inline-block}
     },
     del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
   };
-  function api(op) {
-    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ op: op, teacherKey: Key.get() }) })
+  function api(op, extra) {
+    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ op: op, teacherKey: Key.get() }, extra || {})) })
       .then(function (r) { return r.text(); })
       .then(function (t) { try { return JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly. In Apps Script, check Deploy > Manage deployments: it should be a Web app, executing as you, with access: Anyone.'); } })
       .then(function (j) { if (!j.ok) throw new Error(j.error); return j; });
@@ -442,8 +442,58 @@ a.btn{text-decoration:none;display:inline-block}
     body.innerHTML = '<p class="muted" style="margin-top:16px">Loading…</p>';
     api('roster').then(function (j) { emails = {}; j.roster.forEach(function (s) { emails[s.sid] = s.email; }); if (data) render(); }, function () { });
     var slow = setTimeout(function () { if (!data) body.innerHTML = '<p class="muted" style="margin-top:16px">Still waiting for the results sheet. Google can be slow when the whole class is online; this page keeps trying.</p>'; }, 15000);
+    les.by = null; loadAnswers();
     api('class').then(function (j) { clearTimeout(slow); data = j; try { render(); } catch (err) { body.innerHTML = '<p class="say bad">The results loaded but the page couldn\'t show them: ' + SFA.esc(err.message) + '. Send this message to Claude.</p>'; } }, function (e) { clearTimeout(slow); if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); } else body.innerHTML = '<p class="say bad">Couldn\'t reach the results sheet. ' + SFA.esc(e.message) + '</p>'; });
   }
+  /* ---------- lesson answers: every lesson's answers (latest per student per question) plus the questions ---------- */
+  var LESSONS = [], les = { by: null, err: '', busy: false };   // les.by: { lid: [answer rows] }
+  window.SFA_LESSON = function (L) { LESSONS.push(L); };
+  function loadLessonFiles() {
+    if (loadLessonFiles.p) return loadLessonFiles.p;
+    var ids = []; for (var i = 1; i <= 17; i++) ids.push('L' + i);
+    return (loadLessonFiles.p = Promise.all(ids.map(function (id) { return new Promise(function (res) { var sc = document.createElement('script'); sc.src = 'lessons/' + id + '.js'; sc.onload = sc.onerror = res; document.head.appendChild(sc); }); })));
+  }
+  function loadAnswers() {
+    if (les.busy) return; les.busy = true; les.err = '';
+    var ids = []; for (var i = 1; i <= 17; i++) ids.push('L' + i);
+    var by = {}, k = 0;
+    function next() {   // three at a time, so the results sheet isn't swamped
+      if (k >= ids.length) return Promise.resolve();
+      var id = ids[k++];
+      return api('answers', { lesson: id }).then(function (j) { by[id] = j.answers || []; }).then(next);
+    }
+    Promise.all([loadLessonFiles(), Promise.all([next(), next(), next()])]).then(function () { les.by = by; les.busy = false; if (data) render(); }, function (e) { les.busy = false; les.err = e.message; if (data) render(); });
+  }
+  function lessonOf(lid) { return LESSONS.filter(function (L) { return L.id === lid; })[0]; }
+  function plain(t) { return String(t == null ? '' : t).replace(/[*_]/g, ''); }
+  function flagsOf(v) {   // "v1;q:left,secs,pastes,chars,copies,shots;..." from the slides' focus watch
+    var out = {}; String(v || '').split(';').slice(1).forEach(function (part) { var m = /^([a-z0-9]{1,16}):([0-9,]+)$/.exec(part); if (!m) return; var n = m[2].split(',').map(Number); out[m[1]] = { left: n[0] || 0, secs: n[1] || 0, pastes: n[2] || 0, chars: n[3] || 0, copies: n[4] || 0, shots: n[5] || 0 }; });
+    return out;
+  }
+  function flagText(f) {
+    if (!f) return ''; var t = [];
+    if (f.pastes) t.push('pasted ' + f.chars + ' characters'); if (f.copies) t.push('copied the question'); if (f.shots) t.push('screenshot key');
+    if (f.secs >= 10) t.push('left the page ' + f.left + 'x (' + f.secs + ' s) before answering');
+    return t.join('; ');
+  }
+  // one row per answer, in lesson and slide order
+  function answerRows(sids) {
+    var rows = [], names = {}; data.roster.forEach(function (s) { names[s.sid] = s; });
+    LESSONS.slice().sort(function (a, b) { return a.n - b.n; }).forEach(function (L) {
+      var list = (les.by && les.by[L.id]) || [], fl = {};
+      list.forEach(function (a) { if (a.q === 'zflag') fl[a.sid] = flagsOf(a.answer); });
+      L.slides.forEach(function (sl, i) {
+        if (!sl.id) return;
+        var right = sl.k === 'machine' ? sl.rule : sl.k === 'number' ? sl.ans : sl.opts && sl.ans != null ? (sl.ans + 1) + '. ' + plain(sl.opts[sl.ans]) : sl.model ? plain(sl.model) : '';
+        list.filter(function (a) { return a.q === sl.id && sids[a.sid]; }).forEach(function (a) {
+          var s = names[a.sid];
+          rows.push({ s: s, L: L, slide: i + 1, sl: sl, a: a, right: right, flag: flagText(fl[a.sid] && fl[a.sid][sl.id]) });
+        });
+      });
+    });
+    return rows;
+  }
+
   SFA.esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
 
   function rows() {
@@ -456,32 +506,47 @@ a.btn{text-decoration:none;display:inline-block}
   }
   function render() {
     var R = rows(), classes = {}; data.roster.forEach(function (s) { if (s.cls) classes[s.cls] = 1; });
+    var inR = {}; R.forEach(function (r) { inR[r.s.sid] = 1; });
+    var AR = les.by ? answerRows(inR) : [], per = {}, checked = 0, right = 0, flagged = {};
+    AR.forEach(function (x) {
+      var p = per[x.s.sid] || (per[x.s.sid] = { n: 0, c: 0, r: 0, les: {} }); p.n++; p.les[x.L.id] = 1;
+      if (x.a.correct) { p.c++; checked++; if (x.a.correct === 'yes') { p.r++; right++; } }
+      if (x.flag && !/^left/.test(x.flag)) flagged[x.s.sid] = 1;
+    });
     R.sort(function (a, b) {
       if (sortBy === 'name') return a.s.name.localeCompare(b.s.name);
       if (sortBy === 'email') return (emails[a.s.sid] || '').localeCompare(emails[b.s.sid] || '');
       if (sortBy === 'last') return (a.last || '').localeCompare(b.last || '');
       if (sortBy === 'lv') return b.lv - a.lv;
+      if (sortBy === 'les') return ((per[b.s.sid] || {}).n || 0) - ((per[a.s.sid] || {}).n || 0);
       var ga = a.g[sortBy], gb = b.g[sortBy]; return (gb ? gb.levelsDone : -1) - (ga ? ga.levelsDone : -1);
     });
     var week = Date.now() - 7 * 86400000, active = R.filter(function (r) { return r.last && new Date(r.last).getTime() > week; }).length;
     var tiles = el('div', { 'class': 'tiles' }, [
       tile(R.length, 'students'), tile(active, 'played this week'),
+      tile(R.reduce(function (a, r) { return a + r.lv; }, 0), 'game levels cleared'),
       tile(R.reduce(function (a, r) { return a + r.std; }, 0), 'standard certificates'),
-      tile(R.reduce(function (a, r) { return a + r.sp; }, 0), 'special certificates')
+      tile(R.reduce(function (a, r) { return a + r.sp; }, 0), 'special certificates'),
+      tile(les.by ? AR.length : '…', 'lesson answers'),
+      tile(les.by ? (checked ? Math.round(100 * right / checked) + '%' : '—') : '…', 'right in lessons (marked questions)'),
+      tile(les.by ? Object.keys(flagged).length : '…', 'students flagged for possible AI help')
     ]);
+    if (les.err) tiles.appendChild(el('p', { 'class': 'say bad', text: 'Lesson answers didn\'t load: ' + les.err + '. Press Refresh.' }));
     var sel = el('select', { 'aria-label': 'Class' }, [el('option', { value: '', text: 'All classes' })].concat(Object.keys(classes).sort().map(function (c) { var o = el('option', { value: c, text: 'Class ' + c }); if (c === cls) o.selected = true; return o; })));
     sel.addEventListener('change', function () { cls = sel.value; render(); });
     var find = el('input', { type: 'search', placeholder: 'Find a student', value: q, 'aria-label': 'Find a student' });
     find.addEventListener('input', function () { q = find.value.toLowerCase(); render(); setTimeout(function () { var f = document.querySelector('.filters input'); if (f) { f.focus(); f.setSelectionRange(q.length, q.length); } }, 0); });
-    var head = el('tr', {}, [th('Student', 'name'), th('Email', 'email'), th('Last played', 'last'), th('Levels', 'lv')].concat(SFA.GAMES.map(function (G) { return th(G.title, G.id); })));
+    var head = el('tr', {}, [th('Student', 'name'), th('Email', 'email'), th('Last played', 'last'), th('Levels', 'lv'), th('Lessons', 'les')].concat(SFA.GAMES.map(function (G) { return th(G.title, G.id); })));
     var tb = el('tbody');
     R.forEach(function (r) {
       var quiet = !r.last || new Date(r.last).getTime() < week;
       var tr = el('tr', { 'class': quiet ? 'quiet' : '' }, [
-        el('td', { 'class': 'nm' }, [r.s.name, quiet ? el('span', { 'class': 'flag', text: r.last ? 'quiet 7d+' : 'not started' }) : null]),
+        el('td', { 'class': 'nm' }, [r.s.name, quiet ? el('span', { 'class': 'flag', text: r.last ? 'quiet 7d+' : 'no games yet' }) : null]),
         el('td', { 'class': 'muted', style: 'font-size:13px', text: emails[r.s.sid] || '' }),
         el('td', { text: r.last ? SFA.ago(r.last) : '—' }),
-        el('td', { text: String(r.lv) })
+        el('td', { text: String(r.lv) }),
+        (function () { var p = per[r.s.sid]; if (!les.by) return el('td', { 'class': 'muted', text: '…' }); if (!p) return el('td', { 'class': 'muted', text: '·' });
+          return el('td', { title: p.n + ' answers in ' + Object.keys(p.les).length + ' lessons' + (p.c ? ', ' + p.r + ' of ' + p.c + ' marked questions right' : ''), text: Object.keys(p.les).length + ' · ' + (p.c ? Math.round(100 * p.r / p.c) + '%' : p.n + ' ans') + (flagged[r.s.sid] ? ' ⚠' : '') }); })()
       ].concat(SFA.GAMES.map(function (G) {
         var p = r.g[G.id]; if (!p) return el('td', { 'class': 'muted', text: '·' });
         var pct = p.levelsTotal ? Math.round(100 * p.levelsDone / p.levelsTotal) : 0;
@@ -540,6 +605,26 @@ a.btn{text-decoration:none;display:inline-block}
     }, function (e) { if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); } else if (/unknown op/.test(e.message)) body.innerHTML = '<p class="say bad">The results script is older than this page. Paste the latest Code.gs and deploy a new version.</p>'; else body.innerHTML = '<p class="say bad">' + SFA.esc(e.message) + '</p>'; });
   });
   document.getElementById('lock').addEventListener('click', function () { Key.del(); data = null; askKey(); });
+  function download(name, rows) {
+    var qq = function (v) { v = String(v == null ? '' : v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var csv = '\ufeff' + rows.map(function (r) { return r.map(qq).join(','); }).join('\r\n');   // the BOM makes Excel read − and × correctly
+    var a = el('a', { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })), download: name }); document.body.appendChild(a); a.click(); a.remove();
+  }
+  // every student's lesson answers, with the question and the expected answer, one row each (follows the class filter)
+  document.getElementById('ansCsv').addEventListener('click', function () {
+    if (!data) return;
+    if (!les.by) { SFA.toast(les.busy ? 'Still loading the lesson answers. Try again in a moment.' : 'Loading the lesson answers…', 3000); if (!les.busy) loadAnswers(); return; }
+    var sids = {}; data.roster.forEach(function (s) { if (!cls || s.cls === cls) sids[s.sid] = 1; });
+    var AR = answerRows(sids);
+    AR.sort(function (a, b) { return a.s.name.localeCompare(b.s.name) || a.L.n - b.L.n || a.slide - b.slide; });
+    var out = [['Student', 'Class', 'Email', 'Lesson', 'Lesson title', 'Slide', 'Question type', 'Question', 'Student answer', 'Marked', 'Expected answer', 'Answered at', 'Possible AI help']];
+    AR.forEach(function (x) {
+      out.push([x.s.name, x.s.cls, emails[x.s.sid] || '', x.L.n, x.L.title, x.slide, { poll: 'poll', conf: 'confidence', open: 'typed', exit: 'exit ticket', number: 'number', machine: 'machine rule' }[x.sl.k] || x.sl.k, plain(x.sl.q || x.sl.name || ''), x.a.answer, x.a.correct === 'yes' ? 'right' : x.a.correct === 'no' ? 'wrong' : '', x.right, x.a.time ? new Date(x.a.time).toLocaleString() : '', x.flag]);
+    });
+    if (out.length < 2) { SFA.toast('No lesson answers yet' + (cls ? ' for class ' + cls : '') + '.', 3000); return; }
+    download('lesson-answers' + (cls ? '-' + cls : '') + '-' + new Date().toISOString().slice(0, 10) + '.csv', out);
+    SFA.toast((out.length - 1) + ' answers downloaded' + (cls ? ' (class ' + cls + ' only)' : '') + '. It opens in Excel or Google Sheets.', 4000);
+  });
   document.getElementById('csv').addEventListener('click', function () {
     if (!data) return;
     var lines = [['student', 'class', 'email', 'game', 'levels_done', 'levels_total', 'core_done', 'core_total', 'standard', 'specials', 'assisted', 'last_played'].join(',')];
