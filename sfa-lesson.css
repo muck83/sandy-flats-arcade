@@ -235,3 +235,11 @@ body.m-screen .k-open .tally,body.m-screen .k-exit .tally{font-size:1.3em}
 .groups .grp.ok{border-color:#2b6b4c;color:#9ff0c9}
 /* lesson notices sit under the top bar, clear of the slide controls and progress dots at the bottom */
 body.lesson .toast{bottom:auto;top:64px}
+/* teacher console: fold-away sections */
+.panel details.fold>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px}
+.panel details.fold>summary::-webkit-details-marker{display:none}
+.panel details.fold>summary::before{content:'▸';color:var(--teal);font-size:12px}
+.panel details.fold[open]>summary::before{content:'▾'}
+.panel details.fold[open]{gap:8px}
+.panel details.fold>*+*{margin-top:8px}
+.alist .a b .flag{display:inline;margin:0 0 0 6px;cursor:help}

@@ -825,9 +825,18 @@
     if (!console_.offline) tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); consolePanel(); } }, function () { });
     return true;
   }
+  // one request at a time: the Sheet can take longer than the 4 s between checks, and an older reply landing after a
+  // newer one would make answers vanish and come back. Unchanged replies don't redraw, so buttons don't jump under the mouse.
+  var fetching = 0, fetchSeq = 0, lastData = '';
   function fetchAnswers() {
-    tpost('answers', { lesson: LID }).then(function (j) { console_.data = j; console_.err = ''; computeFeed(); consolePanel(); upd(); broadcast(); pushCountsIfChanged(); },
+    if (fetching && Date.now() - fetching < 25000) return; fetching = Date.now(); var my = ++fetchSeq;
+    tpost('answers', { lesson: LID }).then(function (j) {
+      if (my !== fetchSeq) return; fetching = 0; var js = JSON.stringify(j), wasErr = !!console_.err;
+      console_.err = ''; if (js === lastData && !wasErr) return; lastData = js;
+      console_.data = j; computeFeed(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
+    },
       function (e) {
+        if (my !== fetchSeq) return; fetching = 0;
         if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); return; }
         console_.err = /unknown op/.test(e.message) ? 'The results script needs updating before answers and live mode work: paste the new Code.gs and deploy a new version (see SETUP.md).' : 'Can\'t reach the results sheet right now. Retrying.';
         consolePanel();
@@ -924,7 +933,7 @@
       if (!nameOf[sid]) return;
       Object.keys(fl[sid]).forEach(function (q) { var f = fl[sid][q]; if (slideNo[q] && flagShown(f)) rows.push({ sid: sid, q: q, f: f, w: (flagStrong(f) ? 1e6 : 0) + f.secs }); });
     });
-    sec.appendChild(H('h3', '', 'Check these answers' + (rows.length ? ' (' + rows.length + ')' : '')));
+    sec._n = rows.length; sec.appendChild(H('h3', '', 'Check these answers' + (rows.length ? ' (' + rows.length + ')' : '')));
     if (!rows.length) { sec.appendChild(H('p', 'muted', 'No flags yet. A student is flagged when they paste into an answer, copy a question, press a screenshot key, or leave the lesson for 10 s or more before answering.')); return sec; }
     rows.sort(function (a, b) { return b.w - a.w; });
     var list = H('div', 'flags');
@@ -941,9 +950,18 @@
     return sec;
   }
 
+  // a fold-away section whose open/closed state survives the console redrawing every few seconds
+  function fold(key, title, dflt) {
+    var o = console_.open || (console_.open = {}), d = el('details', { 'class': 'sect fold' }), sm = el('summary');
+    sm.innerHTML = '<h3>' + esc(title) + '</h3>'; d.appendChild(sm);
+    var was = d.open = key in o ? o[key] : dflt;
+    d.addEventListener('toggle', function () { if (d.open !== was) { was = o[key] = d.open; } });   // only the teacher's own clicks are remembered
+    return d;
+  }
   function consolePanel() {
     var p = document.getElementById('tpanel'); if (!p || !LES) return;
-    var s = LES.slides[cur]; p.innerHTML = '';
+    var s = LES.slides[cur], keep = p.scrollTop, whoSec = null; p.innerHTML = '';
+    // what's needed mid-lesson comes first: live buttons, then this slide's controls and answers
     // live controls
     var top = H('div', 'sect');
     var lb = el('button', { type: 'button', 'class': 'btn ' + (console_.on ? '' : 'primary'), text: console_.on ? 'End live lesson' : 'Go live' });
@@ -968,39 +986,11 @@
     };
     if (console_.offline) fr.disabled = true;
     var row = H('div', 'row'); row.appendChild(lb); row.appendChild(sc); row.appendChild(fr); top.appendChild(row);
-    var lk = el('label', { style: 'display:flex;gap:8px;align-items:center' }), cb = el('input', { type: 'checkbox' }); cb.checked = console_.lock;
-    cb.onchange = function () { console_.lock = cb.checked; SFA.store.set('teacher.lesson.lock', cb.checked); pushLive(); };
-    lk.appendChild(cb); lk.appendChild(document.createTextNode('Keep everyone on my slide (students can\'t move ahead or back)')); top.appendChild(lk);
-    var ak = el('label', { style: 'display:flex;gap:8px;align-items:center' }), acb = el('input', { type: 'checkbox' }); acb.checked = console_.auto;
-    acb.onchange = function () { console_.auto = acb.checked; SFA.store.set('teacher.lesson.auto', acb.checked); pushLive(); consolePanel(); };
-    ak.appendChild(acb); ak.appendChild(document.createTextNode('Show answers on the class screen as they come in (no names; polls stay open and the right answer stays hidden until you reveal it)')); top.appendChild(ak);
     var hd = console_.hidden || {};
-    if (hd.cls) top.appendChild(H('p', 'state bad', hd.cls + ' answer' + (hd.cls > 1 ? 's' : '') + ' in this lesson ' + (hd.cls > 1 ? 'are' : 'is') + ' from students outside Class ' + esc(console_.cls) + ', so they\'re hidden. Choose "All classes" below to see them.'));
+    if (hd.cls) top.appendChild(H('p', 'state bad', hd.cls + ' answer' + (hd.cls > 1 ? 's' : '') + ' in this lesson ' + (hd.cls > 1 ? 'are' : 'is') + ' from students outside Class ' + esc(console_.cls) + ', so they\'re hidden. Choose "All classes" under Settings to see them.'));
     top.appendChild(H('p', 'muted', console_.on ? 'Live for ' + Math.round((Date.now() - console_.since) / 60000) + ' min. Share the class screen window, not this one.' : 'Share the class screen window. Go live so students\' devices follow you and the polls open.'));
     if (console_.err) top.appendChild(H('p', 'state bad', esc(console_.err)));
     p.appendChild(top);
-    // who has signed in to this lesson (since "Start fresh")
-    if (console_.data) {
-      var inS = {}; ((console_.data.answers || [])).forEach(function (a) { if (beforeRun(a)) return; inS[a.sid] = 1; });
-      var ros = rosterIn(), here = ros.filter(function (r) { return inS[r.sid]; }), out = ros.filter(function (r) { return !inS[r.sid]; });
-      var ws = H('div', 'sect');
-      ws.appendChild(H('h3', '', 'In the lesson: ' + here.length + ' of ' + ros.length));
-      var hw = H('div', 'who'); here.forEach(function (r) { hw.appendChild(H('span', 'in', esc(nice(r.name)))); }); if (here.length) ws.appendChild(hw);
-      if (out.length && out.length < ros.length) { ws.appendChild(H('p', 'muted', 'Not in yet (' + out.length + ')')); var ow = H('div', 'who'); out.forEach(function (r) { ow.appendChild(H('span', '', esc(nice(r.name)))); }); ws.appendChild(ow); }
-      else if (!here.length) ws.appendChild(H('p', 'muted', 'Nobody yet. Students appear here as soon as they type their code.'));
-      p.appendChild(ws);
-      p.appendChild(flagSection());
-    }
-
-    // class filter
-    var roster = (console_.data && console_.data.roster) || [], classes = [];
-    roster.forEach(function (r) { if (r.cls && classes.indexOf(r.cls) < 0) classes.push(r.cls); });
-    if (classes.length > 1) {
-      var sel = el('select', { 'class': 'sel', 'aria-label': 'Class' }); sel.appendChild(el('option', { value: '', text: 'All classes' }));
-      classes.sort().forEach(function (c) { var o = el('option', { value: c, text: 'Class ' + c }); if (c === console_.cls) o.selected = true; sel.appendChild(o); });
-      sel.onchange = function () { console_.cls = sel.value; SFA.store.set('teacher.lesson.cls', sel.value); computeFeed(); consolePanel(); upd(); broadcast(); pushCountsIfChanged(); };
-      p.appendChild(sel);
-    }
 
     // this slide
     var sec = H('div', 'sect'); sec.appendChild(H('h3', '', 'This slide · planned ' + (s.min || 0) + ' min'));
@@ -1027,7 +1017,7 @@
           var c = H('div', 'a' + (a.correct === 'yes' ? ' ok' : a.correct === 'no' ? ' no' : '') + (lit ? ' lit' : ''));
           c.appendChild(H('b', '', esc(a.name || a.sid) + (a.correct === 'yes' ? ' ✓' : a.correct === 'no' ? ' ✗' : '') + (lit ? ' · on screen now' : '')));
           var fl = console_.flags && console_.flags[a.sid] && console_.flags[a.sid][s.id];
-          if (flagShown(fl)) c.appendChild(H('span', 'flag' + (flagStrong(fl) ? ' strong' : ''), '⚠ ' + esc(flagTxt(fl))));
+          if (flagStrong(fl)) { var fb2 = H('span', 'flag strong', '⚠'); fb2.title = 'Possible AI help: ' + flagTxt(fl) + '. Details under "AI-use alerts" below.'; c.firstChild.appendChild(fb2); }
           c.appendChild(document.createTextNode(a.answer));
           if (s.k === 'open' || s.k === 'exit') { var rr = H('div', 'row'); rr.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Spotlight (no name)', onclick: function () { console_.spot = { q: s.id, text: a.answer }; pushLive(); consolePanel(); } })); c.appendChild(rr); }
           al.appendChild(c);
@@ -1046,8 +1036,20 @@
       sec.appendChild(rt);
       sec.appendChild(H('p', 'muted', 'Students see the countdown on their own screens and on the class screen.'));
     } else sec.appendChild(H('p', 'muted', s.k === 'film' ? 'Play film ' + esc((LES.film || {}).n || '') + ' on your shared screen. Students are told to watch it there; the Cinema link is their backup.' : 'Nothing to collect on this slide.'));
-    p.appendChild(sec);
 
+    p.appendChild(sec);
+    // who has signed in to this lesson (since "Start fresh")
+    if (console_.data) {
+      var inS = {}; ((console_.data.answers || [])).forEach(function (a) { if (beforeRun(a)) return; inS[a.sid] = 1; });
+      var ros = rosterIn(), here = ros.filter(function (r) { return inS[r.sid]; }), out = ros.filter(function (r) { return !inS[r.sid]; });
+      var ws = fold('who', 'In the lesson: ' + here.length + ' of ' + ros.length + (out.length && here.length ? ' · not in yet: ' + out.length : ''), !!s.warm);
+      var hw = H('div', 'who'); here.forEach(function (r) { hw.appendChild(H('span', 'in', esc(nice(r.name)))); }); if (here.length) ws.appendChild(hw);
+      if (out.length && out.length < ros.length) { ws.appendChild(H('p', 'muted', 'Not in yet (' + out.length + ')')); var ow = H('div', 'who'); out.forEach(function (r) { ow.appendChild(H('span', '', esc(nice(r.name)))); }); ws.appendChild(ow); }
+      else if (!here.length) ws.appendChild(H('p', 'muted', 'Nobody yet. Students appear here as soon as they type their code.'));
+      whoSec = ws;
+    }
+
+    if (whoSec) p.appendChild(whoSec);
     // pick someone
     var pk = H('div', 'sect'); pk.appendChild(H('h3', '', 'Pick someone'));
     var pr = H('div', 'row');
@@ -1055,6 +1057,28 @@
     pk.appendChild(pr);
     if (console_.picked) pk.appendChild(H('div', 'picked', esc(console_.picked)));
     p.appendChild(pk);
+
+    // AI-use alerts: logged, folded away until wanted
+    if (console_.data) { var fs = flagSection(), nfl = fs._n || 0, fd = fold('flags', 'AI-use alerts' + (nfl ? ' (' + nfl + ')' : ': none'), false); while (fs.firstChild) { if (fs.firstChild.tagName === 'H3') fs.removeChild(fs.firstChild); else fd.appendChild(fs.firstChild); } p.appendChild(fd); }
+    // settings
+    var st = fold('set', 'Settings', false);
+    var lk = el('label', { style: 'display:flex;gap:8px;align-items:center' }), cb = el('input', { type: 'checkbox' }); cb.checked = console_.lock;
+    cb.onchange = function () { console_.lock = cb.checked; SFA.store.set('teacher.lesson.lock', cb.checked); pushLive(); };
+    lk.appendChild(cb); lk.appendChild(document.createTextNode('Keep everyone on my slide (students can\'t move ahead or back)')); st.appendChild(lk);
+    var ak = el('label', { style: 'display:flex;gap:8px;align-items:center' }), acb = el('input', { type: 'checkbox' }); acb.checked = console_.auto;
+    acb.onchange = function () { console_.auto = acb.checked; SFA.store.set('teacher.lesson.auto', acb.checked); pushLive(); consolePanel(); };
+    ak.appendChild(acb); ak.appendChild(document.createTextNode('Show answers on the class screen as they come in (no names; polls stay open and the right answer stays hidden until you reveal it)')); st.appendChild(ak);
+    // class filter
+    var roster = (console_.data && console_.data.roster) || [], classes = [];
+    roster.forEach(function (r) { if (r.cls && classes.indexOf(r.cls) < 0) classes.push(r.cls); });
+    if (classes.length > 1) {
+      var sel = el('select', { 'class': 'sel', 'aria-label': 'Class' }); sel.appendChild(el('option', { value: '', text: 'All classes' }));
+      classes.sort().forEach(function (c) { var o = el('option', { value: c, text: 'Class ' + c }); if (c === console_.cls) o.selected = true; sel.appendChild(o); });
+      sel.onchange = function () { console_.cls = sel.value; SFA.store.set('teacher.lesson.cls', sel.value); computeFeed(); consolePanel(); upd(); broadcast(); pushCountsIfChanged(); };
+      st.appendChild(H('p', 'muted', 'Class shown here and on the class screen:')); st.appendChild(sel);
+    }
+
+    p.appendChild(st);
 
     // outline
     var ol = H('div', 'sect'); ol.appendChild(H('h3', '', 'Lesson plan · ' + LES.slides.reduce(function (t, x) { return t + (x.min || 0); }, 0) + ' min'));
@@ -1071,6 +1095,7 @@
     ol.appendChild(ul); p.appendChild(ol);
     var links = H('p', 'muted', '<a href="participation.html">Participation across all lessons</a> · <a href="lessons.html">All lessons</a>');
     p.appendChild(links);
+    p.scrollTop = keep;
   }
 
   /* ---------------- start ---------------- */
