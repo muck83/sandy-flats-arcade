@@ -320,6 +320,26 @@ a.btn{text-decoration:none;display:inline-block}
 .grid th,.grid td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:middle;white-space:nowrap}
 .grid th{font:700 11px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);position:sticky;top:0;background:var(--bg);cursor:pointer}
 .grid td.nm{font-weight:700}
+.grid td.nm a.who{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.grid td.nm a.who:hover{text-decoration-color:var(--marquee)}
+.sv-films{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.sv-film{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:10px 14px}
+.sv-film.none{opacity:.55}
+.sv-film h3{margin:0;font-family:var(--display);font-weight:400;font-size:20px;color:var(--marquee);letter-spacing:.03em}
+.sv-film h3 small{font:600 12px var(--mono);color:var(--muted);margin-left:8px;letter-spacing:0}
+.sv-cols{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:12px;margin-top:8px}
+@media (max-width:820px){.sv-cols{grid-template-columns:minmax(0,1fr)}}
+.sv-k{font:800 11px var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.sv-qa{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.sv-qa li{background:var(--panel2);border-radius:10px;padding:6px 10px;font-size:14px;border-left:4px solid var(--line)}
+.sv-qa li.ok{border-left-color:#2b6b4c}.sv-qa li.no{border-left-color:var(--red)}
+.sv-qa .q{color:var(--muted);font-size:13px;display:block}
+.sv-qa .fl{display:block;color:#FFB46B;font:600 12px var(--ui);margin-top:2px}
+.sv-lv{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.sv-lv span{font:600 12px var(--mono);padding:2px 8px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+.sv-lv span.Y{border-color:#2b6b4c;color:#9ff0c9}.sv-lv span.S{opacity:.6;text-decoration:line-through}
+.sv-sum{font-size:14px;line-height:1.5}
+@media print{.topbar .chips,.sv-actions{display:none}.sv-film{break-inside:avoid}}
 .grid tr:hover td{background:var(--panel)}
 .cell{display:flex;align-items:center;gap:6px}
 .bar{width:54px;height:8px;border-radius:99px;background:var(--panel2);overflow:hidden}
@@ -340,7 +360,7 @@ a.btn{text-decoration:none;display:inline-block}
 </style></head><body>
 <div class="wrap">
   <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Class Results</h1>
-    <div class="chips"><button type="button" class="chip" id="refresh">Refresh</button><button type="button" class="chip" id="ansCsv">Download all lesson answers</button><button type="button" class="chip" id="csv">Game progress CSV</button><button type="button" class="chip" id="codes">Student codes</button><button type="button" class="chip" id="lock">Lock</button></div></header>
+    <div class="chips"><button type="button" class="chip" id="refresh">Refresh</button><button type="button" class="chip" id="allCsv">Download everything</button><button type="button" class="chip" id="ansCsv">Lesson answers CSV</button><button type="button" class="chip" id="csv">Game progress CSV</button><button type="button" class="chip" id="codes">Student codes</button><button type="button" class="chip" id="lock">Lock</button></div></header>
   <div id="body"></div>
 </div>
 <script src="config.js"></script>
@@ -494,6 +514,89 @@ a.btn{text-decoration:none;display:inline-block}
     return rows;
   }
 
+  /* ---------- everything one student has done, film by film (lessons and games together) ---------- */
+  var GAME_OF_FILM = {}; SFA.GAMES.forEach(function (G) { GAME_OF_FILM[G.film] = G; });
+  // level names and times come from the Events tab (the recent ones the class view returns); states from the game's progress row
+  function levelNames(sid, game) {
+    var out = {}; (data.events || []).forEach(function (e) { if (e.sid !== sid || e.game !== game || e.type !== 'level') return; var d = String(e.detail).split(' '); if (!out[d[0]]) out[d[0]] = { name: d.slice(2).join(' ') || d[0], time: e.time }; });
+    return out;
+  }
+  // every activity row for some students: lesson answers, game summaries, levels and certificates
+  function activityRows(sids) {
+    var out = [], names = {}; data.roster.forEach(function (s) { names[s.sid] = s; });
+    if (les.by) answerRows(sids).forEach(function (x) {
+      out.push({ s: x.s, film: x.L.n, kind: 'Lesson answer', where: 'Lesson ' + x.L.n + ': ' + x.L.title + ' (slide ' + x.slide + ')', item: plain(x.sl.q || x.sl.name || ''), detail: x.a.answer, result: x.a.correct === 'yes' ? 'right' : x.a.correct === 'no' ? 'wrong' : '', expected: x.right, time: x.a.time, flag: x.flag, order: x.slide });
+    });
+    data.progress.forEach(function (p) {
+      if (!sids[p.sid]) return; var s = names[p.sid], G = SFA.GAMES.filter(function (g) { return g.id === p.game; })[0]; if (!s || !G) return;
+      var nm = levelNames(p.sid, p.game);
+      out.push({ s: s, film: G.film, kind: 'Game summary', where: 'Game: ' + G.title, item: p.levelsDone + ' of ' + p.levelsTotal + ' levels', detail: 'core ' + p.coreDone + '/' + p.coreTotal + (p.assisted ? ', assisted ' + p.assisted : '') + (p.specials && p.specials.length ? ', specials: ' + p.specials.join('; ') : ''), result: p.standard ? 'standard certificate' : '', expected: '', time: p.updated, flag: '', order: 0 });
+      SFA.parseLevels(p.levels).forEach(function (L, i) {
+        if (L.st === '-') return;
+        out.push({ s: s, film: G.film, kind: 'Game level', where: 'Game: ' + G.title, item: (nm[L.id] ? nm[L.id].name : 'Level ' + L.id) + (L.tier ? ' (' + L.tier + ')' : ''), detail: '', result: L.st === 'Y' ? 'cleared' : 'skipped', expected: '', time: nm[L.id] ? nm[L.id].time : '', flag: '', order: i + 1 });
+      });
+    });
+    (data.events || []).forEach(function (e) {
+      if (!sids[e.sid] || e.type !== 'certificate') return; var s = names[e.sid], G = SFA.GAMES.filter(function (g) { return g.id === e.game; })[0]; if (!s || !G) return;
+      out.push({ s: s, film: G.film, kind: 'Certificate', where: 'Game: ' + G.title, item: e.detail === 'standard' ? 'Standard certificate' : String(e.detail), detail: '', result: 'earned', expected: '', time: e.time, flag: '', order: 99 });
+    });
+    var RANK = { 'Lesson answer': 0, 'Game summary': 1, 'Game level': 2, 'Certificate': 3 };
+    out.sort(function (a, b) { return a.s.name.localeCompare(b.s.name) || a.film - b.film || RANK[a.kind] - RANK[b.kind] || a.order - b.order; });
+    return out;
+  }
+  function activityCsv(rows) {
+    return [['Student', 'Class', 'Email', 'Film', 'Kind', 'Where', 'Question or level', 'Student answer or detail', 'Result', 'Expected answer', 'When', 'Possible AI help']].concat(rows.map(function (r) {
+      return [r.s.name, r.s.cls, emails[r.s.sid] || '', r.film, r.kind, r.where, r.item, r.detail, r.result, r.expected, r.time ? new Date(r.time).toLocaleString() : '', r.flag];
+    }));
+  }
+  function studentView(sid) {
+    var s = data.roster.filter(function (x) { return x.sid === sid; })[0]; if (!s) return;
+    var one = {}; one[sid] = 1;
+    var A = activityRows(one), ans = les.by ? answerRows(one) : [], prog = {};
+    data.progress.forEach(function (p) { if (p.sid === sid) prog[p.game] = p; });
+    var lv = 0, std = 0, sp = 0, chk = 0, rt = 0, fl = 0, lessonsIn = {};
+    Object.keys(prog).forEach(function (g) { lv += prog[g].levelsDone || 0; std += prog[g].standard ? 1 : 0; sp += (prog[g].specials || []).length; });
+    ans.forEach(function (x) { lessonsIn[x.L.id] = 1; if (x.a.correct) { chk++; if (x.a.correct === 'yes') rt++; } if (x.flag && !/^left/.test(x.flag)) fl++; });
+    body.innerHTML = '';
+    body.appendChild(el('div', { 'class': 'row sv-actions', style: 'margin:14px 0 0;gap:8px;flex-wrap:wrap' }, [
+      el('button', { type: 'button', 'class': 'btn', text: '← Back to the class', onclick: function () { render(); } }),
+      el('button', { type: 'button', 'class': 'btn', text: 'Print', onclick: function () { window.print(); } }),
+      el('button', { type: 'button', 'class': 'btn primary', text: 'Download everything for ' + s.name.split(',').reverse()[0].trim().split(' ')[0], onclick: function () { download('sandy-flats-' + s.name.replace(/[^A-Za-z0-9]+/g, '-').toLowerCase() + '.csv', activityCsv(A)); } })
+    ]));
+    body.appendChild(el('h2', { style: 'margin:14px 0 0', text: s.name }));
+    body.appendChild(el('p', { 'class': 'muted', text: (s.cls ? 'Class ' + s.cls : '') + (emails[sid] ? ' · ' + emails[sid] : '') }));
+    body.appendChild(el('div', { 'class': 'tiles' }, [
+      tile(Object.keys(lessonsIn).length + '/17', 'lessons joined'), tile(ans.length, 'lesson answers'), tile(chk ? Math.round(100 * rt / chk) + '%' : '—', 'right in lessons'),
+      tile(Object.keys(prog).length + '/17', 'games started'), tile(lv, 'game levels cleared'), tile(std + (sp ? ' + ' + sp : ''), sp ? 'standard + special certificates' : 'standard certificates'), tile(fl, 'answers flagged')
+    ]));
+    if (!les.by) body.appendChild(el('p', { 'class': 'muted', text: les.busy ? 'Lesson answers are still loading. Press Back and open this student again in a moment.' : 'Lesson answers didn\'t load. Press Refresh.' }));
+    var films = el('div', { 'class': 'sv-films' });
+    for (var n = 1; n <= 17; n++) (function (n) {
+      var G = GAME_OF_FILM[n], L = LESSONS.filter(function (x) { return x.n === n; })[0], p = G && prog[G.id], qa = ans.filter(function (x) { return x.L.n === n; });
+      var lesT = L ? L.title : '', did = qa.length || p;
+      var card = el('div', { 'class': 'sv-film' + (did ? '' : ' none') });
+      var c = qa.filter(function (x) { return x.a.correct; }), r = c.filter(function (x) { return x.a.correct === 'yes'; });
+      card.appendChild(el('h3', {}, ['Film ' + n + (L ? ' · ' + (L.film && L.film.title || lesT) : ''), el('small', { text: did ? (qa.length ? qa.length + ' lesson answers' + (c.length ? ', ' + r.length + '/' + c.length + ' right' : '') : 'no lesson answers') + ' · ' + (p ? p.levelsDone + '/' + p.levelsTotal + ' game levels' : 'game not started') : 'nothing yet' })]));
+      if (did) {
+        var left = el('div', {}, [el('div', { 'class': 'sv-k', text: 'Lesson ' + n + (lesT ? ': ' + lesT : '') })]);
+        if (qa.length) left.appendChild(el('ul', { 'class': 'sv-qa' }, qa.map(function (x) {
+          return el('li', { 'class': x.a.correct === 'yes' ? 'ok' : x.a.correct === 'no' ? 'no' : '' }, [el('span', { 'class': 'q', text: 'Slide ' + x.slide + ' · ' + plain(x.sl.q || x.sl.name || '') }), x.a.answer + (x.a.correct === 'yes' ? '  ✓' : x.a.correct === 'no' ? '  ✗ (expected ' + x.right + ')' : ''), x.flag ? el('span', { 'class': 'fl', text: '⚠ ' + x.flag }) : null]);
+        })));
+        else left.appendChild(el('p', { 'class': 'muted', text: 'Didn\'t answer in this lesson.' }));
+        var right = el('div', {}, [el('div', { 'class': 'sv-k', text: 'Game: ' + (G ? G.title : '') })]);
+        if (p) {
+          right.appendChild(el('div', { 'class': 'sv-sum' }, [p.levelsDone + ' of ' + p.levelsTotal + ' levels · core ' + p.coreDone + '/' + p.coreTotal, el('br'), (p.standard ? '★ Standard certificate' : '☆ No standard certificate yet') + (p.specials && p.specials.length ? ' · ✦ ' + p.specials.join(', ') : ''), el('br'), 'Assisted: ' + (p.assisted || 0) + ' · last played ' + SFA.ago(p.updated)]));
+          var nm = levelNames(sid, G.id);
+          right.appendChild(el('div', { 'class': 'sv-lv' }, SFA.parseLevels(p.levels).map(function (x) { return el('span', { 'class': x.st, title: x.st === 'Y' ? 'cleared' : x.st === 'S' ? 'skipped' : 'not yet', text: (nm[x.id] ? nm[x.id].name : x.id) }); })));
+        } else right.appendChild(el('p', { 'class': 'muted', text: 'Not started.' }));
+        card.appendChild(el('div', { 'class': 'sv-cols' }, [left, right]));
+      }
+      films.appendChild(card);
+    })(n);
+    body.appendChild(films);
+    window.scrollTo(0, 0);
+  }
+
   SFA.esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
 
   function rows() {
@@ -541,7 +644,7 @@ a.btn{text-decoration:none;display:inline-block}
     R.forEach(function (r) {
       var quiet = !r.last || new Date(r.last).getTime() < week;
       var tr = el('tr', { 'class': quiet ? 'quiet' : '' }, [
-        el('td', { 'class': 'nm' }, [r.s.name, quiet ? el('span', { 'class': 'flag', text: r.last ? 'quiet 7d+' : 'no games yet' }) : null]),
+        el('td', { 'class': 'nm' }, [el('a', { href: '#', 'class': 'who', title: 'Everything ' + r.s.name + ' has done, film by film', onclick: function (e) { e.preventDefault(); studentView(r.s.sid); } }, [r.s.name]), quiet ? el('span', { 'class': 'flag', text: r.last ? 'quiet 7d+' : 'no games yet' }) : null]),
         el('td', { 'class': 'muted', style: 'font-size:13px', text: emails[r.s.sid] || '' }),
         el('td', { text: r.last ? SFA.ago(r.last) : '—' }),
         el('td', { text: String(r.lv) }),
@@ -569,7 +672,7 @@ a.btn{text-decoration:none;display:inline-block}
     body.innerHTML = '';
     body.appendChild(el('div', {}, [
       tiles,
-      el('div', { 'class': 'filters' }, [sel, find, el('span', { 'class': 'muted', text: 'Tap a column heading to sort. ★ standard · ✦ specials · tap a cell for details.' })]),
+      el('div', { 'class': 'filters' }, [sel, find, el('span', { 'class': 'muted', text: 'Click a name to see everything that student has done, film by film. Tap a column heading to sort. ★ standard · ✦ specials.' })]),
       el('div', { 'class': 'two' }, [
         el('div', { 'class': 'card scroll-x', style: 'padding:6px 8px' }, [el('table', { 'class': 'grid' }, [el('thead', {}, [head]), tb])]),
         el('div', { 'class': 'card' }, [el('h2', { text: 'Latest' }), feed.childNodes.length ? feed : el('p', { 'class': 'muted', text: 'Nothing yet. Results appear here as students play.' })])
@@ -610,6 +713,16 @@ a.btn{text-decoration:none;display:inline-block}
     var csv = '\ufeff' + rows.map(function (r) { return r.map(qq).join(','); }).join('\r\n');   // the BOM makes Excel read − and × correctly
     var a = el('a', { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })), download: name }); document.body.appendChild(a); a.click(); a.remove();
   }
+  // everything every student (in the chosen class) has done, one row per answer, level or certificate
+  document.getElementById('allCsv').addEventListener('click', function () {
+    if (!data) return;
+    if (!les.by) { SFA.toast(les.busy ? 'Still loading the lesson answers. Try again in a moment.' : 'Loading the lesson answers…', 3000); if (!les.busy) loadAnswers(); return; }
+    var sids = {}; data.roster.forEach(function (s) { if (!cls || s.cls === cls) sids[s.sid] = 1; });
+    var rows = activityRows(sids);
+    if (!rows.length) { SFA.toast('Nothing to download yet.', 3000); return; }
+    download('sandy-flats-everything' + (cls ? '-' + cls : '') + '-' + new Date().toISOString().slice(0, 10) + '.csv', activityCsv(rows));
+    SFA.toast(rows.length + ' rows downloaded' + (cls ? ' (class ' + cls + ' only)' : '') + ': every lesson answer, game, level and certificate.', 4500);
+  });
   // every student's lesson answers, with the question and the expected answer, one row each (follows the class filter)
   document.getElementById('ansCsv').addEventListener('click', function () {
     if (!data) return;
