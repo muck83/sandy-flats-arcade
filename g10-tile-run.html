@@ -2222,7 +2222,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
   function iy(py) { return GR.yr[0] + (GR.y1 - py) / (GR.y1 - GR.y0) * (GR.yr[1] - GR.yr[0]); }
   var ST;
   function reset() {
-    ST = { team: true, coat: false, gus: null, doug: null, loop: null, linesy: null, tiles: [], dots: [], line: null, curve: null, curveCaged: null, door: null, exitRow: null, guides: [], trace: null, pick: null, dark: false, flash: null, marks: [], gone: false, label: '' };
+    ST = { team: true, coat: false, gus: null, doug: null, loop: null, linesy: null, tiles: [], dots: [], line: null, curve: null, curveCaged: null, door: null, exitRow: null, guides: [], trace: null, pick: null, dark: false, flash: null, marks: [], gone: false, label: '', rule: false };
     if (cv) cv.style.cursor = '';
   }
   // curves for Linesy's sweep, all on the film's Grid (inputs 0 to 6, outputs 0 to 12)
@@ -2307,6 +2307,9 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
     c.restore();
     if (ST.label) E.txt(ST.label, GR.x0 + 30, GR.y0 - 16, '17px "Luckiest Guy",sans-serif', '#FFE14D', 'left');
     // the line (Priya's ruler line, or Gus's path)
+    // the rule, kept on the grid once it is known (hidden while students are still finding it)
+    if (ST.rule) { c.save(); var rx = gx(3.05), ry = gy(2.3), rw = gx(5.95) - rx, rh = gy(0.35) - ry; c.globalAlpha = ST.dark ? 0.85 : 1; c.fillStyle = 'rgba(11,18,32,.92)'; c.strokeStyle = '#FFE14D'; c.lineWidth = 2.5; E.rr(rx, ry, rw, rh, 10, true, true);
+      E.txt('GUS\'S PATH RULE', rx + rw / 2, ry + 14, '600 12px "IBM Plex Mono",monospace', '#FFE14D'); E.txt('input × 2 + 1', rx + rw / 2, ry + rh / 2 + 9, '700 23px "IBM Plex Mono",monospace', '#FFFFFF'); c.restore(); }
     if (ST.line) { c.save(); c.strokeStyle = ST.line.col || 'rgba(143,211,255,.75)'; c.lineWidth = ST.line.w || 4; c.setLineDash(ST.line.dash ? [8, 8] : []); c.beginPath(); c.moveTo(gx(ST.line.x0), gy(rule(ST.line.x0))); c.lineTo(gx(ST.line.x1), gy(rule(ST.line.x1))); c.stroke(); c.restore(); }
     if (ST.curve) plotCurve(ST.curve, ST.curveCaged != null ? '#8E8899' : ST.curve === 'path' ? '#8FD3FF' : '#FF8FD1', 5);
     if (ST.exitRow != null && !ST.door) { var ey = gy(ST.exitRow); c.save(); c.setLineDash([6, 6]); c.strokeStyle = 'rgba(255,210,63,.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(gx(0), ey); c.lineTo(GR.x1 + 18, ey); c.stroke(); c.restore(); small('EXIT: output ' + ST.exitRow, GR.x1 - 50, ey - 14, '#FFD23F'); }
@@ -2466,7 +2469,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
       if (tooBig(a) || tooBig(b)) return;
       if (a !== 1) return wrongA(a === 3 ? '3 comes out at input 1. Zero\'s trick is input 0: the sign there is (0, 1). What comes out?' : a === 0 ? 'Zero goes in, but something else comes out. Look at the sign at input 0: (0, 1).' : 'Look at the sign at input 0. It says (0, 1). The output is the second number.');
       if (b !== 2) return wrongA(b === 1 ? 'The input climbs 1 each step. How much does the output climb? 1, then 3, then 5, then 7.' : b === 3 ? '3 is an output, not a climb. From input 0 to input 1 the output goes 1 → 3. How much did it climb?' : 'Compare the outputs: 1, 3, 5, 7. How much bigger is each one?');
-      G.firstTry(true); C.part = 'B'; aIn.disabled = bIn.disabled = chk.disabled = true; h1.textContent = '✓ Rule: times 2, plus 1'; ruleBox.remove(); h2.className = ''; G.work.insertBefore(h2, partB); G.note('Rule: times 2, plus 1', 'hl');
+      G.firstTry(true); C.part = 'B'; aIn.disabled = bIn.disabled = chk.disabled = true; h1.textContent = '✓ Rule: times 2, plus 1'; ruleBox.remove(); h2.className = ''; G.work.insertBefore(h2, partB); G.note('Rule: times 2, plus 1', 'hl'); ST.rule = true;
       G.say('Starts at 1, climbs 2 each step: times two, plus one.', 'good'); G.rung = 0;
       speak(['g10_rule'], startB);
     }
@@ -2553,7 +2556,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
 
   /* ================= C2: Read It Backwards ================= */
   function C2(G) {
-    reset(); ST.label = 'THE GRID';
+    reset(); ST.label = 'THE GRID'; ST.rule = true;
     var ROUNDS = [{ y: 11, x: 5, what: 'the EXIT door' }, { y: 9, x: 4, what: 'a safe tile on the way' }, { y: 8, x: 3.5, what: 'one more safe tile' }], ri = 0, C = { wrong: 0, stage: 1 };
     ST.gus = { x: 2.5, y: 6 }; addTile(2.5, 6, 'path', false);
     [[0, 1], [1, 3], [2, 5], [3, 7], [2.5, 6]].forEach(function (p) { dot(p[0], p[1], '#FFFFFF', false); });
@@ -2716,7 +2719,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
 
   /* ================= S1: Lights Out: Run, Gus! ================= */
   function S1(G) {
-    reset(); ST.label = 'LIGHTS OUT'; ST.dark = true;
+    reset(); ST.label = 'LIGHTS OUT'; ST.dark = true; ST.rule = true;
     var PATH = [{ ask: 'out', x: 3, y: 7 }, { ask: 'out', x: 3.5, y: 8 }, { ask: 'out', x: 4, y: 9 }, { ask: 'in', x: 4.5, y: 10 }, { ask: 'out', x: 5, y: 11 }];
     var k = 0, C = { wrong: 0, caught: 0, left: 20, running: false }, LIM = 20;
     ST.gus = { x: 2.5, y: 6 }; addTile(2.5, 6, 'path', false); ST.doug = { x: 2.1, y: 7.4, f: 1 }; ST.door = { x: 5, y: 11, open: false };
@@ -2780,7 +2783,7 @@ return {c:c,dpr:dpr,W:W,H:H,GY:GY,INK:INK,GOLD:GOLD,CH:CH,NAMES:NAMES,tex:tex,TE
 
   /* ================= S2: Marcus in a Mirror ================= */
   function S2(G) {
-    reset(); ST.label = 'MARCUS\'S NOTEBOOK';
+    reset(); ST.label = 'MARCUS\'S NOTEBOOK'; ST.rule = true;
     var PAIRS = [[4, 9], [9, 4], [1.5, 4], [3, 6], [4, 1.5], [0.5, 2], [11, 5], [2, 4]], C = { wrong: 0, done: {} };
     GR.xr = [0, 6]; GR.yr = [0, 12];
     ST.line = { x0: 0, x1: 5.5, col: 'rgba(143,211,255,.6)', w: 3 }; ST.gus = null;
