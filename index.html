@@ -1011,7 +1011,9 @@ a.btn{text-decoration:none;display:inline-block}
     box.hidden = false;
   }
   var busy = false, shownFor = '';
+  var note = document.getElementById('saveNote'), note0 = note ? note.textContent : '';
   S.onChange(function () {
+    if (note) note.textContent = S.me ? 'Signed in: your progress saves to your class, so it follows you to any computer.' : note0;
     if (!S.me) { box.hidden = true; shownFor = ''; return; }
     if (busy || shownFor === S.me.sid) return;
     busy = true;

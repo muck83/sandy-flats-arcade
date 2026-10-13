@@ -233,3 +233,5 @@ body.m-screen .k-open .tally,body.m-screen .k-exit .tally{font-size:1.3em}
 .groups .grp{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:.25em .8em;font:600 .85em var(--mono)}
 .groups .grp b{color:var(--marquee);margin-left:.3em}
 .groups .grp.ok{border-color:#2b6b4c;color:#9ff0c9}
+/* lesson notices sit under the top bar, clear of the slide controls and progress dots at the bottom */
+body.lesson .toast{bottom:auto;top:64px}

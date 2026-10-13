@@ -16,7 +16,7 @@ SFA_LESSON({
       why: '0 × 4 = 0. Then 0 − 3 = −3. "Four groups of nothing is still nothing." Zero erased the times part, so only the − 3 was left.' },
     { k: 'open', min: 2, id: 'why0', q: 'Mr. Dunmore calls Zero an *X-ray*. Why does zero erase the multiply step?', ph: 'Zero erases the multiply step because...',
       hint: 'What is 0 × 4? What is 0 × 100?',
-      model: 'Zero times any number is zero. So the multiply step has nothing to do, and only the add part comes out.' },
+      model: 'Zero times any number is zero, so the multiply step turns the input into 0. Only the second step is left: 0 − 3 = −3.' },
     { k: 'text', min: 2, title: 'Zero, the X-ray', points: ['Feed *0* to a multiply-then-add machine.', 'The × part is *erased*: 0 times anything is 0.', 'Out comes the *add part*. That is where the rule *starts*.', 'Then feed it *1*. The jump from 0 to 1 is what it *multiplies by*.', 'Careful: zero only erases a × that comes *first*.'],
       note: 'You do the least work, and you tell us the most.' },
     { k: 'number', min: 2, id: 'basement', q: 'The basement machine gave *0 → 5* and *1 → 8*. What does it *multiply by*?', ans: 3,

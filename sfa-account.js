@@ -55,16 +55,22 @@
   function codeBox() {
     var inp = el('input', { type: 'text', placeholder: 'Student code', maxlength: '10', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'Student code', style: 'width:8.5em;text-transform:uppercase;font-family:var(--mono,monospace)' });
     var b = el('button', { type: 'button', 'class': 'btn small', text: 'Sign in' });
-    function go() {
-      var c = inp.value.trim(); if (c.length < 4) { inp.focus(); return; }
-      b.disabled = true;
-      S.signInCode(c).then(function (st) { SFA.toast('Signed in as ' + nice(st.name) + '. Your work saves to your class.', 4000); }, function (e) {
-        b.disabled = false;
-        SFA.toast(/bad code/.test(e.message) ? 'That code didn\'t work. Check the email from Mr. Crowell and type it again.' : /sign in/.test(e.message) ? 'Code sign-in isn\'t switched on yet. Tell Mr. Crowell.' : 'Sign-in didn\'t work: ' + e.message, 5000);
+    // the message stays under the box (a toast is easy to miss), and a busy or unreachable results script is retried once by itself
+    var msg = el('small', { role: 'status', 'aria-live': 'polite', style: 'flex-basis:100%;min-height:1.2em' });
+    function say(t, bad) { msg.textContent = t; msg.style.color = bad ? 'var(--red,#E8584C)' : ''; }
+    function go(retry) {
+      var c = inp.value.trim(); if (c.length < 4) { say('Type the 6-character code from your school email.', true); inp.focus(); return; }
+      b.disabled = true; b.textContent = 'Signing in…'; say(retry ? 'Still trying…' : '');
+      S.signInCode(c).then(function (st) { say(''); SFA.toast('Signed in as ' + nice(st.name) + '. Your work saves to your class.', 4000); }, function (e) {
+        var bad = /bad code/.test(e.message), off = /sign in/.test(e.message);
+        if (!bad && !off && !retry) { say('Couldn\'t reach Mr. Crowell\'s results sheet. Trying again…'); setTimeout(function () { go(true); }, 2500); return; }
+        b.disabled = false; b.textContent = 'Sign in';
+        say(bad ? 'That code didn\'t work. Check the email from Mr. Crowell and type it again.' : off ? 'Code sign-in isn\'t switched on yet. Tell Mr. Crowell.' : 'Sign-in didn\'t work (the results sheet is busy or your internet dropped). Wait a few seconds and press Sign in again.', true);
       });
     }
-    b.addEventListener('click', go); inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
-    return el('div', { 'class': 'codebox', style: 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px' }, [el('small', { text: CFG.auth === 'code' ? 'Your student code (check your school email):' : 'Google not working? Use your student code:' }), inp, b]);
+    b.addEventListener('click', function () { go(false); }); inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); go(false); } });
+    inp.addEventListener('input', function () { if (!b.disabled) say(''); });
+    return el('div', { 'class': 'codebox', style: 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px' }, [el('small', { text: CFG.auth === 'code' ? 'Your student code (check your school email):' : 'Google not working? Use your student code:' }), inp, b, msg]);
   }
   // a Google sign-in button anywhere on the page (the lesson slides put one under an answer that couldn't send)
   S.button = function (box) {
@@ -77,7 +83,11 @@
 
   /* ---------- hub card ---------- */
   function hubCard(box) {
+    var drawn = null;
     function draw() {
+      var key = S.me ? S.me.sid + '|' + S.status : 'out';
+      if (key === drawn) return;   // nothing changed: keep the code box (and anything half-typed in it)
+      drawn = key;
       box.innerHTML = '';
       if (S.me) {
         if (S.status === 'signedout') {
