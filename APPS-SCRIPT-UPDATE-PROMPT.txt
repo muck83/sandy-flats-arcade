@@ -1,0 +1,34 @@
+Paste this into Gemini (or any assistant) with the Apps Script editor open.
+
+I run a Google Apps Script web app that is the backend for my class website, Sandy Flats Arcade
+(https://muck83.github.io/sandy-flats-arcade/). It is bound to my Google Sheet "Sandy Flats Arcade Results"
+and is deployed as a web app (Execute as: Me, Who has access: Anyone).
+
+Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk me through one step at a time:
+
+1. In Code.gs, delete everything and paste the full contents of
+   https://raw.githubusercontent.com/muck83/sandy-flats-arcade/main/backend/Code.gs
+   exactly as it is. Save.
+
+2. Project Settings > Script properties: AUTH_MODE must be "code" or "both" (students sign in with codes).
+   Leave TEACHER_KEY, DOMAIN and CLIENT_ID as they are. Don't delete CLIMB_SESSION or CLIMB_ACCOM if they appear later.
+
+3. Add this temporary function at the bottom, run it once, show me the Execution log, then delete it and save:
+   function testClimbBackend() {
+     Logger.log(JSON.stringify(route({ op: 'live' })));
+     var key = PropertiesService.getScriptProperties().getProperty('TEACHER_KEY');
+     var c = route({ op: 'climbClass', teacherKey: key });
+     Logger.log('climbClass ok: ' + c.ok + ', students: ' + c.roster.length + ', climb rows: ' + c.rows.length);
+     var s = c.roster[0];
+     if (s) { var d = route({ op: 'studentDay', teacherKey: key, sid: s.sid }); Logger.log('studentDay ok: ' + d.ok + ' for ' + s.name + ' on ' + d.date); }
+   }
+   Expected: {"ok":true,...}, then "climbClass ok: true" and "studentDay ok: true".
+
+4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
+   Description "Climb + student day" > Deploy. Do NOT use "New deployment" (that changes the URL).
+
+5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
+
+New operations in this version: climbHello, climbPing, climbSave, climbControl, climbClass, climbCheck, climbStudent,
+studentDay; Climb data is added to mine, class and live. The "Climb" and "ClimbLog" tabs create themselves.
+If anything errors, show me the exact message and line number before suggesting changes.
