@@ -55,6 +55,25 @@
     if (cls) a.className = (a.className ? a.className + ' ' : '') + cls;
     return a;
   }
+  // teacher pages: one button that copies the link students need from here (Climb, this lesson, or the arcade)
+  function studentLink() {
+    var lq = (Q.match(/[?&]l=(\d+)/) || [])[1];
+    var path = page === 'climb-teacher.html' ? 'climb.html' : page === 'lesson.html' && lq ? 'lesson.html?l=' + lq : 'index.html';
+    var what = page === 'climb-teacher.html' ? 'Climb' : page === 'lesson.html' && lq ? 'this lesson' : 'the arcade';
+    var url = new URL(path, location.href).href.replace(/index\.html$/, '');
+    var a = document.createElement('a'); a.href = url; a.textContent = '🔗 Copy student link'; a.title = 'Copies ' + url + ' (students open ' + what + ')';
+    a.onclick = function (e) {
+      e.preventDefault();
+      function shown(ok) {
+        var t = document.getElementById('sfaToast');
+        if (window.SFA && SFA.toast) SFA.toast((ok ? 'Copied: ' : 'Copy this link: ') + url, 7000);
+        else if (!ok) window.prompt('Copy this link for students:', url);
+        if (!ok && t) t.style.userSelect = 'all';
+      }
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { shown(true); }, function () { shown(false); });
+    };
+    return a;
+  }
   var nav = document.createElement('nav'); nav.className = 'sfanav'; nav.setAttribute('aria-label', 'Sandy Flats');
   var liveSlot = document.createElement('span'); liveSlot.style.display = 'contents';
   if (teach) {
@@ -65,6 +84,7 @@
     nav.appendChild(link('day.html', '📅 Student day', page === 'day.html'));
     nav.appendChild(link('teacher.html', '🧭 Teacher guide', page === 'teacher.html'));
     nav.appendChild(link('index.html', '👀 Student view', false));
+    nav.appendChild(studentLink());
   } else {
     nav.appendChild(liveSlot);
     nav.appendChild(link('index.html', '🕹️ Arcade', page === 'index.html' || page === ''));
