@@ -15,7 +15,7 @@
     var x0 = R.nz(-6, 6), y0 = R.int(-10, 15);
     var xs = [0, 1, 2, 3].map(function (i) { return x0 + s * i; }), ys = [0, 1, 2, 3].map(function (i) { return y0 + k * i; });
     return {
-      stem: 'What is the rate of change of y with respect to x in this table?',
+      stem: 'What is the rate of change (the step) in this table: how much does y change for every 1 more x?',
       fig: C.table({ cols: ['x', 'y'], rows: xs.map(function (x, i) { return [x, ys[i]]; }) }),
       think: 'Does x go up by 1 each row?',
       parts: [{ kind: 'num', label: 'Rate of change', key: r, wrong: [{ v: k, tag: 'M8' }, { v: s / k, tag: 'M1' }, { v: k - s, tag: 'M17' }] }],
@@ -46,7 +46,7 @@
       lines: [{ m: key, b: y1 - key * x1 }], pts: [{ x: x1, y: y1, l: 'A' }, { x: x2, y: y2, l: 'B' }],
       label: 'Line through A ' + C.pt(x1, y1) + ' and B ' + C.pt(x2, y2) + '; each x square is ' + sx + ', each y square is ' + sy });
     return {
-      stem: 'What is the slope of the line through A and B? Read the numbers on the axes.',
+      stem: 'What is the slope (the step) of the line through A and B? Read the numbers on the axes.',
       fig: fig,
       think: 'What is each square worth on each axis?',
       parts: [{ kind: 'num', label: 'Slope', key: key, wrong: [{ v: sq, tag: 'M5' }, { v: rec, tag: 'M1' }] }],
@@ -65,12 +65,12 @@
     };
   } });
 
-  // the plan's fill-the-table interactive: the student types the missing y-values (no dragging in Version 1)
-  C.add({ id: 'RC-4j', skill: '9', level: 4, order: 3, type: 'interactive', gen: function (R) {
+  // the plan's fill-the-table item, kept as a typed build (not ia): the student types the missing y-values
+  C.add({ id: 'RC-4j', skill: '9', level: 4, order: 3, type: 'EG', gen: function (R) {
     var x0 = R.nz(-5, 5), m = R.nz(-5, 5), y0 = R.int(-8, 12);
     var xs = [x0, x0 + 1, x0 + 3, x0 + 4], ys = xs.map(function (x) { return y0 + m * (x - x0); });
     return {
-      stem: 'Fill in the missing y-values so the table has a constant rate of change of ' + f(m) + '.',
+      stem: 'Fill in the missing y-values so the table has the same rate of change (the step) of ' + f(m) + ' all the way.',
       fig: C.table({ cols: ['x', 'y'], rows: [[xs[0], ys[0]], [xs[1], BLANK], [xs[2], BLANK], [xs[3], BLANK]] }),
       think: 'Check how far x moves between rows.',
       parts: [1, 2, 3].map(function (i) {
@@ -83,31 +83,31 @@
       why: { M8: 'You changed y by ' + f(m) + ' every row, but x jumps by 2 between the second and third rows.', M2: 'You moved y the wrong way: a rate of ' + f(m) + ' means y ' + (m > 0 ? 'goes up' : 'goes down') + ' as x goes up.' },
       steps: [
         { label: 'From x = ' + f(xs[0]) + ' to ' + f(xs[1]) + ' is 1 step. y = ' + f(ys[0]) + ' ' + C.term(m) + ' =', part: { kind: 'num', key: ys[1] }, hint: 'Add the rate once.' },
-        { label: 'From x = ' + f(xs[1]) + ' to ' + f(xs[2]) + ', x goes up by', part: { kind: 'num', key: 2 }, hint: f(xs[2]) + ' − ' + par(xs[1]) + '.' },
-        { label: 'So y changes by 2 × ' + par(m) + ' =', part: { kind: 'num', key: 2 * m }, hint: 'Two steps of ' + f(m) + '.' },
-        { label: 'y when x = ' + f(xs[2]) + ' is', part: { kind: 'num', key: ys[2] }, hint: f(ys[1]) + ' ' + C.term(2 * m) + '.' }
+        { label: 'From x = ' + f(xs[1]) + ' to ' + f(xs[2]) + ', x goes up by 2, so y changes by 2 × ' + par(m) + ' =', part: { kind: 'num', key: 2 * m }, hint: 'Two steps of ' + f(m) + '.' },
+        { label: 'y when x = ' + f(xs[2]) + ': ' + f(ys[1]) + ' ' + C.term(2 * m) + ' =', part: { kind: 'num', key: ys[2] }, hint: 'Add the change you just found.' },
+        { label: 'y when x = ' + f(xs[3]) + ' (1 step on): ' + f(ys[2]) + ' ' + C.term(m) + ' =', part: { kind: 'num', key: ys[3] }, hint: 'Add the rate once.' }
       ]
     };
   } });
 
   C.add({ id: 'RC-4g', skill: '9', level: 4, order: 4, type: 'NE', gen: function (R) {
-    var x0 = R.nz(-4, 6), m = -R.int(2, 6), y0 = R.int(-5, 30);
+    var x0 = R.nz(-4, 6), m = R.sign() * R.int(2, 6), y0 = m < 0 ? R.int(-5, 30) : R.int(-30, 5);
     var xs = [x0, x0 + 2, x0 + 5, x0 + 6], ys = xs.map(function (x) { return y0 + m * (x - x0); });
-    var m17 = Math.abs(6 * m) - 6;
+    var dir = m < 0 ? 'down' : 'up';
     return {
-      stem: 'What is the rate of change of y with respect to x in this table?',
+      stem: 'What is the rate of change (the step) in this table: how much does y change for every 1 more x?',
       fig: C.table({ cols: ['x', 'y'], rows: xs.map(function (x, i) { return [x, ys[i]]; }) }),
       think: 'The x-values do not go up by the same amount each row.',
-      parts: [{ kind: 'num', label: 'Rate of change', key: m, wrong: [{ v: 2 * m, tag: 'M8' }, { v: -m, tag: 'M2' }, { v: m17, tag: 'M17' }] }],
-      answer: f(m) + ' (y goes down ' + Math.abs(m) + ' for every 1 more x)',
-      work: ['Pick two rows: from x = ' + f(xs[0]) + ' to ' + f(xs[1]) + ', y goes from ' + f(ys[0]) + ' to ' + f(ys[1]) + '.', 'Change in y = ' + f(2 * m) + ', change in x = 2.', 'Rate = ' + f(2 * m) + ' ÷ 2 = <b>' + f(m) + '</b>: for every 1 more x, y goes down ' + Math.abs(m) + '.'],
+      parts: [{ kind: 'num', label: 'Rate of change', key: m, wrong: [{ v: 2 * m, tag: 'M8' }, { v: 3 * m, tag: 'M8' }, { v: -m, tag: 'M2' }, { v: 1 / m, tag: 'M1' }] }],
+      answer: f(m) + ' (y goes ' + dir + ' ' + Math.abs(m) + ' for every 1 more x)',
+      work: ['Pick two rows: from x = ' + f(xs[0]) + ' to ' + f(xs[1]) + ', y goes from ' + f(ys[0]) + ' to ' + f(ys[1]) + '.', 'Change in y = ' + f(2 * m) + ', change in x = 2.', 'Rate = ' + f(2 * m) + ' ÷ 2 = <b>' + f(m) + '</b>: for every 1 more x, y goes ' + dir + ' ' + Math.abs(m) + '.'],
       why: {
-        M8: 'You used the change between the first two rows, ' + f(2 * m) + ', but x went up by 2 there, not 1.',
-        M2: 'y goes down as x goes up, so the rate is negative.',
-        M17: 'You subtracted the changes (' + Math.abs(6 * m) + ' − 6). Divide them instead.'
+        M8: 'You used the change in y between two rows without dividing by the change in x. From x = ' + f(xs[0]) + ' to ' + f(xs[1]) + ', x goes up by 2, so the rate is ' + f(2 * m) + ' ÷ 2 = ' + f(m) + '.',
+        M2: 'y goes ' + dir + ' as x goes up, so the rate is ' + (m < 0 ? 'negative' : 'positive') + '.',
+        M1: 'You put the change in x on top. The rate is the change in y ÷ the change in x: ' + f(2 * m) + ' ÷ 2.'
       },
       steps: [
-        { label: 'First two rows: change in y = ' + f(ys[1]) + ' − ' + par(ys[0]) + ' =', part: { kind: 'num', key: 2 * m }, hint: 'End minus start. y went down, so it is negative.' },
+        { label: 'First two rows: change in y = ' + f(ys[1]) + ' − ' + par(ys[0]) + ' =', part: { kind: 'num', key: 2 * m }, hint: 'End minus start.' + (m < 0 ? ' y went down, so it is negative.' : '') },
         { label: 'Change in x = ' + f(xs[1]) + ' − ' + par(xs[0]) + ' =', part: { kind: 'num', key: 2 }, hint: 'End minus start.' },
         { label: 'Rate = ' + f(2 * m) + ' ÷ 2 =', part: { kind: 'num', key: m }, hint: 'Change in y divided by change in x.' }
       ]
@@ -115,34 +115,37 @@
   } });
 
   C.add({ id: 'RC-4h', skill: '9', level: 5, type: 'CM', gen: function (R) {
-    var s = R.pick([1, 2]), m = R.nz(-5, 5), x0 = R.int(-3, 4), y0 = R.int(-6, 15);
+    // which statement is true is random: both right, or one student forgets to divide by the change in x (M8)
+    var bad = R.pick(['none', 'A', 'B']), s = bad === 'B' ? 2 : R.pick([1, 2]), m = R.nz(-5, 5), x0 = R.int(-3, 4), y0 = R.int(-6, 15);
     var xs = [0, 1, 2, 3].map(function (i) { return x0 + s * i; }), ys = xs.map(function (x) { return y0 + m * (x - x0); });
-    var dyA = ys[3] - ys[0], dxA = xs[3] - xs[0], dyB = ys[2] - ys[1], dxB = xs[2] - xs[1];
-    var stem = 'Two students find the rate of change from the same table.' +
-      '<p><b>Student A</b> (first and last rows): (' + f(ys[3]) + ' − ' + par(ys[0]) + ') ÷ (' + f(xs[3]) + ' − ' + par(xs[0]) + ') = ' + f(dyA) + ' ÷ ' + dxA + ' = ' + f(m) + '</p>' +
-      '<p><b>Student B</b> (rows 2 and 3): (' + f(ys[2]) + ' − ' + par(ys[1]) + ') ÷ (' + f(xs[2]) + ' − ' + par(xs[1]) + ') = ' + f(dyB) + ' ÷ ' + dxB + ' = ' + f(m) + '</p>';
+    var S = { A: { name: 'Student A', rows: 'first and last rows', i: 0, j: 3 }, B: { name: 'Student B', rows: 'rows 2 and 3', i: 1, j: 2 } };
+    ['A', 'B'].forEach(function (k) { var o = S[k]; o.dy = ys[o.j] - ys[o.i]; o.dx = xs[o.j] - xs[o.i]; o.got = k === bad ? o.dy : m; });
+    function line(k) {
+      var o = S[k], ch = '(' + f(ys[o.j]) + ' − ' + par(ys[o.i]) + ')';
+      return '<p style="margin:6px 0"><b>' + o.name + '</b> (' + o.rows + '): ' + (k === bad ? ch + ' = ' + f(o.dy) + ', so the rate is ' + f(o.dy) : ch + ' ÷ (' + f(xs[o.j]) + ' − ' + par(xs[o.i]) + ') = ' + f(o.dy) + ' ÷ ' + o.dx + ' = ' + f(m)) + '</p>';
+    }
+    var key = bad === 'none' ? 0 : bad === 'A' ? 2 : 1;
+    var opts = ['Both are right: the rate is the same between any two rows', 'Only Student A is right', 'Only Student B is right', 'Neither is right'].map(function (t, i) { var o = { t: t }; if (i === key) o.ok = true; else o.tag = i === 3 ? 'G' : 'M8'; return o; });
+    var B = bad === 'none' ? null : S[bad];
+    var verdict = bad === 'none' ? 'Both are right' : 'Only ' + S[bad === 'A' ? 'B' : 'A'].name + ' is right';
     return {
-      stem: stem,
-      fig: C.table({ cols: ['x', 'y'], rows: xs.map(function (x, i) { return [x, ys[i]]; }) }),
+      stem: 'Two students find the rate of change (the step) from this table. Which is true?',
+      fig: C.table({ cols: ['x', 'y'], rows: xs.map(function (x, i) { return [x, ys[i]]; }) }) + line('A') + line('B'),
       parts: [
-        { kind: 'choice', label: 'Which is true?', opts: [
-          { t: 'Both methods work, because the rate is the same between any two rows', ok: true },
-          { t: 'Only Student A is right', tag: 'M8' },
-          { t: 'Only Student B is right', tag: 'M8' },
-          { t: 'They got the same answer by luck', tag: 'M7' }] },
-        { kind: 'choice', label: 'If the y-value in row 2 had a typo, whose method would still give the right rate?', keep: true, opts: [
-          { t: 'Student A (first and last rows)', ok: true },
-          { t: 'Student B (rows 2 and 3)', tag: 'G' },
-          { t: 'Neither', tag: 'G' }] }
+        { kind: 'choice', label: 'Which is true?', keep: true, opts: opts },
+        { kind: 'choice', label: 'What must a right method do?', opts: [
+          { t: 'Divide the change in y by the change in x', ok: true },
+          { t: 'Use the first and last rows', tag: 'G' },
+          { t: 'Divide the last y by the last x', tag: 'M4' }] }
       ],
-      answer: 'Both methods work; Student A\'s method still works if row 2 has a typo',
-      work: ['In a linear table the rate is the same between any two rows.', 'A: ' + f(dyA) + ' ÷ ' + dxA + ' = ' + f(m) + '; B: ' + f(dyB) + ' ÷ ' + dxB + ' = ' + f(m) + '. <b>Both work.</b>', 'Student A never uses row 2, so <b>A\'s method</b> is not affected by a typo there.'],
-      why: { M8: 'Any two rows give the same rate in a linear table, as long as you divide the change in y by the change in x.', M7: 'It is not luck: the rate is constant, so every pair of rows gives ' + f(m) + '.' },
+      answer: verdict + '; a right method divides the change in y by the change in x',
+      work: ['Rate = change in y ÷ change in x, between any two rows of a linear table.', 'First and last rows: ' + f(S.A.dy) + ' ÷ ' + S.A.dx + ' = ' + f(m) + '. Rows 2 and 3: ' + f(S.B.dy) + ' ÷ ' + S.B.dx + ' = ' + f(m) + '.', bad === 'none' ? 'Both students divided the changes, so <b>both are right</b>.' : B.name + ' did not divide by the change in x (' + B.dx + '). <b>' + verdict + '</b>.'],
+      why: { M8: bad === 'none' ? 'Any two rows give the same rate in a linear table, as long as you divide the change in y by the change in x. Both students did.' : B.name + ' found the change in y (' + f(B.dy) + ') but did not divide by the change in x (' + B.dx + '). The rate is ' + f(B.dy) + ' ÷ ' + B.dx + ' = ' + f(m) + '.', M4: 'Dividing one y by one x only works for a line through (0, 0). Divide the changes.' },
       steps: [
-        { label: 'Student A: change in y = ' + f(ys[3]) + ' − ' + par(ys[0]) + ' =', part: { kind: 'num', key: dyA }, hint: 'Last minus first.' },
-        { label: 'Change in x = ' + f(xs[3]) + ' − ' + par(xs[0]) + ' =', part: { kind: 'num', key: dxA }, hint: 'Last minus first.' },
-        { label: 'Rate = ' + f(dyA) + ' ÷ ' + dxA + ' =', part: { kind: 'num', key: m }, hint: 'Divide. Student B got ' + f(m) + ' too.' },
-        { label: 'So do both methods work?', part: { kind: 'choice', keep: true, opts: [{ t: 'Yes', ok: true }, { t: 'No' }] }, hint: 'A linear table has the same rate between any two rows.' }
+        { label: 'First and last rows: change in y = ' + f(ys[3]) + ' − ' + par(ys[0]) + ' =', part: { kind: 'num', key: S.A.dy }, hint: 'Last minus first.' },
+        { label: 'Change in x = ' + f(xs[3]) + ' − ' + par(xs[0]) + ' =', part: { kind: 'num', key: S.A.dx }, hint: 'Last minus first.' },
+        { label: 'Rate = ' + f(S.A.dy) + ' ÷ ' + S.A.dx + ' =', part: { kind: 'num', key: m }, hint: 'Divide the change in y by the change in x.' },
+        { label: 'Student A got ' + f(S.A.got) + ' and Student B got ' + f(S.B.got) + '. Which is true?', part: { kind: 'choice', keep: true, opts: opts.map(function (o) { return { t: o.t, ok: !!o.ok }; }) }, hint: 'The right rate is ' + f(m) + '.' }
       ]
     };
   } });
@@ -171,38 +174,49 @@
     do { m = R.nz(-4, 4); b = R.nz(-8, 8); xi = -b / m; } while (b % m !== 0 || xi === b || m === b || Math.abs(xi) > 9);
     var fig = C.graph({ x: [-10, 10], y: [-10, 10], lines: [{ m: m, b: b }], pts: [{ x: 0, y: b, r: 4 }, { x: xi, y: 0, r: 4 }], label: 'Line crossing the y-axis at ' + f(b) + ' and the x-axis at ' + f(xi) });
     return {
-      stem: 'What is the y-intercept of this line?',
+      stem: 'What is the y-intercept (the start) of this line?',
       fig: fig,
       think: 'Which axis is the y-axis?',
       parts: [{ kind: 'num', label: 'y-intercept', key: b, wrong: [{ v: xi, tag: 'M3' }, { v: m, tag: 'M9' }] }],
       answer: f(b) + ', the point ' + C.pt(0, b),
-      work: ['The y-intercept is where the line crosses the y-axis (the up-and-down axis), where x = 0.', 'The line crosses it at ' + C.pt(0, b) + '.', 'So the y-intercept is <b>' + f(b) + '</b>.'],
+      work: ['The y-intercept (the start) is where the line crosses the up axis (y-axis), where x = 0.', 'The line crosses it at ' + C.pt(0, b) + '.', 'So the y-intercept is <b>' + f(b) + '</b>.'],
       why: { M3: 'You read where the line crosses the x-axis, at ' + f(xi) + '. The y-intercept is on the y-axis.', M9: 'You found the slope, ' + f(m) + '. The y-intercept is a value, where x = 0.' },
       steps: [
         { label: 'At the y-intercept, x =', part: { kind: 'num', key: 0 }, hint: 'Every point on the y-axis has x = 0.' },
-        { label: 'Where x = 0, the line is at y =', part: { kind: 'num', key: b }, hint: 'Follow the up-and-down axis to where the line crosses it.' }
+        { label: 'Where x = 0, the line is at y =', part: { kind: 'num', key: b }, hint: 'Follow the up axis (y-axis) to where the line crosses it.' }
       ]
     };
   } });
 
   C.add({ id: 'EQ-2c', skill: '10', level: 3, order: 2, type: 'interactive', ia: true, gen: function (R) {
-    var b, m; do { b = R.int(3, 10); m = R.int(2, 5); } while (Math.abs(b - m) < 2);
-    var yMax = b + m + 3, sx = 0;
-    var g = { x: [0, 10], y: [0, yMax], ly: yMax > 12 ? 2 : 1, size: 400, xl: 'Distance (km)', yl: 'Fare (riyals)', label: 'Fare-against-distance grid' };
+    // bike rental: the student works out the starting fee from one marked rental, then drags the line's start
+    var b, m, h, tot, rd;
+    do { b = R.int(3, 10); m = R.int(2, 5); h = R.int(2, 4); rd = m * h; tot = b + rd; }
+    while (Math.abs(b - m) < 2 || Math.abs(b - rd) < 2 || tot % h === 0 && Math.abs(tot / h - b) < 2);
+    var yMax = tot + 3;
+    var g = { x: [0, 10], y: [0, yMax], ly: yMax > 12 ? 2 : 1, size: 400, xl: 'Time (hours)', yl: 'Cost (riyals)', pts: [{ x: h, y: tot, l: C.pt(h, tot), c: C.COL.line }], label: 'Bike rental cost against time, with the point ' + C.pt(h, tot) + ' marked' };
+    var wrong = [{ v: [[0, m]], tag: 'M9' }, { v: [[0, rd]], tag: 'M14' }, { v: [[0, 0]], tag: 'M16' }, { v: [[0, tot]], tag: 'G' }];
+    if (tot % h === 0) wrong.push({ v: [[0, tot / h]], tag: 'M16' });
+    wrong = wrong.filter(function (w, i) { var y = w.v[0][1]; return y !== b && !wrong.slice(0, i).some(function (o) { return o.v[0][1] === y; }); });
     return {
-      stem: 'A taxi charges a ' + b + '-riyal starting fee plus ' + m + ' riyals per km. The fare line goes up ' + m + ' riyals for every 1 more km. Drag the line\'s starting point to the right place on the fare axis.',
-      think: 'What do you pay before you travel any distance?',
-      parts: [{ kind: 'points', label: 'Starting point', grid: g, start: [[sx, 0]], names: ['Start'], lock: 'x',
+      stem: 'A bike rental costs a starting fee plus ' + m + ' riyals per hour. A ' + h + '-hour rental costs ' + tot + ' riyals (the marked point). Drag the start of the cost line to the right place on the up axis (y-axis).',
+      think: 'How much of the ' + tot + ' riyals is for the ' + h + ' hours of riding?',
+      parts: [{ kind: 'points', label: 'Starting point', grid: g, start: [[0, 0]], names: ['Start'], lock: 'x',
         extra: function (cur) { return [{ m: m, b: cur[0][1], from: 0 }]; },
-        key: [[0, b]], wrong: [{ v: [[0, m]], tag: 'M9' }, { v: [[0, b + m]], tag: 'M14' }, { v: [[0, 0]], tag: 'M16' }] }],
-      answerFig: C.graph(Object.assign({}, g, { size: 260, lines: [{ m: m, b: b, from: 0 }], pts: [{ x: 0, y: b, l: C.pt(0, b) }] })),
-      answer: 'The line starts at ' + C.pt(0, b),
-      work: ['At the start you have travelled 0 km, so the point is on the fare axis (x = 0).', 'At 0 km you pay only the starting fee, ' + b + ' riyals.', 'So the line starts at <b>' + C.pt(0, b) + '</b>.'],
-      why: { M9: 'Your point is at ' + m + ' riyals, the cost per km. The start is the fee before you travel: ' + b + ' riyals.', M14: 'Your point adds the fee and one km (' + b + ' + ' + m + '). At the start you have not travelled yet.', M16: 'The fare does not start at 0: before you travel you already pay the ' + b + '-riyal starting fee.' },
+        key: [[0, b]], wrong: wrong }],
+      answerFig: C.graph(Object.assign({}, g, { size: 260, lines: [{ m: m, b: b, from: 0 }], pts: [{ x: 0, y: b, l: C.pt(0, b) }, { x: h, y: tot, c: C.COL.line }] })),
+      answer: 'The line starts at ' + C.pt(0, b) + ': ' + C.an(b) + ' ' + b + '-riyal starting fee',
+      work: [h + ' hours of riding cost ' + h + ' × ' + m + ' = ' + rd + ' riyals.', 'The starting fee (the start) is the rest: ' + tot + ' − ' + rd + ' = ' + b + ' riyals. That is the cost at 0 hours.', 'So the line starts at <b>' + C.pt(0, b) + '</b> on the up axis (y-axis).'],
+      why: {
+        M9: 'Your point is at ' + m + ' riyals, the cost per hour (the step). The start is the fee at 0 hours: ' + tot + ' − ' + rd + ' = ' + b + ' riyals.',
+        M14: 'Your point is at ' + rd + ' riyals, the cost of ' + h + ' hours of riding (' + h + ' × ' + m + '). The start is what is left: ' + tot + ' − ' + rd + ' = ' + b + ' riyals.',
+        M16: 'The cost does not start at 0, so it is not ' + h + ' equal shares: ' + tot + ' riyals includes a starting fee. Take away the riding, ' + h + ' × ' + m + ' = ' + rd + ', to get ' + b + ' riyals.',
+        G: tot + ' riyals is the cost after ' + h + ' hours, not at 0 hours. Take away the riding: ' + tot + ' − ' + rd + ' = ' + b + ' riyals.'
+      },
       steps: [
-        { label: 'At the start, how many km have you travelled?', part: { kind: 'num', key: 0 }, hint: 'You have not moved yet.' },
-        { label: 'At 0 km, what is the fare in riyals?', part: { kind: 'num', key: b }, hint: 'Only the starting fee.' },
-        { label: 'So the line starts at the point', part: { kind: 'choice', keep: true, opts: [{ t: C.pt(0, b), ok: true }, { t: C.pt(0, m) }, { t: C.pt(b, 0) }] }, hint: 'x is the distance (0 km), y is the fare.' }
+        { label: 'Cost of ' + h + ' hours of riding: ' + h + ' × ' + m + ' =', part: { kind: 'num', key: rd }, hint: m + ' riyals for each hour.' },
+        { label: 'Starting fee: ' + tot + ' − ' + rd + ' =', part: { kind: 'num', key: b }, hint: 'The total minus the riding.' },
+        { label: 'So the line starts at the point', part: { kind: 'choice', keep: true, opts: [{ t: C.pt(0, b), ok: true }, { t: C.pt(0, m) }, { t: C.pt(b, 0) }] }, hint: 'x is the time (0 hours), y is the cost.' }
       ]
     };
   } });
@@ -218,10 +232,10 @@
         { t: 'The fare before you travel', ok: true },
         { t: 'The cost per km', tag: 'M9' },
         { t: 'The distance travelled', tag: 'G' },
-        { t: 'Where the fare reaches zero', tag: 'M3' }] }],
+        { t: 'The fare for a 1 km ride', tag: 'M14' }] }],
       answer: 'The fare before you travel: ' + b + ' riyals',
       work: ['The point ' + C.pt(0, b) + ' is at 0 km.', 'At 0 km you have travelled nothing, so <b>' + b + ' riyals is what you pay just to start</b>.', 'The cost per km is how much the fare goes up for every 1 more km: ' + m + ' riyals.'],
-      why: { M9: 'The cost per km is the rate, ' + m + ' riyals for every 1 more km. The ' + b + ' is the value at 0 km.', M3: 'The fare never reaches zero on this graph. ' + b + ' is the fare at 0 km.' },
+      why: { M9: 'The cost per km is the rate, ' + m + ' riyals for every 1 more km. The ' + b + ' is the value at 0 km.', M14: 'A 1 km ride costs ' + b + ' + ' + m + ' = ' + (b + m) + ' riyals: the start plus one step. The ' + b + ' is the fare at 0 km.' },
       steps: [
         { label: 'At the point ' + C.pt(0, b) + ', how many km have you travelled?', part: { kind: 'num', key: 0 }, hint: 'The first number is the distance.' },
         { label: 'What is the fare there, in riyals?', part: { kind: 'num', key: b }, hint: 'The second number is the fare.' },
@@ -231,26 +245,43 @@
   } });
 
   C.add({ id: 'EQ-3d', skill: '10', level: 4, type: 'TT', gen: function (R) {
-    var a, b, m;
-    do { a = R.nz(-8, 8); b = R.nz(-8, 8); m = -b / a; } while (a === b || Math.abs(m) < 0.25 || Math.abs(m) > 4 || !okFrac(m) || C.near(m, a) || C.near(m, b));
-    var fig = C.graph({ x: [-10, 10], y: [-10, 10], lines: [{ m: m, b: b }], pts: [{ x: 0, y: b, r: 4 }, { x: a, y: 0, r: 4 }], label: 'Line crossing the y-axis at ' + f(b) + ' and the x-axis at ' + f(a) });
+    // a table with no x = 0 row (EQ-3a reads the start off a graph): work back from the first row
+    var m, b, x0, s, xs, ys, vals;
+    do {
+      m = R.nz(-4, 4); b = R.nz(-8, 8); x0 = R.int(1, 3); s = R.pick([1, 2]);
+      xs = [0, 1, 2, 3].map(function (i) { return x0 + s * i; }); ys = xs.map(function (x) { return b + m * x; });
+      vals = [f(b), f(ys[0]), f(m)].concat(s === 2 ? [f(ys[0] - m * s)] : []);
+    } while (Math.abs(ys[3]) > 30 || vals.some(function (v, i) { return vals.indexOf(v) !== i; }));
+    var opts = [{ t: f(b), ok: true }, { t: f(ys[0]), tag: 'M10' }, { t: f(m), tag: 'M9' }];
+    if (s === 2) opts.push({ t: f(ys[0] - m * s), tag: 'M8' });
     return {
-      stem: 'This graph shows a linear function. What is its initial value, and why?',
-      fig: fig,
+      stem: 'This table shows a linear function. What is its initial value (the start), and why?',
+      fig: C.table({ cols: ['x', 'y'], rows: xs.map(function (x, i) { return [x, ys[i]]; }) }),
       parts: [
-        { kind: 'choice', label: 'The initial value is', opts: [{ t: f(b), ok: true }, { t: f(a), tag: 'M3' }, { t: f(m), tag: 'M9' }] },
+        { kind: 'choice', label: 'The initial value is', opts: opts },
         { kind: 'choice', label: 'Because', opts: [
           { t: 'It is the y-value when x = 0', ok: true },
-          { t: 'It is where the line starts on the left', tag: 'M10' },
-          { t: 'It is where the line crosses the x-axis', tag: 'M3' }] }
+          { t: 'It is the y-value in the first row', tag: 'M10' },
+          { t: 'It is the change in y for every 1 more x', tag: 'M9' },
+          { t: 'It is the x-value where y = 0', tag: 'M3' }] }
       ],
       answer: f(b) + ', because it is the y-value when x = 0',
-      work: ['Initial value means the output when the input is 0.', 'On this graph x = 0 is the y-axis.', 'The line crosses the y-axis at ' + C.pt(0, b) + ', so the initial value is <b>' + f(b) + '</b>.'],
-      why: { M3: 'You used where the line crosses the x-axis (' + f(a) + '). The initial value is where x = 0, on the y-axis.', M9: 'You picked the slope, ' + f(m) + '. The initial value is the output at x = 0.', M10: 'The line has no start on the left; it keeps going. The initial value is at x = 0.' },
+      work: [
+        'Rate: each row x goes up by ' + s + ' and y changes by ' + f(m * s) + ', so for every 1 more x, y changes by ' + f(m) + '.',
+        'Initial value means the y-value when x = 0. The table starts at x = ' + x0 + ', so go back ' + C.pl(x0, 'step') + ' of 1.',
+        'y at x = 0: ' + f(ys[0]) + ' − ' + x0 + ' × ' + par(m) + ' = <b>' + f(b) + '</b>.'
+      ],
+      why: {
+        M10: 'The first row is at x = ' + x0 + ', not x = 0. Go back ' + x0 + ' from there: ' + f(ys[0]) + ' − ' + x0 + ' × ' + par(m) + ' = ' + f(b) + '.',
+        M9: 'You picked the rate of change (the step), ' + f(m) + '. The initial value is the y-value at x = 0.',
+        M8: 'You went back one row, but x goes up by 2 each row, so that only reaches x = ' + f(x0 - 2) + '. You need x = 0: ' + f(ys[0]) + ' − ' + x0 + ' × ' + par(m) + ' = ' + f(b) + '.',
+        M3: 'The initial value is a y-value, at x = 0, not where y = 0.'
+      },
       steps: [
-        { label: 'The initial value is the output when x =', part: { kind: 'num', key: 0 }, hint: 'Initial means at the start, input 0.' },
-        { label: 'When x = 0, the line is at y =', part: { kind: 'num', key: b }, hint: 'Look where the line crosses the y-axis.' },
-        { label: 'So the reason is', part: { kind: 'choice', keep: true, opts: [{ t: 'It is the y-value when x = 0', ok: true }, { t: 'It is where the line crosses the x-axis' }] }, hint: 'x = 0 is the y-axis.' }
+        { label: 'For every 1 more x, y changes by', part: { kind: 'num', key: m }, hint: f(ys[1]) + ' − ' + par(ys[0]) + (s === 2 ? ', then divide by 2 (x goes up by 2).' : '.') },
+        { label: 'The initial value is the y-value when x =', part: { kind: 'num', key: 0 }, hint: 'Initial means at the start, input 0.' },
+        { label: 'Go back ' + x0 + ' from x = ' + x0 + ': ' + f(ys[0]) + ' − ' + x0 + ' × ' + par(m) + ' =', part: { kind: 'num', key: b }, hint: 'Take away ' + x0 + ' steps of ' + f(m) + '.' },
+        { label: 'So the reason is', part: { kind: 'choice', keep: true, opts: [{ t: 'It is the y-value when x = 0', ok: true }, { t: 'It is the y-value in the first row' }] }, hint: 'Initial means x = 0.' }
       ]
     };
   } });

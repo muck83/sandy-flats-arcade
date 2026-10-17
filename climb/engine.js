@@ -80,9 +80,10 @@
     var ia = others.filter(function (t) { return t.ia; });
     return R.pick(ia.length ? ia : others).id;
   }
-  // a probe: any template whose difficulty is near the growth score, Levels 3-7
+  // a probe: a template whose difficulty is near the growth score, Levels 3-7, from a skill the student has already
+  // reached (open or secure), so a bonus question never drops them into a topic the lessons haven't taught yet
   function probeTemplate(st, R) {
-    var target = st.theta, all = Object.keys(C.T).map(function (k) { return C.T[k]; }).filter(function (t) { return t.level >= 3; });
+    var target = st.theta, all = Object.keys(C.T).map(function (k) { return C.T[k]; }).filter(function (t) { return t.level >= 3 && (E.isOpen(st, t.skill) || E.isSecure(st, t.skill)); });
     if (!all.length) return null;
     all.sort(function (a, b) { return Math.abs(C.diff(a.level) - target) - Math.abs(C.diff(b.level) - target); });
     var best = Math.abs(C.diff(all[0].level) - target), near = all.filter(function (t) { return Math.abs(C.diff(t.level) - target) <= best + 10; });
@@ -95,7 +96,7 @@
     if (ctx.twin) return pick(ctx.twin, ctx.twinMode || 'twin');
     if (ctx.check && E.templates(ctx.check).length) return pick(E.templates(ctx.check)[0].id, 'check');
     if (t && t.review.length) { var rid = t.review[0]; if (st.skills[rid].st === 'secure') return pick(reviewTemplate(st, rid, R), 'review'); t.review.shift(); return E.next(st, ctx, seed + 1); }
-    if (t && t.probeLeft > 0 && t.scored >= 2 && t.pick % 3 === 2) return pick(probeTemplate(st, R), 'probe');
+    if (t && t.probeLeft > 0 && t.scored >= 2 && t.pick % 3 === 2) { var pr = probeTemplate(st, R); if (pr) return pick(pr, 'probe'); }
     var fr = E.frontier(st), lastSkill = ctx.lastSkill;
     // the teacher's focus skill, opened for everyone: students who haven't reached it get its guided items between their own
     if (t && t.focusAll && t.focus && C.SKILL[t.focus] && !E.isOpen(st, t.focus) && !E.isSecure(st, t.focus) && t.pick % 2 === 1 && E.templates(t.focus).length) return pick(E.templates(t.focus)[0].id, 'preview');

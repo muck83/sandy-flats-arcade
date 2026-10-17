@@ -38,23 +38,25 @@
   } });
 
   C.add({ id: 'CV-1c', skill: 'F1', level: 1, type: 'TT', gen: function (R) {
-    var a = -R.int(2, 9), b = R.int(2, 12); if (R.chance(0.5)) { var t = a; a = b; b = t; }
+    // a lift in a building with basement floors (negative floor numbers below ground)
+    var a = -R.int(2, 5), b = R.int(2, 12); if (R.chance(0.5)) { var t = a; a = b; b = t; }
     if (Math.abs(a) === Math.abs(b)) b += b > 0 ? 1 : -1;
     var key = b - a;
     var opts = [{ t: f(key), ok: true }, { t: f(a - b), tag: 'M2' }, { t: f(Math.abs(b) - Math.abs(a)), tag: 'M2' }, { t: f(b + a), tag: 'M14' }];
     // keep the options distinct
     var seen = {}; opts = opts.filter(function (o) { if (seen[o.t]) return false; seen[o.t] = 1; return true; });
     return {
-      stem: 'The temperature went from ' + f(a) + ' °C to ' + f(b) + ' °C. What was the change, and why?',
+      stem: 'In a building, floors below the ground have negative numbers. A lift went from floor ' + f(a) + ' to floor ' + f(b) + '. What was the change in floor number, and why?',
       parts: [
-        { kind: 'choice', label: 'The change is', opts: opts },
+        { kind: 'choice', label: 'The change is (floors)', opts: opts },
         { kind: 'choice', label: 'Because', opts: [{ t: 'Change is end minus start', ok: true }, { t: 'Take the bigger number minus the smaller one', tag: 'M2' }, { t: 'Count the gap between them and ignore the sign', tag: 'M2' }] }
       ],
-      answer: f(key) + ' °C, because change is end minus start',
-      work: ['Change is always end minus start.', f(b) + ' − ' + par(a) + ' = <b>' + f(key) + '</b>', 'Its sign tells the direction: ' + (key < 0 ? 'negative means it went down.' : 'positive means it went up.')],
+      answer: f(key) + ' floors, because change is end minus start',
+      work: ['Change is always end minus start.', f(b) + ' − ' + par(a) + ' = <b>' + f(key) + '</b>', 'Its sign tells the direction: ' + (key < 0 ? 'negative means the lift went down.' : 'positive means the lift went up.')],
+      why: { M2: 'The lift went from floor ' + f(a) + ' (start) to floor ' + f(b) + ' (end), so it went ' + (key < 0 ? 'down' : 'up') + '. End − start = ' + f(b) + ' − ' + par(a) + ' = ' + f(key) + '.', M14: 'You added the two floor numbers. The change is end − start: ' + f(b) + ' − ' + par(a) + ' = ' + f(key) + '.' },
       steps: [
-        { label: 'Which temperature is the end?', part: { kind: 'num', key: b }, hint: 'The temperature went from the first one to the second one.' },
-        { label: 'End − start = ' + f(b) + ' − ' + par(a) + ' =', part: { kind: 'num', key: key }, hint: 'Keep the sign: did the temperature go up or down?' }
+        { label: 'Which floor is the end?', part: { kind: 'num', key: b }, hint: 'The lift went from the first floor to the second one.' },
+        { label: 'End − start = ' + f(b) + ' − ' + par(a) + ' =', part: { kind: 'num', key: key }, hint: 'Keep the sign: did the lift go up or down?' }
       ]
     };
   } });
@@ -104,6 +106,7 @@
         { kind: 'num', label: 'Change in y', key: dy, wrong: [{ v: -dy, tag: 'M2' }, { v: y2, tag: 'M13' }] }
       ],
       answer: 'x changed by ' + f(dx) + ', y changed by ' + f(dy),
+      why: { M13: 'You gave a value from the second row, not a change. The change is second − first: x: ' + f(x2) + ' − ' + par(x1) + ' = ' + f(dx) + ', and y: ' + f(y2) + ' − ' + par(y1) + ' = ' + f(dy) + '.' },
       work: ['x went from ' + f(x1) + ' to ' + f(x2) + ': ' + f(x2) + ' − ' + par(x1) + ' = <b>' + f(dx) + '</b>', 'y went from ' + f(y1) + ' to ' + f(y2) + ': ' + f(y2) + ' − ' + par(y1) + ' = <b>' + f(dy) + '</b>'],
       steps: [
         { label: 'Change in x = ' + f(x2) + ' − ' + par(x1) + ' =', part: { kind: 'num', key: dx }, hint: 'Second row minus first row.' },
@@ -126,6 +129,7 @@
         { kind: 'num', inline: true, key: Math.abs(m), wrong: [{ v: ys[1], tag: 'M13' }, { v: ys[2], tag: 'M13' }, { v: Math.abs(b), tag: 'M9' }] }
       ],
       answer: 'y goes ' + (m > 0 ? 'up' : 'down') + ' by ' + Math.abs(m),
+      why: { M13: 'That is a y-value from the table, not a change. Find how much y changes from one row to the next: ' + f(ys[1]) + ' − ' + par(ys[0]) + ' = ' + f(m) + '.', M9: Math.abs(b) + ' comes from the start: y is ' + f(b) + ' when x = 0. The question asks how much y changes each time x goes up by 1: ' + f(ys[1]) + ' − ' + par(ys[0]) + ' = ' + f(m) + '.' },
       work: ['Look at the changes, not the values.', f(ys[0]) + ' → ' + f(ys[1]) + ' is a change of ' + f(m) + '.', 'Every row changes by the same ' + f(m) + ', so y goes <b>' + (m > 0 ? 'up' : 'down') + ' by ' + Math.abs(m) + '</b>.'],
       steps: [
         { label: 'From x = 0 to x = 1, y goes from ' + f(ys[0]) + ' to ' + f(ys[1]) + '. Change in y =', part: { kind: 'num', key: m }, hint: 'End minus start: ' + f(ys[1]) + ' − ' + par(ys[0]) + '.' },
@@ -141,6 +145,7 @@
       think: 'Spread the change in y evenly over the steps in x.',
       parts: [{ kind: 'num', label: 'y goes up by', key: r, wrong: [{ v: k, tag: 'M8' }, { v: k - s, tag: 'M17' }, { v: s / k, tag: 'M1' }] }],
       answer: f(r),
+      why: { M1: 'You did ' + s + ' ÷ ' + k + '. Share the change in y over the steps in x: change in y ÷ change in x = ' + k + ' ÷ ' + s + ' = ' + r + '.', M8: k + ' is how much y goes up over ' + s + ' steps of x. For 1 step, share it out: ' + k + ' ÷ ' + s + ' = ' + r + '.', M17: 'You subtracted ' + k + ' − ' + s + '. Share the change in y over the steps instead: ' + k + ' ÷ ' + s + ' = ' + r + '.' },
       work: [k + ' is spread evenly over ' + s + ' steps of 1.', 'Each step: ' + k + ' ÷ ' + s + ' = <b>' + r + '</b>', 'We divide the changes, not subtract them.'],
       steps: [
         { label: 'How many steps of 1 does x take?', part: { kind: 'num', key: s }, hint: 'x goes up by ' + s + '.' },
@@ -152,7 +157,7 @@
   C.add({ id: 'CV-2c', skill: 'F2', level: 3, type: 'FR', gen: function (R) {
     var rate = R.int(2, 9), t1 = R.int(1, 4), dt = R.int(2, 5), t2 = t1 + dt, start = R.int(10, 60), v1 = start + rate * t1, v2 = start + rate * t2, dv = v2 - v1;
     return {
-      stem: 'A tank is filling at a steady rate. After ' + t1 + ' minutes it holds ' + v1 + ' L. After ' + t2 + ' minutes it holds ' + v2 + ' L. Complete the sentence.',
+      stem: 'A tank is filling at a steady rate. After ' + C.pl(t1, 'minute') + ' it holds ' + v1 + ' L. After ' + C.pl(t2, 'minute') + ' it holds ' + v2 + ' L. Complete the sentence.',
       sentence: 'For every 1 more {0}, the water {1} by {2} litres.',
       parts: [
         { kind: 'choice', inline: true, keep: true, opts: [{ t: 'minute', ok: true }, { t: 'litre', tag: 'M9' }] },
@@ -160,6 +165,7 @@
         { kind: 'num', inline: true, key: rate, wrong: [{ v: dv, tag: 'M8' }, { v: v2 / t2, tag: 'M4' }, { v: dv - dt, tag: 'M17' }] }
       ],
       answer: 'For every 1 more minute, the water increases by ' + rate + ' litres',
+      why: { M9: 'You swapped the input and the output. Time (minutes) is the input: the rate is per 1 more minute, not per litre. The litres are what change.', M8: dv + ' L is the change over ' + C.pl(dt, 'minute') + '. For 1 minute, share it out: ' + dv + ' ÷ ' + dt + ' = ' + rate + ' L.', M4: v2 + ' ÷ ' + t2 + ' only works if the tank started empty. It did not, so use the changes: ' + dv + ' ÷ ' + dt + ' = ' + rate + ' L per minute.', M17: 'You subtracted the changes. Divide them: ' + dv + ' L ÷ ' + C.pl(dt, 'minute') + ' = ' + rate + ' L per minute.' },
       work: ['In ' + dt + ' minutes the water rose ' + v2 + ' − ' + v1 + ' = ' + dv + ' L.', 'In 1 minute it rose ' + dv + ' ÷ ' + dt + ' = <b>' + rate + ' L</b>.', 'Using ' + v2 + ' ÷ ' + t2 + ' only works if the tank started empty.'],
       steps: [
         { label: 'Change in water: ' + v2 + ' − ' + v1 + ' =', part: { kind: 'num', key: dv }, hint: 'End minus start, in litres.' },
@@ -181,6 +187,7 @@
       fig: C.table({ cols: ['x', 'y'], rows: [[xs[0], ys[0]], [xs[1], blank], [xs[2], blank], [xs[3], blank]] }),
       parts: [1, 2, 3].map(function (i) { return { kind: 'num', label: 'y when x = ' + f(xs[i]), key: ys[i], wrong: [{ v: y0 + k * s * i, tag: 'M8' }, { v: y0 - k * i, tag: 'M2' }] }; }),
       answer: ys.slice(1).map(f).join(', '),
+      why: { M8: 'Each row, x goes up by ' + s + ' and y changes by ' + f(k) + '. You changed y by ' + f(k) + ' × ' + s + ' = ' + f(k * s) + ' each row. Use the change the question gives: ' + f(y0) + ' ' + C.term(k) + ' = ' + f(ys[1]) + '.', M2: 'y goes ' + (k > 0 ? 'up' : 'down') + ' by ' + Math.abs(k) + ' each row, so the change is ' + f(k) + ', not ' + f(-k) + ': ' + f(y0) + ' ' + C.term(k) + ' = ' + f(ys[1]) + '.' },
       work: ['Each row adds ' + s + ' to x and ' + f(k) + ' to y.', 'y: ' + ys.map(f).join(' → '), 'That is ' + f(k) + ' ÷ ' + s + ' = <b>' + f(rate) + '</b> for every 1 more x.'],
       steps: [
         { label: 'From one row to the next, x goes up by ' + s + '. How much does y change each row?', part: { kind: 'num', key: k }, hint: 'The question tells you: ' + (k > 0 ? 'up' : 'down') + ' ' + Math.abs(k) + '.' },

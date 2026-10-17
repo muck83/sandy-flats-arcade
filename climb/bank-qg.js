@@ -49,13 +49,13 @@
     opts.push({ t: 'From A to D' });
     var pts = xs.map(function (x, k) { return { x: x, y: ys[k], l: L[k] }; });
     return {
-      stem: 'Over which interval is the function increasing?',
+      stem: 'Over which part of the graph is the function increasing?',
       fig: C.graph({ x: [0, 12], y: [0, 8], nums: false, xl: 'Input x', yl: 'Output y', size: 340, lines: [{ seg: xs.map(function (x, k) { return [x, ys[k]]; }) }], pts: pts, label: 'A graph made of three straight pieces through the points A, B, C and D' }),
       think: 'Move left to right. Where does the graph go up?',
       parts: [{ kind: 'choice', label: 'Increasing', opts: opts }],
       why: { M13: nm(hi) + ' is the highest part of the graph, but there it is ' + (types[hi] === 'flat' ? 'flat' : 'going down') + '. Increasing means going up as you move right, wherever that happens.' },
       answer: nm(up),
-      work: ['Increasing means y goes up as x goes to the right.', 'Read each piece left to right: ' + types.map(function (t, k) { return L[k] + ' to ' + L[k + 1] + ' goes ' + t; }).join(', ') + '.', 'The graph rises <b>' + nm(up).toLowerCase() + '</b>, even though it is not the highest part.'],
+      work: ['Increasing means y goes up as x goes to the right.', 'Read each piece left to right: ' + types.map(function (t, k) { return L[k] + ' to ' + L[k + 1] + ' goes ' + t; }).join(', ') + '.', 'The graph rises <b>from ' + L[up] + ' to ' + L[up + 1] + '</b>, even though it is not the highest part.'],
       steps: [
         { label: 'Increasing means that, moving to the right, the graph goes', part: { kind: 'choice', keep: true, opts: [{ t: 'up', ok: true }, { t: 'down' }, { t: 'flat' }] }, hint: 'The outputs get bigger as the inputs get bigger.' },
         { label: 'Which piece goes up?', part: { kind: 'choice', keep: true, opts: [0, 1, 2].map(function (k) { return { t: L[k] + ' to ' + L[k + 1], ok: k === up }; }) }, hint: 'Follow each piece from its left end to its right end. Height does not matter, direction does.' }
@@ -100,23 +100,23 @@
     var key = [[0, 0], [a, h], [a + st, h], [a + st + run, 0], [10, 0]];
     var grid = { x: [0, 10], y: [0, 8], nums: false, xl: 'Time', yl: 'Distance from home', size: 400, label: 'Distance from home against time' };
     return {
-      stem: nmS + ' walks to a friend\'s house, stays a while, then runs home and stays there. Drag the 5 corners up or down to graph ' + nmS + '\'s distance from home against time.',
-      think: 'Walking, visiting, running, home: what does each do to the distance?',
-      parts: [{ kind: 'points', label: 'Your graph', grid: grid, start: T.map(function (t) { return [t, 2]; }), names: ['Leaves home', 'Reaches the friend', 'Leaves the friend', 'Gets home', 'End'], labels: false, lock: 'x', connect: 'poly', key: key,
+      stem: nmS + ' cycles to the park, stops there a while, then cycles home faster and stays home. Drag the 5 corners up or down to graph ' + nmS + '\'s distance from home against time.',
+      think: 'Cycling out, at the park, cycling back, home: what does each do to the distance?',
+      parts: [{ kind: 'points', label: 'Your graph', grid: grid, start: T.map(function (t) { return [t, 2]; }), names: ['Leaves home', 'Reaches the park', 'Leaves the park', 'Gets home', 'End'], labels: false, lock: 'x', connect: 'poly', key: key,
         check: function (cur) {
           var q = slopes(cur), p = q.p, s = q.s;
           if (p[0][1] === 0 && s[0] > 0 && s[1] === 0 && s[2] < 0 && p[3][1] === 0 && s[3] === 0 && -s[2] > s[0]) return { ok: true };
           if (s[0] < 0 || s[1] !== 0 || s[2] > 0 || s[3] > 0) return { ok: false, tag: 'M10' };
           return { ok: false };
         } }],
-      why: { M10: 'The graph is not a picture of the walk. Distance from home goes up while ' + nmS + ' walks away, stays flat during the visit, and drops to 0 on the way home.' },
+      why: { M10: 'The graph is not a picture of the ride. Distance from home goes up while ' + nmS + ' cycles away, stays flat at the park, and drops to 0 on the way home.' },
       answerFig: C.graph(spec(grid, { size: 300, lines: [{ seg: key }], label: 'Rises, flat, falls steeply to 0, flat at 0' })),
       answer: 'Up, flat, a steeper drop to 0, then flat at 0',
-      work: ['Walking to the friend\'s house: distance from home goes <b>up</b>.', 'Visiting: the distance stays the same, a <b>flat</b> piece.', 'Running home: the distance drops to 0, <b>steeper</b> than the walk because running is faster.', 'At home: flat at <b>0</b>.'],
+      work: ['Cycling to the park: distance from home goes <b>up</b>.', 'At the park: the distance stays the same, a <b>flat</b> piece.', 'Cycling home faster: the distance drops to 0, <b>steeper</b> than the ride out.', 'At home: flat at <b>0</b>.'],
       steps: [
-        { label: 'While ' + nmS + ' walks to the friend\'s house, the distance from home', part: { kind: 'choice', keep: true, opts: [{ t: 'increases', ok: true }, { t: 'decreases' }, { t: 'stays the same' }] }, hint: 'Walking away from home makes the distance bigger.' },
-        { label: 'During the visit, the graph is', part: { kind: 'choice', keep: true, opts: [{ t: 'going up' }, { t: 'going down' }, { t: 'flat', ok: true }] }, hint: 'Staying in one place: the distance does not change.' },
-        { label: 'Running is faster than walking, so the piece back down is ___ than the piece going up.', part: { kind: 'choice', keep: true, opts: [{ t: 'steeper', ok: true }, { t: 'less steep' }] }, hint: 'Faster means more distance in each minute.' },
+        { label: 'While ' + nmS + ' cycles to the park, the distance from home', part: { kind: 'choice', keep: true, opts: [{ t: 'increases', ok: true }, { t: 'decreases' }, { t: 'stays the same' }] }, hint: 'Moving away from home makes the distance bigger.' },
+        { label: 'While ' + nmS + ' is at the park, the graph is', part: { kind: 'choice', keep: true, opts: [{ t: 'going up' }, { t: 'going down' }, { t: 'flat', ok: true }] }, hint: 'Staying in one place: the distance does not change.' },
+        { label: 'The ride home is faster, so the piece back down is ___ than the piece going up.', part: { kind: 'choice', keep: true, opts: [{ t: 'steeper', ok: true }, { t: 'less steep' }] }, hint: 'Faster means more distance in each minute.' },
         { label: 'Once ' + nmS + ' is home, the distance from home is', part: { kind: 'num', key: 0 }, hint: 'At home there is no distance left.' }
       ]
     };
@@ -150,8 +150,9 @@
       answerFig: C.graph(spec(win, { size: 300, lines: [{ seg: path }], pts: labs.map(function (p, k) { return { x: p.x, y: p.y, r: 0.01, l: p.l + ': ' + DIR3[bin[types[k]]].toLowerCase() }; }), label: 'Each segment with its description' })),
       answer: L.map(function (l, k) { return l + ' ' + DIR3[bin[types[k]]].toLowerCase(); }).join(', '),
       work: ['Read each segment left to right: up is increasing, down is decreasing, flat is constant.', L.map(function (l, k) { return l + ' goes ' + word(ys[k + 1] - ys[k]); }).join(', ') + '.', 'So <b>' + L.map(function (l, k) { return l + ' ' + DIR3[bin[types[k]]].toLowerCase(); }).join(', ') + '</b>.'],
-      steps: [0, 1, 2].map(function (k) {
-        return { label: 'Segment ' + L[k] + ' is', part: { kind: 'choice', keep: true, opts: dirOpts(ys[k + 1] - ys[k]) }, hint: 'Follow segment ' + L[k] + ' from left to right: does it go up, down, or stay level?' };
+      // one step per segment, so the steps rebuild the whole sort
+      steps: [0, 1, 2, 3].map(function (k) {
+        return { label: 'Segment ' + L[k] + ' is', part: { kind: 'choice', keep: true, opts: dirOpts(ys[k + 1] - ys[k]) }, hint: 'Follow segment ' + L[k] + ' from left to right: up is increasing, down is decreasing, level is constant.' };
       })
     };
   } });
@@ -196,21 +197,22 @@
     var vH = 1, vS = R.int(2, 3), a0 = (vS - vH) * 5 + R.int(1, 2), top = a0 + vH * 5 + 1;
     var hiName = R.pick(['A', 'B']), stName = hiName === 'A' ? 'B' : 'A';
     var lines = [{ seg: [[0, a0], [5, a0 + 5 * vH]], color: C.COL.line }, { seg: [[0, 0], [5, 5 * vS]], color: C.COL.line2 }];
-    var pts = [{ x: 4, y: a0 + 4 * vH, l: 'Car ' + hiName, c: C.COL.line, r: 5 }, { x: 4, y: 4 * vS, l: 'Car ' + stName, c: C.COL.line2, r: 5 }];
+    // the steep car's label sits just below its own line, well away from the other line
+    var pts = [{ x: 4, y: a0 + 4 * vH, l: 'Car ' + hiName, c: C.COL.line, r: 5 }, { x: 4, y: 4 * vS, c: C.COL.line2, r: 5 }, { x: 3, y: 3 * vS - 2, l: 'Car ' + stName, r: 0.01 }];
     function opt(n) { return 'Car ' + n; }
     var opts = [{ t: 'Car A', ok: hiName === 'B', tag: hiName === 'A' ? 'M13' : null }, { t: 'Car B', ok: hiName === 'A', tag: hiName === 'B' ? 'M13' : null }, { t: 'They go the same speed' }, { t: 'You can\'t tell from the graph' }];
     opts.forEach(function (o) { if (!o.tag) delete o.tag; });
     return {
-      stem: 'The graph shows the distance travelled by two cars against time. Car ' + hiName + '\'s line is higher on the graph, and car ' + stName + '\'s line is steeper. Which car is going faster?',
-      fig: C.graph({ x: [0, 5], y: [0, top], nums: false, xl: 'Time', yl: 'Distance', size: 320, lines: lines, pts: pts, label: 'Distance against time for car A and car B' }),
+      stem: 'The graph shows two cars\' distance from town against time. Which car is going faster?',
+      fig: C.graph({ x: [0, 5], y: [0, top], nums: false, xl: 'Time', yl: 'Distance from town', size: 320, lines: lines, pts: pts, label: 'Distance from town against time for car A and car B' }),
       think: 'Speed is how much distance for each bit of time.',
       parts: [{ kind: 'choice', label: 'Faster car', keep: true, opts: opts }],
-      why: { M13: 'Car ' + hiName + ' is farther along, so its line is higher. But speed is how fast the distance grows: car ' + stName + '\'s line rises ' + vS + ' squares for each square of time, car ' + hiName + '\'s only ' + vH + '.' },
+      why: { M13: 'Car ' + hiName + ' is farther from town, so its line is higher. But speed is how fast the distance grows: car ' + stName + '\'s line rises ' + vS + ' squares for each square of time, car ' + hiName + '\'s only ' + vH + '.' },
       answer: opt(stName),
-      work: ['Speed is distance per unit of time: how steeply the line rises.', 'For each square of time, car ' + stName + '\'s line rises ' + vS + ' squares and car ' + hiName + '\'s rises ' + vH + '.', 'Car ' + hiName + ' is farther along, but <b>car ' + stName + '</b> is faster.'],
+      work: ['Speed is distance per unit of time: how steeply the line rises.', 'For each square of time, car ' + stName + '\'s line rises ' + vS + ' squares and car ' + hiName + '\'s rises ' + vH + '.', 'Car ' + hiName + ' is farther from town, but <b>car ' + stName + '</b> is faster: its line is steeper.'],
       steps: [
         { label: 'For 1 square of time, how many squares does car ' + hiName + '\'s line rise?', part: { kind: 'num', key: vH }, hint: 'Pick a point on the line where it crosses a corner, then move 1 square right.' },
-        { label: 'For 1 square of time, how many squares does car ' + stName + '\'s line rise?', part: { kind: 'num', key: vS }, hint: 'Start at the origin and move 1 square right.' },
+        { label: 'For 1 square of time, how many squares does car ' + stName + '\'s line rise?', part: { kind: 'num', key: vS }, hint: 'Start at (0, 0) and move 1 square right.' },
         { label: 'So the faster car is', part: { kind: 'choice', keep: true, opts: [{ t: 'Car A', ok: stName === 'A' }, { t: 'Car B', ok: stName === 'B' }] }, hint: 'More distance in the same time means faster.' }
       ]
     };
@@ -231,7 +233,7 @@
     function dirOptsW(d) { return [{ t: 'increases', ok: d > 0, tag: d > 0 ? null : 'M2' }, { t: 'decreases', ok: d < 0, tag: d < 0 ? null : 'M2' }, { t: 'stays the same' }].map(function (o) { if (!o.tag) delete o.tag; return o; }); }
     var q1 = fastFirst ? 'quickly' : 'slowly', q2 = fastFirst ? 'slowly' : 'quickly';
     return {
-      stem: 'The graph shows the water level in a tank against time. Compare the two parts and complete the sentence.',
+      stem: 'The graph shows the water level in a tank against time. Complete the sentence.',
       fig: C.graph({ x: [0, 10], y: [0, 10], nums: false, xl: 'Time', yl: 'Water level', size: 320, lines: [{ seg: path }], pts: pts, label: 'Water level against time, through points A, B and C' }),
       sentence: 'From A to B, the water level {0} {1}, and from B to C it {2} {3}.',
       parts: [
@@ -242,7 +244,7 @@
       ],
       why: { M2: 'Read each part from left to right: going up means the level increases, going down means it decreases.' },
       answer: 'From A to B it ' + dir(d1) + ' ' + q1 + ', and from B to C it ' + dir(d2) + ' ' + q2,
-      work: ['Steeper parts mean faster change.', 'From A to B the level ' + (d1 > 0 ? 'rises ' : 'drops ') + Math.abs(d1) + ' squares in ' + t1 + ' square' + (t1 > 1 ? 's' : '') + ' of time; from B to C it ' + (d2 > 0 ? 'rises ' : 'drops ') + Math.abs(d2) + ' squares in ' + t2 + '.', 'So A to B <b>' + dir(d1) + ' ' + q1 + '</b> and B to C <b>' + dir(d2) + ' ' + q2 + '</b>.'],
+      work: ['Steeper parts mean faster change.', 'From A to B the level ' + (d1 > 0 ? 'rises ' : 'drops ') + C.pl(Math.abs(d1), 'square') + ' in ' + C.pl(t1, 'square') + ' of time; from B to C it ' + (d2 > 0 ? 'rises ' : 'drops ') + C.pl(Math.abs(d2), 'square') + ' in ' + C.pl(t2, 'square') + '.', 'So A to B <b>' + dir(d1) + ' ' + q1 + '</b> and B to C <b>' + dir(d2) + ' ' + q2 + '</b>.'],
       steps: [
         { label: 'From A to B, the graph goes', part: { kind: 'choice', keep: true, opts: [{ t: 'up', ok: d1 > 0 }, { t: 'down', ok: d1 < 0 }] }, hint: 'Follow the line from A to B, left to right.' },
         { label: 'From B to C, the graph goes', part: { kind: 'choice', keep: true, opts: [{ t: 'up', ok: d2 > 0 }, { t: 'down', ok: d2 < 0 }] }, hint: 'Follow the line from B to C, left to right.' },
@@ -256,23 +258,25 @@
     do {
       w = [0, 1, 2, 3].map(function () { return R.int(1, 4); });
       r = [0, 1, 2, 3].map(function () { return R.int(0, 5); });
-      var rates = r.map(function (v, i) { return v / w[i]; }), mx = Math.max.apply(null, rates), mw = Math.max.apply(null, w);
-      k = rates.indexOf(mx); Lg = w.indexOf(mw);
-      ok = rates.filter(function (v) { return v === mx; }).length === 1 && w.filter(function (v) { return v === mw; }).length === 1 &&
+      // k: the fastest segment; Lg: the segment that gains the most distance (but over more time)
+      var rates = r.map(function (v, i) { return v / w[i]; }), mx = Math.max.apply(null, rates), mw = Math.max.apply(null, r);
+      k = rates.indexOf(mx); Lg = r.indexOf(mw);
+      ok = rates.filter(function (v) { return v === mx; }).length === 1 && r.filter(function (v) { return v === mw; }).length === 1 &&
         k !== 3 && Lg !== 3 && Lg !== k && w.reduce(function (a, b) { return a + b; }) <= 12 && r.reduce(function (a, b) { return a + b; }) <= 12 && r[3] > 0;
     } while (!ok);
     var L = ['P', 'Q', 'R', 'S'], xs = [0], ys = [0];
     for (var i = 0; i < 4; i++) { xs.push(xs[i] + w[i]); ys.push(ys[i] + r[i]); }
     var path = xs.map(function (x, i) { return [x, ys[i]]; });
     var labs = L.map(function (l, i) { return { x: (xs[i] + xs[i + 1]) / 2, y: (ys[i] + ys[i + 1]) / 2, l: l, r: 0.01 }; });
-    var opts = L.map(function (l, i) { var o = { t: 'Segment ' + l }; if (i === k) o.ok = true; else if (i === 3) o.tag = 'M10'; else if (i === Lg) o.tag = 'M13'; return o; });
-    function sq(n) { return n + ' square' + (n === 1 ? '' : 's'); }
+    // S (highest on the graph) read as fastest: M13; the segment with the most distance, not divided by its time: M8
+    var opts = L.map(function (l, i) { var o = { t: 'Segment ' + l }; if (i === k) o.ok = true; else if (i === 3) o.tag = 'M13'; else if (i === Lg) o.tag = 'M8'; return o; });
+    function sq(n) { return C.pl(n, 'square'); }
     return {
       stem: 'The graph shows the distance a car has travelled against time. During which segment did the car travel fastest?',
       fig: C.graph({ x: [0, 12], y: [0, 12], nums: false, xl: 'Time', yl: 'Distance', size: 340, lines: [{ seg: path }], pts: labs, label: 'Distance against time with segments P, Q, R and S' }),
       think: 'Fastest means the most distance for each bit of time.',
       parts: [{ kind: 'choice', label: 'Fastest', keep: true, opts: opts }],
-      why: { M10: 'Segment S is the highest because the car has gone farthest by then, not because it is fastest. Speed is how steep the segment is.', M13: 'Segment ' + L[Lg] + ' is the longest, so the car spent the most time on it, but its distance grows only ' + sq(r[Lg]) + ' in ' + sq(w[Lg]) + ' of time.' },
+      why: { M13: 'Segment S is highest because the car has gone farthest by then. Higher on the graph means further along, not faster: speed is how steep a segment is.', M8: 'Segment ' + L[Lg] + ' gains the most distance (' + sq(r[Lg]) + '), but it takes ' + sq(w[Lg]) + ' of time to do it: ' + r[Lg] + ' ÷ ' + w[Lg] + ' = ' + f(r[Lg] / w[Lg]) + ' for each square of time. Segment ' + L[k] + ' gains ' + f(r[k] / w[k]) + ' for each square of time.' },
       answer: 'Segment ' + L[k],
       work: ['Speed is the steepness of a distance-time graph: distance gained for each square of time.', L.map(function (l, i) { return l + ': ' + r[i] + ' ÷ ' + w[i] + ' = ' + f(r[i] / w[i]); }).join('; ') + '.', 'Segment ' + L[k] + ' covers ' + sq(r[k]) + ' of distance in ' + sq(w[k]) + ' of time, the greatest rate: <b>segment ' + L[k] + '</b>.'],
       steps: [
@@ -291,7 +295,7 @@
     var key = [[0, top], [t1, top - d1], [t1 + t2, top - d1], [t1 + t2 + t3, 0], [10, 0]];
     var grid = { x: [0, 10], y: [0, 9], nums: false, xl: 'Time', yl: 'Water in the tank', size: 400, label: 'Water in the tank against time' };
     return {
-      stem: 'A tank holds ' + v0 + ' L of water. It drains slowly for ' + t1 + ' minutes, stays the same for ' + t2 + ' minutes, then drains quickly until it is empty. Drag the 5 corners up or down to graph the water in the tank against time.',
+      stem: 'A tank holds ' + v0 + ' L of water. It drains slowly for ' + t1 + ' minutes, pauses for ' + t2 + ' minutes, then drains quickly until empty. Drag the 5 corners to graph the water against time.',
       think: 'Slow drain: a gentle slope down. Quick drain: a steep slope down.',
       parts: [{ kind: 'points', label: 'Your graph', grid: grid, start: T.map(function (t) { return [t, 4]; }), names: ['Start', 'Drain stops', 'Drain starts again', 'Empty', 'End'], labels: false, lock: 'x', connect: 'poly', key: key,
         check: function (cur) {

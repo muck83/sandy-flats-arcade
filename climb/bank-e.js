@@ -25,6 +25,11 @@
     return C.graph({ x: [-10, 10], y: [-10, 10], size: size, lines: [{ m: m, b: b }], pts: pts, label: label || 'Graph of a straight line through ' + pts.map(function (p) { return C.pt(p.x, p.y); }).join(' and ') });
   }
   function upDown(m) { return (m > 0 ? 'up ' : 'down ') + f(Math.abs(m)); }
+  // the last guided step: pick the whole equation (wrong options: m and b swapped, slope sign flipped)
+  function eqStep(m, b, xv, yv) {
+    var e = function (a, c) { return xv ? C.eqText(a, c, yv, xv) : eq(a, c); };
+    return { label: 'So the equation is', part: { kind: 'choice', opts: [{ t: e(m, b), ok: true }, { t: e(b, m) }, { t: e(-m, b) }] }, hint: (yv || 'y') + ' = (step) × ' + (xv || 'x') + ' + (start). The step is ' + f(m) + ' and the start is ' + f(b) + '.' };
+  }
 
   /* ---------------- Skill 11 Equation from a graph ---------------- */
   C.add({ id: 'EQ-3b', skill: '11', level: 3, order: 1, type: 'MC', gen: function (R) {
@@ -45,8 +50,8 @@
       parts: [{ kind: 'choice', label: 'The equation is', opts: opts }],
       answer: eq(m, b),
       work: [
-        'The line crosses the y-axis at (0, ' + f(b) + '), so b = ' + f(b) + '.',
-        'For every 1 step right, the line goes ' + upDown(m) + ', so m = ' + f(m) + '.',
+        'The line crosses the y-axis at (0, ' + f(b) + '), so the y-intercept (the start) is b = ' + f(b) + '.',
+        'For every 1 step right, the line goes ' + upDown(m) + ', so the slope (the step) is m = ' + f(m) + '.',
         'Equation: <b>' + eq(m, b) + '</b>'
       ],
       why: {
@@ -56,7 +61,7 @@
         M16: 'y = ' + f(m) + 'x goes through (0, 0), but this line crosses the y-axis at ' + f(b) + '.'
       },
       steps: [
-        { label: 'Where does the line cross the y-axis? y =', part: { kind: 'num', key: b }, hint: 'Look at x = 0, the vertical axis.' },
+        { label: 'Where does the line cross the y-axis? y =', part: { kind: 'num', key: b }, hint: 'Look at x = 0, on the up axis (y-axis).' },
         { label: 'For every 1 step right, how much does y change?', part: { kind: 'num', key: m }, hint: 'Compare (0, ' + f(b) + ') with ' + C.pt(x2, y2) + '. Down is negative.' },
         { label: 'So the equation is', part: { kind: 'choice', opts: [{ t: eq(m, b), ok: true }, { t: eq(b, m) }, { t: eq(-m, b) }] }, hint: 'y = (slope)x + (y-intercept).' }
       ]
@@ -109,8 +114,8 @@
       parts: [{ kind: 'eq', label: 'y =', key: C.line(m, b), show: eq(m, b), wrong: wl(m, b, [[b, m, 'M9'], [-m, b, 'M2'], [1 / m, b, 'M1'], [m, -b / m, 'M3'], [m, 0, 'M16']]) }],
       answer: eq(m, b),
       work: [
-        'Start at (0, ' + f(b) + '), so b = ' + f(b) + '.',
-        'Move to ' + C.pt(dx, y2) + ': change in y = ' + f(dy) + ', change in x = ' + dx + ', so m = ' + f(dy) + ' ÷ ' + dx + ' = ' + f(m) + '.',
+        'Start at (0, ' + f(b) + '), so the y-intercept (the start) is b = ' + f(b) + '.',
+        'Move to ' + C.pt(dx, y2) + ': change in y = ' + f(dy) + ', change in x = ' + dx + ', so the slope (the step) is m = ' + f(dy) + ' ÷ ' + dx + ' = ' + f(m) + '.',
         'Equation: <b>' + eq(m, b) + '</b>'
       ],
       why: {
@@ -123,44 +128,47 @@
       steps: [
         { label: 'Where does the line cross the y-axis? b =', part: { kind: 'num', key: b }, hint: 'Look at x = 0.' },
         { label: 'From (0, ' + f(b) + ') to ' + C.pt(dx, y2) + ', the change in y is', part: { kind: 'num', key: dy }, hint: 'End minus start: ' + f(y2) + ' − ' + par(b) + '.' },
-        { label: 'The change in x is', part: { kind: 'num', key: dx }, hint: dx + ' − 0.' },
-        { label: 'Slope m = ' + f(dy) + ' ÷ ' + dx + ' =', part: { kind: 'num', key: m }, hint: 'Change in y on top, change in x underneath.' }
+        { label: 'The change in x is ' + dx + '. Slope m = ' + f(dy) + ' ÷ ' + dx + ' =', part: { kind: 'num', key: m }, hint: 'Change in y on top, change in x underneath.' },
+        eqStep(m, b)
       ]
     };
   } });
 
   C.add({ id: 'EQ-4c', skill: '11', level: 4, order: 2, type: 'interactive', ia: true, gen: function (R) {
-    var m, b, p, val, on, q;
+    // the student reads a target line off the grid and builds it with the m and b sliders
+    var m, b, dx, y2;
     do {
-      do { m = R.pick([-2, -1, 1, 2, 0.5, -0.5]); b = R.nz(-6, 6); } while (m === b || m === -b);
-      p = Math.abs(m) < 1 ? R.pick([-4, -2, 2, 4]) : R.nz(-4, 4);
-      val = m * p + b; on = R.chance(0.5); q = on ? val : val + R.pick([-3, -2, -1, 1, 2, 3]);
-    } while (Math.abs(q) > 9);
-    var g = { x: [-10, 10], y: [-10, 10], size: 380, label: 'Your line' };
+      m = R.pick([-3, -2, -1, 1, 2, 3, 0.5, -0.5, -2, 2]); b = R.nz(-6, 6);
+      dx = (Math.abs(m) < 1 ? 2 : R.pick([1, 2])) * R.sign(); y2 = b + m * dx;
+    } while (m === b || Math.abs(y2) > 9);
+    var dy = y2 - b;
+    function reach(v) { return v.m >= -3 && v.m <= 3 && Math.abs(v.m * 2 - Math.round(v.m * 2)) < 1e-9 && v.b >= -8 && v.b <= 8 && Math.abs(v.b - Math.round(v.b)) < 1e-9 && !(C.near(v.m, m, 1e-9) && C.near(v.b, b, 1e-9)); }
+    var wrong = [{ v: { m: b, b: m }, tag: 'M9' }, { v: { m: -m, b: b }, tag: 'M2' }, { v: { m: m, b: -b }, tag: 'M2' }, { v: { m: 1 / m, b: b }, tag: 'M1' }].filter(function (w) { return reach(w.v); });
+    var p1 = { x: 0, y: b, l: C.pt(0, b) }, p2 = { x: dx, y: y2, l: C.pt(dx, y2) };
+    var g = { x: [-10, 10], y: [-10, 10], size: 380, lines: [{ m: m, b: b, color: C.COL.line2, dash: true, w: 2.5 }], pts: [p1, p2], label: 'A dashed target line through ' + C.pt(0, b) + ' and ' + C.pt(dx, y2) };
     return {
-      stem: 'Use the <b>m</b> and <b>b</b> sliders to make the line ' + eq(m, b) + '. Then check: is ' + C.pt(p, q) + ' on your line?',
-      think: 'm multiplies x. b is added on.',
+      stem: 'The dashed line goes through the two marked points. Set the <b>m</b> and <b>b</b> sliders so your line lies on top of it.',
+      think: 'b is the start, where it crosses the up axis (y-axis). m is the step: change in y for every 1 step right.',
       parts: [
-        { kind: 'slider', label: 'Line builder', sliders: [{ id: 'm', label: 'Slope m', min: -3, max: 3, step: 0.5, start: 0 }, { id: 'b', label: 'y-intercept b', min: -8, max: 8, step: 1, start: 0 }], grid: g,
-          key: { m: m, b: b }, wrong: [{ v: { m: b, b: m }, tag: 'M9' }, { v: { m: -m, b: b }, tag: 'M2' }, { v: { m: m, b: -b }, tag: 'M2' }] },
-        { kind: 'choice', label: 'Is ' + C.pt(p, q) + ' on the line?', keep: true, opts: [{ t: 'Yes', ok: on, tag: 'G' }, { t: 'No', ok: !on, tag: 'G' }] }
+        { kind: 'slider', label: 'Line builder', sliders: [{ id: 'm', label: 'Slope m (the step)', min: -3, max: 3, step: 0.5, start: 0 }, { id: 'b', label: 'y-intercept b (the start)', min: -8, max: 8, step: 1, start: 0 }], grid: g,
+          key: { m: m, b: b }, wrong: wrong }
       ],
-      answerFig: C.graph(Object.assign({}, g, { size: 260, lines: [{ m: m, b: b }], pts: [{ x: 0, y: b }, { x: p, y: q, l: C.pt(p, q), c: on ? C.COL.pt : C.COL.line2 }] })),
-      answer: 'm = ' + f(m) + ', b = ' + f(b) + '; ' + (on ? 'yes' : 'no'),
+      answerFig: C.graph({ x: [-10, 10], y: [-10, 10], size: 260, lines: [{ m: m, b: b }], pts: [p1, p2], label: 'The line ' + eq(m, b) }),
+      answer: 'm = ' + f(m) + ', b = ' + f(b) + ': ' + eq(m, b),
       work: [
-        'm is the number that multiplies x: m = ' + f(m) + '. b is the number added: b = ' + f(b) + '.',
-        'Check: ' + f(m) + ' × ' + par(p) + ' ' + C.term(b) + ' = ' + f(val) + '.',
-        f(q) + (on ? ' = ' : ' ≠ ') + f(val) + ', so ' + C.pt(p, q) + ' <b>' + (on ? 'is' : 'is not') + '</b> on the line.'
+        'The line crosses the y-axis at ' + C.pt(0, b) + ', so the y-intercept (the start) is b = ' + f(b) + '.',
+        'From ' + C.pt(0, b) + ' to ' + C.pt(dx, y2) + ': change in y = ' + f(dy) + ', change in x = ' + f(dx) + ', so the slope (the step) is m = ' + f(dy) + ' ÷ ' + par(dx) + ' = ' + f(m) + '.',
+        'Set m = ' + f(m) + ' and b = ' + f(b) + ': <b>' + eq(m, b) + '</b>.'
       ],
       why: {
-        M9: 'You swapped the sliders. m = ' + f(m) + ' sets the slope; b = ' + f(b) + ' moves where the line crosses the y-axis.',
-        M2: 'Check the sign: in ' + eq(m, b) + ', m = ' + f(m) + ' and b = ' + f(b) + '.'
+        M9: 'You swapped the sliders. The slope is m = ' + f(m) + '; the line crosses the y-axis at b = ' + f(b) + '.',
+        M2: 'Check the sign. The line goes ' + (m > 0 ? 'up' : 'down') + ' from left to right, so m = ' + f(m) + ', and it crosses the y-axis at b = ' + f(b) + '.',
+        M1: 'You used change in x ÷ change in y. Slope is change in y ÷ change in x: ' + f(dy) + ' ÷ ' + par(dx) + ' = ' + f(m) + '.'
       },
       steps: [
-        { label: 'Which number multiplies x? m =', part: { kind: 'num', key: m }, hint: 'It is the number in front of x, with its sign.' },
-        { label: 'Which number is added on? b =', part: { kind: 'num', key: b }, hint: 'A minus sign means b is negative.' },
-        { label: 'Substitute x = ' + f(p) + ': ' + f(m) + ' × ' + par(p) + ' ' + C.term(b) + ' =', part: { kind: 'num', key: val }, hint: 'Multiply first, then add.' },
-        { label: 'Is ' + C.pt(p, q) + ' on the line?', part: { kind: 'choice', keep: true, opts: [{ t: 'Yes', ok: on }, { t: 'No', ok: !on }] }, hint: 'Only if its y-value is exactly ' + f(val) + '.' }
+        { label: 'Where does the dashed line cross the y-axis? b =', part: { kind: 'num', key: b }, hint: 'Look at the marked point with x = 0.' },
+        { label: 'From ' + C.pt(0, b) + ' to ' + C.pt(dx, y2) + ': change in y ÷ change in x = ' + f(dy) + ' ÷ ' + par(dx) + ' = m =', part: { kind: 'num', key: m }, hint: 'Change in y on top. Down is negative.' },
+        eqStep(m, b)
       ]
     };
   } });
@@ -177,8 +185,8 @@
       parts: [{ kind: 'eq', label: 'y =', key: C.line(m, b), show: eq(m, b), wrong: wl(m, b, [[y0 / x0, 0, 'M4'], [m, y0, 'M3'], [b, m, 'M9'], [-m, b, 'M2'], [1 / m, b, 'M1']]) }],
       answer: eq(m, b),
       work: [
-        'For every 1 more in x, y changes by ' + f(ys[1]) + ' − ' + par(y0) + ' = ' + f(m) + ', so m = ' + f(m) + '.',
-        'Work back from x = ' + x0 + ' to x = 0: ' + x0 + ' steps of ' + f(-m) + '. ' + f(y0) + ' − ' + x0 + ' × ' + par(m) + ' = ' + f(b) + ', so b = ' + f(b) + '.',
+        'For every 1 more in x, y changes by ' + f(ys[1]) + ' − ' + par(y0) + ' = ' + f(m) + ', so the rate of change (the step) is m = ' + f(m) + '.',
+        'Work back from x = ' + x0 + ' to x = 0: ' + x0 + ' steps of ' + f(-m) + '. ' + f(y0) + ' − ' + x0 + ' × ' + par(m) + ' = ' + f(b) + ', so the initial value (the start) is b = ' + f(b) + '.',
         'Equation: <b>' + eq(m, b) + '</b>'
       ],
       why: {
@@ -190,7 +198,8 @@
       },
       steps: [
         { label: 'For every 1 more in x, y changes by', part: { kind: 'num', key: m }, hint: 'Next row minus this row: ' + f(ys[1]) + ' − ' + par(y0) + '.' },
-        { label: 'Work back ' + x0 + ' steps from x = ' + x0 + ' to x = 0: ' + f(y0) + ' − ' + x0 + ' × ' + par(m) + ' =', part: { kind: 'num', key: b }, hint: 'Each step back takes away ' + f(m) + '.' }
+        { label: 'Work back ' + x0 + ' steps from x = ' + x0 + ' to x = 0: ' + f(y0) + ' − ' + x0 + ' × ' + par(m) + ' =', part: { kind: 'num', key: b }, hint: 'Each step back takes away ' + f(m) + '.' },
+        eqStep(m, b)
       ]
     };
   } });
@@ -207,8 +216,8 @@
       parts: [{ kind: 'eq', label: 'y =', key: C.line(m, b), show: eq(m, b), wrong: wl(m, b, [[1 / m, y1 - x1 / m, 'M1'], [-m, y1 + m * x1, 'M2'], [y1 / x1, 0, 'M4'], [s17, y1 - s17 * x1, 'M17'], [b, m, 'M9']]) }],
       answer: eq(m, b),
       work: [
-        'm = ' + f(dy) + ' ÷ ' + f(dx) + ' = ' + f(m) + '.',
-        'Use ' + C.pt(x1, y1) + ': ' + f(y1) + ' = ' + f(m) + ' × ' + par(x1) + ' + b, so b = ' + f(y1) + ' − ' + par(m * x1) + ' = ' + f(b) + '.',
+        'Slope (the step): m = ' + f(dy) + ' ÷ ' + f(dx) + ' = ' + f(m) + '.',
+        'Use ' + C.pt(x1, y1) + ': ' + f(y1) + ' = ' + f(m) + ' × ' + par(x1) + ' + b, so the start is b = ' + f(y1) + ' − ' + par(m * x1) + ' = ' + f(b) + '.',
         'Check with ' + C.pt(x2, y2) + ': ' + f(m) + ' × ' + par(x2) + ' ' + C.term(b) + ' = ' + f(y2) + '. Equation: <b>' + eq(m, b) + '</b>'
       ],
       why: {
@@ -220,9 +229,9 @@
       },
       steps: [
         { label: 'Change in y: ' + f(y2) + ' − ' + par(y1) + ' =', part: { kind: 'num', key: dy }, hint: 'Second point minus first point.' },
-        { label: 'Change in x: ' + f(x2) + ' − ' + par(x1) + ' =', part: { kind: 'num', key: dx }, hint: 'Same order as for y.' },
-        { label: 'm = ' + f(dy) + ' ÷ ' + f(dx) + ' =', part: { kind: 'num', key: m }, hint: 'Change in y ÷ change in x.' },
-        { label: 'b = ' + f(y1) + ' − ' + f(m) + ' × ' + par(x1) + ' =', part: { kind: 'num', key: b }, hint: 'From ' + f(y1) + ' = ' + f(m) + ' × ' + par(x1) + ' + b, take ' + f(m * x1) + ' away from ' + f(y1) + '.' }
+        { label: 'Change in x: ' + f(x2) + ' − ' + par(x1) + ' = ' + f(dx) + '. So m = ' + f(dy) + ' ÷ ' + f(dx) + ' =', part: { kind: 'num', key: m }, hint: 'Change in y ÷ change in x.' },
+        { label: 'b = ' + f(y1) + ' − ' + par(m) + ' × ' + par(x1) + ' =', part: { kind: 'num', key: b }, hint: 'From ' + f(y1) + ' = ' + f(m) + ' × ' + par(x1) + ' + b, take ' + par(m * x1) + ' away from ' + f(y1) + '.' },
+        eqStep(m, b)
       ]
     };
   } });
@@ -241,14 +250,20 @@
       { name: 'Table A', kind: 't', line: tl[0] }, { name: 'Table B', kind: 't', line: tl[1] }, { name: 'Table C', kind: 't', line: tl[2] },
       { name: 'Graph D', kind: 'g', line: gl[0] }, { name: 'Graph E', kind: 'g', line: gl[1] }, { name: 'Graph F', kind: 'g', line: gl[2] }
     ];
-    function opts(j) { return order.map(function (i) { return { t: eq(L[i][0], L[i][1]), ok: i === j }; }); }
     var xs = [1, 2, 3, 4];
     function body(c) {
       var l = L[c.line];
       if (c.kind === 't') return C.table({ cols: ['x', 'y'], rows: xs.map(function (x) { return [x, l[0] * x + l[1]]; }) });
       return C.graph({ x: [-5, 5], y: [-8, 8], size: 150, h: 200, lx: 2, ly: 4, lines: [{ m: l[0], b: l[1] }], pts: [{ x: 0, y: l[1], r: 4 }, { x: 1, y: l[0] + l[1], r: 4 }], label: c.name + ': a line through ' + C.pt(0, l[1]) + ' and ' + C.pt(1, l[0] + l[1]) });
     }
-    var a = cards[0], la = L[a.line];
+    function nm(i, kind) { return cards.filter(function (c) { return c.line === i && c.kind === kind; })[0].name; }
+    // one guided step per equation: check the step, then the start, then pick its table and graph
+    var gsteps = order.map(function (i) {
+      var o = [0, 1, 2].filter(function (j) { return j !== i; });
+      return { label: eq(L[i][0], L[i][1]) + ' has step ' + f(L[i][0]) + ' and start ' + f(L[i][1]) + '. Which table and graph match it?',
+        part: { kind: 'choice', opts: [{ t: nm(i, 't') + ' and ' + nm(i, 'g'), ok: true }, { t: nm(i, 't') + ' and ' + nm(o[0], 'g') }, { t: nm(o[1], 't') + ' and ' + nm(i, 'g') }] },
+        hint: 'First check the step (the change for every 1 more x), then the start (y at x = 0). Both must match.' };
+    });
     return {
       stem: 'Sort each table and graph under its equation. Each equation gets one table and one graph.',
       think: 'Check both features: the change for every 1 more x, and the value at x = 0.',
@@ -261,12 +276,7 @@
         return '<b>' + eq(l[0], l[1]) + '</b>: ' + t.name + ' changes by ' + f(l[0]) + ' for every 1 more x and works back to ' + f(l[1]) + ' at x = 0; ' + gc.name + ' crosses the y-axis at ' + f(l[1]) + ' and goes ' + upDown(l[0]) + ' for every 1 step right.';
       }),
       why: { M11: 'That equation shares only one feature with the card. Check both the rate and the value at x = 0.' },
-      steps: [
-        { label: 'In Table A, for every 1 more x, y changes by', part: { kind: 'num', key: la[0] }, hint: 'Next row minus this row.' },
-        { label: 'Work back from x = 1 to x = 0 in Table A: y =', part: { kind: 'num', key: la[1] }, hint: 'Take ' + f(la[0]) + ' away from the y-value at x = 1.' },
-        { label: 'So Table A matches', part: { kind: 'choice', keep: true, opts: opts(a.line) }, hint: 'Both the slope and the y-intercept must match.' },
-        { label: 'Graph D crosses the y-axis at y =', part: { kind: 'num', key: L[cards[3].line][1] }, hint: 'Look at x = 0.' }
-      ]
+      steps: gsteps
     };
   } });
 
@@ -277,10 +287,10 @@
     var chain = []; for (var x = x1; x >= 0; x--) chain.push(f(m * x + b));
     var box = 'style="flex:1 1 240px;border:1px solid #DCE2EE;border-radius:10px;padding:10px;background:#fff"';
     var fig = '<div style="display:flex;flex-wrap:wrap;gap:12px">' +
-      '<div ' + box + '><b>Student A</b><br>y changes by ' + f(dy) + ' over ' + dx + ' steps, so ' + f(m) + ' for every 1 more x.<br>Work back from x = ' + x1 + ' to x = 0, one step at a time:<br>' + chain.join(' → ') + '<br>So y = ' + eq(m, b).slice(4) + '.</div>' +
-      '<div ' + box + '><b>Student B</b><br>Step 1: m = ' + f(dy) + ' ÷ ' + dx + ' = ' + f(m) + '<br>Step 2: ' + f(y1) + ' = ' + f(m) + '(' + x1 + ') + b, so b = ' + f(b) + '<br>Step 3: check ' + f(m) + '(' + x2 + ') ' + C.term(b) + ' = ' + f(y2) + '<br>So ' + eq(m, b) + '.</div></div>';
+      '<div ' + box + '><b>Student A</b><br>y changes by ' + f(m) + ' per 1 more x.<br>Work back to x = 0: ' + chain.join(' → ') + '</div>' +
+      '<div ' + box + '><b>Student B</b><br>Step 1: m = ' + f(dy) + ' ÷ ' + dx + ' = ' + f(m) + '<br>Step 2: ' + f(y1) + ' = ' + f(m) + '(' + x1 + ') + b, so b = ' + f(b) + '<br>Step 3: check ' + f(m) + '(' + x2 + ') ' + C.term(b) + ' = ' + f(y2) + '</div></div>';
     return {
-      stem: 'Two students write the equation of the line through ' + C.pt(x1, y1) + ' and ' + C.pt(x2, y2) + '. Both get ' + eq(m, b) + '. Which step in B\'s work does the same job as A\'s "work back to x = 0"? What value do they both find there?',
+      stem: 'Both students find ' + eq(m, b) + ' through ' + C.pt(x1, y1) + ' and ' + C.pt(x2, y2) + '. Which step of B\'s matches A\'s "work back to x = 0"? What value does it find?',
       fig: fig,
       think: 'What is the output at x = 0 called?',
       parts: [
@@ -289,7 +299,7 @@
       ],
       answer: 'Step 2: solving for b; b = ' + f(b),
       work: [
-        'Both methods find the output at x = 0, which is b.',
+        'Both methods find the output at x = 0: the initial value (the start), b.',
         'A counts back ' + x1 + ' steps of ' + f(-m) + ' from ' + f(y1) + ' to ' + f(b) + '.',
         'B does it in one move: ' + f(y1) + ' = ' + f(m) + '(' + x1 + ') + b, so b = ' + f(b) + '. The matching step is <b>Step 2: solving for b</b>.'
       ],
@@ -327,7 +337,7 @@
       },
       answer: 'For example ' + eq(m1, b1) + ' and ' + eq(m2, b2),
       work: [
-        'Pick a slope, say m = ' + f(m1) + '. Then ' + f(q) + ' = ' + f(m1) + ' × ' + par(p) + ' + b, so b = ' + f(b1) + ': <b>' + eq(m1, b1) + '</b>.',
+        'Pick a slope (the step), say m = ' + f(m1) + '. Then ' + f(q) + ' = ' + f(m1) + ' × ' + par(p) + ' + b, so b = ' + f(b1) + ': <b>' + eq(m1, b1) + '</b>.',
         'Pick a different slope, m = ' + f(m2) + ': b = ' + f(q) + ' − ' + par(m2 * p) + ' = ' + f(b2) + ', so <b>' + eq(m2, b2) + '</b>.',
         'b is not 0 in either, so neither line passes through (0, 0).'
       ],
@@ -336,8 +346,9 @@
         G: 'Each line must give y = ' + f(q) + ' when x = ' + f(p) + ', the two lines must be different, and b must not be 0.'
       },
       steps: [
-        { label: 'Use slope m = ' + f(m1) + '. Then b = ' + f(q) + ' − ' + f(m1) + ' × ' + par(p) + ' =', part: { kind: 'num', key: b1 }, hint: 'Solve ' + f(q) + ' = ' + f(m1) + ' × ' + par(p) + ' + b.' },
-        { label: 'Now use slope m = ' + f(m2) + '. Then b = ' + f(q) + ' − ' + f(m2) + ' × ' + par(p) + ' =', part: { kind: 'num', key: b2 }, hint: 'Same method with the new slope.' }
+        { label: 'Use slope m = ' + f(m1) + '. Then b = ' + f(q) + ' − ' + par(m1) + ' × ' + par(p) + ' =', part: { kind: 'num', key: b1 }, hint: 'Solve ' + f(q) + ' = ' + f(m1) + ' × ' + par(p) + ' + b.' },
+        { label: 'Now use slope m = ' + f(m2) + '. Then b = ' + f(q) + ' − ' + par(m2) + ' × ' + par(p) + ' =', part: { kind: 'num', key: b2 }, hint: 'Same method with the new slope.' },
+        { label: 'So a second line through ' + C.pt(p, q) + ' is', part: { kind: 'choice', opts: [{ t: eq(m2, b2), ok: true }, { t: eq(-m2, b2) }, { t: eq(m2, -b2) }] }, hint: 'Slope ' + f(m2) + ', start ' + f(b2) + '.' }
       ]
     };
   } });
@@ -348,7 +359,7 @@
     var m, b; do { m = R.int(2, 9); b = R.int(5, 20); } while (m === b);
     var e = C.eqText(m, b, 'C', 'd');
     return {
-      stem: 'A taxi\'s cost in riyals is ' + e + ', where d is the distance in kilometres. Complete the sentence about the slope.',
+      stem: 'A taxi\'s cost in riyals is ' + e + ', where d is the distance in kilometres. Complete the sentence about the slope (the step).',
       sentence: 'The slope means the {0} {1} by {2} riyals for every one {3}.',
       parts: [
         { kind: 'choice', inline: true, keep: true, opts: [{ t: 'cost', ok: true }, { t: 'distance', tag: 'M1' }, { t: 'starting fee', tag: 'M9' }] },
@@ -368,9 +379,10 @@
         M2: 'The slope ' + m + ' is positive, so the cost goes up as the distance grows.'
       },
       steps: [
-        { label: 'Which number is multiplied by d in ' + e + '?', part: { kind: 'num', key: m }, hint: 'It is the number right in front of d.' },
-        { label: 'For every 1 more kilometre, the cost changes by how many riyals?', part: { kind: 'num', key: m }, hint: 'Each extra kilometre adds one more ' + m + '.' },
-        { label: 'Does the cost go up or down as d grows?', part: { kind: 'choice', keep: true, opts: [{ t: 'Up', ok: true }, { t: 'Down' }] }, hint: 'The slope ' + m + ' is positive.' }
+        { label: 'The cost for 1 km: ' + m + ' × 1 + ' + b + ' =', part: { kind: 'num', key: m + b }, hint: 'Put d = 1 into ' + e + '.' },
+        { label: 'The cost for 2 km: ' + m + ' × 2 + ' + b + ' =', part: { kind: 'num', key: 2 * m + b }, hint: 'Multiply first, then add ' + b + '.' },
+        { label: 'From 1 km to 2 km, the cost changes by how many riyals?', part: { kind: 'num', key: m, wrong: [{ v: b, tag: 'M9' }] }, hint: (2 * m + b) + ' − ' + (m + b) + '.' },
+        { label: 'So for every one more kilometre, the cost', part: { kind: 'choice', keep: true, opts: [{ t: 'increases by ' + m + ' riyals', ok: true }, { t: 'decreases by ' + m + ' riyals' }, { t: 'increases by ' + b + ' riyals' }] }, hint: 'The slope ' + m + ' is the number multiplied by d, and it is positive.' }
       ]
     };
   } });
@@ -407,7 +419,7 @@
     var m, b; do { m = R.int(8, 30) * 5; b = R.int(6, 40) * 5; } while (m === b);
     var show = C.eqText(m, b, 'C', 'h');
     return {
-      stem: 'A plumber charges a ' + b + '-riyal call-out fee plus ' + m + ' riyals per hour. Write an equation for the cost C (riyals) after h hours.',
+      stem: 'A plumber charges ' + C.an(b) + ' ' + b + '-riyal call-out fee plus ' + m + ' riyals per hour. Write an equation for the cost C (riyals) after h hours.',
       think: 'Which amount is paid for every hour? Which is paid once?',
       parts: [{ kind: 'eq', label: 'Equation', xv: 'h', yv: 'C', key: C.line(m, b), show: show, wrong: wl(m, b, [[b, m, 'M9'], [m + b, 0, 'M14'], [m, 0, 'M16']]) }],
       answer: show,
@@ -424,40 +436,41 @@
       steps: [
         { label: 'For every 1 more hour, the cost goes up by how many riyals?', part: { kind: 'num', key: m, wrong: [{ v: b, tag: 'M9' }] }, hint: 'The per-hour price.' },
         { label: 'The cost at 0 hours (riyals) is', part: { kind: 'num', key: b }, hint: 'Before any work, you pay only the call-out fee.' },
-        { label: 'Check: the cost for 2 hours = ' + m + ' × 2 + ' + b + ' =', part: { kind: 'num', key: 2 * m + b }, hint: 'Multiply first, then add the fee once.' }
+        { label: 'Check: the cost for 2 hours = ' + m + ' × 2 + ' + b + ' =', part: { kind: 'num', key: 2 * m + b }, hint: 'Multiply first, then add the fee once.' },
+        eqStep(m, b, 'h', 'C')
       ]
     };
   } });
 
   C.add({ id: 'EQ-5h', skill: '13', level: 5, order: 4, type: 'interactive', ia: true, gen: function (R) {
     var m, b; do { m = R.int(2, 8) * 10; b = R.int(5, 20) * 10; } while (m === b);
-    var g = { x: [0, 10], y: [0, 1000], dy: 100, ly: 200, size: 380, xl: 'Months (n)', yl: 'Total cost (riyals)', label: 'Total cost against months' };
+    var g = { x: [0, 10], y: [0, 1000], dy: 100, ly: 200, size: 380, xl: 'Washes (n)', yl: 'Total cost (riyals)', label: 'Total cost against number of car washes' };
     var wrong = [{ v: { m: b, b: m }, tag: 'M9' }, { v: { m: m, b: 0 }, tag: 'M16' }];
     if (m + b <= 100) wrong.push({ v: { m: m + b, b: b }, tag: 'M14' });
     return {
-      stem: 'A gym costs ' + b + ' riyals to join plus ' + m + ' riyals per month. Set the sliders so the line shows the total cost C (riyals) after n months.',
-      think: 'The slope is the change for every 1 more month. The intercept is the cost at 0 months.',
+      stem: 'A car wash card costs ' + b + ' riyals to buy, then ' + m + ' riyals per wash. Set the sliders so the line shows the total cost C (riyals) after n washes.',
+      think: 'The slope (the step) is the change for every 1 more wash. The intercept (the start) is the cost at 0 washes.',
       parts: [
-        { kind: 'slider', label: 'Cost line', sliders: [{ id: 'm', label: 'Slope (riyals per month)', min: 0, max: 100, step: 10, start: 0 }, { id: 'b', label: 'Intercept (riyals)', min: 0, max: 250, step: 10, start: 0 }], grid: g,
+        { kind: 'slider', label: 'Cost line', sliders: [{ id: 'm', label: 'Slope, the step (riyals per wash)', min: 0, max: 100, step: 10, start: 0 }, { id: 'b', label: 'Intercept, the start (riyals)', min: 0, max: 250, step: 10, start: 0 }], grid: g,
           draw: function (v) { return { lines: [{ m: v.m, b: v.b, from: 0 }], pts: [{ x: 0, y: v.b, r: 5 }] }; },
           key: { m: m, b: b }, wrong: wrong }
       ],
       answerFig: C.graph(Object.assign({}, g, { size: 260, lines: [{ m: m, b: b, from: 0 }], pts: [{ x: 0, y: b, l: C.pt(0, b) }, { x: 5, y: 5 * m + b, l: C.pt(5, 5 * m + b) }] })),
-      answer: 'slope ' + m + ' riyals per month, intercept ' + b + ' riyals',
+      answer: 'slope ' + m + ' riyals per wash, intercept ' + b + ' riyals',
       work: [
-        'The monthly price is the rate: the cost goes up ' + m + ' riyals for every 1 more month, so slope = <b>' + m + '</b>.',
-        'The joining fee is the cost at 0 months, so intercept = <b>' + b + '</b>.',
+        'The price per wash is the rate: the cost goes up ' + m + ' riyals for every 1 more wash, so the slope (the step) = <b>' + m + '</b>.',
+        'The card price is the cost at 0 washes, so the y-intercept (the start) = <b>' + b + '</b>.',
         'The line is ' + C.eqText(m, b, 'C', 'n') + '.'
       ],
       why: {
-        M9: 'You swapped the sliders. ' + m + ' riyals is paid every month (the slope); ' + b + ' riyals is paid once (the intercept).',
-        M16: 'At 0 months you have already paid the ' + b + '-riyal joining fee, so the line does not start at 0.',
-        M14: 'The slope is only the monthly price, ' + m + ' riyals.'
+        M9: 'You swapped the sliders. ' + m + ' riyals is paid for every wash (the slope); ' + b + ' riyals is paid once for the card (the intercept).',
+        M16: 'At 0 washes you have already paid ' + b + ' riyals for the card, so the line does not start at 0.',
+        M14: 'The slope is only the price per wash, ' + m + ' riyals.'
       },
       steps: [
-        { label: 'For every 1 more month, the cost goes up by how many riyals?', part: { kind: 'num', key: m }, hint: 'The monthly price.' },
-        { label: 'What is the cost at 0 months (riyals)?', part: { kind: 'num', key: b }, hint: 'You pay only the joining fee.' },
-        { label: 'Check: the cost after 3 months = ' + m + ' × 3 + ' + b + ' =', part: { kind: 'num', key: 3 * m + b }, hint: 'Multiply first, then add the joining fee once.' }
+        { label: 'For every 1 more wash, the cost goes up by how many riyals?', part: { kind: 'num', key: m }, hint: 'The price per wash.' },
+        { label: 'What is the cost at 0 washes (riyals)?', part: { kind: 'num', key: b }, hint: 'You pay only for the card.' },
+        { label: 'Check: the cost after 3 washes = ' + m + ' × 3 + ' + b + ' =', part: { kind: 'num', key: 3 * m + b }, hint: 'Multiply first, then add the card price once.' }
       ]
     };
   } });

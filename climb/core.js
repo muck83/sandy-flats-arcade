@@ -66,9 +66,7 @@
     'postage': 'The cost of sending a letter or parcel.',
     'joining fee': 'A one-time amount you pay to start, such as joining a gym.',
     'starting fee': 'A fixed amount charged at the start, before anything else is added.',
-    'per': 'For each. "5 riyals per km" means 5 riyals for each kilometre.',
     'rate': 'How much one quantity changes for every 1 more of the other.',
-    'riyals': 'Saudi money. 1 riyal is 100 halalas.',
     'steady': 'Changing by the same amount every time (a constant rate).',
     'initial value': 'The start: the output when the input is 0. Where the line crosses the up (y) axis.',
     // the Sandy Flats lessons say "start", "step", "across" and "up": these bridge Climb's words to theirs
@@ -170,6 +168,9 @@
     if (/^[-+]?(\d+\.?\d*|\.\d+)$/.test(s.replace(/\s/g, ''))) return +s.replace(/\s/g, '');
     return NaN;
   };
+  // "a 5-riyal fee" but "an 8-riyal fee" / "an 11-riyal fee"; "1 minute" but "2 minutes"
+  C.an = function (n) { n = Math.abs(Math.round(n)); return n === 11 || n === 18 || /^8/.test(String(n)) ? 'an' : 'a'; };
+  C.pl = function (n, word, many) { return n + ' ' + (Math.abs(n) === 1 ? word : (many || word + 's')); };
   C.near = function (a, b, tol) { return Math.abs(a - b) <= (tol == null ? 0.01 : tol); };
 
   /* ---------- equations: parsed and checked at 3 x-values ---------- */

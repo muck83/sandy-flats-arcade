@@ -140,7 +140,7 @@
     var d, r, fu; do { d = R.pick([20, 25, 40, 50, 100]); r = R.pick([0.05, 0.06, 0.08, 0.1, 0.12, 0.15, 0.2]); fu = Math.round(r * d * 100) / 100; } while (fu < 1 || fu === d);
     var opts = uniq([{ t: dec(r) + ' L per km', ok: true }, { t: dec(d / fu) + ' km per L', tag: 'M1' }, { t: dec(d - fu) + ' L per km', tag: 'M17' }, { t: dec(fu * d) + ' L per km', tag: 'M14' }]);
     return {
-      stem: 'A car uses ' + dec(fu) + ' L of fuel every ' + d + ' km. What is the rate of change of fuel used per kilometre?',
+      stem: 'A car uses ' + dec(fu) + ' L of fuel every ' + d + ' km. What is the rate of change (the step) of fuel used per kilometre?',
       think: '"Per kilometre" means for every 1 more km.',
       parts: [{ kind: 'choice', label: 'The rate is', opts: opts }],
       answer: dec(r) + ' L per km',
@@ -177,7 +177,7 @@
       : ['Read the line from left to right.', 'As x increases, y goes ' + ud(m) + '.' + (kind === 'high' ? ' Being high on the grid does not matter.' : ''), 'So the slope is <b>' + key.toLowerCase() + '</b>.'];
     return {
       // (the self-test flags the lower-case word for "not defined", so the slope names are written as names)
-      stem: 'Is the slope of this line Positive, Negative, Zero or Undefined?',
+      stem: 'Is the slope (the step) of this line Positive, Negative, Zero or Undefined?',
       fig: grid(lines, [], 'A line on a grid'),
       think: 'Read it left to right: up, down, flat, or straight up?',
       parts: [{ kind: 'choice', label: 'The slope is', keep: true, opts: opts }],
@@ -197,7 +197,7 @@
   C.add({ id: 'RC-3a', skill: '7', level: 3, order: 2, type: 'NE', gen: function (R) {
     var m = R.pick([1, -1, 2, -2, 3, -3, 0.5, -0.5]), P = twoPts(R, m);
     return {
-      stem: 'The line goes through the two marked grid points A and B. What is its slope?',
+      stem: 'The line goes through the two marked grid points A and B. What is its slope (the step)?',
       fig: grid([{ m: m, b: P.b }], [{ x: P.x1, y: P.y1, l: 'A ' + C.pt(P.x1, P.y1) }, { x: P.x2, y: P.y2, l: 'B ' + C.pt(P.x2, P.y2) }], 'Line through A ' + C.pt(P.x1, P.y1) + ' and B ' + C.pt(P.x2, P.y2)),
       think: 'Rise over run: change in y on top.',
       parts: [{ kind: 'num', label: 'Slope', key: m, wrong: wr(m, [{ v: 1 / m, tag: 'M1' }, { v: -m, tag: 'M2' }, { v: P.b, tag: 'M12' }, { v: P.y2, tag: 'M13' }, { v: P.y1, tag: 'M13' }]) }],
@@ -223,7 +223,7 @@
     function tri(c) { return { seg: [A, c, B], color: C.COL.line2, w: 2.5, dash: true }; }
     var g = { x: [-10, 10], y: [-10, 10], size: 400, lines: [{ m: m, b: P.b }], pts: [{ x: P.x1, y: P.y1, l: 'A', c: C.COL.line }, { x: P.x2, y: P.y2, l: 'B', c: C.COL.line }], label: 'Line through A ' + C.pt(P.x1, P.y1) + ' and B ' + C.pt(P.x2, P.y2) };
     return {
-      stem: 'Drag the orange corner to make a slope triangle on the line from A to B: one side flat, one side straight up or down. Then type the slope.',
+      stem: 'Drag the orange corner to make a slope triangle on the line from A to B: one side flat, one side straight up or down. Then type the slope (the step).',
       think: 'Run: how far right. Rise: how far up (+) or down (−).',
       parts: [
         { kind: 'points', label: 'Slope triangle corner', grid: g, start: [[0, 0]], names: ['Corner'], labels: false,
@@ -248,51 +248,71 @@
   } });
 
   C.add({ id: 'RC-3c', skill: '7', level: 3, order: 4, type: 'MC', gen: function (R) {
-    var mP = R.int(1, 2), mQ = R.int(mP + 1, 3), bP = R.int(2, 6), bQ = R.int(-6, bP - 3);
-    if (bQ > 3) bQ = 3;
+    // which line is steeper and which crosses the y-axis higher are both random (usually the flatter line crosses higher)
+    var lo = R.int(1, 2), hi = R.int(lo + 1, 3), steep = R.pick(['P', 'Q']), flat = steep === 'P' ? 'Q' : 'P';
+    var flatHigher = R.chance(0.7), bHigh = R.int(2, 6), bLow = Math.min(R.int(-6, bHigh - 3), 3);
+    var L = {};
+    L[steep] = { m: hi, b: flatHigher ? bLow : bHigh };
+    L[flat] = { m: lo, b: flatHigher ? bHigh : bLow };
+    L.P.col = C.COL.line; L.Q.col = C.COL.line2;
+    // a label point for each line, on the grid and apart from the other line's label
+    function lab(Ln, xs, avoid) { for (var i = 0; i < xs.length; i++) { var y = Ln.b + Ln.m * xs[i]; if (Math.abs(y) <= 8 && y !== -1 && xs[i] !== avoid) return xs[i]; } return xs[0]; }
+    L.P.lx = lab(L.P, [-3, -2, -4, -1, 1, 2, 3]); L.Q.lx = lab(L.Q, [3, 2, 4, 1, 5, -1, -2], L.P.lx);
+    var tagFor = function (k) { return k === flat && flatHigher ? 'M12' : undefined; };
+    var opts = [{ t: 'Line P' }, { t: 'Line Q' }, { t: 'They are the same' }, { t: 'You can\'t tell' }];
+    opts.forEach(function (o, i) { var k = 'PQ'[i]; if (i > 1) return; if (k === steep) o.ok = true; else if (tagFor(k)) o.tag = tagFor(k); });
+    var pts = [];
+    ['P', 'Q'].forEach(function (k) { var Ln = L[k]; pts.push({ x: 0, y: Ln.b, c: Ln.col }, { x: Ln.lx, y: Ln.b + Ln.m * Ln.lx, l: k, c: Ln.col }); });
     return {
-      stem: 'Line P crosses the y-axis higher than line Q. Which line has the greater slope?',
-      fig: grid([{ m: mP, b: bP }, { m: mQ, b: bQ, color: C.COL.line2 }], [{ x: 0, y: bP }, { x: -4, y: bP - 4 * mP, l: 'P' }, { x: 0, y: bQ, c: C.COL.line2 }, { x: 2, y: bQ + 2 * mQ, l: 'Q', c: C.COL.line2 }], 'Two lines P and Q'),
-      think: 'Slope is how steep, not where the line starts.',
-      parts: [{ kind: 'choice', label: 'Greater slope', keep: true, opts: [{ t: 'Line P', tag: 'M12' }, { t: 'Line Q', ok: true }, { t: 'They are the same' }, { t: 'You can\'t tell' }] }],
-      answer: 'Line Q (slope ' + mQ + ' vs ' + mP + ')',
-      work: ['Line P: for every 1 more x, y goes up ' + mP + '. Its slope is ' + mP + '.', 'Line Q: for every 1 more x, y goes up ' + mQ + '. Its slope is ' + mQ + '.', mQ + ' > ' + mP + ', so <b>line Q</b> has the greater slope, even though P starts higher.'],
-      why: { M12: 'Line P crosses the y-axis higher (at ' + bP + '), but that is where it starts, not how steep it is. Q rises ' + mQ + ' for every 1 step right; P rises only ' + mP + '.' },
+      stem: 'Which line has the greater slope (the step), P or Q?',
+      fig: grid([{ m: L.P.m, b: L.P.b, color: L.P.col }, { m: L.Q.m, b: L.Q.b, color: L.Q.col }], pts, 'Two lines P and Q'),
+      think: 'Slope is how steep, not where the line crosses.',
+      parts: [{ kind: 'choice', label: 'Greater slope', keep: true, opts: opts }],
+      answer: 'Line ' + steep + ' (slope ' + hi + ' vs ' + lo + ')',
+      work: ['Line P: for every 1 more x, y goes up ' + L.P.m + '. Its slope is ' + L.P.m + '.', 'Line Q: for every 1 more x, y goes up ' + L.Q.m + '. Its slope is ' + L.Q.m + '.', hi + ' > ' + lo + ', so <b>line ' + steep + '</b> has the greater slope' + (flatHigher ? ', even though line ' + flat + ' crosses the y-axis higher.' : '.')],
+      why: flatHigher ? { M12: 'Line ' + flat + ' crosses the y-axis higher (at ' + f(L[flat].b) + '), but that is where it starts, not how steep it is. Line ' + steep + ' rises ' + hi + ' for every 1 step right; line ' + flat + ' rises only ' + lo + '.' } : {},
       steps: [
-        { label: 'Line P: for every 1 more x, y goes up by', part: { kind: 'num', key: mP }, hint: 'Start where P crosses the y-axis at ' + bP + ' and go 1 step right.' },
-        { label: 'Line Q: for every 1 more x, y goes up by', part: { kind: 'num', key: mQ }, hint: 'Start where Q crosses the y-axis at ' + f(bQ) + ' and go 1 step right.' },
-        { label: 'So the greater slope is', part: { kind: 'choice', keep: true, opts: [{ t: 'Line P' }, { t: 'Line Q', ok: true }] }, hint: 'The bigger rise for each step right is the greater slope.' }
+        { label: 'Line P: for every 1 more x, y goes up by', part: { kind: 'num', key: L.P.m }, hint: 'Start where P crosses the y-axis at ' + f(L.P.b) + ' and go 1 step right.' },
+        { label: 'Line Q: for every 1 more x, y goes up by', part: { kind: 'num', key: L.Q.m }, hint: 'Start where Q crosses the y-axis at ' + f(L.Q.b) + ' and go 1 step right.' },
+        { label: 'So the greater slope is', part: { kind: 'choice', keep: true, opts: [{ t: 'Line P', ok: steep === 'P' }, { t: 'Line Q', ok: steep === 'Q' }] }, hint: 'The bigger rise for each step right is the greater slope.' }
       ]
     };
   } });
 
   C.add({ id: 'RC-3d', skill: '7', level: 4, type: 'TT', gen: function (R) {
-    var m, p, b, x1, x2, y1, y2, vals;
+    // a story graph with labelled axes (RC-3a is the plain grid version): water in a tank filling or draining
+    var m, b, x1, x2, y1, y2, vals;
     do {
-      m = R.pick([2, -2, 3, -3, 0.5, -0.5, 1.5, -2 / 3]); p = rr(m); b = R.nz(-6, 6);
-      x1 = p[1] * R.int(-3, 2); x2 = x1 + p[1] * R.int(1, 2); y1 = b + m * x1; y2 = b + m * x2;
+      m = R.pick([2, -2, 3, -3, 4, -4, 5, -5]);
+      b = m > 0 ? 2 * R.int(1, 5) : 2 * R.int(15, 19);
+      x1 = R.int(1, 4); x2 = x1 + R.int(2, 4); y1 = b + m * x1; y2 = b + m * x2;
       vals = [f(m), f(b), f(1 / m), f(y1)];
-    } while (x1 === 0 || x2 === 0 || y1 === -1 || y2 === -1 || Math.abs(x1) > 9 || Math.abs(x2) > 9 || Math.abs(y1) > 9 || Math.abs(y2) > 9 || vals.some(function (v, i) { return vals.indexOf(v) !== i; }));
+    } while (y1 % 2 || y2 % 2 || y2 < 2 || y2 > 38 || vals.some(function (v, i) { return vals.indexOf(v) !== i; }));
     var P = { x1: x1, y1: y1, x2: x2, y2: y2, dx: x2 - x1, dy: y2 - y1, b: b };
+    var fill = m > 0, unit = ' L per minute';
     return {
-      stem: 'What is the slope of this line, and why?',
-      fig: grid([{ m: m, b: b }], [{ x: x1, y: y1, l: C.pt(x1, y1) }, { x: x2, y: y2, l: C.pt(x2, y2) }], 'Line through ' + C.pt(x1, y1) + ' and ' + C.pt(x2, y2)),
+      stem: 'The graph shows the water in a tank as it ' + (fill ? 'fills' : 'drains') + '. What is the slope (the step) of the line, and why?',
+      fig: C.graph({ x: [0, 10], y: [0, 40], dy: 2, ly: 4, size: 360, xl: 'Time (minutes)', yl: 'Water (L)', lines: [{ m: m, b: b, from: 0 }], pts: [{ x: x1, y: y1, l: C.pt(x1, y1) }, { x: x2, y: y2, l: C.pt(x2, y2) }], label: 'Water line through ' + C.pt(x1, y1) + ' and ' + C.pt(x2, y2) + ', starting at ' + f(b) + ' L' }),
       parts: [
-        { kind: 'choice', label: 'The slope is', opts: [{ t: f(m), ok: true }, { t: f(b), tag: 'M12' }, { t: f(1 / m), tag: 'M1' }, { t: f(y1), tag: 'M13' }] },
-        { kind: 'choice', label: 'Because it is', opts: [{ t: 'the change in y ÷ the change in x between two points', ok: true }, { t: 'where the line crosses the y-axis', tag: 'M12' }, { t: 'the height of a point on the line', tag: 'M13' }] }
+        { kind: 'choice', label: 'The slope is', opts: [{ t: f(m) + unit, ok: true }, { t: f(b) + unit, tag: 'M12' }, { t: f(1 / m) + unit, tag: 'M1' }, { t: f(y1) + unit, tag: 'M13' }] },
+        { kind: 'choice', label: 'Because it is', opts: [{ t: 'the change in water ÷ the change in time between two points', ok: true }, { t: 'where the line crosses the up axis (y-axis)', tag: 'M12' }, { t: 'the amount of water at one time', tag: 'M13' }] }
       ],
-      answer: f(m) + ', because slope = change in y ÷ change in x',
-      work: slopeWork(P, m),
+      answer: f(m) + unit + ', because slope = change in water ÷ change in time',
+      work: [
+        'Change in water: ' + f(y2) + ' − ' + f(y1) + ' = ' + f(P.dy) + ' L' + (P.dy < 0 ? ' (down)' : ' (up)'),
+        'Change in time: ' + f(x2) + ' − ' + f(x1) + ' = ' + f(P.dx) + ' minutes',
+        'Slope = ' + f(P.dy) + ' ÷ ' + f(P.dx) + ' = <b>' + f(m) + unit + '</b>. For every 1 more minute, the water ' + (fill ? 'goes up' : 'goes down') + ' by ' + Math.abs(m) + ' L.'
+      ],
       why: {
-        M1: m1Why(P),
-        M12: f(b) + ' is where the line crosses the y-axis: a starting value, not the slope.',
-        M13: f(y1) + ' is the height of a point. Slope compares two changes, not one height.'
+        M1: 'You found time ÷ water: ' + f(P.dx) + ' ÷ ' + par(P.dy) + '. The change in water (' + f(P.dy) + ') goes on top, the change in time (' + f(P.dx) + ') on the bottom.',
+        M12: f(b) + ' L is where the line crosses the up axis (y-axis): the water at the start, not the slope.',
+        M13: f(y1) + ' L is the water at ' + C.pl(x1, 'minute') + '. Slope compares two changes, not one amount.'
       },
       steps: [
-        { label: 'Rise: ' + f(y2) + ' − ' + par(y1) + ' =', part: { kind: 'num', key: P.dy }, hint: 'Change in y, end minus start.' },
-        { label: 'Run: ' + f(x2) + ' − ' + par(x1) + ' =', part: { kind: 'num', key: P.dx }, hint: 'Change in x, in the same order.' },
-        { label: 'Slope = ' + f(P.dy) + ' ÷ ' + f(P.dx) + ' =', part: { kind: 'num', key: m }, hint: 'Rise on top.' },
-        { label: 'So slope means', part: { kind: 'choice', keep: true, opts: [{ t: 'change in y ÷ change in x', ok: true }, { t: 'where the line crosses the y-axis' }, { t: 'the height of a point' }] }, hint: 'You just divided two changes.' }
+        { label: 'Change in water: ' + f(y2) + ' − ' + f(y1) + ' =', part: { kind: 'num', key: P.dy }, hint: 'End minus start. Less water is negative.' },
+        { label: 'Change in time: ' + f(x2) + ' − ' + f(x1) + ' =', part: { kind: 'num', key: P.dx }, hint: 'In the same order.' },
+        { label: 'Slope = ' + f(P.dy) + ' ÷ ' + f(P.dx) + ' =', part: { kind: 'num', key: m }, hint: 'Change in water on top.' },
+        { label: 'So slope means', part: { kind: 'choice', keep: true, opts: [{ t: 'change in water ÷ change in time', ok: true }, { t: 'where the line crosses the up axis (y-axis)' }, { t: 'the amount of water at one time' }] }, hint: 'You just divided two changes.' }
       ]
     };
   } });
@@ -309,7 +329,7 @@
   C.add({ id: 'RC-4a', skill: '8', level: 4, order: 1, type: 'NE', gen: function (R) {
     var m = R.pick([1, -1, 2, -2, 3, -3, 0.5, -0.5]), P = ptsFor(R, m);
     return {
-      stem: 'A line passes through ' + C.pt(P.x1, P.y1) + ' and ' + C.pt(P.x2, P.y2) + '. What is its slope?',
+      stem: 'A line passes through ' + C.pt(P.x1, P.y1) + ' and ' + C.pt(P.x2, P.y2) + '. What is its slope (the step)?',
       think: 'Change in y ÷ change in x, both in the same order.',
       parts: [{ kind: 'num', label: 'Slope', key: m, wrong: wr(m, [{ v: P.dx / P.dy, tag: 'M1' }, { v: -m, tag: 'M2' }, { v: P.dy - P.dx, tag: 'M17' }, { v: P.y2 / P.x2, tag: 'M4' }]) }],
       answer: f(m),
@@ -341,7 +361,7 @@
     }
     var g = { x: [-10, 10], y: [-10, 10], size: 400, pts: [{ x: a, y: b, l: 'A ' + C.pt(a, b), c: C.COL.line }], label: 'Point A at ' + C.pt(a, b) };
     return {
-      stem: 'Point A is fixed at ' + C.pt(a, b) + '. Drag point B so that the line through A and B has slope ' + f(m) + '.',
+      stem: 'Point A is fixed at ' + C.pt(a, b) + '. Drag point B so that the line through A and B has slope (the step) ' + f(m) + '.',
       think: 'Slope ' + f(m) + ': for every ' + p[1] + ' right, ' + f(Math.abs(p[0])) + ' ' + ud(p[0]) + '.',
       parts: [{ kind: 'points', label: 'Point B', grid: g, start: [[a + 2, b]], names: ['B'],
         extra: function (cur) { return cur[0][0] === a ? [] : [{ p: [[a, b], cur[0]] }]; }, key: [[xb, yb]], check: check }],
@@ -364,7 +384,7 @@
     do { m = R.pick([2, -2, 3, -3, 0.5, -0.5, 1.5, -2 / 3]); P = ptsFor(R, m); vals = [f(m), f(P.y2 / P.x2), f(P.dy - P.dx), f(P.dx / P.dy)]; }
     while (vals.some(function (v, i) { return vals.indexOf(v) !== i; }));
     return {
-      stem: 'What is the slope of the line through ' + C.pt(P.x1, P.y1) + ' and ' + C.pt(P.x2, P.y2) + ', and why?',
+      stem: 'What is the slope (the step) of the line through ' + C.pt(P.x1, P.y1) + ' and ' + C.pt(P.x2, P.y2) + ', and why?',
       parts: [
         { kind: 'choice', label: 'The slope is', opts: [{ t: f(m), ok: true }, { t: f(P.y2 / P.x2), tag: 'M4' }, { t: f(P.dy - P.dx), tag: 'M17' }, { t: f(P.dx / P.dy), tag: 'M1' }] },
         { kind: 'choice', label: 'Because you', opts: [{ t: 'divide the change in y by the change in x', ok: true }, { t: 'divide the last y by the last x', tag: 'M4' }, { t: 'subtract the changes', tag: 'M17' }] }
@@ -439,7 +459,7 @@
       return { ok: false };
     }
     return {
-      stem: 'Give two points on a line with slope ' + f(m) + '. Neither point can be (0, 0).',
+      stem: 'Give two points on a line with slope (the step) ' + f(m) + '. Neither point can be (0, 0).',
       think: 'Pick any start, then move run right and rise up or down.',
       parts: [{ kind: 'num', label: 'Point 1: x', key: x1 }, { kind: 'num', label: 'Point 1: y', key: y1 }, { kind: 'num', label: 'Point 2: x', key: x2 }, { kind: 'num', label: 'Point 2: y', key: y2 }],
       check: check,

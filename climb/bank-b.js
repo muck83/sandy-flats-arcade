@@ -51,33 +51,52 @@
   } });
 
   C.add({ id: 'FN-3b', skill: '4', level: 3, order: 2, type: 'MS', gen: function (R) {
-    var hc = R.nz(-5, 5), vc = R.nz(-5, 5);
-    var sx = R.distinct(6, -5, 5), sp = sx.map(function (x) { return { x: x, y: R.int(-5, 5), r: 5 }; });
-    var dx = R.distinct(4, -5, 5), dpts = dx.map(function (x) { return { x: x, y: R.int(-5, 5), r: 5 }; }), shared = dx[0], ya = dpts[0].y, yb;
-    do { yb = R.int(-5, 5); } while (yb === ya);
-    dpts.push({ x: shared, y: yb, r: 5 });
-    var b1 = R.int(-5, 5), b2 = R.int(-5, 5), b3 = R.int(-5, 5), b4 = R.int(-5, 5);
-    var broken = mini([{ seg: [[-5, b1], [-1, b2]] }, { seg: [[1, b3], [5, b4]] }], [{ x: -5, y: b1, r: 4 }, { x: -1, y: b2, r: 4 }, { x: 1, y: b3, r: 4 }, { x: 5, y: b4, r: 4 }], 'Graph of a line in two pieces');
-    var opts = R.shuffle([
-      { t: mini([{ m: 0, b: hc }], [], 'Graph of a horizontal line'), ok: true, missTag: 'M15' },
-      { t: mini([], sp, 'Graph of six scattered points'), ok: true, missTag: 'M15' },
-      { t: mini([{ p: [[vc, -6], [vc, 6]] }], [], 'Graph of a vertical line'), ok: false },
-      { t: broken, ok: true, missTag: 'M15' },
-      { t: mini([], dpts, 'Graph of five points, two above the same x'), ok: false }
-    ]);
+    // a pool of graph types: which ones appear, and how many are functions, changes with the seed
+    var FNS = [
+      function () { var c = R.nz(-5, 5); return { t: mini([{ m: 0, b: c }], [], 'Graph of a horizontal line'), name: 'the horizontal line', missTag: 'M15', note: 'every x gives y = ' + f(c),
+        step: { label: 'The horizontal line y = ' + f(c) + ': is y a function of x?', part: yn(true, null, 'M15'), hint: 'Every input has the same output, ' + f(c) + '. That is still one output each.' } }; },
+      function () { var xs = R.distinct(6, -5, 5); return { t: mini([], xs.map(function (x) { return { x: x, y: R.int(-5, 5), r: 5 }; }), 'Graph of six scattered points'), name: 'the scattered points', missTag: 'M15', note: 'each point has its own x',
+        step: { label: 'The scattered points: does any x have two points?', part: yn(false), hint: 'Each point is in its own column. No pattern is needed.' } }; },
+      function () { var b1 = R.int(-5, 5), b2 = R.int(-5, 5), b3 = R.int(-5, 5), b4 = R.int(-5, 5); return { t: mini([{ seg: [[-5, b1], [-1, b2]] }, { seg: [[1, b3], [5, b4]] }], [{ x: -5, y: b1, r: 4 }, { x: -1, y: b2, r: 4 }, { x: 1, y: b3, r: 4 }, { x: 5, y: b4, r: 4 }], 'Graph of a line in two pieces'), name: 'the line in two pieces', missTag: 'M15', note: 'the two pieces never share an x',
+        step: { label: 'The line in two pieces: does any x have two points?', part: yn(false), hint: 'The pieces do not overlap: one stops at x = −1, the other starts at x = 1.' } }; },
+      function () { var m = R.pick([1, 2, -1, -2, 0.5, -0.5]), b = R.int(-3, 3); return { t: mini([{ m: m, b: b }], [], 'Graph of a slanted line'), name: 'the slanted line', note: 'a vertical line crosses it once',
+        step: { label: 'The slanted line: how many y-values does x = 2 have?', part: { kind: 'num', key: 1 }, hint: 'A vertical line at x = 2 crosses it once, at y = ' + f(m * 2 + b) + '.' } }; },
+      function () { var h = R.int(-2, 2), k = R.int(-5, -2), a = R.pick([0.5, 1]); return { t: mini([upward(h, k, a)], [], 'Graph of a U-shaped curve'), name: 'the U-shaped curve', missTag: 'M6', note: 'outputs repeat, but each x has one y',
+        step: { label: 'The U-shaped curve: x = ' + f(h - 2) + ' and x = ' + f(h + 2) + ' have the same y. Is y still a function of x?', part: yn(true, null, 'M6'), hint: 'Two inputs sharing an output is fine. Each x still has only one y.' } }; },
+      function () { var h = R.int(-2, 2), k = R.int(-5, 0); return { t: mini([vee(h, k)], [], 'Graph of a V shape'), name: 'the V shape', missTag: 'M6', note: 'outputs repeat, but each x has one y',
+        step: { label: 'The V shape: x = ' + f(h - 1) + ' and x = ' + f(h + 1) + ' have the same y. Is y still a function of x?', part: yn(true, null, 'M6'), hint: 'Two inputs sharing an output is fine. Each x still has only one y.' } }; }
+    ];
+    var NOTS = [
+      function () { var vc = R.nz(-5, 5); return { t: mini([{ p: [[vc, -6], [vc, 6]] }], [], 'Graph of a vertical line'), name: 'the vertical line', note: 'x = ' + f(vc) + ' has endless outputs',
+        step: { label: 'The vertical line at x = ' + f(vc) + ': how many outputs does the input ' + f(vc) + ' have?', part: { kind: 'choice', keep: true, opts: [{ t: 'Exactly one' }, { t: 'Many', ok: true }] }, hint: 'Every point on that line has x = ' + f(vc) + '.' } }; },
+      function () { var dx = R.distinct(4, -5, 5), dp = dx.map(function (x) { return { x: x, y: R.int(-5, 5), r: 5 }; }), sh = dx[0], ya = dp[0].y, yb; do { yb = R.int(-5, 5); } while (yb === ya); dp.push({ x: sh, y: yb, r: 5 });
+        return { t: mini([], dp, 'Graph of five points, two above the same x'), name: 'the five points', note: 'x = ' + f(sh) + ' has two outputs (' + f(ya) + ' and ' + f(yb) + ')',
+          step: { label: 'In the graph of five points, which x-value has two points above or below it?', part: { kind: 'num', key: sh }, hint: 'Look for two points in the same column.' } }; },
+      function () { var h = R.int(-2, 2), k = R.int(-2, 2), r = R.int(2, 3); return { t: mini([circle(h, k, r)], [], 'Graph of a circle'), name: 'the circle', note: 'x = ' + f(h) + ' has two outputs (' + f(k - r) + ' and ' + f(k + r) + ')',
+        step: { label: 'The circle: a vertical line at x = ' + f(h) + ' hits it how many times?', part: { kind: 'num', key: 2 }, hint: 'It crosses at y = ' + f(k - r) + ' and at y = ' + f(k + r) + '.' } }; },
+      function () { var a = R.pick([0.5, 1]), dir = R.sign(), hh = dir > 0 ? R.int(-5, -2) : R.int(2, 5), kk = R.int(-2, 2), x0 = hh + dir * a * 4; return { t: mini([sideways(hh, kk, a, dir)], [], 'Graph of a curve that opens to the ' + (dir > 0 ? 'right' : 'left')), name: 'the sideways curve', note: 'x = ' + f(x0) + ' has two outputs (' + f(kk - 2) + ' and ' + f(kk + 2) + ')',
+        step: { label: 'The sideways curve: a vertical line at x = ' + f(x0) + ' hits it how many times?', part: { kind: 'num', key: 2 }, hint: 'It crosses at y = ' + f(kk - 2) + ' and at y = ' + f(kk + 2) + '.' } }; }
+    ];
+    var nf = R.int(2, 4);
+    var yes = R.shuffle(FNS).slice(0, nf).map(function (g) { var c = g(); c.ok = true; return c; });
+    var no = R.shuffle(NOTS).slice(0, 5 - nf).map(function (g) { var c = g(); c.ok = false; return c; });
+    var all = R.shuffle(yes.concat(no));
+    var opts = all.map(function (c) { return c.ok ? { t: c.t, ok: true, missTag: c.missTag } : { t: c.t, ok: false }; });
+    yes = all.filter(function (c) { return c.ok; }); no = all.filter(function (c) { return !c.ok; });
+    function names(list) { return list.length === 1 ? list[0].name : list.slice(0, -1).map(function (c) { return c.name; }).join(', ') + ' and ' + list[list.length - 1].name; }
+    var m15 = yes.filter(function (c) { return c.missTag === 'M15'; }), m6 = yes.filter(function (c) { return c.missTag === 'M6'; });
     return {
       stem: 'Select <b>all</b> the graphs that show y as a function of x.',
       think: 'For each graph: does any x have two different y-values?',
       parts: [{ kind: 'multi', label: 'Functions', opts: opts }],
-      answer: 'The horizontal line, the scattered points and the line in two pieces',
-      work: ['Check each input: one output each means a function.', 'The vertical line at x = ' + f(vc) + ' gives that one input endless outputs, and the points at x = ' + f(shared) + ' give it two outputs (' + f(ya) + ' and ' + f(yb) + '). Not functions.', 'The horizontal line, the scattered points and the line in two pieces give every x one y.', 'Graphs do not need to be connected, slanted or follow a rule: <b>horizontal line, scattered points, two-piece line</b>.'],
-      why: { M15: 'A graph does not need to be slanted, connected or follow a rule. The horizontal line, the scattered points and the two-piece line each give every x exactly one y.' },
-      steps: [
-        { label: 'The vertical line at x = ' + f(vc) + ': how many outputs does the input ' + f(vc) + ' have?', part: { kind: 'choice', keep: true, opts: [{ t: 'Exactly one' }, { t: 'Many', ok: true }] }, hint: 'Every point on that line has x = ' + f(vc) + '.' },
-        { label: 'In the graph of five points, which x-value has two points above or below it?', part: { kind: 'num', key: shared }, hint: 'Look for two points in the same column.' },
-        { label: 'The horizontal line y = ' + f(hc) + ': is y a function of x?', part: yn(true, null, 'M15'), hint: 'Every input has the same output, ' + f(hc) + '. That is still one output each.' },
-        { label: 'The line in two pieces: does any x have two points?', part: yn(false), hint: 'The pieces do not overlap: one stops at x = −1, the other starts at x = 1.' }
-      ]
+      answer: cap(names(yes)),
+      work: ['Check each input: one output each means a function.', no.map(function (c) { return cap(c.name) + ': ' + c.note + '.'; }).join(' ') + ' Not ' + (no.length === 1 ? 'a function' : 'functions') + '.', yes.map(function (c) { return cap(c.name) + ': ' + c.note + '.'; }).join(' '), 'Graphs do not need to be connected, slanted or follow a rule. Functions: <b>' + names(yes) + '</b>.'],
+      why: {
+        M15: m15.length ? 'A graph does not need to be slanted, connected or follow a rule. ' + cap(names(m15)) + (m15.length === 1 ? ' gives' : ' each give') + ' every x exactly one y.' : 'A graph does not need to follow a rule. Each x having exactly one y is all that matters.',
+        M6: m6.length ? cap(names(m6)) + (m6.length === 1 ? ' uses' : ' use') + ' some outputs twice, but each x still has exactly one y. Repeated outputs are allowed.' : 'Repeated outputs are allowed. Only an x with two different y-values breaks the rule.'
+      },
+      steps: [no[0].step, yes[0].step, yes[1].step,
+        { label: 'So how many of the five graphs are functions?', part: { kind: 'num', key: nf }, hint: 'The functions: ' + names(yes) + '.' }]
     };
   } });
 
@@ -135,12 +154,11 @@
       xs = R.distinct(5, -4, 9); c = R.int(-5, 9);
       rows = xs.map(function (x) { return [x, c]; });
     }
-    var inW = ['input', 'inputs', 'x', 'x-value', 'x-values', 'x value', 'domain', String(rep ? r : 'input')], outW = ['output', 'outputs', 'y', 'y-value', 'y-values', 'y value', 'range'];
+    // the Yes/No part carries the verdict; the sentence is judged on its reason (see judge4a), not on its first word
     var text = rep
-      ? { kind: 'text', label: 'Explain', need: [inW, ['two', '2', 'more than one', 'different', 'multiple', 'both']], not: ['is a function'], notFirst: ['yes'], sample: 'No. The input ' + f(r) + ' has two different outputs, ' + f(y1) + ' and ' + f(y2) + '.', tag: 'M6' }
-      : { kind: 'text', label: 'Explain', need: [inW, ['one', '1', 'exactly one', 'only one', 'single', 'each', 'every']], not: ['not a function', 'is not', 'isn t', 'two outputs'], notFirst: ['no'], sample: 'Yes. Each input has exactly one output. The outputs are all the same, and that is allowed.', tag: 'M15' };
-    text.need.push(outW);
-    return {
+      ? { kind: 'text', label: 'Explain', sample: 'No. The input ' + f(r) + ' has two different outputs, ' + f(y1) + ' and ' + f(y2) + '.', tag: 'M6' }
+      : { kind: 'text', label: 'Explain', sample: 'Yes. Each input has exactly one output. The outputs are all the same, and that is allowed.', tag: 'M15' };
+    var item = {
       stem: 'Is y a function of x in this table? Choose, then explain in a sentence.',
       fig: C.table({ cols: ['x', 'y'], rows: rows }),
       think: 'Look down the x column first.',
@@ -165,9 +183,40 @@
           { label: 'Does any x-value appear twice?', part: yn(false), hint: 'Read down the x column: they are all different.' },
           { label: 'How many outputs does each input have?', part: { kind: 'num', key: 1 }, hint: 'Each x appears once, with y = ' + f(c) + '.' },
           { label: 'So is y a function of x?', part: yn(true, null, 'M15'), hint: 'Same outputs are fine. Each input has one output.' }
-        ]
+        ],
+      check: function (vals) {
+        if (vals[0] !== (rep ? 1 : 0)) return null;               // wrong verdict: the choice part's tag stands
+        return judge4a(vals[1], rep, r, y1, y2) ? { ok: true } : { ok: false, tag: text.tag };
+      }
     };
+    return item;
   } });
+  // FN-4a's sentence rubric. rep: an input repeats with two outputs (answer No); otherwise every x is different (answer Yes).
+  // drop a leading verdict word ("Yes," / "No because"), but keep "No x-value repeats" whole
+  function nt(s, rep) {
+    var raw = String(s || ''), t = C.norm(raw).replace(/([a-z])-([a-z])/g, '$1 $2').trim();
+    if (/^yes\b/.test(t) || (/^no\b/.test(t) && (rep || /^\s*no\s*[,.!:;]/i.test(raw)))) t = t.replace(/^(yes|no)\b\s*/, '');
+    return ' ' + t + ' ';
+  }
+  function hasN(t, n) { n = Math.abs(n); return t.indexOf(' ' + n + ' ') >= 0 || t.indexOf(' -' + n + ' ') >= 0; }
+  function judge4a(s, rep, r, y1, y2) {
+    var t = nt(s, rep), H = function (w) { return C.hasAny(t, w); };
+    if (!t.trim()) return false;
+    var inp = H(['input', 'inputs', 'x', 'x value', 'x values', 'xs', 'domain']);
+    if (rep) {
+      var outw = H(['output', 'outputs', 'y', 'ys', 'y value', 'y values', 'range', 'answers', 'results']);
+      var both = hasN(t, y1) && hasN(t, y2);
+      var many = H(['two', '2', 'different', 'more than one', 'multiple', 'both', 'twice', 'repeat', 'repeats', 'repeated', 'again', 'another', 'goes to', 'go to', 'maps to', 'paired with']);
+      var contra = H(['is a function', 'no x', 'no input', 'no x value', 'no inputs', 'each input has one', 'every input has one', 'each x has one', 'every x has one', 'each input has exactly one', 'only one output', 'doesn t repeat', 'don t repeat', 'does not repeat', 'do not repeat', 'never']);
+      return !contra && (inp || hasN(t, r)) && ((outw && many) || both);
+    }
+    var one = H(['one', '1', 'only one', 'exactly one', 'single', 'unique', 'its own']) || /(each|every) (input|x|x value)s? (has|have|gets|goes to|gives) the same/.test(t);
+    var negMany = H(['no', 'not', 'never', 'none', 'doesn t', 'don t', 'isn t', 'aren t', 'without', 'nothing']) && H(['two', '2', 'more than one', 'repeat', 'repeats', 'repeated', 'twice', 'different', 'multiple', 'again', 'same x', 'same input']);
+    var distinct = H(['all different', 'are different', 'is different', 'each different', 'different x', 'different inputs', 'unique']);
+    var contra2 = H(['not a function', 'isn t a function', 'is not a function']);
+    var reversed = /(each|every) (output|y|y value)s? (has|have|goes|comes|gets|maps)/.test(t) && !/(each|every) (input|x|x value)s? /.test(t);
+    return !contra2 && !reversed && inp && (one || negMany || distinct);
+  }
 
   /* ---------------- Skill 5 Functions in context ---------------- */
   // each pair: f is a function (input → exactly one output); r reverses it and is not a function
@@ -182,49 +231,107 @@
     { f: 'each student → their class teacher', r: 'each teacher → a student they teach', fx: 'A student has one class teacher.', rx: 'A teacher teaches many students.', fin: 'student', fout: 'teacher', rin: 'teacher' }
   ];
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  // why a reversed pair from POOL is not a function, in the words of the relationship the student picked
+  function notWhy(e) { return 'In "' + e.r + '", ' + e.rx.charAt(0).toLowerCase() + e.rx.slice(1) + ' So one ' + e.rin + ' (the input) can go with more than one output: not a function.'; }
 
   C.add({ id: 'FN-5a', skill: '5', level: 5, order: 1, type: 'MC', gen: function (R) {
     var pick = R.shuffle(POOL).slice(0, 3), key = pick[0];
-    var opts = [{ t: cap(key.f), ok: true }, { t: cap(key.r), tag: 'M6' }, { t: cap(pick[1].r), tag: 'M6' }, { t: cap(pick[2].r), tag: 'M6' }];
-    return {
+    var opts = [{ t: cap(key.f), ok: true }, { t: cap(key.r), tag: 'M6', why: notWhy(key) }, { t: cap(pick[1].r), tag: 'M6', why: notWhy(pick[1]) }, { t: cap(pick[2].r), tag: 'M6', why: notWhy(pick[2]) }];
+    var item = {
       stem: 'Which relationship is a function? Each one is written input → output.',
       think: 'If you know the input, do you know exactly one output?',
       parts: [{ kind: 'choice', label: 'Function', opts: opts }],
       answer: cap(key.f),
       work: ['Ask: does knowing the input tell you exactly one output?', cap(key.f) + ': yes. ' + key.fx, cap(key.r) + ': no. ' + key.rx, 'So the function is <b>' + key.f + '</b>.'],
-      why: { M6: 'That one goes the other way. ' + key.rx + ' One input can have many outputs, so it is not a function.' },
+      // set to the picked option's own reason when the answer is graded (see check)
+      why: { M6: 'In the one you picked, one input can go with more than one output, so it is not a function. ' + cap(key.f) + ' is: ' + key.fx.charAt(0).toLowerCase() + key.fx.slice(1) },
+      check: function (vals) { var o = opts[vals[0]]; if (o && o.why) item.why.M6 = o.why; return null; },
       steps: [
         { label: cap(key.f) + '. Can one ' + key.fin + ' have two different outputs?', part: yn(false), hint: key.fx },
         { label: cap(key.r) + '. Can one ' + key.rin + ' have two different outputs?', part: yn(true), hint: key.rx },
         { label: 'So which one is a function?', part: { kind: 'choice', keep: true, opts: [{ t: cap(key.f), ok: true }, { t: cap(key.r), tag: 'M6' }] }, hint: 'The function gives each input exactly one output.' }
       ]
     };
+    return item;
   } });
 
+  // FN-5d's own situations (none of them appear in FN-5a's POOL)
+  var SORT_FN = [
+    { t: 'each person → their age in years', x: 'A person has only one age at a time. Many people sharing an age is fine.' },
+    { t: 'each car → its number plate', x: 'A car has only one number plate.' },
+    { t: 'each country → its capital city', x: 'A country has one capital city.' },
+    { t: 'each item in a shop → its price', x: 'An item has one price, even if other items cost the same.' },
+    { t: 'each student → how many brothers and sisters they have', x: 'A student has one number of brothers and sisters. Many students sharing a number is fine.' },
+    { t: 'each runner in a race → their finishing time', x: 'A runner finishes the race only once, so they have one finishing time.' }
+  ];
+  var SORT_NOT = [
+    { t: 'each parent → their child', x: 'A parent can have two or more children.' },
+    { t: 'each letter of the alphabet → a word starting with it', x: 'The letter B starts many words, such as bag and box.' },
+    { t: 'each sports team → a player on it', x: 'A team has many players.' },
+    { t: 'each street → a house on it', x: 'A street has many houses.' },
+    { t: 'each school subject → a student who takes it', x: 'Many students take each subject.' },
+    { t: 'each colour → a car of that colour', x: 'Many cars can be the same colour.' }
+  ];
+
   C.add({ id: 'FN-5d', skill: '5', level: 4, type: 'DM', ia: true, gen: function (R) {
-    var pk = R.shuffle(POOL).slice(0, 2);
-    var list = R.shuffle([
-      { t: pk[0].f, fn: true, x: pk[0].fx }, { t: pk[0].r, fn: false, x: pk[0].rx },
-      { t: pk[1].f, fn: true, x: pk[1].fx }, { t: pk[1].r, fn: false, x: pk[1].rx }
-    ]);
-    return {
+    var nf = R.int(1, 3);
+    var list = R.shuffle(R.shuffle(SORT_FN).slice(0, nf).map(function (c) { return { t: c.t, fn: true, x: c.x }; })
+      .concat(R.shuffle(SORT_NOT).slice(0, 4 - nf).map(function (c) { return { t: c.t, fn: false, x: c.x }; })));
+    list.forEach(function (c) {
+      c.why = c.fn ? '"' + cap(c.t) + '" is a function. ' + c.x + ' Repeated outputs are allowed; what matters is one output for each input.'
+        : '"' + cap(c.t) + '" is not a function. ' + c.x + ' So one input can go with more than one output.';
+    });
+    var cards = list.map(function (c, i) { return { t: '<b>' + LET[i] + '</b>: ' + cap(c.t), bin: c.fn ? 0 : 1, tag: 'M6' }; });
+    var nn = 4 - nf;
+    var item = {
       stem: 'Sort the 4 situations (input → output) into "Function" and "Not a function".',
       think: 'Does one input always give exactly one output?',
-      parts: [{ kind: 'sort', label: 'Situations', bins: ['Function', 'Not a function'], cards: list.map(function (c, i) { return { t: '<b>' + LET[i] + '</b>: ' + cap(c.t), bin: c.fn ? 0 : 1, tag: 'M6' }; }) }],
+      parts: [{ kind: 'sort', label: 'Situations', bins: ['Function', 'Not a function'], cards: cards }],
       answer: list.map(function (c, i) { return LET[i] + ': ' + (c.fn ? 'function' : 'not a function'); }).join(', '),
       work: ['Ask of each: does one input always give exactly one output?',
-        list.map(function (c, i) { return c.fn ? LET[i] + ': ' + c.x : ''; }).filter(String).join(' ') + ' <b>Functions.</b>',
-        list.map(function (c, i) { return c.fn ? '' : LET[i] + ': ' + c.x; }).filter(String).join(' ') + ' <b>Not functions.</b>'],
-      why: { M6: 'Check which way the arrow goes. ' + cap(pk[0].f) + ' is a function, but turned around (' + pk[0].r + ') one input can have many outputs.' },
+        list.map(function (c, i) { return c.fn ? LET[i] + ': ' + c.x : ''; }).filter(String).join(' ') + ' <b>' + (nf === 1 ? 'A function.' : 'Functions.') + '</b>',
+        list.map(function (c, i) { return c.fn ? '' : LET[i] + ': ' + c.x; }).filter(String).join(' ') + ' <b>' + (nn === 1 ? 'Not a function.' : 'Not functions.') + '</b>'],
+      // set to the first misplaced card's own reason when the answer is graded (the same card the M6 tag comes from)
+      why: { M6: 'Check each card: a situation is a function only when every input has exactly one output. Repeated outputs are allowed.' },
+      check: function (vals) {
+        var put = vals[0] || [];
+        list.some(function (c, k) { if (put[k] != null && put[k] >= 0 && put[k] !== cards[k].bin) { item.why.M6 = c.why; return true; } });
+        return null;
+      },
       steps: list.map(function (c, i) { return { label: LET[i] + ': ' + cap(c.t) + '. Can one input have two different outputs?', part: yn(!c.fn), hint: c.x }; })
     };
+    return item;
   } });
 
   C.add({ id: 'FN-5b', skill: '5', level: 5, order: 2, type: 'MC', gen: function (R) {
     var c1 = R.int(8, 15), c2 = c1 + R.int(3, 8), c3 = c2 + R.int(3, 8);
-    var w = R.pick([0.5, 2, 2.5, 4, 4.5]), cw = w < 1 ? c1 : w < 3 ? c2 : c3;
+    var kg = function (v) { return f(v, 'dec'); };     // 2.5 kg, not 5/2 kg
+    if (R.chance(0.5)) {
+      // overlapping bands: some weights get two prices, so cost is NOT a function of weight
+      var top = R.pick([2, 3]), from = top === 3 ? R.pick([1, 2]) : 1, wo = from + 0.5;
+      return {
+        stem: 'A shop\'s postage list says: up to ' + top + ' kg costs ' + c1 + ' riyals, and from ' + from + ' kg up to 5 kg costs ' + c2 + ' riyals. Is cost a function of weight?',
+        think: 'The input is the weight. Does one weight ever have two costs?',
+        parts: [{ kind: 'choice', label: 'Is cost a function of weight?', opts: [
+          { t: 'No, some weights have two different costs', ok: true },
+          { t: 'Yes, every weight has a cost', tag: 'M6' },
+          { t: 'No, there is no formula', tag: 'M15' },
+          { t: 'Yes, because cost goes up as weight goes up', tag: 'M7' }
+        ] }],
+        answer: 'No, some weights have two different costs (a ' + kg(wo) + ' kg parcel could cost ' + c1 + ' or ' + c2 + ' riyals)',
+        work: ['The input is weight; the output is cost.', 'The two bands overlap from ' + from + ' kg to ' + top + ' kg. A ' + kg(wo) + ' kg parcel is in both, so it could cost ' + c1 + ' or ' + c2 + ' riyals.', 'One input with two outputs, so <b>no, cost is not a function of weight</b>.'],
+        why: { M6: 'Every weight having a cost is not enough. A ' + kg(wo) + ' kg parcel is in both bands, so it has two costs: ' + c1 + ' and ' + c2 + ' riyals.', M15: 'Not having a formula is not the reason. It fails because a ' + kg(wo) + ' kg parcel has two costs, ' + c1 + ' and ' + c2 + ' riyals.', M7: 'Going up does not make it a function. A ' + kg(wo) + ' kg parcel has two costs, ' + c1 + ' and ' + c2 + ' riyals, so it is not one.' },
+        steps: [
+          { label: 'Is a ' + kg(wo) + ' kg parcel in the "up to ' + top + ' kg" band?', part: yn(true), hint: kg(wo) + ' kg is less than ' + top + ' kg.' },
+          { label: 'Is it also in the "from ' + from + ' kg up to 5 kg" band?', part: yn(true), hint: kg(wo) + ' kg is more than ' + from + ' kg.' },
+          { label: 'So how many different costs could a ' + kg(wo) + ' kg parcel have?', part: { kind: 'num', key: 2 }, hint: c1 + ' riyals and ' + c2 + ' riyals.' },
+          { label: 'So is cost a function of weight?', part: yn(false, 'M6'), hint: 'One input (weight) with two outputs (costs) breaks the rule.' }
+        ]
+      };
+    }
+    var w = R.pick([0.5, 1, 2, 2.5, 3, 4, 4.5]), cw = w <= 1 ? c1 : w <= 3 ? c2 : c3;
     return {
-      stem: 'Postage costs ' + c1 + ' riyals up to 1 kg, ' + c2 + ' riyals from 1 kg up to 3 kg, and ' + c3 + ' riyals from 3 kg up to 5 kg. Is cost a function of weight?',
+      stem: 'Postage costs ' + c1 + ' riyals up to 1 kg, ' + c2 + ' riyals over 1 kg up to 3 kg, and ' + c3 + ' riyals over 3 kg up to 5 kg. Is cost a function of weight?',
       think: 'The input is the weight. Does one weight ever have two costs?',
       parts: [{ kind: 'choice', label: 'Is cost a function of weight?', opts: [
         { t: 'Yes, every weight has one cost', ok: true },
@@ -233,42 +340,72 @@
         { t: 'Yes, because cost always goes up', tag: 'M7' }
       ] }],
       answer: 'Yes, every weight has one cost',
-      work: ['The input is weight; the output is cost.', 'Pick any weight: a ' + f(w) + ' kg parcel costs ' + cw + ' riyals, and only that.', 'Many weights sharing a cost is fine, and there does not need to be one formula. <b>Yes, every weight has one cost.</b>'],
+      work: ['The input is weight; the output is cost.', 'Pick any weight: a ' + kg(w) + ' kg parcel costs ' + cw + ' riyals, and only that.', 'Many weights sharing a cost is fine, and there does not need to be one formula. <b>Yes, every weight has one cost.</b>'],
       why: { M6: 'Many weights sharing one cost is allowed. The rule is about inputs: each weight has only one cost.', M15: 'A function does not need a single formula. Each weight has exactly one cost, so it is a function.', M7: 'Going up is not what makes it a function. It is a function because each weight has exactly one cost.' },
       steps: [
-        { label: 'What does a ' + f(w) + ' kg parcel cost (riyals)?', part: { kind: 'num', key: cw }, hint: f(w) + ' kg is in the ' + (w < 1 ? 'up to 1 kg' : w < 3 ? '1 kg to 3 kg' : '3 kg to 5 kg') + ' band.' },
-        { label: 'Could a ' + f(w) + ' kg parcel have two different costs?', part: yn(false), hint: 'Each weight falls in exactly one band.' },
+        { label: 'What does a ' + kg(w) + ' kg parcel cost (riyals)?', part: { kind: 'num', key: cw }, hint: kg(w) + ' kg is in the "' + (w <= 1 ? 'up to 1 kg' : w <= 3 ? 'over 1 kg up to 3 kg' : 'over 3 kg up to 5 kg') + '" band.' },
+        { label: 'Could a ' + kg(w) + ' kg parcel have two different costs?', part: yn(false), hint: 'Each weight falls in exactly one band.' },
         { label: 'So is cost a function of weight?', part: yn(true, null, 'M6'), hint: 'Each input (weight) has one output (cost). Sharing a cost is fine.' }
       ]
     };
   } });
 
   C.add({ id: 'FN-5c', skill: '5', level: 5, order: 3, type: 'TT', gen: function (R) {
-    var ctx = R.pick([
-      { inp: 'age', out: 'height', unit: 'cm', lo: 140, hi: 170, n: R.int(12, 14), u: ' years old', big: 'older students are always taller' },
-      { inp: 'age', out: 'shoe size', unit: '', lo: 36, hi: 44, n: R.int(12, 14), u: ' years old', big: 'older students always have bigger feet' },
-      { inp: 'height', out: 'mass', unit: 'kg', lo: 40, hi: 60, n: R.int(150, 165), u: ' cm tall', big: 'taller students always weigh more' }
-    ]);
     var a = R.name(), b; do { b = R.name(); } while (b === a);
+    var inputStep = function (ctx) { return { label: 'What is the input?', part: { kind: 'choice', keep: true, opts: [{ t: ctx.inp, ok: true }, { t: ctx.out, tag: 'M6' }] }, hint: 'It is "' + ctx.out + ' as a function of ' + ctx.inp + '": the input comes after "of".' }; };
+    if (R.chance(0.5)) {
+      // a Yes case: the input really does fix the output, even though outputs repeat
+      var cl = '8' + R.pick(['A', 'B', 'C', 'D']), dob = R.int(1, 28) + ' ' + R.pick(['March', 'May', 'June', 'October']) + ' ' + R.int(2011, 2013), id = R.int(2001, 2399);
+      var cy = R.pick([
+        { inp: 'date of birth', out: 'age in years', outs: 'ages', who: 'class', rs: 'Two students with the same date of birth always have the same age', s2: a + ' and ' + b + ' were both born on ' + dob + '. Can they be different ages today?', h2: 'Same date of birth, so the same age today.', w2: 'Anyone born on ' + dob + ' is the same age today. Many dates give the same age, and that is fine.' },
+        { inp: 'class', out: 'class teacher', outs: 'class teachers', who: 'school', rs: 'Two students in the same class always have the same class teacher', s2: a + ' and ' + b + ' are both in ' + cl + '. Can they have different class teachers?', h2: 'A class has only one class teacher.', w2: 'Everyone in ' + cl + ' has the same class teacher. One teacher may have more than one class, and that is fine.' },
+        { inp: 'student ID number', out: 'first name', outs: 'first names', who: 'school', rs: 'Each student ID number belongs to just one student, so it gives one first name', s2: 'The student ID number ' + id + ' belongs to ' + a + '. Can that ID number go with a second, different first name?', h2: 'Each ID number belongs to only one student.', w2: 'The ID number ' + id + ' belongs to one student, so it gives one first name. Two students can share a first name with different ID numbers, and that is fine.' }
+      ]);
+      return {
+        stem: 'Is a student\'s ' + cy.out + ' a function of their ' + cy.inp + ', for everyone in your ' + cy.who + '? Choose an answer and a reason.',
+        think: 'The input is ' + cy.inp + '. Can one ' + cy.inp + ' go with two different ' + cy.outs + '?',
+        parts: [
+          { kind: 'choice', label: 'Answer', keep: true, opts: [{ t: 'Yes', ok: true }, { t: 'No', tag: 'M6' }] },
+          { kind: 'choice', label: 'Reason', opts: [
+            { t: cy.rs, ok: true },
+            { t: 'Each ' + cy.out + ' goes with only one ' + cy.inp, tag: 'M6' },
+            { t: 'There is a formula for it', tag: 'M15' }
+          ] }
+        ],
+        answer: 'Yes: ' + cy.rs.charAt(0).toLowerCase() + cy.rs.slice(1),
+        work: ['The input is ' + cy.inp + ' and the output is ' + cy.out + '.', cy.w2, 'Each input has exactly one output, so <b>yes, it is a function</b>.'],
+        why: { M6: 'Check the inputs, not the outputs. ' + cy.w2 + ' Each ' + cy.inp + ' gives one ' + cy.out + ', so it is a function.', M15: 'A function does not need a formula. It is a function because each ' + cy.inp + ' gives exactly one ' + cy.out + '.' },
+        steps: [
+          inputStep(cy),
+          { label: cy.s2, part: yn(false), hint: cy.h2 },
+          { label: 'So is ' + cy.out + ' a function of ' + cy.inp + '?', part: yn(true, null, 'M6'), hint: 'Each input has one output. Outputs repeating is fine.' }
+        ]
+      };
+    }
+    var ctx = R.pick([
+      { inp: 'age', out: 'height', outs: 'heights', unit: 'cm', lo: 140, hi: 170, n: R.int(12, 14), u: ' years old', big: 'older students are always taller' },
+      { inp: 'age', out: 'shoe size', outs: 'shoe sizes', unit: '', lo: 36, hi: 44, n: R.int(12, 14), u: ' years old', big: 'older students always have bigger feet' },
+      { inp: 'height', out: 'mass', outs: 'masses', unit: 'kg', lo: 40, hi: 60, n: R.int(150, 165), u: ' cm tall', big: 'taller students always weigh more' }
+    ]);
     var h1 = R.int(ctx.lo, ctx.hi), h2; do { h2 = R.int(ctx.lo, ctx.hi); } while (h2 === h1);
     var un = ctx.unit ? ' ' + ctx.unit : '';
     return {
       stem: 'Is a student\'s ' + ctx.out + ' a function of their ' + ctx.inp + ', for everyone in your class? Choose an answer and a reason.',
-      think: 'The input is ' + ctx.inp + '. Can one ' + ctx.inp + ' go with two different ' + ctx.out + 's?',
+      think: 'The input is ' + ctx.inp + '. Can one ' + ctx.inp + ' go with two different ' + ctx.outs + '?',
       parts: [
         { kind: 'choice', label: 'Answer', keep: true, opts: [{ t: 'Yes', tag: 'M6' }, { t: 'No', ok: true }] },
         { kind: 'choice', label: 'Reason', opts: [
-          { t: 'Two students with the same ' + ctx.inp + ' can have different ' + ctx.out + 's', ok: true },
-          { t: cap(ctx.out) + 's don\'t follow a formula', tag: 'M15' },
+          { t: 'Two students with the same ' + ctx.inp + ' can have different ' + ctx.outs, ok: true },
+          { t: cap(ctx.outs) + ' don\'t follow a formula', tag: 'M15' },
           { t: cap(ctx.big) }
         ] }
       ],
-      answer: 'No: two students with the same ' + ctx.inp + ' can have different ' + ctx.out + 's',
+      answer: 'No: two students with the same ' + ctx.inp + ' can have different ' + ctx.outs,
       work: ['The input is ' + ctx.inp + ' and the output is ' + ctx.out + '.', 'Say ' + a + ' and ' + b + ' are both ' + ctx.n + ctx.u + ', but ' + a + '\'s ' + ctx.out + ' is ' + h1 + un + ' and ' + b + '\'s is ' + h2 + un + '.', 'One input with two outputs, so <b>no, it is not a function</b>.'],
-      why: { M6: 'The input is ' + ctx.inp + '. Two students who are both ' + ctx.n + ctx.u + ' can have different ' + ctx.out + 's, so one input has two outputs.', M15: 'Not having a formula is not the reason. A function only needs one output for each input; here one ' + ctx.inp + ' can have two ' + ctx.out + 's.' },
+      why: { M6: 'The input is ' + ctx.inp + '. Two students who are both ' + ctx.n + ctx.u + ' can have different ' + ctx.outs + ', so one input has two outputs.', M15: 'Not having a formula is not the reason. A function only needs one output for each input; here one ' + ctx.inp + ' can have two ' + ctx.outs + '.' },
       steps: [
-        { label: 'What is the input?', part: { kind: 'choice', keep: true, opts: [{ t: ctx.inp, ok: true }, { t: ctx.out, tag: 'M6' }] }, hint: 'It is "' + ctx.out + ' as a function of ' + ctx.inp + '": the input comes after "of".' },
-        { label: a + ' and ' + b + ' are both ' + ctx.n + ctx.u + '. Can they have different ' + ctx.out + 's?', part: yn(true), hint: 'Yes: ' + h1 + un + ' and ' + h2 + un + ', for example.' },
+        inputStep(ctx),
+        { label: a + ' and ' + b + ' are both ' + ctx.n + ctx.u + '. Can they have different ' + ctx.outs + '?', part: yn(true), hint: 'Yes: ' + h1 + un + ' and ' + h2 + un + ', for example.' },
         { label: 'So is ' + ctx.out + ' a function of ' + ctx.inp + '?', part: yn(false, 'M6'), hint: 'One input with two outputs breaks the rule.' }
       ]
     };
@@ -277,7 +414,7 @@
   C.add({ id: 'FN-6a', skill: '5', level: 6, type: 'NE', gen: function (R) {
     var v = R.distinct(7, 1, 9), a = v[0], b = v[1], c = v[2], p = v[3], q = v[4], r = v[5], s = v[6];
     return {
-      stem: 'The relation {(' + a + ', ' + p + '), (' + b + ', ' + q + '), (<i>k</i>, ' + r + '), (' + c + ', ' + s + ')} is <b>NOT</b> a function. What could <i>k</i> be? Give one value.',
+      stem: 'The set of pairs {(' + a + ', ' + p + '), (' + b + ', ' + q + '), (<i>k</i>, ' + r + '), (' + c + ', ' + s + ')} is <b>NOT</b> a function. What could <i>k</i> be? Give one value.',
       think: 'To break the rule, one input must have two outputs.',
       parts: [{ kind: 'num', label: 'k', key: a, wrong: [{ v: p, tag: 'M6' }, { v: q, tag: 'M6' }, { v: r, tag: 'M6' }, { v: s, tag: 'M6' }] }],
       check: function (vals) {

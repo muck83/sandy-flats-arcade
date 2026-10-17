@@ -15,7 +15,7 @@
     if (R.chance(0.4)) { x1 = a + dx; y1 = b + dy; x2 = a; y2 = b; }
     var dX = x2 - x1, dY = y2 - y1, m = p / q;
     return {
-      stem: 'Find the slope of the line through ' + C.pt(x1, y1) + ' and ' + C.pt(x2, y2) + '.',
+      stem: 'Find the slope (the step) of the line through ' + C.pt(x1, y1) + ' and ' + C.pt(x2, y2) + '.',
       think: 'Change in y ÷ change in x. A fraction is fine.',
       parts: [{ kind: 'num', label: 'Slope', key: m, wrong: [{ v: 1 / m, tag: 'M1' }, { v: -m, tag: 'M2' }, { v: dY - dX, tag: 'M17' }] }],
       answer: 'Slope = ' + f(m),
@@ -42,7 +42,7 @@
     });
     pts.push({ x: P[0], y: P[1] });
     return {
-      stem: 'Two slope triangles are drawn on the same line. The small one has run ' + r1 + ' and rise ' + f(u1) + '. The big one has run ' + r2 + ' and rise ' + f(u2) + '. Which is true?',
+      stem: 'Two slope triangles (slope is the step: rise ÷ run) are drawn on the same line. The small one has run ' + r1 + ' and rise ' + f(u1) + '. The big one has run ' + r2 + ' and rise ' + f(u2) + '. Which is true?',
       fig: C.graph({ x: [-10, 10], y: [-10, 10], lines: lines, pts: pts, label: 'A line with two slope triangles, one ' + s + ' times as big as the other' }),
       parts: [{ kind: 'choice', label: 'Which is true?', opts: [
         { t: 'Both triangles give the same slope', ok: true },
@@ -51,7 +51,7 @@
         { t: 'You can’t tell which slope is greater' }
       ] }],
       answer: 'Both give the same slope, ' + f(m),
-      work: ['Small triangle: rise ÷ run = ' + f(u1) + ' ÷ ' + r1 + ' = ' + f(m) + '.', 'Big triangle: ' + f(u2) + ' ÷ ' + r2 + ' = ' + f(m) + '.', 'The triangles are similar, so <b>both give the same slope</b>: any two points on a line give the same slope.'],
+      work: ['Small triangle: rise ÷ run = ' + f(u1) + ' ÷ ' + r1 + ' = ' + f(m) + '.', 'Big triangle: ' + f(u2) + ' ÷ ' + r2 + ' = ' + f(m) + '.', 'The triangles have the same shape, so <b>both give the same slope</b>: any two points on a line give the same slope.'],
       why: { M13: 'The big triangle has longer legs, but slope compares them: ' + f(u2) + ' ÷ ' + r2 + ' = ' + f(m) + ', the same as ' + f(u1) + ' ÷ ' + r1 + '.' },
       steps: [
         { label: 'Small triangle: ' + f(u1) + ' ÷ ' + r1 + ' =', part: { kind: 'num', key: m }, hint: 'Slope = rise ÷ run.' },
@@ -75,7 +75,7 @@
     var s0; do { s0 = R.int(-9, 9); } while (s0 === k || s0 === d);
     var grid = { x: [-10, 10], y: [-10, 10], size: 400, pts: [{ x: c, y: d, l: 'B ' + C.pt(c, d), c: C.COL.line }], label: 'Grid with point B at ' + C.pt(c, d) };
     return {
-      stem: 'Point B is at ' + C.pt(c, d) + '. Point A is at (' + f(a) + ', k). The line through A and B has slope ' + f(m) + '. Drag A up or down to the right place. What is k?',
+      stem: 'Point B is at ' + C.pt(c, d) + '. Point A is at (' + f(a) + ', k). Drag A up or down until the line through A and B has slope (the step) ' + f(m) + '.',
       think: 'Slope = change in y ÷ change in x, from A to B.',
       parts: [{ kind: 'points', label: 'Move A', grid: grid, start: [[a, s0]], names: ['A'], lock: 'x', key: [[a, k]], wrong: wrong,
         extra: function (cur) { return cur[0][0] === c ? [] : [{ p: [[cur[0][0], cur[0][1]], [c, d]] }]; },
@@ -100,7 +100,7 @@
     } while (b === 0 || Math.abs(b) > 12);
     var b2 = y1 + mx;
     return {
-      stem: 'A line has slope ' + f(m) + ' and passes through ' + C.pt(x1, y1) + '. Write its equation.',
+      stem: 'A line has slope (the step) ' + f(m) + ' and passes through ' + C.pt(x1, y1) + '. Write its equation.',
       think: 'Put the point into y = mx + b and solve for b.',
       parts: [{ kind: 'eq', label: 'Equation', key: C.line(m, b), show: C.eqText(m, b), wrong: [{ f: C.line(-m, b), tag: 'M2' }, { f: C.line(m, b2), tag: 'M2' }, { f: C.line(1 / m, y1 - x1 / m), tag: 'M1' }] }],
       answer: C.eqText(m, b),
@@ -119,56 +119,96 @@
     do { r = R.int(1, 5); t1 = R.int(1, 4); t2 = t1 + R.int(1, 4); b = R.int(18, 40); h1 = b - r * t1; h2 = b - r * t2; } while (h2 < 3 || 2 * h1 === b);
     var dt = t2 - t1, dh = h2 - h1;
     return {
-      stem: 'A candle burns down at a steady rate. After ' + t1 + ' hour' + (t1 > 1 ? 's' : '') + ' it is ' + h1 + ' cm tall. After ' + t2 + ' hours it is ' + h2 + ' cm tall. How tall was it before it was lit?',
+      stem: 'A candle burns down at a steady rate. After ' + C.pl(t1, 'hour') + ' it is ' + h1 + ' cm tall. After ' + t2 + ' hours it is ' + h2 + ' cm tall. How tall was it before it was lit?',
       think: 'Find the rate per hour, then go back to 0 hours.',
       parts: [{ kind: 'num', label: 'Height at 0 hours (cm)', key: b, wrong: [{ v: h1, tag: 'M3' }, { v: b - 2 * r * t1, tag: 'M2' }, { v: 2 * h1, tag: 'M4' }] }],
       answer: b + ' cm',
-      work: ['Rate = (' + h2 + ' − ' + h1 + ') ÷ (' + t2 + ' − ' + t1 + ') = ' + f(dh) + ' ÷ ' + dt + ' = ' + f(-r) + ' cm per hour.', 'Go back ' + t1 + ' hour' + (t1 > 1 ? 's' : '') + ' from ' + h1 + ' cm: ' + h1 + ' − (' + f(-r) + ')(' + t1 + ') = ' + h1 + ' + ' + (r * t1) + '.', 'It was <b>' + b + ' cm</b> tall before it was lit.'],
-      why: { M3: h1 + ' cm is the height after ' + t1 + ' hour' + (t1 > 1 ? 's' : '') + ', not at 0 hours.', M2: 'The candle gets shorter, so the rate is ' + f(-r) + '. Going back in time it was taller: ' + h1 + ' + ' + (r * t1) + '.', M4: 'You used ' + h1 + ' ÷ ' + t1 + ' as the rate, from one point. Use the change between the two times.' },
+      work: ['Rate of change (the step) = (' + h2 + ' − ' + h1 + ') ÷ (' + t2 + ' − ' + t1 + ') = ' + f(dh) + ' ÷ ' + dt + ' = ' + f(-r) + ' cm per hour.', 'Go back ' + C.pl(t1, 'hour') + ' from ' + h1 + ' cm: ' + h1 + ' − (' + f(-r) + ')(' + t1 + ') = ' + h1 + ' + ' + (r * t1) + '.', 'It was <b>' + b + ' cm</b> tall before it was lit.'],
+      why: { M3: h1 + ' cm is the height after ' + C.pl(t1, 'hour') + ', not at 0 hours.', M2: 'The candle gets shorter, so the rate is ' + f(-r) + '. Going back in time it was taller: ' + h1 + ' + ' + (r * t1) + '.', M4: 'You used ' + h1 + ' ÷ ' + t1 + ' as the rate, from one point. Use the change between the two times.' },
       steps: [
         { label: 'Change in height: ' + h2 + ' − ' + h1 + ' =', part: { kind: 'num', key: dh }, hint: 'End minus start. It got shorter, so it is negative.' },
-        { label: 'Rate: ' + f(dh) + ' ÷ ' + dt + ' =', part: { kind: 'num', key: -r }, hint: 'Divide by the change in time (' + dt + ' hours).' },
-        { label: 'Height at 0 hours: ' + h1 + ' − (' + f(-r) + ')(' + t1 + ') =', part: { kind: 'num', key: b }, hint: 'Undo ' + t1 + ' hour' + (t1 > 1 ? 's' : '') + ' of burning: add back ' + (r * t1) + ' cm.' }
+        { label: 'Rate: ' + f(dh) + ' ÷ ' + dt + ' =', part: { kind: 'num', key: -r }, hint: 'Divide by the change in time (' + C.pl(dt, 'hour') + ').' },
+        { label: 'Height at 0 hours: ' + h1 + ' − (' + f(-r) + ')(' + t1 + ') =', part: { kind: 'num', key: b }, hint: 'Undo ' + C.pl(t1, 'hour') + ' of burning: add back ' + (r * t1) + ' cm.' }
       ]
     };
   } });
 
   C.add({ id: 'EQ-7a', skill: '20', level: 7, order: 2, type: 'EE', gen: function (R) {
     var a, b, m;
-    do { a = R.nz(-8, 8); b = R.nz(-9, 9); m = -b / a; } while (a * a === -b || Math.abs(a) === 1 && Math.abs(b) === 1);
+    do { a = R.nz(-8, 8); b = R.nz(-9, 9); m = -b / a; } while (a * a === -b || m === b || Math.abs(a) === 1 && Math.abs(b) === 1);
     return {
       stem: 'A line crosses the x-axis at ' + f(a) + ' and the y-axis at ' + f(b) + '. Write its equation.',
       think: 'Turn each crossing into a point, then find the slope.',
       parts: [{ kind: 'eq', label: 'Equation', key: C.line(m, b), show: C.eqText(m, b), wrong: [{ f: C.line(a, b), tag: 'M12' }, { f: C.line(-m, b), tag: 'M2' }, { f: C.line(b, a), tag: 'M9' }] }],
       answer: C.eqText(m, b),
-      work: ['The crossings are the points ' + C.pt(a, 0) + ' and ' + C.pt(0, b) + '.', 'Slope = (' + f(b) + ' − 0) ÷ (0 − ' + par(a) + ') = ' + f(b) + ' ÷ ' + par(-a) + ' = ' + f(m) + '.', 'The y-intercept is ' + f(b) + ', so <b>' + C.eqText(m, b) + '</b>.'],
+      work: ['The crossings are the points ' + C.pt(a, 0) + ' and ' + C.pt(0, b) + '.', 'Slope (the step) = (' + f(b) + ' − 0) ÷ (0 − ' + par(a) + ') = ' + f(b) + ' ÷ ' + par(-a) + ' = ' + f(m) + '.', 'The y-intercept (the start) is ' + f(b) + ', so <b>' + C.eqText(m, b) + '</b>.'],
       why: { M12: 'You used the x-crossing ' + f(a) + ' as the slope. A crossing is a point, not the slope.', M2: 'Check the sign: from ' + C.pt(a, 0) + ' to ' + C.pt(0, b) + ' the slope is ' + f(m) + '.' },
       steps: [
         { label: 'The line goes through ' + C.pt(a, 0) + ' and ' + C.pt(0, b) + '. Slope = ' + f(b) + ' ÷ ' + par(-a) + ' =', part: { kind: 'num', key: m }, hint: 'Change in y ÷ change in x, from the first point to the second.' },
-        { label: 'The y-intercept b =', part: { kind: 'num', key: b }, hint: 'Where it crosses the y-axis.' }
+        { label: 'The y-intercept b =', part: { kind: 'num', key: b }, hint: 'Where it crosses the y-axis.' },
+        { label: 'So the equation is', part: { kind: 'choice', opts: [{ t: C.eqText(m, b), ok: true }, { t: C.eqText(b, m) }, { t: C.eqText(-m, b) }] }, hint: 'y = (step) × x + (start): slope ' + f(m) + ', start ' + f(b) + '.' }
       ]
     };
   } });
 
   /* ---------------- Skill 21 Extension: reasoning ---------------- */
   C.add({ id: 'LN-6a', skill: '21', level: 6, type: 'MC', gen: function (R) {
-    var r = R.pick([5, 8, 10, 12, 15]), i = R.pick([3, 4, 5, 6]);
+    // three context sets, picked at random: one linear story and three that change by different amounts
+    var S = R.pick([
+      function () {
+        var r = R.pick([5, 8, 10, 12, 15]), i = R.pick([3, 4, 5, 6]);
+        return { opts: [
+            { t: 'A phone battery losing ' + r + '% of a full charge every hour, against hours', ok: true },
+            { t: 'The height of a dropped ball, against time', tag: 'M7' },
+            { t: 'Money in an account earning ' + i + '% interest each year, against years', tag: 'M16' },
+            { t: 'The number of handshakes when everyone in a group shakes hands, against the number of people', tag: 'M7' }],
+          names: ['Battery', 'Ball', 'Interest', 'Handshakes'],
+          answer: 'The battery losing ' + r + '% every hour',
+          work: ['The battery loses the same ' + r + '% for every 1 more hour, so its rate of change (the step) is the same every hour: <b>linear</b>.', 'The ball speeds up as it falls, so it drops more each second.', 'Interest grows on itself, and each new person shakes more hands: those steps keep changing.'],
+          M16: 'Each year\'s interest is ' + i + '% of a bigger amount, so the riyals added grow every year.',
+          s1: { label: 'The battery starts at 100%. After 1 hour it is at ' + (100 - r) + '%. After 2 hours it is at', key: 100 - r * 2, hint: 'It loses ' + r + '% each hour.' },
+          s2: { label: 'A dropped ball speeds up. Does it fall the same distance every second?', hint: 'Faster means more distance each second.' } };
+      },
+      function () {
+        var b = R.pick([5, 8, 10, 12]), m = R.pick([2, 3, 4, 5]);
+        return { opts: [
+            { t: 'A taxi fare of ' + b + ' riyals plus ' + m + ' riyals per kilometre, against kilometres', ok: true },
+            { t: 'The area of a square, against its side length', tag: 'M7' },
+            { t: 'A plant that doubles its height every week, against weeks', tag: 'M7' },
+            { t: 'The temperature of a hot drink cooling on a table, against minutes', tag: 'M7' }],
+          names: ['Taxi', 'Square', 'Plant', 'Drink'],
+          answer: 'The taxi fare, ' + b + ' riyals plus ' + m + ' riyals per kilometre',
+          work: ['The fare goes up by the same ' + m + ' riyals for every 1 more kilometre, so its rate of change (the step) never changes: <b>linear</b>. The ' + b + '-riyal start does not change that.', 'Squares with sides 1, 2, 3 have areas 1, 4, 9: the step grows.', 'A doubling plant adds more each week, and a hot drink cools fast at first, then slowly: those steps keep changing.'],
+          s1: { label: 'The fare for 1 km is ' + (b + m) + ' riyals. For 2 km it is', key: b + 2 * m, hint: 'Add ' + m + ' riyals for the next kilometre.' },
+          s2: { label: 'Squares with sides 1, 2, 3 have areas 1, 4, 9. Does the area change by the same amount each time?', hint: 'Find 4 − 1 and 9 − 4.' } };
+      },
+      function () {
+        var s = R.pick([10, 20, 30]), m = R.pick([4, 5, 6, 8]);
+        return { opts: [
+            { t: 'A tank that has ' + s + ' litres and fills at ' + m + ' litres every minute, against minutes', ok: true },
+            { t: 'The number of bacteria when they double every hour, against hours', tag: 'M7' },
+            { t: 'The height of a ball thrown up in the air, against time', tag: 'M7' },
+            { t: 'The area of a circle, against its radius', tag: 'M7' }],
+          names: ['Tank', 'Bacteria', 'Ball', 'Circle'],
+          answer: 'The tank filling at ' + m + ' litres every minute',
+          work: ['The tank gains the same ' + m + ' litres for every 1 more minute, so its rate of change (the step) never changes: <b>linear</b>.', 'Bacteria that double add more each hour: 1, 2, 4, 8.', 'A thrown ball slows on the way up and speeds up coming down, and a circle\'s area grows faster than its radius: those steps keep changing.'],
+          s1: { label: 'After 1 minute the tank has ' + (s + m) + ' litres. After 2 minutes it has', key: s + 2 * m, hint: 'Add ' + m + ' litres for the next minute.' },
+          s2: { label: 'Bacteria double every hour: 1, 2, 4, 8. Do they go up by the same amount each hour?', hint: 'Find 2 − 1, 4 − 2 and 8 − 4.' } };
+      }
+    ])();
+    var why = { M7: 'That one has a pattern, but its change is not the same every step.' };
+    if (S.M16) why.M16 = S.M16;
     return {
-      stem: 'Which relationship is linear?',
+      stem: 'Which of these is linear?',
       think: 'Linear means the same change for every 1 more.',
-      parts: [{ kind: 'choice', label: 'Linear', opts: [
-        { t: 'A phone battery losing ' + r + '% of a full charge every hour, against hours', ok: true },
-        { t: 'The height of a dropped ball, against time', tag: 'M7' },
-        { t: 'Money in an account earning ' + i + '% interest each year, against years', tag: 'M16' },
-        { t: 'The number of handshakes when everyone in a group shakes hands, against the number of people', tag: 'M7' }
-      ] }],
-      answer: 'The battery losing ' + r + '% every hour',
-      work: ['The battery loses the same ' + r + '% for every 1 more hour, so its rate is constant: <b>linear</b>.', 'The ball speeds up as it falls, so it drops more each second.', 'Interest grows on itself, and each new person shakes more hands: those rates keep changing.'],
-      why: { M7: 'That one has a pattern, but its change is not the same every step.', M16: 'Each year\'s interest is ' + i + '% of a bigger amount, so the riyals added grow every year.' },
+      parts: [{ kind: 'choice', label: 'Linear', opts: S.opts }],
+      answer: S.answer,
+      work: S.work,
+      why: why,
       steps: [
-        { label: 'The battery starts at 100%. After 1 hour it is at ' + (100 - r) + '%. After 2 hours it is at', part: { kind: 'num', key: 100 - r * 2 }, hint: 'It loses ' + r + '% each hour.' },
-        { label: 'A dropped ball speeds up. Does it fall the same distance every second?', part: { kind: 'choice', keep: true, opts: [{ t: 'Yes' }, { t: 'No', ok: true }] }, hint: 'Faster means more distance each second.' },
-        { label: 'Which one has the same change every step?', part: { kind: 'choice', keep: true, opts: [{ t: 'Battery', ok: true }, { t: 'Ball' }, { t: 'Interest' }, { t: 'Handshakes' }] }, hint: 'Only one of them changes by the same amount each time.' }
+        { label: S.s1.label, part: { kind: 'num', key: S.s1.key }, hint: S.s1.hint },
+        { label: S.s2.label, part: { kind: 'choice', keep: true, opts: [{ t: 'Yes' }, { t: 'No', ok: true }] }, hint: S.s2.hint },
+        { label: 'Which one has the same change every step?', part: { kind: 'choice', opts: S.names.map(function (n, k) { return { t: n, ok: k === 0 }; }) }, hint: 'Only one of them changes by the same amount each time.' }
       ]
     };
   } });
@@ -187,10 +227,10 @@
         { t: 'x = y²', ok: false }
       ] }],
       answer: 'y = ' + f(c) + ', y = |x − ' + h + '| and y = x² − ' + k,
-      work: ['y = ' + f(c) + ' gives every input the same output: still one output each, so a <b>function</b>.', 'y = |x − ' + h + '| and y = x² − ' + k + ' give one y for each x: <b>functions</b>.', 'x = ' + f(c) + ' is a vertical line (one input, endless outputs); the circle x² + y² = ' + (r * r) + ' and x = y² give some inputs two outputs: <b>not functions</b>.'],
+      work: ['y = ' + f(c) + ' gives every input the same output: still one output each, so a <b>function</b>.', 'y = |x − ' + h + '| and y = x² − ' + k + ' give one y for each x: <b>functions</b>.', 'x = ' + f(c) + ' is a line parallel to the up axis (y-axis): one input, endless outputs; the circle x² + y² = ' + (r * r) + ' and x = y² give some inputs two outputs: <b>not functions</b>.'],
       why: { M15: 'y = ' + f(c) + ' has no x in it, but each input still has exactly one output, ' + f(c) + '.' },
       steps: [
-        { label: 'On x = ' + f(c) + ', how many outputs does the input ' + f(c) + ' have?', part: { kind: 'choice', keep: true, opts: [{ t: 'One' }, { t: 'Endless', ok: true }] }, hint: 'It is a vertical line.' },
+        { label: 'On x = ' + f(c) + ', how many outputs does the input ' + f(c) + ' have?', part: { kind: 'choice', keep: true, opts: [{ t: 'One' }, { t: 'Endless', ok: true }] }, hint: 'It is a line parallel to the up axis (y-axis).' },
         { label: 'On y = ' + f(c) + ', does each input have exactly one output?', part: { kind: 'choice', keep: true, opts: [{ t: 'Yes', ok: true }, { t: 'No' }] }, hint: 'Every x gives y = ' + f(c) + '.' },
         { label: 'On x = y², the input 4 gives y = 2 and y =', part: { kind: 'num', key: -2 }, hint: 'Which other number squares to 4?' }
       ]
@@ -256,7 +296,7 @@
       lines: [{ seg: [[0, S0], [t1, low], [T, high], [12, high]] }], pts: [{ x: 0, y: S0 }, { x: t1, y: low }, { x: T, y: high }],
       label: 'Battery charge falls for ' + t1 + ' hours, rises for ' + t2 + ' hours, then stays level' });
     return {
-      stem: 'A phone\'s battery drains at a steady rate for ' + t1 + ' hours, charges for ' + t2 + ' hour' + (t2 > 1 ? 's' : '') + ', then sits unused. Select all the true statements about the graph.',
+      stem: 'A phone\'s battery drains at a steady rate for ' + t1 + ' hours, charges for ' + C.pl(t2, 'hour') + ', then sits unused. Select all the true statements about the graph.',
       fig: fig,
       parts: [{ kind: 'multi', label: 'True statements', opts: [
         { t: 'The first segment has a negative slope', ok: true },
@@ -266,7 +306,7 @@
         { t: 'The whole graph is one linear function', ok: false, tag: 'M7' }
       ] }],
       answer: 'Negative first slope, last segment horizontal' + (steeper ? ', charging steeper' : '') + (ret ? ', returns to the start' : ''),
-      work: ['Draining: ' + S0 + '% → ' + low + '% in ' + t1 + ' hours, ' + f(-r1) + '% per hour. Charging: ' + low + '% → ' + high + '% in ' + t2 + ' hour' + (t2 > 1 ? 's' : '') + ', +' + r2 + '% per hour.', 'Compare sizes for steepness: ' + r2 + ' ' + (steeper ? '>' : '<') + ' ' + r1 + ', so the charging segment is <b>' + (steeper ? 'steeper' : 'less steep') + '</b>. It ends at ' + high + '%, ' + (ret ? 'the' : 'not the') + ' starting ' + S0 + '%.', 'Three different rates (' + f(-r1) + ', ' + r2 + ', 0) means three pieces, not one linear function.'],
+      work: ['Draining: ' + S0 + '% → ' + low + '% in ' + t1 + ' hours, ' + f(-r1) + '% per hour. Charging: ' + low + '% → ' + high + '% in ' + C.pl(t2, 'hour') + ', +' + r2 + '% per hour.', 'Compare sizes for steepness: ' + r2 + ' ' + (steeper ? '>' : '<') + ' ' + r1 + ', so the charging segment is <b>' + (steeper ? 'steeper' : 'less steep') + '</b>. It ends at ' + high + '%, ' + (ret ? 'the' : 'not the') + ' starting ' + S0 + '%.', 'Three different rates (' + f(-r1) + ', ' + r2 + ', 0) means three pieces, not one linear function.'],
       why: { M7: 'The graph has three different rates, so it is not one linear function.', M13: 'Steepness is the rate, not the length of the segment: charging is ' + r2 + '% per hour, draining is ' + r1 + '% per hour.' },
       steps: [
         { label: 'While draining, how much charge is lost each hour? (' + S0 + ' − ' + low + ') ÷ ' + t1 + ' =', part: { kind: 'num', key: r1 }, hint: 'Change in charge ÷ change in time.' },

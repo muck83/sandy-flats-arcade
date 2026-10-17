@@ -5,7 +5,7 @@
   'use strict';
   var EP = 'https://mock.invalid/exec', K = 'climbmock', LEN = 12 * 60 * 1000;
   window.SFA_CONFIG = { endpoint: EP, auth: 'code' };
-  window.CLIMB_ROOT = '../../';   // the practice pages live two folders down: links to lessons go back up
+  window.CLIMB_ROOT = localStorage.getItem('climbmock.root') || '../../';   // the practice pages live two folders down: links to lessons go back up
   var ROSTER = [{ sid: 's1', name: 'Doe, Jane', cls: 'A', code: 'AAAAAA' }, { sid: 's2', name: 'Khan, Omar', cls: 'A', code: 'BBBBBB' }, { sid: 's3', name: 'Lee, Maya', cls: 'B', code: 'CCCCCC' }];
   function db() { try { return JSON.parse(localStorage.getItem(K)) || {}; } catch (e) { return {}; } }
   function put(d) { localStorage.setItem(K, JSON.stringify(d)); }

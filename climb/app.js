@@ -12,7 +12,7 @@
 
   function now() { return Date.now() + off; }
   function T() { return st && st.today; }
-  function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
+  function mmss(ms) { if (!isFinite(ms)) return '—'; var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
   function first(n) { n = String(n || ''); return (n.indexOf(',') >= 0 ? n.split(',')[1] : n).trim().split(' ')[0] || n; }
   function skName(id) { return C.label(id) + ' · ' + C.SKILL[id].name; }
   function sEnd() { return sess.start + (sess.pausedMs || 0) + sess.len * mult; }
@@ -101,10 +101,15 @@
     // a student still inside their own (extended) time keeps working: only a finished one moves on
     if (t && t.id === sess.id && !t.closed) return;
     going = true;
+    // a student who has only just reached their summary gets a few seconds to see it
+    var wait = Math.max(3000, 10000 - (Date.now() - (doneAt || 0))), until = Date.now() + wait;
     var box = document.getElementById('nextBox');
-    if (box) box.innerHTML = '<b style="font-size:22px">Mr. Crowell is starting the lesson. Taking you there…</b>';
-    else SFA.toast('Mr. Crowell is starting the lesson. Taking you there…', 3000);
-    setTimeout(function () { location.href = ROOT + 'lesson.html?l=' + n; }, 2500);
+    var tickGo = setInterval(function () {
+      var s = Math.max(0, Math.ceil((until - Date.now()) / 1000)), msg = 'Mr. Crowell is starting the lesson. Opening it in ' + s + '…';
+      if (box && box.isConnected) box.innerHTML = '<b style="font-size:22px">' + msg + '</b>';
+      if (s <= 0) { clearInterval(tickGo); location.href = ROOT + 'lesson.html?l=' + n; }
+    }, 250);
+    if (!box) SFA.toast('Mr. Crowell is starting the lesson. Taking you there…', wait);
   }
   // the lesson's title and film number for the "Next" card
   function loadNext(n, cb) {
@@ -150,7 +155,7 @@
       '<p style="margin:0;font-size:20px;max-width:560px">' + (open ? 'Everyone starts together and stops together. Work on your own, and show what you really know: that\'s how the questions find your level.' : (sess && sess.state === 'ended' ? 'Today\'s session has ended. ' : '') + 'Mr. Crowell opens Climb at the start of class. Keep this page open and it starts by itself.') + '</p>' +
       '<div class="tiles"><div class="tile"><b>' + Math.round(C.P.session * mult / 60) + ' min</b><span>for today\'s session</span></div><div class="tile"><b>' + Math.round(C.P.item * mult) + ' sec</b><span>for each question</span></div><div class="tile warm"><b>Stay on this page</b><span>Leaving it changes your question.</span></div></div>' +
       '</section><aside class="card side"><h2 style="margin:0;font-size:18px" class="sub">You\'re working on</h2>' +
-      (fr ? '<div style="display:flex;flex-direction:column;gap:8px"><span class="chip" style="align-self:flex-start">' + esc(C.label(fr)) + ' of ' + C.SKILLS.length + ' on the ladder</span><span style="font:800 28px/1.15 var(--disp)">' + esc(C.SKILL[fr].name) + '</span></div>' : '<span style="font:800 24px var(--disp)">Every open skill is secure. Today is review.</span>') +
+      (fr ? '<div style="display:flex;flex-direction:column;gap:8px"><span class="chip" style="align-self:flex-start">' + 'Step ' + (C.SKILL[fr].i + 1) + ' of ' + C.SKILLS.length + ' · ' + esc(C.label(fr)) + '</span><span style="font:800 28px/1.15 var(--disp)">' + esc(C.SKILL[fr].name) + '</span></div>' : '<span style="font:800 24px var(--disp)">Every open skill is secure. Today is review.</span>') +
       rungs() + '<p style="margin:0" class="sub">' + secure + ' skill' + (secure === 1 ? '' : 's') + ' secure.' + (due ? ' ' + due + ' ' + (due === 1 ? 'is' : 'are') + ' due for a quick review at the start.' : '') + '</p>' +
       '<hr style="border:none;border-top:1px solid var(--line2);margin:4px 0"><p style="margin:0;font-size:15px" class="sub">' + (open ? 'Mr. Crowell starts the session for everyone.' : 'Your skill map saves to your class.') + '</p>' +
       (st.hist.length ? '<a href="#map" id="mapLink" style="font-size:15px">See your skill map</a>' : '') + '</aside></div>';
@@ -239,8 +244,8 @@
     }
     var almostLeft = C.P.almostPerSession - (t ? t.almost : 0);
     app.innerHTML = header('<span class="chip-wrap">' + chip + '</span><span class="cnext">' + esc(progressLine()) + '</span>') +
-      '<div class="cgrid" style="margin-top:20px"><section class="card main noselect" id="qcard"><div class="qhead"><span class="qnum">Question ' + qn + '</span><button type="button" class="btn listen" id="listen" aria-label="Read the question aloud"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16.5 8.5 Q19 12 16.5 15.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Listen</button></div>' +
-      '<h1 class="stem">' + it.stem + '</h1>' + (it.fig ? '<figure class="figw" style="margin:0">' + it.fig + '</figure>' : '') + (wide ? '<div class="parts wide">' + wide + '</div>' : '') + '</section>' +
+      '<div class="cgrid" style="margin-top:20px"><section class="card main noselect' + (wide ? ' build' : '') + '" id="qcard"><div class="qhead"><span class="qnum">Question ' + qn + '</span><button type="button" class="btn listen" id="listen" aria-label="Read the question aloud"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16.5 8.5 Q19 12 16.5 15.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Listen</button></div>' +
+      '<h1 class="stem' + (wide ? ' small' : '') + '">' + it.stem + '</h1>' + (it.fig ? '<figure class="figw" style="margin:0">' + it.fig + '</figure>' : '') + (wide ? '<div class="parts wide">' + wide + '</div>' : '') + '</section>' +
       '<aside class="card side"><div class="timer"><svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30" fill="none" stroke="#E6EDFD" stroke-width="8"/><circle id="ring" cx="36" cy="36" r="30" fill="none" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round" stroke-dasharray="188.5 188.5" transform="rotate(-90 36 36)"/></svg><div style="display:flex;flex-direction:column"><b id="ileft">1:30</b><span>left on this question</span></div></div>' +
       '<div class="almost" id="almost" hidden><button type="button" class="btn warm" id="almostB">Almost got it? +' + C.P.almost + ' seconds</button><small>Once per question · ' + almostLeft + ' left this session</small></div>' +
       '<form class="parts" id="ans" novalidate>' + body + '<p class="hint" id="need" hidden>Answer every part first.</p>' +
@@ -438,7 +443,7 @@
       (it.fig ? '<figure class="figw" style="margin:0">' + it.fig + '</figure>' : '') + '<p style="margin:0;font-size:17px" class="sub">' + it.stem + '</p>' +
       '<ol class="work">' + it.work.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ol>' + (it.answerFig ? '<figure class="figw" style="margin:0">' + it.answerFig + '</figure>' : '') + '<p class="why">Answer: ' + it.answer + '</p></section>' +
       '<section class="card side"><h2 style="margin:0;font-size:20px;color:var(--orange-ink)">Your answer: ' + esc(r.timeout ? (r.shown && !/^\(blank\)/.test(r.shown) ? r.shown + ' (not checked)' : 'none yet') : r.shown) + '</h2>' +
-      '<div style="margin-top:auto" class="think"><b>Habit for next time</b><span style="color:var(--ink)">' + esc(T0.habit) + '</span></div></section></div>' +
+      (tag !== 'G' && tag !== 'T0' && T0.name ? '<p style="margin:0;font-size:18px"><b>What happened:</b> ' + esc(T0.name.charAt(0).toLowerCase() + T0.name.slice(1)) + '.</p>' : '') + '<div style="margin-top:auto" class="think"><b>Habit for next time</b><span style="color:var(--ink)">' + esc(T0.habit) + '</span></div></section></div>' +
       '<div style="display:flex;justify-content:flex-end"><button type="button" class="btn primary big" id="go">' + esc(btn) + '</button></div></div>';
     document.getElementById('go').onclick = afterExplain;
     tick();
@@ -454,6 +459,12 @@
     guided = { it: g, i: 0, tries: 0, done: [] };
     drawGuide();
   }
+  // a question whose pictures are in its answer options (pick the graph…): show them on the guided screen too, so the steps can refer to them
+  function optionFigs(g) {
+    var p = g.parts.filter(function (q) { return q.opts && q.opts.some(function (o) { return /<svg/.test(o.t); }); })[0];
+    if (!p) return '';
+    return '<div class="opts figs" style="align-self:stretch">' + p.opts.map(function (o) { return '<div class="opt" style="cursor:default">' + o.t + '</div>'; }).join('') + '</div>';
+  }
   function stepVal(p) { if (p.kind === 'choice') { var o = p.opts.filter(function (o) { return o.ok; })[0]; return o ? C.strip(o.t) : ''; } return C.fmt(p.key); }
   function drawGuide() {
     var g = guided.it, steps = g.steps || [], cur = steps[guided.i];
@@ -466,7 +477,7 @@
       now1 = '<form class="stepnow" id="gform"><label for="gstep" style="font-size:18px;font-weight:700">Step ' + (guided.i + 1) + ' · ' + cur.label + '</label><div class="row">' + ctl + '</div>' + (guided.tries ? '<p class="hint">' + (cur.hint || 'Look at the step before this one.') + '</p>' : '') + '</form>';
     } else now1 = '<div class="feedback good">All steps done. Now one on your own: it counts.</div><div><button type="button" class="btn primary big" id="gonext">Next question</button></div>';
     app.innerHTML = header('<span class="chip">' + esc(C.label(g.skill)) + ' · Guided try</span>') +
-      '<div class="cgrid" style="margin-top:20px"><section class="card side" style="align-items:center"><p style="margin:0;align-self:stretch;font-size:19px">Same idea, new numbers. Work it out one step at a time.</p><p style="margin:0;align-self:stretch;font-weight:700">' + g.stem + '</p>' + (g.fig ? '<figure class="figw" style="margin:0">' + g.fig + '</figure>' : '') + '</section>' +
+      '<div class="cgrid" style="margin-top:20px"><section class="card side" style="align-items:center"><p style="margin:0;align-self:stretch;font-size:19px">Same idea, new numbers. Work it out one step at a time.</p><p style="margin:0;align-self:stretch;font-weight:700">' + g.stem + '</p>' + (g.fig ? '<figure class="figw" style="margin:0">' + g.fig + '</figure>' : optionFigs(g)) + '</section>' +
       '<section class="card main">' + doneRows + now1 + '<p style="margin:0;font-size:15px" class="sub">Guided tries don\'t count toward your score. The next question will.</p></section></div>';
     var gf = document.getElementById('gform');
     if (gf) {
@@ -540,8 +551,9 @@
     SFA.store.set('climb.doneId', t.id);   // the nav's "Climb is open" link stays away once you've finished this session
     it = null; meta = null; done();
   }
+  var doneAt = 0;
   function done(fromWait) {
-    view = 'done';
+    view = 'done'; if (!fromWait && !doneAt) doneAt = Date.now();
     var t = T() || {}, h = st.hist[st.hist.length - 1];
     var th0 = Math.round(t.th0 || st.theta), th1 = Math.round(st.theta), fr = E.frontier(st);
     var LEG = [['R', 'Retained'], ['S', 'Secure'], ['L', 'Learning'], ['O', 'Open'], ['-', 'Not open yet']];

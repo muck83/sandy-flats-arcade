@@ -29,7 +29,7 @@ a{color:var(--blue)}a:hover{color:var(--blue2)}
 .qhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .qnum{font-size:15px;color:var(--sub);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
 .stem{margin:0;font:600 26px/1.35 var(--disp)}
-.stem.small{font-size:22px}
+.stem.small{font-size:21px}.card.main.build{padding:24px 28px;gap:12px}
 .figw{align-self:center;max-width:100%;overflow-x:auto}
 .cfig{display:block}
 .noselect{-webkit-user-select:none;user-select:none}
@@ -64,18 +64,27 @@ a{color:var(--blue)}a:hover{color:var(--blue2)}
 .sortrow select{font-size:17px;padding:6px 10px;border:2px solid var(--blue);border-radius:10px;min-height:44px}
 /* interactive answers */
 .parts.wide{gap:14px}.ia{display:flex;flex-direction:column;align-items:center;gap:8px}
-.ia .cfig{width:420px}.hdl:focus .halo,.hdl:hover .halo{fill:#FBD5BC;stroke:#F97316;stroke-width:2}
+.ia .cfig{height:min(38vh,420px);width:auto;max-width:100%}.hdl:focus .halo,.hdl:hover .halo{fill:#FBD5BC;stroke:#F97316;stroke-width:2}
 .sliders{display:flex;flex-direction:column;gap:12px;width:100%;max-width:460px}
 .sld{display:grid;grid-template-columns:8em 1fr 3.5em;align-items:center;gap:12px;font-weight:700;font-size:17px}
 .sld input{accent-color:var(--blue);height:32px}.sld output{font:800 22px var(--disp);text-align:right;font-variant-numeric:tabular-nums}
-.sgraph .cfig{width:380px}
-.spool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:60px;width:100%;padding:12px;border:2px dashed var(--line2);border-radius:16px}
+.sgraph .cfig{height:min(34vh,380px);width:auto;max-width:100%}
+.spool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:50px;width:100%;padding:12px;border:2px dashed var(--line2);border-radius:16px}
 .sbins{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;width:100%}
 .sbin{display:flex;flex-direction:column;gap:8px;align-items:stretch;min-height:120px;padding:10px;border:2px solid var(--line2);border-radius:16px;background:var(--bg)}
 .sbinh{font-weight:800;font-size:17px;border:0;border-radius:10px;padding:10px;background:var(--blue-soft);color:var(--blue);cursor:pointer;min-height:44px}
 .sbinh:hover{background:#D3E0FC}
 .scard{border:2px solid var(--line2);background:#fff;border-radius:12px;padding:10px 12px;font-size:16px;cursor:grab;text-align:left;display:flex;flex-direction:column;align-items:center;gap:4px}
-.scard .cfig{max-width:160px}.scard .ctbl{font-size:14px}.scard.on{border-color:var(--orange);box-shadow:0 0 0 3px #FBD5BC}
+.scard .cfig{max-width:118px;height:auto}.scard{padding:6px 8px;font-size:15px}.scard .ctbl td,.scard .ctbl th{padding:2px 7px}.scard .ctbl{font-size:14px}.scard.on{border-color:var(--orange);box-shadow:0 0 0 3px #FBD5BC}
+/* side by side so slider and sort questions fit a Chromebook screen */
+.ia:has(.sliders){flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:center;gap:16px 24px}
+.ia:has(.sliders) .sliders{flex:1 1 260px;max-width:340px}
+.ia:has(.sbins){display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:10px}
+.ia:has(.sbins) .hintline{grid-column:1/-1}
+.ia:has(.sbins) .sbins{grid-template-columns:1fr}
+.ia:has(.sbins) .sbin{min-height:70px;flex-direction:row;flex-wrap:wrap;align-items:flex-start}
+.ia:has(.sbins) .sbinh{flex-basis:100%}
+@media (max-width:760px){.ia:has(.sbins){grid-template-columns:1fr}}
 .gl{font:inherit;color:inherit;background:none;border:0;padding:0;border-bottom:2px dotted var(--blue);cursor:help}
 .think{background:var(--bg);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
 .think b{font-size:15px}.think span{font-size:16px;color:var(--sub)}

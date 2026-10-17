@@ -64,7 +64,7 @@
     var xs = [0, s, 2 * s, 3 * s], Lk = keyA ? 'A' : 'B';
     var opts = abOpts(Lk, keyA ? (sameTrap ? 'M9' : 'M8') : 'M9', 'They are the same', keyA && sameTrap ? 'M8' : undefined);
     return {
-      stem: 'Function A is ' + C.eqText(mA, bA) + '. Function B is shown in the table. Which function has the greater rate of change?',
+      stem: 'Function A is ' + C.eqText(mA, bA) + '. Function B is shown in the table. Which function has the greater rate of change (the step)?',
       fig: C.table({ cols: ['x', 'y'], rows: xs.map(function (x) { return [x, bB + mB * x]; }) }),
       think: 'Rate = change in y for every 1 more x. Look at how far x steps in the table.',
       parts: [{ kind: 'choice', label: 'Greater rate of change', keep: true, opts: opts }],
@@ -95,7 +95,7 @@
     var fig = C.graph(g);
     var opts = abOpts(Lk, 'M9', 'They are the same');
     return {
-      stem: 'Function A is shown on the graph. Function B is ' + C.eqText(mB, bB) + '. Which function has the greater initial value?',
+      stem: 'Function A is shown on the graph. Function B is ' + C.eqText(mB, bB) + '. Which function has the greater initial value (the start)?',
       fig: fig,
       think: 'The initial value is the output when x = 0.',
       parts: [{ kind: 'choice', label: 'Greater initial value', keep: true, opts: opts }],
@@ -106,7 +106,7 @@
         f(Math.max(bA, bB)) + ' > ' + f(Math.min(bA, bB)) + ', so <b>function ' + Lk + '</b> has the greater initial value.'],
       why: { M9: 'You compared the slopes (' + f(mA) + ' and ' + f(mB) + '). The initial value is the output at x = 0: ' + f(bA) + ' for A and ' + f(bB) + ' for B.', M3: 'A crosses the x-axis at ' + f(r) + ', but the initial value is where it crosses the y-axis: ' + f(bA) + '.' },
       steps: [
-        { label: 'Where does line A cross the y-axis? y =', part: { kind: 'num', key: bA, wrong: [{ v: r, tag: 'M3' }] }, hint: 'The y-axis is the vertical axis, where x = 0.' },
+        { label: 'Where does line A cross the y-axis? y =', part: { kind: 'num', key: bA, wrong: [{ v: r, tag: 'M3' }] }, hint: 'The y-axis is the up axis, where x = 0.' },
         { label: 'What is B\'s initial value (y when x = 0)?', part: { kind: 'num', key: bB }, hint: 'Put x = 0 into ' + C.eqText(mB, bB) + '.' },
         { label: 'Which has the greater initial value?', part: { kind: 'choice', keep: true, opts: [{ t: 'A', ok: keyA }, { t: 'B', ok: !keyA }] }, hint: 'Compare ' + f(bA) + ' and ' + f(bB) + '.' }
       ]
@@ -123,7 +123,7 @@
     var fig = '<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center"><div><b>Function A</b>' + C.table({ cols: ['x', 'y'], rows: xs.map(function (x) { return [x, bA + mA * x]; }) }) + '</div><div><b>Function B</b><br>' +
       C.graph({ x: [-10, 10], y: [-10, 10], size: 300, label: 'Graph of function B', lines: [{ m: mB, b: bB, color: C.COL.line3 }], pts: [{ x: 0, y: bB, c: C.COL.line3 }, { x: 2 * q, y: bB + 2 * q * mB, c: C.COL.line3 }].concat(lab ? [lab] : []) }) + '</div></div>';
     return {
-      stem: 'Function A is shown in the table. Function B is shown on the graph. Which function has the greater rate of change, and how can you tell?',
+      stem: 'Function A is shown in the table. Function B is shown on the graph. Which function has the greater rate of change (the step), and how can you tell?',
       fig: fig,
       parts: [
         { kind: 'choice', label: 'Greater rate of change', keep: true, opts: abOpts(Lk, 'M12', 'They are the same') },
@@ -131,7 +131,7 @@
       ],
       answer: 'Function ' + Lk + ': compare change in y ÷ change in x (A: ' + f(mA) + ', B: ' + f(mB) + ')',
       work: ['A: x goes up by 2 each row and y goes up by ' + f(dyA) + ', so ' + f(dyA) + ' ÷ 2 = ' + f(mA) + ' for every 1 more x.',
-        'B: from (0, ' + f(bB) + ') to ' + C.pt(q, bB + dyB) + ', y goes up ' + f(dyB) + ' while x goes up ' + q + ', so ' + f(dyB) + ' ÷ ' + q + ' = ' + f(mB) + '.',
+        'B: from the marked points (0, ' + f(bB) + ') to ' + C.pt(2 * q, bB + 2 * dyB) + ', y goes up ' + f(2 * dyB) + ' while x goes up ' + (2 * q) + ', so ' + f(2 * dyB) + ' ÷ ' + (2 * q) + ' = ' + f(mB) + '.',
         'Where a line starts or how high it is does not measure its rate. <b>Function ' + Lk + '</b> has the greater rate.'],
       why: { M12: 'Where a function crosses the y-axis (' + f(bA) + ' for A, ' + f(bB) + ' for B) is its starting value, not its rate.', M13: 'Being higher on a graph is about the values, not how fast they change. Compare change in y ÷ change in x.' },
       steps: [
@@ -145,27 +145,28 @@
   // slider build: B's sliders next to a fixed line A
   C.add({ id: 'CP-4d', skill: '16', level: 5, type: 'IA', ia: true, gen: function (R) {
     var mA = R.pick([5, 10, 15]), bA = 10 * R.int(1, 6), bK = bA + 10 * R.int(1, 3);
-    var grid = { x: [0, 10], y: [0, 250], dx: 1, dy: 10, ly: 50, xl: 'Months', yl: 'Cost (riyals)', size: 400, label: 'Cost of gym A and gym B' };
+    var grid = { x: [0, 10], y: [0, 250], dx: 1, dy: 10, ly: 50, xl: 'Months', yl: 'Cost (riyals)', size: 400, label: 'Cost of club A and club B' };
     function draw(v) {
       return { lines: [{ m: mA, b: bA, color: C.COL.line2 }, { m: v.m, b: v.b }],
         pts: [{ x: 10, y: bA + 10 * mA, l: 'A', c: C.COL.line2 }, { x: 0, y: v.b, l: 'B', c: C.COL.line }] };
     }
     var dk = draw({ m: mA, b: bK });
     return {
-      stem: 'Gym A charges a joining fee plus a monthly price. Its total cost is y = ' + mA + 'x + ' + bA + ' riyals after x months (the orange line). Set the sliders for gym B so B has the <b>same rate of change</b> as A but a <b>greater initial value</b>.',
-      think: 'Same rate means the same slope. Initial value is the cost at 0 months.',
-      parts: [{ kind: 'slider', label: 'Gym B', grid: grid, draw: draw,
+      stem: 'Club A costs y = ' + mA + 'x + ' + bA + ' riyals after x months (orange line). Set club B so it has the <b>same rate of change (the step)</b> as A and a <b>greater initial value (the start)</b>.',
+      think: 'Same rate means the same monthly price. Initial value is the cost at 0 months.',
+      parts: [{ kind: 'slider', label: 'Club B', grid: grid, draw: draw,
         sliders: [{ id: 'm', label: 'Monthly price (riyals)', min: 0, max: 30, step: 5, start: 0 }, { id: 'b', label: 'Joining fee (riyals)', min: 0, max: 100, step: 10, start: 0 }],
         key: { m: mA, b: bK },
-        check: function (v) { if (+v.m !== mA) return { ok: false, tag: 'M9' }; if (+v.b > bA) return { ok: true }; return { ok: false, tag: +v.b < bA ? 'M2' : null }; } }],
+        // monthly price left at its start (0): "set it first" (G); set to a different price: M9; fee not above A's: M2
+        check: function (v) { if (+v.m === 0) return { ok: false, tag: 'G' }; if (+v.m !== mA) return { ok: false, tag: 'M9' }; if (+v.b > bA) return { ok: true }; return { ok: false, tag: 'M2' }; } }],
       answer: 'Monthly price ' + mA + ' riyals (same as A) and a joining fee more than ' + bA + ' riyals, e.g. y = ' + mA + 'x + ' + bK,
       answerFig: C.graph(Object.assign({}, grid, { lines: dk.lines, pts: dk.pts })),
       work: ['Same rate of change means B\'s cost goes up by the same ' + mA + ' riyals for every 1 more month, so its slope is ' + mA + '. The lines are parallel.',
         'A greater initial value means B costs more at 0 months: a joining fee above ' + bA + ' riyals.',
         'For example <b>y = ' + mA + 'x + ' + bK + '</b>: parallel to A, starting higher.'],
-      why: { M9: 'You changed the monthly price. Same rate of change means the same slope (' + mA + ' riyals per month); only the joining fee should change.', M2: 'Your joining fee is less than A\'s ' + bA + ' riyals. A greater initial value means B starts higher on the cost axis.' },
+      why: { G: 'Set B\'s monthly price first: same rate means the same monthly price as A (' + mA + ' riyals). Then make the joining fee more than ' + bA + ' riyals.', M9: 'Your monthly price is not A\'s. Same rate of change means the same monthly price (' + mA + ' riyals); only the joining fee should be different.', M2: 'Your joining fee is not more than A\'s ' + bA + ' riyals. A greater initial value means B starts higher on the cost axis.' },
       steps: [
-        { label: 'Same rate of change: B\'s monthly price (slope) must be', part: { kind: 'num', key: mA }, hint: 'In y = ' + mA + 'x + ' + bA + ', the rate is the number multiplying x.' },
+        { label: 'Same rate of change: B\'s monthly price (the step) must be', part: { kind: 'num', key: mA }, hint: 'In y = ' + mA + 'x + ' + bA + ', the rate is the number multiplying x.' },
         { label: 'What is A\'s initial value (cost at 0 months)?', part: { kind: 'num', key: bA }, hint: 'Put x = 0: y = ' + bA + '.' },
         { label: 'So B\'s joining fee must be', part: { kind: 'choice', keep: true, opts: [{ t: 'more than ' + bA + ' riyals', ok: true }, { t: 'exactly ' + bA + ' riyals' }, { t: 'less than ' + bA + ' riyals' }] }, hint: 'Greater initial value means B starts higher.' }
       ]
@@ -179,22 +180,22 @@
     var mA = lowRateIsA ? mLow : mHigh, bA = lowRateIsA ? bHigh : bLow, mB = lowRateIsA ? mHigh : mLow, bB = lowRateIsA ? bLow : bHigh;
     var n = R.chance(0.5) ? R.int(1, c - 1) : R.int(c + 1, c + 4), costA = bA + mA * n, costB = bB + mB * n;
     var Lk = costA < costB ? 'A' : 'B', Lw = other(Lk);
-    var xs = [0, 2, 4, 6];
+    var xs = [0, 2, 4, 6], nm = C.pl(n, 'month');
     return {
-      stem: 'Plan A costs ' + bA + ' riyals to join plus ' + mA + ' riyals per month. Plan B\'s total cost is shown in the table. Which plan is cheaper after ' + n + ' month' + (n === 1 ? '' : 's') + '?',
+      stem: 'Plan A costs ' + bA + ' riyals to join plus ' + mA + ' riyals per month. Plan B\'s total cost is shown in the table. Which plan is cheaper after ' + nm + '?',
       fig: C.table({ cols: ['Months', 'Plan B cost (riyals)'], rows: xs.map(function (x) { return [x, bB + mB * x]; }) }),
-      think: 'Work out both costs at ' + n + ' months.',
-      parts: [{ kind: 'choice', label: 'Cheaper after ' + n + ' months', keep: true, opts: [{ t: 'Plan A', ok: Lk === 'A', tag: Lk === 'A' ? undefined : 'M11' }, { t: 'Plan B', ok: Lk === 'B', tag: Lk === 'B' ? undefined : 'M11' }, { t: 'They cost the same', tag: 'M11' }] }],
+      think: 'Work out both costs at ' + nm + '.',
+      parts: [{ kind: 'choice', label: 'Cheaper after ' + nm, keep: true, opts: [{ t: 'Plan A', ok: Lk === 'A', tag: Lk === 'A' ? undefined : 'M11' }, { t: 'Plan B', ok: Lk === 'B', tag: Lk === 'B' ? undefined : 'M11' }, { t: 'They cost the same', tag: 'M11' }] }],
       answer: 'Plan ' + Lk + ' (A: ' + costA + ' riyals, B: ' + costB + ' riyals)',
       work: ['Plan B: for every 1 more month, its cost goes up by ' + (2 * mB) + ' ÷ 2 = ' + mB + ' riyals, starting from ' + bB + '.',
-        'At ' + n + ' months: A = ' + bA + ' + ' + mA + ' × ' + n + ' = ' + costA + ' riyals. B = ' + bB + ' + ' + mB + ' × ' + n + ' = ' + costB + ' riyals.',
-        '<b>Plan ' + Lk + '</b> is cheaper at ' + n + ' months. They cost the same at month ' + c + ', so which plan wins depends on the month.'],
-      why: { M11: n < c ? 'Plan ' + Lw + ' has the lower monthly price, but it starts ' + d * c + ' riyals higher, and after ' + n + ' months it has not caught up yet.' : 'Plan ' + Lw + ' starts cheaper, but it costs ' + d + ' riyals more for every 1 more month, and by month ' + n + ' that has added up.' },
+        'At ' + nm + ': A = ' + bA + ' + ' + mA + ' × ' + n + ' = ' + costA + ' riyals. B = ' + bB + ' + ' + mB + ' × ' + n + ' = ' + costB + ' riyals.',
+        '<b>Plan ' + Lk + '</b> is cheaper at ' + nm + '. They cost the same at month ' + c + ', so which plan wins depends on the month.'],
+      why: { M11: n < c ? 'Plan ' + Lw + ' has the lower monthly price, but it starts ' + d * c + ' riyals higher, and after ' + nm + ' it has not caught up yet.' : 'Plan ' + Lw + ' starts cheaper, but it costs ' + d + ' riyals more for every 1 more month, and by month ' + n + ' that has added up.' },
       steps: [
-        { label: 'Plan A after ' + n + ' months: ' + bA + ' + ' + mA + ' × ' + n + ' =', part: { kind: 'num', key: costA }, hint: 'Joining fee plus the monthly price times the months.' },
+        { label: 'Plan A after ' + nm + ': ' + bA + ' + ' + mA + ' × ' + n + ' =', part: { kind: 'num', key: costA }, hint: 'Joining fee plus the monthly price times the months.' },
         { label: 'Plan B: for every 1 more month, its cost goes up by', part: { kind: 'num', key: mB, wrong: [{ v: 2 * mB, tag: 'M8' }] }, hint: 'The table goes up ' + (2 * mB) + ' every 2 months: ' + (2 * mB) + ' ÷ 2.' },
-        { label: 'Plan B after ' + n + ' months: ' + bB + ' + ' + mB + ' × ' + n + ' =', part: { kind: 'num', key: costB }, hint: 'Start value plus the rate times the months.' },
-        { label: 'Which is cheaper after ' + n + ' months?', part: { kind: 'choice', keep: true, opts: [{ t: 'Plan A', ok: Lk === 'A' }, { t: 'Plan B', ok: Lk === 'B' }] }, hint: 'Compare ' + costA + ' and ' + costB + '.' }
+        { label: 'Plan B after ' + nm + ': ' + bB + ' + ' + mB + ' × ' + n + ' =', part: { kind: 'num', key: costB }, hint: 'Start value plus the rate times the months.' },
+        { label: 'Which is cheaper after ' + nm + '?', part: { kind: 'choice', keep: true, opts: [{ t: 'Plan A', ok: Lk === 'A' }, { t: 'Plan B', ok: Lk === 'B' }] }, hint: 'Compare ' + costA + ' and ' + costB + '.' }
       ]
     };
   } });
@@ -214,7 +215,7 @@
       lines: [{ m: mA, b: bA }, { m: mB, b: bB, color: C.COL.line3 }],
       pts: [{ x: xl, y: bA + xl * mA, l: 'Plan A', c: C.COL.line, r: 4 }, { x: xl, y: bB + xl * mB, l: 'Plan B', c: C.COL.line3, r: 4 }] };
     return {
-      stem: 'Plan A and Plan B are drawn as lines of total cost (riyals) against months. Drag the orange marker along the months axis to the month when both plans cost the same. Then choose which plan is cheaper after that month.',
+      stem: 'The lines show the total cost of Plan A and Plan B. Drag the orange marker along the months axis to when both cost the same, then choose the cheaper plan after that.',
       think: 'Find where the two lines cross, then read down to the months axis.',
       parts: [
         { kind: 'points', label: 'Month when the costs are equal', grid: grid, start: [[0, 0]], names: ['Marker'], labels: false, lock: 'y', step: 1, stepY: dy, key: [[c, 0]],
@@ -246,19 +247,20 @@
     // wrong values in the number slots: a starting amount (M9), or B's y-intercept read as its rate (M12)
     function wr(isA) { return isA ? [{ v: bA, tag: 'M9' }] : [{ v: bB, tag: 'M12' }]; }
     return {
-      stem: 'Savings account A starts at ' + bA + ' riyals and increases by ' + mA + ' riyals each day. Savings account B is shown on the graph. Complete the sentence.',
+      stem: 'Account A starts at ' + bA + ' riyals and gains ' + mA + ' riyals each day. Account B is on the graph.',
       fig: C.graph({ x: [0, 8], y: [0, yTop], dx: 1, dy: 10, ly: ly, xl: 'Days', yl: 'Savings (riyals)', size: 340, label: 'Graph of savings account B', lines: [{ m: mB, b: bB, color: C.COL.line3 }], pts: [{ x: 0, y: bB, c: C.COL.line3 }, { x: 2, y: bB + 2 * mB, c: C.COL.line3 }, { x: 6, y: bB + 6 * mB, l: 'B', c: C.COL.line3 }] }),
-      sentence: 'Account {0} has the greater rate of change, because it changes by {1} riyals per day and the other changes by {2} riyals per day.',
+      sentence: 'Account {0} has the greater rate of change (the step): {1} riyals per day, compared with {2}.',
+      // picking the account that starts higher (but grows slower) is reading the start as the rate: M9
       parts: [
-        { kind: 'choice', inline: true, keep: true, opts: [{ t: 'A', ok: Lk === 'A', tag: Lk === 'A' ? undefined : (bB > bA ? 'M9' : 'M11') }, { t: 'B', ok: Lk === 'B', tag: Lk === 'B' ? undefined : (bA > bB ? 'M9' : 'M11') }] },
+        { kind: 'choice', inline: true, keep: true, opts: [{ t: 'A', ok: Lk === 'A', tag: Lk !== 'A' && bA > bB ? 'M9' : undefined }, { t: 'B', ok: Lk === 'B', tag: Lk !== 'B' && bB > bA ? 'M9' : undefined }] },
         { kind: 'num', inline: true, key: hi, wrong: wr(Lk === 'A') },
         { kind: 'num', inline: true, key: lo, wrong: wr(Lk !== 'A') }
       ],
-      answer: 'Account ' + Lk + ', because it changes by ' + hi + ' riyals per day and the other changes by ' + lo + ' riyals per day',
+      answer: 'Account ' + Lk + ': ' + hi + ' riyals per day, compared with ' + lo,
       work: ['A changes by ' + mA + ' riyals for every 1 more day.',
         'On B\'s graph, savings go from ' + bB + ' to ' + (bB + 2 * mB) + ' in 2 days: ' + (2 * mB) + ' ÷ 2 = ' + mB + ' riyals for every 1 more day.',
         hi + ' > ' + lo + ', so <b>account ' + Lk + '</b> has the greater rate. The starting amounts (' + bA + ' and ' + bB + ') do not matter here.'],
-      why: { M9: 'You used a starting amount. The rate is how much the savings change for every 1 more day.', M12: 'B crosses the savings axis at ' + bB + ': that is its starting amount, not its rate. Its rate is ' + mB + ' riyals per day.' },
+      why: { M9: 'You used a starting amount (A starts at ' + bA + ', B at ' + bB + '). The rate is how much the savings change for every 1 more day: ' + mA + ' for A, ' + mB + ' for B.', M12: 'B crosses the savings axis at ' + bB + ': that is its starting amount, not its rate. Its rate is ' + mB + ' riyals per day.' },
       steps: [
         { label: 'For every 1 more day, account A changes by', part: { kind: 'num', key: mA }, hint: 'The words say: increases by ' + mA + ' each day.' },
         { label: 'B goes from ' + bB + ' riyals at day 0 to ' + (bB + 2 * mB) + ' at day 2. For every 1 more day it changes by', part: { kind: 'num', key: mB, wrong: [{ v: bB, tag: 'M12' }] }, hint: (2 * mB) + ' ÷ 2.' },
@@ -297,23 +299,24 @@
   } });
 
   C.add({ id: 'CP-6b', skill: '17', level: 6, order: 2, type: 'MS', gen: function (R) {
-    var mA, mB, bA, bB, X, xStar, eqTrue, trues, s1, s2, s3, s4;
+    var mA, mB, bA, bB, X, xStar, eqTrue, trues, s1, s2, s3, s4, s5, wantS2 = R.chance(0.5);
     do {
       mA = R.nz(-8, 8); mB = R.nz(-8, 8); bA = 10 * R.int(2, 8); bB = 10 * R.int(2, 8);
       xStar = mA !== mB ? (bB - bA) / (mA - mB) : NaN;
       eqTrue = xStar === Math.round(xStar) && xStar >= 1 && xStar <= 10 && R.chance(0.7);
       X = eqTrue ? xStar : R.int(2, 8);
-      s1 = bA > bB; s2 = mB > mA; s3 = bA + mA * X === bB + mB * X; s4 = mA < 0;
-      trues = [s1, s2, s3, s4].filter(Boolean).length + 1;
-    } while (mA === mB || bA === bB || Math.abs(mA) < 2 || Math.abs(mB) < 2 || trues < 2 || trues > 4 || bA + 7 * mA < 0 || bA + mA * X < 0 || bB + mB * X < 0);
+      // at least one balance goes up, so "B's balance goes up faster" has one clear meaning (true only when mB > 0 and mB > mA)
+      s1 = bA > bB; s2 = mB > mA; s3 = bA + mA * X === bB + mB * X; s4 = mA < 0; s5 = R.chance(0.5);   // s5 false: A's change per row (2 weeks) read as per week
+      trues = [s1, s2, s3, s4, s5].filter(Boolean).length;
+    } while (mA === mB || (mA < 0 && mB < 0) || s2 !== wantS2 || bA === bB || Math.abs(mA) < 2 || Math.abs(mB) < 2 || trues < 2 || trues > 4 || bA + 7 * mA < 0 || bA + mA * X < 0 || bB + mB * X < 0);
     var xs = [1, 3, 5, 7], rows = xs.map(function (x) { return [x, bA + mA * x]; });
-    var Av = bA + mA * X, Bv = bB + mB * X;
+    var Av = bA + mA * X, Bv = bB + mB * X, aStep = s5 ? Math.abs(mA) : 2 * Math.abs(mA), aWay = mA > 0 ? 'up' : 'down';
     var opts = [
-      { t: 'A has the greater initial value', ok: s1, tag: s1 ? undefined : 'M9', missTag: 'M9' },
-      { t: 'B has the greater rate of change', ok: s2, tag: s2 ? undefined : 'M9', missTag: 'M9' },
+      { t: 'A has the greater initial value (the start)', ok: s1, tag: s1 ? undefined : 'M9', missTag: 'M9' },
+      { t: 'B\'s balance goes up faster than A\'s', ok: s2, tag: s2 ? undefined : 'M9', missTag: 'M9' },
       { t: 'They have the same balance at week ' + X, ok: s3, tag: s3 ? undefined : 'M11', missTag: 'M11' },
       { t: 'A is decreasing', ok: s4, tag: s4 ? undefined : 'M2', missTag: 'M2' },
-      { t: 'Both are linear', ok: true, missTag: 'M7' }
+      { t: 'A\'s balance goes ' + aWay + ' by ' + aStep + ' riyals every week', ok: s5, tag: s5 ? undefined : 'M8', missTag: 'M8' }
     ];
     var right = opts.filter(function (o) { return o.ok; }).map(function (o) { return o.t; });
     return {
@@ -322,11 +325,11 @@
       think: 'Find A\'s rate and initial value first. Then check each statement.',
       parts: [{ kind: 'multi', label: 'True statements', opts: opts }],
       answer: right.join('; '),
-      work: ['A: the balance changes by ' + f(2 * mA) + ' every 2 weeks, so ' + f(mA) + ' riyals for every 1 more week. Going back 1 week from week 1: initial value ' + f(bA + mA) + ' − ' + par(mA) + ' = ' + bA + ' riyals.',
-        'B: rate ' + f(mB) + ' riyals per week, initial value ' + bB + ' riyals.',
-        'At week ' + X + ': A = ' + f(Av) + ', B = ' + f(Bv) + '. A is ' + (mA < 0 ? '' : 'not ') + 'decreasing; both change at a constant rate, so both are linear.',
+      work: ['A: the balance changes by ' + f(2 * mA) + ' every 2 weeks, so its rate of change (the step) is ' + f(mA) + ' riyals for every 1 more week. Going back 1 week from week 1: initial value (the start) ' + f(bA + mA) + ' − ' + par(mA) + ' = ' + bA + ' riyals.',
+        'B: rate ' + f(mB) + ' riyals per week, initial value ' + bB + ' riyals. ' + (mB > mA ? 'B\'s balance goes up faster.' : 'B\'s balance does not go up faster than A\'s.'),
+        'At week ' + X + ': A = ' + f(Av) + ', B = ' + f(Bv) + '. A is ' + (mA < 0 ? '' : 'not ') + 'decreasing: it goes ' + aWay + ' by ' + Math.abs(mA) + ' riyals every week.',
         'True: <b>' + right.join('; ') + '</b>.'],
-      why: { M9: 'Keep the rate and the initial value apart: A has rate ' + f(mA) + ' and starts at ' + bA + '; B has rate ' + f(mB) + ' and starts at ' + bB + '.', M11: 'Check both at week ' + X + ': A has ' + f(Av) + ' riyals and B has ' + f(Bv) + '.', M2: 'A\'s rate is ' + f(mA) + (mA < 0 ? ', which is negative, so A is decreasing.' : ', which is positive, so A is increasing.'), M7: 'Both change by the same amount every week, so both are linear.' },
+      why: { M9: 'Keep the rate and the initial value apart: A has rate ' + f(mA) + ' and starts at ' + bA + '; B has rate ' + f(mB) + ' and starts at ' + bB + '.', M11: 'Check both at week ' + X + ': A has ' + f(Av) + ' riyals and B has ' + f(Bv) + '.', M2: 'A\'s rate is ' + f(mA) + (mA < 0 ? ', which is negative, so A is decreasing.' : ', which is positive, so A is increasing.'), M8: 'A\'s table goes up 2 weeks at a time. It changes by ' + Math.abs(2 * mA) + ' every 2 weeks, so ' + Math.abs(2 * mA) + ' ÷ 2 = ' + Math.abs(mA) + ' riyals every week.' },
       steps: [
         { label: 'For every 1 more week, A\'s balance changes by', part: { kind: 'num', key: mA, wrong: [{ v: 2 * mA, tag: 'M8' }] }, hint: 'The weeks go up by 2 each row: ' + f(2 * mA) + ' ÷ 2.' },
         { label: 'A\'s initial value (week 0) =', part: { kind: 'num', key: bA }, hint: 'Go back 1 week from week 1: ' + f(bA + mA) + ' − ' + par(mA) + '.' },

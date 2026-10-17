@@ -56,31 +56,46 @@
       work: ['Substitute x = ' + f(x) + ': y = ' + f(m) + ' × ' + par(x) + ' ' + C.term(b), '= ' + f(mx) + ' ' + C.term(b), '= <b>' + f(key) + '</b>'],
       why: { G: 'You added ' + f(b) + ' to x before multiplying. Multiply first: ' + f(m) + ' × ' + par(x) + ' = ' + f(mx) + ', then add ' + par(b) + '.', M2: 'Check the sign of ' + f(b) + ': the rule says ' + C.term(b) + ', so ' + f(mx) + ' ' + C.term(b) + ' = ' + f(key) + '.', M14: 'You added all the numbers. ' + f(m) + ' multiplies x: ' + f(m) + ' × ' + par(x) + ' = ' + f(mx) + '.' },
       steps: [
-        { label: f(m) + ' × ' + par(x) + ' =', part: { kind: 'num', key: mx }, hint: 'A negative times a positive is negative.' },
+        { label: f(m) + ' × ' + par(x) + ' =', part: { kind: 'num', key: mx }, hint: x === 0 ? 'Any number times 0 is 0.' : m < 0 && x < 0 ? 'A negative times a negative is positive.' : m > 0 && x > 0 ? 'A positive times a positive is positive.' : 'A negative times a positive is negative.' },
         { label: f(mx) + ' ' + C.term(b) + ' =', part: { kind: 'num', key: key }, hint: 'Keep the sign of ' + f(b) + '.' }
       ]
     };
   } });
 
   C.add({ id: 'FN-1d', skill: '1', level: 2, order: 1, type: 'interactive', ia: true, gen: function (R) {
-    var a, b, key, y, opts;
+    // build the machine's mapping: an arrow from each input to its output. Two decoy outputs catch "add first" and "add everything".
+    var a, b, L, outs, gi, mi, gv, mv, right;
     do {
-      a = R.int(2, 6); b = R.int(1, 12); key = R.int(1, 9); y = a * key + b;
-      opts = uniq([{ t: f(key), ok: true }, { t: f(y / a - b), tag: 'G' }, { t: f(y - b), tag: 'G' }, { t: f(y + b), tag: 'M2' }]);
-    } while (opts.length < 4);
-    opts = R.shuffle(opts);
-    var tile = function (t) { return '<span style="display:inline-block;min-width:2.4em;font-size:20px;font-weight:700">' + t + '</span>'; };
+      a = R.int(2, 4); b = R.int(1, 9); L = R.distinct(3, 1, 6).sort(function (p, q) { return p - q; });
+      outs = L.map(function (x) { return a * x + b; });
+      gi = R.int(0, 2); mi = (gi + R.int(1, 2)) % 3;
+      gv = a * (L[gi] + b); mv = L[mi] + a + b;
+      right = outs.concat([gv, mv]);
+    } while (right.some(function (v, k) { return right.indexOf(v) !== k; }));
+    right = R.shuffle(right);
+    var tagOf = {}; tagOf[gv] = 'G'; tagOf[mv] = 'M14';
+    var key = L.map(function (x, k) { return [k, right.indexOf(outs[k])]; });
+    function check(pairs) {
+      var ok = pairs.length === 3 && key.every(function (kp) { return pairs.some(function (p) { return p[0] === kp[0] && p[1] === kp[1]; }); });
+      if (ok) return { ok: true };
+      var tag = null;
+      pairs.some(function (p) { var t = tagOf[right[p[1]]]; if (t) { tag = t; return true; } });
+      return { ok: false, tag: tag };
+    }
+    var x0 = L[0], y0 = outs[0];
     return {
-      stem: 'A function machine multiplies by ' + a + ', then adds ' + b + '. Drag the input tile that makes the output ' + y + ' into the machine. The other tiles go in "Not this one".',
-      think: 'Undo the steps backwards: undo the add first.',
-      parts: [{ kind: 'sort', label: 'Input tiles', bins: ['Goes in the machine (× ' + a + ', then + ' + b + ')', 'Not this one'],
-        cards: opts.map(function (o) { return o.ok ? { t: tile(o.t), bin: 0 } : { t: tile(o.t), bin: 1, tag: o.tag }; }) }],
-      answer: 'The input is ' + key,
-      work: ['Undo the last step first: ' + y + ' − ' + b + ' = ' + (y - b) + '.', 'Then undo the multiply: ' + (y - b) + ' ÷ ' + a + ' = <b>' + key + '</b>', 'Check: ' + a + ' × ' + key + ' + ' + b + ' = ' + y + '.'],
-      why: { G: 'Undo the steps in reverse order and do both: subtract ' + b + ' first, then divide by ' + a + ': (' + y + ' − ' + b + ') ÷ ' + a + ' = ' + key + '.', M2: 'To undo "add ' + b + '", subtract ' + b + '. Adding it again goes the wrong way.' },
+      stem: 'A function machine multiplies by ' + a + ', then adds ' + b + '. Draw an arrow from each input to the output the machine gives. Two of the outputs are not used.',
+      think: 'For each input: multiply by ' + a + ' first, then add ' + b + '.',
+      parts: [{ kind: 'arrows', label: 'Your mapping', left: L, right: right, lt: 'Input', rt: 'Output', key: key, check: check }],
+      answerFig: C.mapping({ left: L, right: right, arrows: key }),
+      answer: L.map(function (x, k) { return f(x) + ' → ' + f(outs[k]); }).join(', '),
+      work: ['Multiply each input by ' + a + ', then add ' + b + '.', L.map(function (x, k) { return a + ' × ' + x + ' + ' + b + ' = ' + outs[k]; }).join('; '), 'So the arrows are <b>' + L.map(function (x, k) { return f(x) + ' → ' + f(outs[k]); }).join(', ') + '</b>.'],
+      why: { G: 'An arrow goes to ' + gv + ' = ' + a + ' × (' + L[gi] + ' + ' + b + '): that adds first. The machine multiplies first: ' + a + ' × ' + L[gi] + ' + ' + b + ' = ' + outs[gi] + '.', M14: 'An arrow goes to ' + mv + ' = ' + L[mi] + ' + ' + a + ' + ' + b + ': that adds all the numbers. Multiply first: ' + a + ' × ' + L[mi] + ' + ' + b + ' = ' + outs[mi] + '.' },
       steps: [
-        { label: 'Undo "add ' + b + '": ' + y + ' − ' + b + ' =', part: { kind: 'num', key: y - b }, hint: 'The opposite of adding is subtracting.' },
-        { label: 'Undo "multiply by ' + a + '": ' + (y - b) + ' ÷ ' + a + ' =', part: { kind: 'num', key: key }, hint: 'The opposite of multiplying is dividing.' }
+        { label: 'Input ' + x0 + '. Step 1: ' + a + ' × ' + x0 + ' =', part: { kind: 'num', key: a * x0 }, hint: 'The machine multiplies the input by ' + a + ' first.' },
+        { label: 'Step 2: ' + (a * x0) + ' + ' + b + ' =', part: { kind: 'num', key: y0 }, hint: 'Now add ' + b + '.' },
+        { label: 'Do the same for input ' + L[1] + ': ' + a + ' × ' + L[1] + ' + ' + b + ' =', part: { kind: 'num', key: outs[1] }, hint: 'Multiply first, then add.' },
+        { label: 'And for input ' + L[2] + ': ' + a + ' × ' + L[2] + ' + ' + b + ' =', part: { kind: 'num', key: outs[2] }, hint: 'Multiply first, then add.' }
       ]
     };
   } });
@@ -121,7 +136,7 @@
       work: ['Find ' + h + ' on the hour axis (along the bottom).', 'Go straight up to the line, then across to the temperature axis.', 'The temperature was <b>' + key + ' °C</b>.'],
       why: { G: 'That is the temperature at a neighbouring hour. Line up exactly with ' + h + ' on the bottom axis.', M10: 'You gave the hour, ' + h + ', not the temperature. Go up from ' + h + ' to the line, then read across.' },
       steps: [
-        { label: 'Where do you find ' + h + ':00?', part: { kind: 'choice', keep: true, opts: [{ t: 'On the bottom (hour) axis', ok: true }, { t: 'On the side (temperature) axis' }] }, hint: 'Times are along the bottom.' },
+        { label: 'Where do you find ' + h + ':00?', part: { kind: 'choice', keep: true, opts: [{ t: 'On the across (hour) axis', ok: true }, { t: 'On the up (temperature) axis' }] }, hint: 'Times are along the across axis (x-axis), at the bottom.' },
         { label: 'Go up from ' + h + ' to the line, then across. The temperature is (°C)', part: { kind: 'num', key: key }, hint: 'Each gridline on the temperature axis is 2 °C.' }
       ]
     };
@@ -133,7 +148,7 @@
       S = R.pick([80, 90, 100]); r = R.pick([5, 10, 20]); cand = [];
       for (var k = 1; k <= 11; k++) { var v = S - r * k; if (v > 0 && v % 10 === 0) cand.push(k); }
       t = cand.length ? R.pick(cand) : 1; p = S - r * t;
-      opts = uniq([{ t: t + ' hours', ok: true }, { t: (t - 1) + ' hours', tag: 'G' }, { t: (t + 1) + ' hours', tag: 'G' }, { t: p + ' hours', tag: 'M10' }]);
+      opts = uniq([{ t: C.pl(t, 'hour'), ok: true }, { t: C.pl(t - 1, 'hour'), tag: 'G' }, { t: C.pl(t + 1, 'hour'), tag: 'G' }, { t: C.pl(p, 'hour'), tag: 'M10' }]);
     } while (!cand.length || opts.length < 4 || t < 2);
     var end = Math.min(12, S / r);
     return {
@@ -142,11 +157,11 @@
         lines: [{ m: -r, b: S, from: 0, to: end }] }),
       think: 'Start on the battery axis this time.',
       parts: [{ kind: 'choice', label: 'Time', opts: opts }],
-      answer: t + ' hours',
-      work: ['Find ' + p + '% on the battery axis (the side).', 'Go across to the line, then straight down to the time axis.', 'The battery was at ' + p + '% after <b>' + t + ' hours</b>.'],
-      why: { G: 'That is a neighbouring hour. Go across from ' + p + '% exactly to the line, then straight down.', M10: p + ' is the battery level, not a time. Find ' + p + ' on the side axis, go across to the line, then down.' },
+      answer: C.pl(t, 'hour'),
+      work: ['Find ' + p + '% on the battery axis (the up axis, y-axis).', 'Go across to the line, then straight down to the time axis.', 'The battery was at ' + p + '% after <b>' + C.pl(t, 'hour') + '</b>.'],
+      why: { G: 'That is a neighbouring hour. Go across from ' + p + '% exactly to the line, then straight down.', M10: p + ' is the battery level, not a time. Find ' + p + ' on the up axis (y-axis), go across to the line, then down.' },
       steps: [
-        { label: 'Where do you find ' + p + '%?', part: { kind: 'choice', keep: true, opts: [{ t: 'On the side (battery) axis', ok: true }, { t: 'On the bottom (time) axis' }] }, hint: 'Battery levels are up the side.' },
+        { label: 'Where do you find ' + p + '%?', part: { kind: 'choice', keep: true, opts: [{ t: 'On the up (battery) axis', ok: true }, { t: 'On the across (time) axis' }] }, hint: 'Battery levels are on the up axis (y-axis).' },
         { label: 'Go across from ' + p + '% to the line, then down. The time is (hours)', part: { kind: 'num', key: t }, hint: 'Each gridline on the time axis is 1 hour.' }
       ]
     };
@@ -187,14 +202,14 @@
       stem: 'Look at the scales on the axes. What is y when x = ' + x + '?',
       fig: C.graph({ x: [0, 10 * sx], y: [0, 10 * sy], dx: sx, dy: sy, label: 'Line on a grid; each square is ' + sx + ' across and ' + sy + ' up',
         lines: [{ m: k * sy / sx, b: c * sy }] }),
-      think: 'What is each square worth on the y-axis?',
+      think: 'What is each square worth on the up axis (y-axis)?',
       parts: [{ kind: 'num', label: 'y', key: key, wrong: wrong }],
       answer: 'y = ' + key,
-      work: ['Each square on the x-axis is worth ' + sx + ', so x = ' + x + ' is ' + i + ' squares across.', 'Each square on the y-axis is worth ' + sy + '. The line there is ' + n + ' squares up.', 'y = ' + n + ' × ' + sy + ' = <b>' + key + '</b>'],
-      why: { M5: 'You counted ' + n + ' squares but each square on the y-axis is worth ' + sy + ': ' + n + ' × ' + sy + ' = ' + key + '.' },
+      work: ['Each square on the across axis (x-axis) is worth ' + sx + ', so x = ' + x + ' is ' + C.pl(i, 'square') + ' across.', 'Each square on the up axis (y-axis) is worth ' + sy + '. The line there is ' + C.pl(n, 'square') + ' up.', 'y = ' + n + ' × ' + sy + ' = <b>' + key + '</b>'],
+      why: { M5: 'You counted ' + C.pl(n, 'square') + ', but each square on the up axis (y-axis) is worth ' + sy + ': ' + n + ' × ' + sy + ' = ' + key + '.' },
       steps: [
-        { label: 'What is each square on the y-axis worth?', part: { kind: 'num', key: sy }, hint: 'Read the numbers up the y-axis.' },
-        { label: 'At x = ' + x + ', how many squares up is the line?', part: { kind: 'num', key: n }, hint: 'Count gridlines from the x-axis to the line.' },
+        { label: 'What is each square on the up axis (y-axis) worth?', part: { kind: 'num', key: sy }, hint: 'Read the numbers up the y-axis.' },
+        { label: 'At x = ' + x + ', how many squares up is the line?', part: { kind: 'num', key: n }, hint: 'Count gridlines from the across axis (x-axis) up to the line.' },
         { label: 'y = ' + n + ' × ' + sy + ' =', part: { kind: 'num', key: key }, hint: 'Multiply the squares by what each is worth.' }
       ]
     };
@@ -264,7 +279,26 @@
   } });
 
   C.add({ id: 'FN-2c', skill: '3', level: 3, order: 1, type: 'TT', gen: function (R) {
-    var xs = R.distinct(3, -5, 9), ys = R.distinct(2, -5, 9), a = xs[0], b = xs[1], c = xs[2], p = ys[0], q = ys[1];
+    var xs = R.distinct(3, -5, 9), ys = R.distinct(3, -5, 9), a = xs[0], b = xs[1], c = xs[2], p = ys[0], q = ys[1], r = ys[2];
+    if (R.chance(0.5)) {
+      // NOT a function: input a appears with two different outputs (and no output repeats, so "no two outputs are the same" is a trap)
+      var bad = R.shuffle([[a, p], [b, q], [a, r]]);
+      return {
+        stem: 'Is the set ' + C.pairs(bad) + ' a function? Choose the answer and the reason.',
+        parts: [
+          { kind: 'choice', label: 'Is it a function?', keep: true, opts: [{ t: 'Yes', tag: 'G' }, { t: 'No', ok: true }] },
+          { kind: 'choice', label: 'Reason', opts: [{ t: 'An input has two different outputs', ok: true }, { t: 'No two outputs are the same', tag: 'M6' }, { t: 'It does not follow a pattern', tag: 'M15' }] }
+        ],
+        answer: 'No, because the input ' + f(a) + ' has two different outputs',
+        work: ['Look at the inputs (the first numbers).', 'The input ' + f(a) + ' appears twice: with ' + f(p) + ' and with ' + f(r) + '.', '<b>No, it is not a function</b>: one input has two different outputs.'],
+        why: { G: 'The input ' + f(a) + ' goes to ' + f(p) + ' and also to ' + f(r) + '. One input with two outputs is not allowed.', M6: 'Look at the inputs, not the outputs. The input ' + f(a) + ' has two outputs, ' + f(p) + ' and ' + f(r) + ': that is what breaks the rule.', M15: 'A function does not need a pattern. It fails because the input ' + f(a) + ' has two outputs.' },
+        steps: [
+          { label: 'Which input (x) appears twice?', part: { kind: 'num', key: a }, hint: 'Look at the first number in each pair.' },
+          { label: 'Does x = ' + f(a) + ' go to the same output both times?', part: { kind: 'choice', keep: true, opts: [{ t: 'Yes' }, { t: 'No', ok: true }] }, hint: 'It goes to ' + f(p) + ' and to ' + f(r) + '.' },
+          { label: 'So is it a function?', part: { kind: 'choice', keep: true, opts: [{ t: 'Yes' }, { t: 'No', ok: true }] }, hint: 'One input with two outputs is not allowed.' }
+        ]
+      };
+    }
     var set = R.shuffle([[a, p], [b, p], [c, q]]);
     return {
       stem: 'Is the set ' + C.pairs(set) + ' a function? Choose the answer and the reason.',

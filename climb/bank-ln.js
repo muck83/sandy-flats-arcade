@@ -27,7 +27,7 @@
     var xs = [1, 2, 3, 4], L = tbl4(R, 'lin'), D = tbl4(R, 'dbl'), S = tbl4(R, 'sq'), G = tbl4(R, 'grow');
     var m = L[1] - L[0], gd = diffs(G), dd = diffs(D);
     return {
-      stem: 'Which table shows a constant rate of change?',
+      stem: 'Which table shows a constant rate of change (the step)?',
       think: 'Find the change in y from each row to the next.',
       parts: [{ kind: 'choice', label: 'Constant rate', opts: [
         { t: stbl(xs, L), ok: true },
@@ -66,7 +66,7 @@
       ] }],
       answer: 'The straight line',
       answerFig: lineG,
-      work: ['A linear function has the same rate of change everywhere, so its graph is a straight line.', 'The curve gets steeper as x grows, the V changes direction, and the points bend: their rates keep changing.', 'Only <b>the straight line</b> is linear (it does not need to pass through (0, 0)).'],
+      work: ['A linear function has the same rate of change (the step) everywhere, so its graph is a straight line.', 'The curve gets steeper as x grows, the V changes direction, and the points bend: their rates keep changing.', 'Only <b>the straight line</b> is linear (it does not need to pass through (0, 0)).'],
       why: { M7: 'That graph goes up, or follows a pattern, but its steepness keeps changing. Linear means one straight line with the same rate everywhere.' },
       steps: [
         { label: 'Does a curve have the same steepness everywhere?', part: yn(false, 'M7'), hint: 'A curve gets steeper or flatter as you move along it.' },
@@ -92,12 +92,12 @@
         { t: eXY, ok: false }
       ] }],
       answer: eLin + ', ' + eC + ' and ' + eDiv,
-      work: ['A linear equation can be written y = mx + b: x to the first power, not squared and not in a denominator.', eDiv + ' is ' + C.eqText(1 / d, e) + ', and ' + eC + ' is y = 0x ' + C.term(c) + ' (rate 0).', eSq + ' has x², while ' + eInv + ' and ' + eXY + ' have x in a denominator (y = ' + k + '/x).', 'Linear: <b>' + eLin + ', ' + eC + ', ' + eDiv + '</b>.'],
-      why: { M15: eC + ' is linear too: its rate of change is 0, a flat line.', M7: eDiv + ' is the same as ' + C.eqText(1 / d, e) + ': x is divided by a number, not by x, so it is linear.' },
+      work: ['A linear equation can be written y = mx + b: x to the first power, not squared and not on the bottom of a fraction.', eDiv + ' is ' + C.eqText(1 / d, e) + ', and ' + eC + ' is y = 0x ' + C.term(c) + ' (step 0).', eSq + ' has x², while ' + eInv + ' and ' + eXY + ' have x on the bottom of a fraction (y = ' + k + '/x).', 'Linear: <b>' + eLin + ', ' + eC + ', ' + eDiv + '</b>.'],
+      why: { M15: eC + ' is linear too: its rate of change (the step) is 0, a flat line.', M7: eDiv + ' is the same as ' + C.eqText(1 / d, e) + ': x is divided by a number, not by x, so it is linear.' },
       steps: [
         { label: 'Is ' + eC + ' linear? (Think of its graph.)', part: yn(true, undefined, 'M15'), hint: 'It is a horizontal line: rate 0.' },
         { label: eDiv + ' is the same as ' + C.eqText(1 / d, e) + '. Is it linear?', part: yn(true, undefined, 'M7'), hint: 'Dividing x by ' + d + ' is multiplying x by 1/' + d + '.' },
-        { label: 'In ' + eInv + ', x is in the denominator. Is it linear?', part: yn(false), hint: 'Its graph is a curve.' },
+        { label: 'In ' + eInv + ', x is on the bottom of the fraction (you divide by x). Is it linear?', part: yn(false), hint: 'Its graph is a curve.' },
         { label: 'Is ' + eSq + ' linear?', part: yn(false), hint: 'x is squared.' }
       ]
     };
@@ -194,13 +194,15 @@
 
   C.add({ id: 'LN-5a', skill: '15', level: 5, order: 1, type: 'FR', gen: function (R) {
     var type = R.pick(['lin', 'lin', 'dbl', 'sq', 'grow']), lin = type === 'lin', xs = [1, 2, 3, 4], ys = tbl4(R, type, true), d = diffs(ys);
-    var g1 = ['rate', 'rates', 'change', 'changes', 'changing', 'slope', 'goes up by', 'goes down by', 'increases by', 'decreases by', 'goes up', 'goes down', 'go up', 'go down', 'amount', 'amounts', 'increase', 'increases', 'decrease', 'decreases', 'difference', 'differences', 'adds', 'add', 'subtracts', 'step', 'steps'];
+    // the Yes/No part carries the verdict; the sentence is judged on its reason by judge5a
     var text = lin
-      ? { kind: 'text', label: 'Explain', need: [g1, ['constant', 'same', 'equal', 'every time', 'each time', 'always', 'steady']], not: ['not linear', 'nonlinear', 'non-linear', 'curve', 'not the same', 'not constant', 'not equal', 'different'], notFirst: ['no'],
-        sample: 'Yes. y ' + (d[0] > 0 ? 'goes up by ' : 'goes down by ') + f(Math.abs(d[0])) + ' every time x goes up by 1, so the rate of change is constant.', tag: 'M7' }
-      : { kind: 'text', label: 'Explain', need: [g1, ['not the same', 'different', 'not constant', 'not equal', 'unequal', 'changes', 'changing', 'gets bigger', 'gets larger', 'grows', 'growing', 'varies', 'not', 'doesn t', 'isn t', 'aren t']], not: ['is linear', 'it s linear', 'are the same', 'is constant', 'are equal'], notFirst: ['yes'],
-        sample: 'No. The changes in y are ' + d.map(f).join(', ') + ', which are not the same, so the rate is not constant.', tag: 'M7' };
-    return {
+      ? { kind: 'text', label: 'Explain', sample: 'Yes. y ' + (d[0] > 0 ? 'goes up by ' : 'goes down by ') + f(Math.abs(d[0])) + ' every time x goes up by 1, so the rate of change is constant.', tag: 'M7' }
+      : { kind: 'text', label: 'Explain', sample: 'No. The changes in y are ' + d.map(f).join(', ') + ', which are not the same, so the rate is not constant.', tag: 'M7' };
+    var item = {
+      check: function (vals) {
+        if (vals[0] !== (lin ? 0 : 1)) return null;               // wrong verdict: the choice part's tag stands
+        return judge5a(vals[1], lin, d) ? { ok: true } : { ok: false, tag: 'M7' };
+      },
       stem: 'Is the function in this table linear? Choose, then explain in a sentence.',
       fig: C.table({ cols: ['x', 'y'], rows: xs.map(function (x, i) { return [x, ys[i]]; }) }),
       think: 'Find the change in y for each 1 more x.',
@@ -218,7 +220,44 @@
         { label: 'Are the changes all the same, so it is linear?', part: yn(lin, 'M7'), hint: 'Compare ' + d.map(f).join(', ') + '.' }
       ]
     };
+    return item;
   } });
+
+  /* LN-5a's sentence rubric. d: the changes in y (x steps by 1).
+     Linear: must say the change is the same/constant/equal, or give the right step; a wrong direction or step value fails.
+     Not linear: must say the changes are different / not the same (or list two of the real, different changes). */
+  function judge5a(s, lin, d) {
+    var raw = String(s || ''), t = C.norm(raw).replace(/([a-z])-([a-z])/g, '$1 $2').trim();
+    if (!t) return false;
+    t = ' ' + t.replace(/^(yes|no)\b\s*/, '') + ' ';
+    // x's own step of 1 is not the change in y: "x goes up by 1", "for every 1 more x"
+    t = t.replace(/ (x|input|inputs|x value|x values) (goes up|go up|increases|increase|changes|change|grows|moves|steps|went up|rises|is increased|gets bigger)(( by)? (1|one))?(?= )/g, ' ')
+      .replace(/ (every|each|per|for) (1|one)( more)?(?= )/g, ' ')
+      .replace(/ (multiplies|multiplied|multiply|times|divided|divides|doubles|doubled) (by )?-?\d+(?= )/g, ' doubles ');
+    var H = function (w) { return C.hasAny(t, w); };
+    var up = d.every(function (v) { return v > 0; }), down = d.every(function (v) { return v < 0; });
+    var UPW = ['goes up', 'go up', 'increases', 'increasing', 'rises', 'rising', 'grows', 'growing', 'up by', 'gets bigger', 'gets larger', 'adds', 'adding'];
+    var DOWNW = ['goes down', 'go down', 'decreases', 'decreasing', 'falls', 'falling', 'drops', 'dropping', 'down by', 'gets smaller', 'subtracts', 'subtracting', 'minus'];
+    if ((up && H(DOWNW)) || (down && H(UPW))) return false;
+    // step values the student states: "by 3", "a change of 3", "goes up 3", "the rate is 3"
+    var nums = [], re = / (by|of|up|down|add|adds|subtract|subtracts|increases|decreases|rises|falls|drops|grows) (-?\d+)(?= )/g, m;
+    while ((m = re.exec(t))) nums.push(Math.abs(+m[2]));
+    re = / (rate|slope|change|changes|step|steps|difference|differences)( of change)? (is|are|was) (always |all |every time )?(-?\d+)(?= )/g;
+    while ((m = re.exec(t))) nums.push(Math.abs(+m[5]));
+    var abs = d.map(function (v) { return Math.abs(v); });
+    if (nums.some(function (n) { return abs.indexOf(n) < 0; })) return false;
+    var DIFF = ['different', 'differ', 'differs', 'not the same', 'not constant', 'not equal', 'unequal', 'varies', 'vary', 'varying', 'uneven', 'not steady', 'not consistent', 'inconsistent', 'isn t constant', 'aren t constant', 'aren t the same', 'isn t the same', 'aren t equal', 'isn t equal', 'not always the same', 'not by the same', 'never the same', 'gets bigger', 'get bigger', 'getting bigger', 'gets larger', 'get larger', 'grows faster', 'faster and faster', 'more and more', 'more each time', 'more every time', 'bigger each time', 'bigger every time', 'keeps changing', 'keep changing', 'doesn t change by the same', 'don t change by the same', 'does not change by the same', 'do not change by the same', 'doesn t go up by the same', 'doesn t increase by the same'];
+    if (lin) {
+      var CHG = ['rate', 'rates', 'change', 'changes', 'changing', 'slope', 'step', 'steps', 'difference', 'differences', 'goes up', 'goes down', 'go up', 'go down', 'increases', 'decreases', 'increase', 'decrease', 'amount', 'amounts', 'adds', 'subtracts', 'by'];
+      var SAME = ['constant', 'same', 'equal', 'steady', 'consistent', 'evenly', 'uniform', 'never changes', 'doesn t change', 'does not change'];
+      if (H(['not linear', 'nonlinear', 'non linear', 'isn t linear', 'curve', 'curved', 'different', 'differ', 'differs', 'not the same', 'not constant', 'not equal', 'unequal', 'varies', 'uneven', 'isn t constant', 'aren t the same', 'isn t the same', 'aren t equal', 'not always the same', 'not by the same', 'keeps changing', 'more and more', 'faster and faster'])) return false;
+      return (H(CHG) && H(SAME)) || nums.indexOf(abs[0]) >= 0;
+    }
+    var CHGN = ['rate', 'rates', 'change', 'changes', 'changing', 'slope', 'step', 'steps', 'difference', 'differences', 'amount', 'amounts', 'gap', 'gaps', 'jump', 'jumps', 'by'];
+    var listed = abs.filter(function (v, i) { return abs.indexOf(v) === i && (t.indexOf(' ' + v + ' ') >= 0 || t.indexOf(' -' + v + ' ') >= 0); }).length;
+    if (H(['is linear', 'it s linear', 'its linear']) && !H(['not linear', 'isn t linear'])) return false;
+    return H(CHGN) && (H(DIFF) || listed >= 2);
+  }
 
   C.add({ id: 'LN-5b', skill: '15', level: 5, order: 2, type: 'MC', gen: function (R) {
     var s = R.int(2, 9), area = R.chance(0.5), A = area ? s * s : 4 * s, s2 = 2 * s, what = area ? 'area' : 'perimeter', u = area ? ' cm²' : ' cm';
@@ -237,7 +276,9 @@
       work: area
         ? ['Area = side × side.', s2 + ' × ' + s2 + ' = <b>' + right + ' cm²</b>, which is 4 times ' + A + ', not 2 times.', 'Area is not linear in the side, so doubling the side does not double the area. Check the rate before assuming.']
         : ['Perimeter = 4 × side.', '4 × ' + s2 + ' = <b>' + right + ' cm</b>, which is 2 × ' + A + '.', 'Perimeter is proportional to the side (a line through (0, 0)), so doubling the side really does double it: the student is right.'],
-      why: { M16: 'Doubling only doubles the output for a proportional relationship. Area = side × side: ' + s2 + ' × ' + s2 + ' = ' + right + ', 4 times as much.', M14: 'Adding the side to the ' + what + ' does not match the rule. Use ' + (area ? 'side × side' : '4 × side') + '.' },
+      why: { M16: area
+        ? 'Doubling only doubles the output for a proportional relationship. Area = side × side: ' + s2 + ' × ' + s2 + ' = ' + right + ', 4 times as much.'
+        : 'Perimeter = 4 × side is proportional (it starts at 0), so doubling the side does double it: 4 × ' + s2 + ' = ' + right + ', 2 times ' + A + '.', M14: 'Adding the side to the ' + what + ' does not match the rule. Use ' + (area ? 'side × side' : '4 × side') + '.' },
       steps: [
         { label: (area ? 'Area = ' + s2 + ' × ' + s2 : 'Perimeter = 4 × ' + s2) + ' =', part: { kind: 'num', key: right }, hint: 'Use the side ' + s2 + ' cm.' },
         { label: 'How many times ' + A + ' is that?', part: { kind: 'num', key: right / A }, hint: f(right) + ' ÷ ' + A + '.' },
