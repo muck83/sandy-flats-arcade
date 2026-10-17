@@ -52,6 +52,10 @@
       case 'climbCheck':
         tch(r); var rr = d.rows[r.sid]; if (!rr) throw new Error('no climb yet'); var ov = rr.ov || {}; ov.cleared = (ov.cleared || []).filter(function (x) { return x !== r.skill; }); ov.back = (ov.back || []).filter(function (x) { return x !== r.skill; }); (r.ok ? ov.cleared : ov.back).push(r.skill); ov.at = Date.now(); rr.ov = ov; put(d); return { ok: true, ov: ov };
       case 'climbStudent': tch(r); return { ok: true, state: d.rows[r.sid] ? d.rows[r.sid].state : null };
+      // lesson slideshows: answers are accepted and kept, so the console and the student page can be tried here
+      case 'answer': s = auth(r); (d.answers = d.answers || []).push({ time: new Date().toISOString(), sid: s.sid, lesson: r.lesson, q: r.q, kind: r.kind, answer: String(r.answer), correct: r.correct === true ? 'yes' : r.correct === false ? 'no' : '' }); put(d); return { ok: true };
+      case 'myAnswers': s = auth(r); var mya = {}; (d.answers || []).forEach(function (a) { if (a.sid === s.sid && a.lesson === r.lesson) mya[a.q] = { answer: a.answer, correct: a.correct }; }); return { ok: true, student: pub(s), answers: mya };
+      case 'answers': tch(r); return { ok: true, roster: ROSTER.map(pub), answers: (d.answers || []).filter(function (a) { return a.lesson === r.lesson; }) };
       case 'roster': tch(r); return { ok: true, roster: ROSTER.map(function (x) { return { sid: x.sid, name: x.name, cls: x.cls, email: '', code: x.code }; }) };
       case 'studentDay':
         tch(r); s = ROSTER.filter(function (x) { return x.sid === r.sid; })[0]; if (!s) throw new Error('no such student');
