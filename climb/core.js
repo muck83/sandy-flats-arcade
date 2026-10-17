@@ -20,7 +20,9 @@
     awayAmber: 20,           // seconds away that flag amber
     fastSecs: 10,            // correct this fast on Level 4+ marks "needs check"
     idleSecs: 60,
-    probeSessions: [1, 8, 15]
+    probeSessions: [1, 8, 15],
+    online: true,            // students take it at home: the interactive-item rule below applies
+    iaFrom: 4                // from this session on, every Secure streak includes the skill's interactive template
   };
 
   /* ---------- the ladder (Version 1: F1, F2 and skills 1-13) ---------- */
@@ -32,21 +34,57 @@
     { id: '3', name: 'Function or not: pairs and mappings', needs: ['1'] },
     { id: '4', name: 'Function or not: graphs, tables, constant functions', needs: ['2', '3'] },
     { id: '5', name: 'Functions in context', needs: ['4'] },
-    { id: '6', name: 'Rate of change in stories and tables', needs: ['1', 'F2'] },
+    { id: '6', name: 'Rate of change (the step) in stories and tables', needs: ['1', 'F2'] },
     { id: '7', name: 'Slope as a rate on a graph', needs: ['2', '6', 'F1'] },
     { id: '8', name: 'Slope from two points', needs: ['7'] },
     { id: '9', name: 'Rate from tables and scaled graphs', needs: ['8'] },
-    { id: '10', name: 'Initial value', needs: ['2', 'F2'] },
+    { id: '10', name: 'Initial value (the start)', needs: ['2', 'F2'] },
     { id: '11', name: 'Equation from a graph', needs: ['7', '10'] },
     { id: '12', name: 'Equation from a table or two points', needs: ['9', '11'] },
-    { id: '13', name: 'Slope and intercept in context', needs: ['11'] }
+    { id: '13', name: 'Slope and intercept in context', needs: ['11'] },
+    { id: '14', name: 'Linear or nonlinear: identify', needs: ['7'] },
+    { id: '15', name: 'Linear or nonlinear: justify', needs: ['9', '14'] },
+    { id: '16', name: 'Compare rate and initial value', needs: ['9', '10'] },
+    { id: '17', name: 'Compare in context', needs: ['13', '16'] },
+    { id: '18', name: 'Qualitative graphs: describe and match', needs: ['2'] },
+    { id: '19', name: 'Qualitative graphs: rates', needs: ['7', '18'] },
+    { id: '20', name: 'Extension: slope and equations', needs: ['12'], ext: true },
+    { id: '21', name: 'Extension: reasoning', needs: ['5', '15', '17', '19'], ext: true }
   ];
+  // the core ladder (the pacing projection counts these; extension skills come after)
+  C.CORE = C.SKILLS.filter(function (s) { return !s.ext; }).map(function (s) { return s.id; });
   C.SKILL = {}; C.SKILLS.forEach(function (s, i) { s.i = i; C.SKILL[s.id] = s; });
   C.label = function (id) { return /^F/.test(id) ? id : 'Skill ' + id; };
   // a correct answer on the key skill also counts as review for these (plan: "Review credit flows backward")
-  C.BACK = { '4': ['3'], '5': ['4'], '6': ['F2'], '7': ['F1'], '8': ['7', 'F1'], '9': ['8'], '11': ['7', '10'], '12': ['8', '9', '11'], '13': ['11'] };
+  C.BACK = { '4': ['3'], '5': ['4'], '6': ['F2'], '7': ['F1'], '8': ['7', 'F1'], '9': ['8'], '11': ['7', '10'], '12': ['8', '9', '11'], '13': ['11'], '15': ['14'], '16': ['9', '10'], '17': ['13', '16'], '19': ['7', '18'], '20': ['12'] };
   // a misconception seen on a later skill points back at the skill that teaches it
-  C.TAGSKILL = { M1: '7', M2: 'F1', M3: '10', M4: '7', M5: '9', M6: '3', M8: '9', M9: '10', M12: '7', M13: '7', M17: 'F2' };
+  C.TAGSKILL = { M1: '7', M2: 'F1', M3: '10', M4: '7', M5: '9', M6: '3', M7: '14', M8: '9', M9: '10', M10: '18', M11: '16', M12: '7', M13: '7', M15: '4', M16: '13', M17: 'F2' };
+  // tap-to-see glossary for context words in questions
+  C.GLOSS = {
+    'fare': 'The price you pay for a trip, such as a taxi or bus ride.',
+    'call-out fee': 'A fixed amount a worker charges just for coming, before any hourly cost.',
+    'postage': 'The cost of sending a letter or parcel.',
+    'joining fee': 'A one-time amount you pay to start, such as joining a gym.',
+    'starting fee': 'A fixed amount charged at the start, before anything else is added.',
+    'per': 'For each. "5 riyals per km" means 5 riyals for each kilometre.',
+    'rate': 'How much one quantity changes for every 1 more of the other.',
+    'riyals': 'Saudi money. 1 riyal is 100 halalas.',
+    'steady': 'Changing by the same amount every time (a constant rate).',
+    'initial value': 'The start: the output when the input is 0. Where the line crosses the up (y) axis.',
+    // the Sandy Flats lessons say "start", "step", "across" and "up": these bridge Climb's words to theirs
+    'rate of change': 'The step: how much the output changes for every 1 more input.',
+    'slope': 'The step, seen on a graph: rise ÷ run (how far up for every 1 across).',
+    'y-intercept': 'The start: where the line crosses the up (y) axis.',
+    'y-axis': 'The up axis: outputs are read up this axis.',
+    'x-axis': 'The across axis: inputs are read along this axis.',
+    'nonlinear': 'Not linear: the step is not the same every time, so the graph is not a straight line.',
+    'linear': 'The same step every time, so the graph is a straight line.',
+    'proportional': 'Starts at 0: doubling the input doubles the output.',
+    'function': 'A rule where each input has exactly one output.',
+    'constant': 'Staying the same: the output never changes, so the step is 0.'
+  };
+  // where each skill is taught in the Sandy Flats films (lesson number students see = film order)
+  C.FILM = { F1: 'before the unit (integer subtraction)', F2: 'Films 1-2', '1': 'Film 1', '2': 'Film 4', '3': 'Film 3', '4': 'Film 4', '5': 'Film 7', '6': 'Film 7', '7': 'Film 9', '8': 'Film 10', '9': 'Film 13', '10': 'Films 1 and 8', '11': 'Film 10', '12': 'Film 8', '13': 'Film 7', '14': 'Film 12', '15': 'Film 13', '16': 'Film 14', '17': 'Film 14', '18': 'Film 6', '19': 'Film 6', '20': 'stretch', '21': 'stretch' };
 
   /* ---------- misconception tags ---------- */
   C.TAGS = {
@@ -191,6 +229,18 @@
     }
     try { var f = sum(); if (pos !== out.length) return null; if (!isFinite(f(1.5))) return null; return f; } catch (e) { return null; }
   };
+  // equal answers for the interactive kinds: lists of points or arrows (in any order), or {m, b} slider values
+  C.sameVal = function (a, b) {
+    if (a == null || b == null) return false;
+    if (Array.isArray(a)) {
+      if (!Array.isArray(b) || a.length !== b.length) return false;
+      var key = function (q) { return Array.isArray(q) ? q.map(function (n) { return Math.round(n * 1000); }).join(',') : String(q); };
+      var A = a.map(key).sort(), B = b.map(key).sort();
+      return A.every(function (x, i) { return x === B[i]; });
+    }
+    if (typeof a === 'object') return Object.keys(b).every(function (k) { return C.near(+a[k], +b[k], 1e-6); });
+    return C.near(+a, +b, 1e-6);
+  };
   C.sameFn = function (f, g) { return [-2, 1, 3].every(function (x) { var a = f(x), b = g(x); return isFinite(a) && isFinite(b) && Math.abs(a - b) < 1e-6; }); };
   C.line = function (m, b) { return function (x) { return m * x + b; }; };
 
@@ -207,12 +257,17 @@
   // spec: {x:[min,max], y:[min,max], dx, dy (grid step, default 1), lx, ly (label every, default 2 grid lines or 1 when few),
   //        xl, yl (axis titles), size (px), lines:[{m,b} | {p:[[x1,y1],[x2,y2]]} | {seg:[[x,y],...]} | {f:fn}, color?, dash?],
   //        pts:[{x,y,l, c}], label: what the figure shows (for screen readers), nums:false hides axis numbers }
-  C.graph = function (g) {
+  // the graph's pixel frame: shared by C.graph and the drag-the-point questions
+  C.frame = function (g) {
     var W = g.size || 340, H = g.h || W, pad = { l: g.yl ? 46 : 30, r: 12, t: 12, b: g.xl ? 42 : 26 };
+    var x0 = g.x[0], x1 = g.x[1], y0 = g.y[0], y1 = g.y[1], iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+    return { W: W, H: H, pad: pad, iw: iw, ih: ih,
+      X: function (x) { return pad.l + (x - x0) / (x1 - x0) * iw; }, Y: function (y) { return pad.t + (y1 - y) / (y1 - y0) * ih; },
+      x: function (px) { return x0 + (px - pad.l) / iw * (x1 - x0); }, y: function (py) { return y1 - (py - pad.t) / ih * (y1 - y0); } };
+  };
+  C.graph = function (g) {
+    var F = C.frame(g), W = F.W, H = F.H, pad = F.pad, iw = F.iw, ih = F.ih, X = F.X, Y = F.Y;
     var x0 = g.x[0], x1 = g.x[1], y0 = g.y[0], y1 = g.y[1], dx = g.dx || 1, dy = g.dy || 1;
-    var iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
-    function X(x) { return pad.l + (x - x0) / (x1 - x0) * iw; }
-    function Y(y) { return pad.t + (y1 - y) / (y1 - y0) * ih; }
     var lx = g.lx || (((x1 - x0) / dx) > 12 ? 2 * dx : dx), ly = g.ly || (((y1 - y0) / dy) > 12 ? 2 * dy : dy);
     var s = '<svg class="cfig" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="' + esc(g.label || 'Graph') + '" style="max-width:100%;height:auto">';
     s += '<rect x="' + pad.l + '" y="' + pad.t + '" width="' + iw + '" height="' + ih + '" fill="#fff" stroke="#DCE2EE"/>';
@@ -244,7 +299,9 @@
     s += '</g>';
     (g.pts || []).forEach(function (P) {
       var cx = X(P.x), cy = Y(P.y);
-      s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (P.r || 6) + '" fill="' + (P.c || COL.pt) + '" stroke="#fff" stroke-width="2"/>';
+      // a handle the student drags (or moves with the arrow keys)
+      if (P.h != null) s += '<g class="hdl" data-h="' + P.h + '" tabindex="0" role="slider" aria-label="' + esc((P.name || 'Point') + ' at ' + C.pt(P.x, P.y) + '. Use the arrow keys to move it.') + '" style="cursor:grab;outline:none"><circle cx="' + cx + '" cy="' + cy + '" r="17" fill="#FDEDE3" class="halo"/><circle cx="' + cx + '" cy="' + cy + '" r="9" fill="' + (P.c || COL.pt) + '" stroke="#fff" stroke-width="2"/></g>';
+      else s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (P.r || 6) + '" fill="' + (P.c || COL.pt) + '" stroke="#fff" stroke-width="2"/>';
       if (P.l) { var right = cx < pad.l + iw - 70; s += '<text x="' + (cx + (right ? 9 : -9)) + '" y="' + (cy - 9) + '" font-size="13" font-weight="700" text-anchor="' + (right ? 'start' : 'end') + '" fill="' + COL.ink + '" paint-order="stroke" stroke="#fff" stroke-width="3">' + esc(P.l) + '</text>'; }
     });
     return s + '</svg>';
@@ -316,6 +373,15 @@
       } else if (p.kind === 'eq') {
         var f = C.parseEq(v, p.xv, p.yv); ok = !!f && C.sameFn(f, p.key);
         if (!ok && f) (p.wrong || []).some(function (w) { if (C.sameFn(f, w.f)) { tag = w.tag; return true; } });
+      } else if (p.kind === 'points' || p.kind === 'slider' || p.kind === 'arrows') {
+        var c0 = v == null ? null : p.check ? p.check(v) : { ok: C.sameVal(v, p.key) };
+        ok = !!(c0 && c0.ok);
+        if (!ok && c0) tag = c0.tag || null;
+        if (!ok && !tag && v != null) (p.wrong || []).some(function (w) { if (C.sameVal(v, w.v)) { tag = w.tag; return true; } });
+      } else if (p.kind === 'sort') {
+        var put = v || [];
+        ok = p.cards.every(function (c, k) { return put[k] === c.bin; });
+        if (!ok) p.cards.some(function (c, k) { if (put[k] != null && put[k] >= 0 && put[k] !== c.bin && c.tag) { tag = c.tag; return true; } });
       } else if (p.kind === 'text') {
         var t = C.norm(v), first = t.trim().split(' ')[0];
         ok = !!t.trim() && (p.need || []).every(function (g) { return C.hasAny(t, g); }) && !(p.not || []).some(function (w) { return C.hasAny(t, [w]); }) && !(p.notFirst || []).some(function (w) { return first === w; });
@@ -334,9 +400,13 @@
       var v = vals[i];
       if (p.kind === 'choice') return p.opts[v] ? strip(p.opts[v].t) : '(none)';
       if (p.kind === 'multi') return (v || []).map(function (k) { return p.opts[k] ? strip(p.opts[k].t) : ''; }).join(' + ') || '(none)';
+      if (p.kind === 'points') return (v || []).map(function (q, k) { return (p.names && p.names[k] ? p.names[k] + ' ' : '') + C.pt(q[0], q[1]); }).join(', ');
+      if (p.kind === 'slider') return p.sliders.map(function (s) { return s.id + ' = ' + C.fmt(v ? v[s.id] : s.start); }).join(', ');
+      if (p.kind === 'sort') return p.cards.map(function (c, k) { var b = v && v[k] != null && v[k] >= 0 ? strip(p.bins[v[k]]) : '?'; return strip(c.t).slice(0, 30) + ' → ' + b; }).join('; ');
+      if (p.kind === 'arrows') return (v || []).map(function (a) { return C.fmt(p.left[a[0]]) + '→' + C.fmt(p.right[a[1]]); }).join(', ') || '(no arrows)';
       return String(v == null || v === '' ? '(blank)' : v).slice(0, 80);
     }).join(' | ').slice(0, 300);
   };
-  function strip(h) { var s = String(h || ''); if (/<svg/.test(s)) { var m = s.match(/aria-label="([^"]*)"/); s = s.replace(/<svg[\s\S]*?<\/svg>/g, m ? '[' + m[1] + ']' : '[figure]'); } return s.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim(); }
+  function strip(h) { var s = String(h || ''); if (/<svg/.test(s)) { var m = s.match(/aria-label="([^"]*)"/); s = s.replace(/<svg[\s\S]*?<\/svg>/g, m ? '[' + m[1] + ']' : '[figure]'); } s = s.replace(/<\/t[dh]>\s*<t[dh]/g, ', <td').replace(/<\/tr>\s*<tr>/g, '; '); return s.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim(); }
   C.strip = strip;
 })();

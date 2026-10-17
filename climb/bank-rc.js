@@ -84,33 +84,27 @@
     };
   } });
 
-  // the plan's drag-the-point item: here the student picks the right point from four drawn on the graph
-  C.add({ id: 'RC-2d', skill: '6', level: 2, order: 2, type: 'interactive', gen: function (R) {
+  C.add({ id: 'RC-2d', skill: '6', level: 2, order: 2, type: 'interactive', ia: true, gen: function (R) {
     var v, t; do { v = R.int(3, 6); t = R.int(2, 4); } while (v === t);
     var vt = v * t, top = Math.ceil((vt + 2) / 2) * 2;
-    var cand = [{ x: t, y: vt, ok: true }, { x: t, y: v, tag: 'M13' }, { x: v, y: t }, { x: t, y: v + t, tag: 'M14' }];
-    var order = R.shuffle([0, 1, 2, 3]), L = ['A', 'B', 'C', 'D'], pts = [], opts = [], right = '';
-    order.forEach(function (ci, k) {
-      var c = cand[ci]; pts.push({ x: c.x, y: c.y, l: L[k] });
-      var o = { t: 'Point ' + L[k] }; if (c.ok) { o.ok = true; right = L[k]; } else if (c.tag) o.tag = c.tag;
-      opts.push(o);
-    });
-    var stepOpts = opts.map(function (o) { return { t: o.t, ok: !!o.ok }; });
+    var g = { x: [0, 8], y: [0, top], dy: 1, ly: 2, size: 400, h: 420, xl: 'Time (h)', yl: 'Distance (km)', label: 'Distance-time grid' };
     return {
-      stem: 'A cyclist rides at a steady ' + v + ' km per hour, starting at 0 km. Which point shows where she is after ' + t + ' hours?',
-      fig: C.graph({ x: [0, 8], y: [0, top], xl: 'Time (h)', yl: 'Distance (km)', pts: pts, label: 'Four points A to D on a distance-time grid' }),
+      stem: 'A cyclist rides at a steady ' + v + ' km per hour, starting at 0 km. Drag the point to show where she is after ' + t + ' hours.',
       think: 'For every 1 more hour she rides ' + v + ' km more.',
-      parts: [{ kind: 'choice', label: 'The point', keep: true, opts: opts }],
-      answer: 'Point ' + right + ' at ' + C.pt(t, vt),
-      work: ['For every 1 more hour she rides ' + v + ' km more.', 'After ' + t + ' hours: ' + v + ' × ' + t + ' = ' + vt + ' km.', 'Time goes across, distance goes up: the point ' + C.pt(t, vt) + ' is <b>point ' + right + '</b>.'],
+      parts: [{ kind: 'points', label: 'Where she is', grid: g, start: [[0, 0]], names: ['Cyclist'],
+        key: [[t, vt]], wrong: [{ v: [[t, v]], tag: 'M13' }, { v: [[v, t]], tag: 'G' }, { v: [[t, v + t]], tag: 'M14' }, { v: [[vt, t]], tag: 'G' }].filter(function (w) { return w.v[0][0] <= 8 && w.v[0][1] <= top; }) }],
+      answerFig: C.graph(Object.assign({}, g, { size: 260, h: 280, lines: [{ m: v, b: 0, from: 0, to: t, dash: true }], pts: [{ x: t, y: vt, l: C.pt(t, vt) }] })),
+      answer: 'The point ' + C.pt(t, vt) + ': ' + vt + ' km after ' + t + ' hours',
+      work: ['For every 1 more hour she rides ' + v + ' km more.', 'After ' + t + ' hours: ' + v + ' × ' + t + ' = ' + vt + ' km.', 'Time goes across, distance goes up: the point is <b>' + C.pt(t, vt) + '</b>.'],
       why: {
-        M13: 'That point is at ' + v + ' km, which is how far she rides in 1 hour. After ' + t + ' hours she has ridden ' + v + ' × ' + t + ' = ' + vt + ' km.',
-        M14: 'That point adds ' + v + ' + ' + t + '. She rides ' + v + ' km in each of ' + t + ' hours, so multiply: ' + vt + ' km.'
+        M13: 'Your point is at ' + v + ' km, which is how far she rides in 1 hour. After ' + t + ' hours she has ridden ' + v + ' × ' + t + ' = ' + vt + ' km.',
+        M14: 'Your point adds ' + v + ' + ' + t + '. She rides ' + v + ' km in each of ' + t + ' hours, so multiply: ' + vt + ' km.',
+        G: 'Check the axes: time (hours) goes across and distance (km) goes up. The point is ' + C.pt(t, vt) + '.'
       },
       steps: [
         { label: 'How far does she ride in 1 hour (km)?', part: { kind: 'num', key: v }, hint: 'That is her speed.' },
         { label: 'After ' + t + ' hours: ' + v + ' × ' + t + ' =', part: { kind: 'num', key: vt }, hint: v + ' km for each of the ' + t + ' hours.' },
-        { label: 'Which point is at ' + C.pt(t, vt) + '?', part: { kind: 'choice', keep: true, opts: stepOpts }, hint: 'Go ' + t + ' across (time), then ' + vt + ' up (distance).' }
+        { label: 'So the point goes at', part: { kind: 'choice', keep: true, opts: [{ t: C.pt(t, vt), ok: true }, { t: C.pt(vt, t) }, { t: C.pt(t, v) }] }, hint: 'Time goes across first: ' + t + ' across, then ' + vt + ' up.' }
       ]
     };
   } });
@@ -223,20 +217,22 @@
     };
   } });
 
-  // the plan's drag-the-corner slope triangle: here the triangle is drawn and the student reads run, rise and slope
-  C.add({ id: 'RC-3e', skill: '7', level: 3, order: 3, type: 'interactive', gen: function (R) {
+  C.add({ id: 'RC-3e', skill: '7', level: 3, order: 3, type: 'interactive', ia: true, gen: function (R) {
     var m = R.pick([1, -1, 2, -2, 3, -3, 0.5, -0.5]), P = twoPts(R, m, rr(m)[1] === 1 ? 2 : 1, 2);
-    var tri = { seg: [[P.x1, P.y1], [P.x2, P.y1], [P.x2, P.y2]], color: C.COL.line2, w: 2.5, dash: true };
+    var A = [P.x1, P.y1], B = [P.x2, P.y2];
+    function tri(c) { return { seg: [A, c, B], color: C.COL.line2, w: 2.5, dash: true }; }
+    var g = { x: [-10, 10], y: [-10, 10], size: 400, lines: [{ m: m, b: P.b }], pts: [{ x: P.x1, y: P.y1, l: 'A', c: C.COL.line }, { x: P.x2, y: P.y2, l: 'B', c: C.COL.line }], label: 'Line through A ' + C.pt(P.x1, P.y1) + ' and B ' + C.pt(P.x2, P.y2) };
     return {
-      stem: 'A slope triangle (orange, dashed) is drawn on the line from point A to point B. Count its run and rise, then find the slope.',
-      fig: grid([{ m: m, b: P.b }, tri], [{ x: P.x1, y: P.y1, l: 'A' }, { x: P.x2, y: P.y2, l: 'B' }], 'Line with a slope triangle from ' + C.pt(P.x1, P.y1) + ' to ' + C.pt(P.x2, P.y2)),
+      stem: 'Drag the orange corner to make a slope triangle on the line from A to B: one side flat, one side straight up or down. Then type the slope.',
       think: 'Run: how far right. Rise: how far up (+) or down (−).',
       parts: [
-        { kind: 'num', label: 'Run (squares right)', key: P.dx, wrong: wr(P.dx, [{ v: -P.dx, tag: 'M2' }, { v: P.dy, tag: 'M1' }]) },
-        { kind: 'num', label: 'Rise (up +, down −)', key: P.dy, wrong: wr(P.dy, [{ v: -P.dy, tag: 'M2' }, { v: P.dx, tag: 'M1' }]) },
+        { kind: 'points', label: 'Slope triangle corner', grid: g, start: [[0, 0]], names: ['Corner'], labels: false,
+          extra: function (cur) { return [tri(cur[0])]; }, key: [[P.x2, P.y1]],
+          check: function (cur) { var c = cur[0]; return { ok: (c[0] === P.x2 && c[1] === P.y1) || (c[0] === P.x1 && c[1] === P.y2) }; } },
         { kind: 'num', label: 'Slope', key: m, wrong: wr(m, [{ v: P.dx / P.dy, tag: 'M1' }, { v: P.dy, tag: 'M13' }, { v: -m, tag: 'M2' }]) }
       ],
-      answer: 'Run ' + f(P.dx) + ', rise ' + f(P.dy) + ', slope ' + f(m),
+      answerFig: C.graph(Object.assign({}, g, { size: 260, lines: [{ m: m, b: P.b }, tri([P.x2, P.y1])] })),
+      answer: 'Corner at ' + C.pt(P.x2, P.y1) + ' (or ' + C.pt(P.x1, P.y2) + '): run ' + f(P.dx) + ', rise ' + f(P.dy) + ', slope ' + f(m),
       work: ['Run: from A go ' + f(P.dx) + ' right.', 'Rise: then go ' + f(Math.abs(P.dy)) + ' ' + ud(P.dy) + ' to B, so the rise is ' + f(P.dy) + '.', 'Slope = rise ÷ run = ' + f(P.dy) + ' ÷ ' + f(P.dx) + ' = <b>' + f(m) + '</b>. Any slope triangle on this line gives the same answer.'],
       why: {
         M1: m1Why(P),
@@ -332,24 +328,24 @@
     };
   } });
 
-  // the plan's drag-point-B item: here the student types the coordinates of a point B (any correct B scores)
-  C.add({ id: 'RC-4i', skill: '8', level: 4, order: 2, type: 'interactive', gen: function (R) {
+  C.add({ id: 'RC-4i', skill: '8', level: 4, order: 2, type: 'interactive', ia: true, gen: function (R) {
     var m = R.pick([1, -1, 2, -2, 0.5, -0.5]), p = rr(m), a = R.nz(-5, 4), b = R.pick([-5, -4, -3, -2, 1, 2, 3, 4, 5]), xb = a + p[1], yb = b + p[0];
-    function check(vals) {
-      var X = C.parseNum(vals[0]), Y = C.parseNum(vals[1]);
-      if (!isFinite(X) || !isFinite(Y) || C.near(X, a, 1e-9)) return { ok: false };
+    function check(cur) {
+      var X = cur[0][0], Y = cur[0][1];
+      if (X === a) return { ok: false };
       var s = (Y - b) / (X - a);
       if (C.near(s, m, 1e-6)) return { ok: true };
       if (C.near(s, -m, 1e-6)) return { ok: false, tag: 'M2' };
       if (C.near(s, 1 / m, 1e-6)) return { ok: false, tag: 'M1' };
       return { ok: false };
     }
+    var g = { x: [-10, 10], y: [-10, 10], size: 400, pts: [{ x: a, y: b, l: 'A ' + C.pt(a, b), c: C.COL.line }], label: 'Point A at ' + C.pt(a, b) };
     return {
-      stem: 'Point A is fixed at ' + C.pt(a, b) + '. Give a point B so that the line through A and B has slope ' + f(m) + '.',
-      fig: grid([], [{ x: a, y: b, l: 'A ' + C.pt(a, b) }], 'Point A at ' + C.pt(a, b)),
+      stem: 'Point A is fixed at ' + C.pt(a, b) + '. Drag point B so that the line through A and B has slope ' + f(m) + '.',
       think: 'Slope ' + f(m) + ': for every ' + p[1] + ' right, ' + f(Math.abs(p[0])) + ' ' + ud(p[0]) + '.',
-      parts: [{ kind: 'num', label: 'B: x', key: xb }, { kind: 'num', label: 'B: y', key: yb }],
-      check: check,
+      parts: [{ kind: 'points', label: 'Point B', grid: g, start: [[a + 2, b]], names: ['B'],
+        extra: function (cur) { return cur[0][0] === a ? [] : [{ p: [[a, b], cur[0]] }]; }, key: [[xb, yb]], check: check }],
+      answerFig: C.graph(Object.assign({}, g, { size: 260, lines: [{ m: m, b: b - m * a }], pts: [{ x: a, y: b, l: 'A', c: C.COL.line }, { x: xb, y: yb, l: 'B ' + C.pt(xb, yb) }] })),
       answer: 'For example B = ' + C.pt(xb, yb),
       work: ['Slope ' + f(m) + ' means: for every ' + p[1] + ' right, y goes ' + ud(p[0]) + ' ' + f(Math.abs(p[0])) + '.', 'From A ' + C.pt(a, b) + ', move ' + p[1] + ' right and ' + f(Math.abs(p[0])) + ' ' + ud(p[0]) + ': B = <b>' + C.pt(xb, yb) + '</b>.', 'Check: rise ÷ run = ' + f(p[0]) + ' ÷ ' + p[1] + ' = ' + f(m) + '. Repeating the move (or going back) gives other correct points.'],
       why: {

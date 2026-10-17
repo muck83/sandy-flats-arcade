@@ -47,22 +47,38 @@
   /* ---------- picking the next item ---------- */
   function frontier(st) {
     var open = C.SKILLS.filter(function (s) { return !E.isSecure(st, s.id) && E.isOpen(st, s.id) && E.templates(s.id).length; });
+    // extension skills (20-21) wait until no core skill is open and unsecured
+    if (open.some(function (s) { return !s.ext; })) open = open.filter(function (s) { return !s.ext; });
     // stuck skills from earlier sessions first, then ladder order
     open.sort(function (a, b) { return (st.skills[b.id].stuck ? 1 : 0) - (st.skills[a.id].stuck ? 1 : 0) || a.i - b.i; });
     return open.map(function (s) { return s.id; });
   }
   E.frontier = function (st) { var f = frontier(st), t = st.today; if (t && t.focus && f.indexOf(t.focus) >= 0) return t.focus; return f[0] || null; };
+  // online rule (from session 4): one item in every Secure streak is the skill's interactive template
+  function needsIA(st, id) {
+    if (!C.P.online || st.sess < C.P.iaFrom) return false;
+    var ia = E.templates(id).filter(function (t) { return t.ia; }); if (!ia.length) return false;
+    var l4 = st.skills[id].hist.slice(-4);
+    return !l4.some(function (a) { return a.ok && a.ia; });
+  }
   function pickTemplate(st, id, R, avoid) {
     var list = E.templates(id); if (!list.length) return null;
-    var k = st.skills[id], i = k.next % list.length, t = list[i];
+    var k = st.skills[id];
+    if (needsIA(st, id) && k.hist.slice(-3).filter(function (a) { return a.ok; }).length >= 2) {
+      var ia = list.filter(function (t) { return t.ia && t.id !== avoid; }); if (!ia.length) ia = list.filter(function (t) { return t.ia; });
+      return R.pick(ia).id;
+    }
+    var i = k.next % list.length, t = list[i];
     if (avoid && t.id === avoid && list.length > 1) t = list[(i + 1) % list.length];
     return t.id;
   }
-  // review items use a template different from the one last seen on that skill
+  // review items use a hands-on (interactive) format when the skill has one, and never the template last seen
   function reviewTemplate(st, id, R) {
     var list = E.templates(id); if (!list.length) return null;
     var others = list.filter(function (t) { return t.id !== st.skills[id].last; });
-    return R.pick(others.length ? others : list).id;
+    if (!others.length) others = list;
+    var ia = others.filter(function (t) { return t.ia; });
+    return R.pick(ia.length ? ia : others).id;
   }
   // a probe: any template whose difficulty is near the growth score, Levels 3-7
   function probeTemplate(st, R) {
@@ -143,7 +159,7 @@
     }
     // learning (new, practice on an unsecured skill, twin, check)
     if (k.st === 'new') k.st = 'learning';
-    k.hist.push({ ok: x, t: it.tid, to: r.timeout ? 1 : 0, s: Math.round(meta.secs || 0), ext: meta.ext ? 1 : 0, first: mode === 'new' ? 1 : 0 });
+    k.hist.push({ ok: x, t: it.tid, to: r.timeout ? 1 : 0, s: Math.round(meta.secs || 0), ext: meta.ext ? 1 : 0, first: mode === 'new' ? 1 : 0, ia: C.T[it.tid] && C.T[it.tid].ia ? 1 : 0 });
     if (k.hist.length > 8) k.hist = k.hist.slice(-8);
     if (r.ok) k.next++;
     if (mode === 'twin' && r.ok && t) t.fixed++;
@@ -159,7 +175,7 @@
         var last4 = h.slice(-4), right = last4.filter(function (a) { return a.ok; }).length, tpls = {};
         last4.forEach(function (a) { tpls[a.t] = 1; });
         var many = E.templates(id).length > 1;
-        if (last4.length >= 3 && right >= 3 && last4[last4.length - 1].ok && !last4.some(function (a) { return a.to; }) && (!many || Object.keys(tpls).length >= 2)) { secureNow(st, id); out.secured = true; }
+        if (last4.length >= 3 && right >= 3 && last4[last4.length - 1].ok && !last4.some(function (a) { return a.to; }) && (!many || Object.keys(tpls).length >= 2) && !needsIA(st, id)) { secureNow(st, id); out.secured = true; }
       }
     }
     if (mode === 'twin' && !r.ok) { k.stuck = true; out.stuck = true; if (t) t.flags.push({ k: 'stuck', skill: id, tag: r.tag || '' }); }

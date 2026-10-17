@@ -62,17 +62,19 @@
     };
   } });
 
-  // converted from the plan's interactive "drag the input tile": pick the right tile from 4
-  C.add({ id: 'FN-1d', skill: '1', level: 2, order: 1, type: 'interactive', gen: function (R) {
+  C.add({ id: 'FN-1d', skill: '1', level: 2, order: 1, type: 'interactive', ia: true, gen: function (R) {
     var a, b, key, y, opts;
     do {
       a = R.int(2, 6); b = R.int(1, 12); key = R.int(1, 9); y = a * key + b;
       opts = uniq([{ t: f(key), ok: true }, { t: f(y / a - b), tag: 'G' }, { t: f(y - b), tag: 'G' }, { t: f(y + b), tag: 'M2' }]);
     } while (opts.length < 4);
+    opts = R.shuffle(opts);
+    var tile = function (t) { return '<span style="display:inline-block;min-width:2.4em;font-size:20px;font-weight:700">' + t + '</span>'; };
     return {
-      stem: 'A function machine multiplies by ' + a + ', then adds ' + b + '. Which input tile makes the output ' + y + '?',
+      stem: 'A function machine multiplies by ' + a + ', then adds ' + b + '. Drag the input tile that makes the output ' + y + ' into the machine. The other tiles go in "Not this one".',
       think: 'Undo the steps backwards: undo the add first.',
-      parts: [{ kind: 'choice', label: 'Input tile', opts: opts }],
+      parts: [{ kind: 'sort', label: 'Input tiles', bins: ['Goes in the machine (× ' + a + ', then + ' + b + ')', 'Not this one'],
+        cards: opts.map(function (o) { return o.ok ? { t: tile(o.t), bin: 0 } : { t: tile(o.t), bin: 1, tag: o.tag }; }) }],
       answer: 'The input is ' + key,
       work: ['Undo the last step first: ' + y + ' − ' + b + ' = ' + (y - b) + '.', 'Then undo the multiply: ' + (y - b) + ' ÷ ' + a + ' = <b>' + key + '</b>', 'Check: ' + a + ' × ' + key + ' + ' + b + ' = ' + y + '.'],
       why: { G: 'Undo the steps in reverse order and do both: subtract ' + b + ' first, then divide by ' + a + ': (' + y + ' − ' + b + ') ÷ ' + a + ' = ' + key + '.', M2: 'To undo "add ' + b + '", subtract ' + b + '. Adding it again goes the wrong way.' },
@@ -150,25 +152,23 @@
     };
   } });
 
-  // converted from the plan's interactive "drag a point to (a, b)": pick which of 4 plotted points is at (a, b)
-  C.add({ id: 'QG-1c', skill: '2', level: 1, order: 3, type: 'interactive', gen: function (R) {
+  C.add({ id: 'QG-1c', skill: '2', level: 1, order: 3, type: 'interactive', ia: true, gen: function (R) {
     var a, b;
     do { a = R.nz(-8, 8); b = R.nz(-8, 8); } while (Math.abs(a - b) < 2 || Math.abs(a) === Math.abs(b) || Math.abs(a) < 2 || Math.abs(b) < 2);
-    var cands = R.shuffle([{ x: a, y: b, ok: true }, { x: b, y: a, tag: 'G' }, { x: -a, y: b, tag: 'M2' }, { x: a, y: -b, tag: 'M2' }]);
-    var okL = '';
-    cands.forEach(function (c, i) { c.l = LET[i]; if (c.ok) okL = LET[i]; });
     return {
-      stem: 'Which point is at ' + C.pt(a, b) + '?',
-      fig: C.graph({ x: [-9, 9], y: [-9, 9], label: 'Coordinate grid with points A, B, C and D', pts: cands.map(function (c) { return { x: c.x, y: c.y, l: c.l }; }) }),
+      stem: 'Drag the orange point to ' + C.pt(a, b) + '.',
       think: 'First number: right or left. Second number: up or down.',
-      parts: [{ kind: 'choice', label: 'Point', keep: true, opts: cands.map(function (c) { return c.ok ? { t: 'Point ' + c.l, ok: true } : { t: 'Point ' + c.l, tag: c.tag }; }) }],
-      answer: 'Point ' + okL + ', at ' + C.pt(a, b),
-      work: ['Start at (0, 0).', 'x = ' + f(a) + ': go ' + Math.abs(a) + ' ' + (a > 0 ? 'right' : 'left') + '. y = ' + f(b) + ': go ' + Math.abs(b) + ' ' + (b > 0 ? 'up' : 'down') + '.', 'That is <b>point ' + okL + '</b>.'],
-      why: { G: 'That point is at ' + C.pt(b, a) + ': you swapped the numbers. The first number (x) is left or right; the second (y) is up or down.', M2: 'One of the signs is flipped. Negative x is left, negative y is down.' },
+      parts: [{ kind: 'points', label: 'Your point', grid: { x: [-9, 9], y: [-9, 9], size: 400, label: 'Coordinate grid' }, start: [[0, 0]], labels: false,
+        key: [[a, b]], wrong: [{ v: [[b, a]], tag: 'G' }, { v: [[-a, b]], tag: 'M2' }, { v: [[a, -b]], tag: 'M2' }, { v: [[-a, -b]], tag: 'M2' }] }],
+      answerFig: C.graph({ x: [-9, 9], y: [-9, 9], size: 260, lines: [{ seg: [[0, 0], [a, 0], [a, b]], color: C.COL.line2, w: 2, dash: true }], pts: [{ x: a, y: b, l: C.pt(a, b) }], label: 'The point ' + C.pt(a, b) }),
+      answer: 'The point ' + C.pt(a, b) + ': ' + Math.abs(a) + ' ' + (a > 0 ? 'right' : 'left') + ', ' + Math.abs(b) + ' ' + (b > 0 ? 'up' : 'down'),
+      work: ['Start at (0, 0).', 'x = ' + f(a) + ': go ' + Math.abs(a) + ' ' + (a > 0 ? 'right' : 'left') + '. y = ' + f(b) + ': go ' + Math.abs(b) + ' ' + (b > 0 ? 'up' : 'down') + '.', 'The point goes at <b>' + C.pt(a, b) + '</b>.'],
+      why: { G: 'Your point is at ' + C.pt(b, a) + ': you swapped the numbers. The first number (x) is left or right; the second (y) is up or down.', M2: 'One of the signs is flipped. Negative x is left, negative y is down.' },
       steps: [
         { label: 'x = ' + f(a) + '. Do you go right or left from (0, 0)?', part: { kind: 'choice', keep: true, opts: [{ t: 'Right', ok: a > 0 }, { t: 'Left', ok: a < 0 }] }, hint: 'Positive x is right, negative x is left.' },
         { label: 'y = ' + f(b) + '. Do you go up or down?', part: { kind: 'choice', keep: true, opts: [{ t: 'Up', ok: b > 0 }, { t: 'Down', ok: b < 0 }] }, hint: 'Positive y is up, negative y is down.' },
-        { label: 'Go ' + Math.abs(a) + ' ' + (a > 0 ? 'right' : 'left') + ' and ' + Math.abs(b) + ' ' + (b > 0 ? 'up' : 'down') + '. Which point is there?', part: { kind: 'choice', keep: true, opts: LET.map(function (L) { return { t: 'Point ' + L, ok: L === okL }; }) }, hint: 'Count the gridlines from the origin.' }
+        { label: 'How many squares ' + (a > 0 ? 'right' : 'left') + ' from (0, 0)?', part: { kind: 'num', key: Math.abs(a) }, hint: 'The first number is ' + f(a) + '.' },
+        { label: 'Then how many squares ' + (b > 0 ? 'up' : 'down') + '?', part: { kind: 'num', key: Math.abs(b) }, hint: 'The second number is ' + f(b) + '.' }
       ]
     };
   } });
@@ -283,39 +283,29 @@
     };
   } });
 
-  // converted from the plan's EG "drag arrows" (draw a non-function, then a no-rule function): judge 4 drawn mappings instead
-  C.add({ id: 'FN-2d', skill: '3', level: 4, order: 1, type: 'EG', gen: function (R) {
+  // the plan's two drawing tasks in one: draw a mapping that is NOT a function (checked by rule, many answers are right)
+  C.add({ id: 'FN-2d', skill: '3', level: 4, order: 1, type: 'EG', ia: true, gen: function (R) {
     var L = R.distinct(3, -6, 9).sort(function (p, q) { return p - q; }), Rt = R.distinct(3, -9, 12);
-    var to = R.shuffle([0, 1, 2]), bi = R.int(0, 2), extra = (to[bi] + R.int(1, 2)) % 3;
-    var perm; do { perm = R.shuffle([0, 1, 2]); } while (perm[0] === 0 && perm[1] === 1);
-    var sh = R.int(0, 2), other = (sh + R.int(1, 2)) % 3, lone = R.int(0, 2);
-    var maps = [
-      { kind: 'branch', isF: false, arrows: [[0, to[0]], [1, to[1]], [2, to[2]], [bi, extra]], tag: 'M6', why: 'Input ' + f(L[bi]) + ' has two arrows: two outputs.' },
-      { kind: 'const', isF: true, arrows: [[0, sh], [1, sh], [2, sh]], tag: 'M15', why: 'Every input goes to ' + f(Rt[sh]) + ': one output each, so it is a function.' },
-      { kind: 'norule', isF: true, arrows: perm.map(function (j, i) { return [i, j]; }), tag: 'M15', why: 'One arrow from each input. No rule is needed.' },
-      { kind: 'share', isF: true, arrows: [0, 1, 2].map(function (i) { return [i, i === lone ? other : sh]; }), tag: 'M6', why: 'Two inputs share an output, which is allowed. Each input has one arrow.' }
-    ];
-    if (other === sh) maps[3].arrows = [0, 1, 2].map(function (i) { return [i, i === lone ? (sh + 1) % 3 : sh]; });
-    maps = R.shuffle(maps);
-    maps.forEach(function (m, i) { m.l = LET[i]; });
-    var fig = '<div style="display:flex;flex-wrap:wrap;gap:10px">' + maps.map(function (m) {
-      return '<div style="flex:1 1 220px;max-width:300px"><b>Mapping ' + m.l + '</b><br>' + C.mapping({ left: L, right: Rt, arrows: m.arrows }) + '</div>';
-    }).join('') + '</div>';
-    var br = maps.filter(function (m) { return !m.isF; })[0], nr = maps.filter(function (m) { return m.kind === 'norule'; })[0];
+    var bi = R.int(0, 2), to = R.shuffle([0, 1, 2]), extra = (to[bi] + R.int(1, 2)) % 3;
+    var key = [[0, to[0]], [1, to[1]], [2, to[2]], [bi, extra]];
+    function check(pairs) {
+      var outs = [0, 1, 2].map(function (i) { var o = {}; pairs.forEach(function (p) { if (p[0] === i) o[p[1]] = 1; }); return Object.keys(o).length; });
+      if (outs.some(function (n) { return n >= 2; })) return { ok: true };
+      var hit = {}, shared = pairs.some(function (p) { if (hit[p[1]]) return true; hit[p[1]] = 1; return false; });
+      return { ok: false, tag: shared ? 'M6' : 'M15' };
+    }
     return {
-      stem: 'Four students drew arrows from the inputs ' + L.map(f).join(', ') + ' to the outputs ' + Rt.map(f).join(', ') + '. For each mapping, decide: function or not a function?',
-      fig: fig,
-      think: 'Only one thing breaks the rule: an input with two arrows leaving it.',
-      parts: maps.map(function (m) {
-        return { kind: 'choice', label: 'Mapping ' + m.l, keep: true, opts: [{ t: 'Function', ok: m.isF, tag: m.isF ? undefined : m.tag }, { t: 'Not a function', ok: !m.isF, tag: m.isF ? m.tag : undefined }].map(function (o) { if (!o.ok) delete o.ok; if (!o.tag) delete o.tag; return o; }) };
-      }),
-      answer: maps.map(function (m) { return m.l + ': ' + (m.isF ? 'function' : 'not a function'); }).join(', '),
-      work: ['Check each input on the left: how many arrows leave it?', maps.map(function (m) { return m.l + ': ' + m.why; }).join(' '), '<b>Only mapping ' + br.l + ' is not a function.</b> Any matching with one arrow per input is a function, rule or no rule.'],
-      why: { M6: 'Look at the inputs, not the outputs. Shared outputs are fine; an input with two arrows is not.', M15: 'A function does not need a rule or a pattern, and every input may go to the same output.' },
+      stem: 'The inputs are ' + L.map(f).join(', ') + ' and the outputs are ' + Rt.map(f).join(', ') + '. Draw arrows so that the mapping is <b>NOT</b> a function.',
+      think: 'Only one thing breaks the rule. A pattern, or a shared output, does not.',
+      parts: [{ kind: 'arrows', label: 'Your mapping', left: L, right: Rt, lt: 'Input', rt: 'Output', key: key, check: check }],
+      answerFig: C.mapping({ left: L, right: Rt, arrows: key }),
+      answer: 'Any mapping where one input has two arrows, for example ' + f(L[bi]) + ' → ' + f(Rt[to[bi]]) + ' and ' + f(L[bi]) + ' → ' + f(Rt[extra]),
+      work: ['A function gives each input exactly one output.', 'So to break the rule, give one input two arrows: for example ' + f(L[bi]) + ' → ' + f(Rt[to[bi]]) + ' and ' + f(L[bi]) + ' → ' + f(Rt[extra]) + '.', '<b>One input with two outputs is not a function.</b> Two inputs sharing an output, or arrows with no rule, still make a function.'],
+      why: { M6: 'Your mapping has two inputs sharing an output. That is allowed, so it is still a function. Give one input two arrows instead.', M15: 'Your mapping has one arrow from each input. Even with no rule or pattern, that is a function. Give one input two arrows.' },
       steps: [
-        { label: 'In mapping ' + br.l + ', how many arrows leave the input ' + f(L[bi]) + '?', part: { kind: 'num', key: 2 }, hint: 'Count the arrows that start at ' + f(L[bi]) + '.' },
-        { label: 'So mapping ' + br.l + ' is', part: { kind: 'choice', keep: true, opts: [{ t: 'Function' }, { t: 'Not a function', ok: true }] }, hint: 'One input with two outputs breaks the rule.' },
-        { label: 'Mapping ' + nr.l + ' has one arrow from each input, but no rule. It is', part: { kind: 'choice', keep: true, opts: [{ t: 'Function', ok: true }, { t: 'Not a function' }] }, hint: 'A function does not need a rule.' }
+        { label: 'How many arrows must leave one input to break the function rule?', part: { kind: 'num', key: 2 }, hint: 'A function gives each input exactly one output.' },
+        { label: 'If two inputs share an output, is it still a function?', part: { kind: 'choice', keep: true, opts: [{ t: 'Yes', ok: true }, { t: 'No' }] }, hint: 'Shared outputs are fine; only the inputs matter.' },
+        { label: 'If each input has one arrow but there is no rule, is it a function?', part: { kind: 'choice', keep: true, opts: [{ t: 'Yes', ok: true }, { t: 'No' }] }, hint: 'A function does not need a rule or a pattern.' }
       ]
     };
   } });

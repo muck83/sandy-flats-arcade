@@ -59,20 +59,33 @@
     };
   } });
 
-  // the plan's drag-the-arrow item, drawn for the student here (dragging comes in Version 2)
-  C.add({ id: 'CV-1d', skill: 'F1', level: 1, type: 'NE', gen: function (R) {
+  C.add({ id: 'CV-1d', skill: 'F1', level: 1, type: 'interactive', ia: true, gen: function (R) {
     var a = R.int(-8, 8), b; do { b = R.int(-8, 8); } while (Math.abs(b - a) < 2);
     if (R.chance(0.5) && b > a) { var t = a; a = b; b = t; }   // half go left
     var key = b - a;
+    // the arrow drawn from the Start handle to the End handle, just above the line
+    function arrow(cur) {
+      var s = cur[0][0], e = cur[1][0], d = e > s ? 1 : -1, out = [{ seg: [[s, 0], [s, 0.5], [e, 0.5]], color: C.COL.pt, w: 3 }];
+      if (s !== e) out.push({ seg: [[e - 0.6 * d, 0.8], [e, 0.5], [e - 0.6 * d, 0.2]], color: C.COL.pt, w: 3 });
+      return out;
+    }
     return {
-      stem: 'The arrow on the number line goes from ' + f(a) + ' to ' + f(b) + '. What is the change?',
-      fig: numline(a, b),
-      think: 'Which way does the arrow point? Left means negative.',
-      parts: [{ kind: 'num', label: 'Change', key: key, wrong: [{ v: -key, tag: 'M2' }, { v: a + b, tag: 'M14' }] }],
-      answer: f(key),
-      work: ['The arrow points ' + (key < 0 ? 'left' : 'right') + ', so the change is ' + (key < 0 ? 'negative' : 'positive') + '.', 'End − start = ' + f(b) + ' − ' + par(a) + ' = <b>' + f(key) + '</b>'],
+      stem: 'Drag the orange points to draw an arrow on the number line from ' + f(a) + ' (Start) to ' + f(b) + ' (End). Then type the change.',
+      think: 'Which way does your arrow point? Left means negative.',
+      parts: [
+        { kind: 'points', label: 'Your arrow', grid: { x: [-10, 10], y: [-1, 1], dy: 1, ly: 10, size: 440, h: 130, label: 'Number line from −10 to 10' },
+          start: [[-9, 0], [9, 0]], names: ['Start', 'End'], labels: false, lock: 'y', extra: arrow,
+          readout: function (cur) { return 'Your arrow: from ' + f(cur[0][0]) + ' to ' + f(cur[1][0]) + '.'; },
+          key: [[a, 0], [b, 0]],
+          check: function (cur) { if (cur[0][0] === a && cur[1][0] === b) return { ok: true }; if (cur[0][0] === b && cur[1][0] === a) return { ok: false, tag: 'M2' }; return { ok: false }; } },
+        { kind: 'num', label: 'Change', key: key, wrong: [{ v: -key, tag: 'M2' }, { v: a + b, tag: 'M14' }] }
+      ],
+      answerFig: numline(a, b),
+      why: { M2: 'The arrow goes from the start, ' + f(a) + ', to the end, ' + f(b) + '. It points ' + (key < 0 ? 'left, so the change is negative' : 'right, so the change is positive') + ': ' + f(key) + '.', M14: 'You added the two numbers. The change is end − start: ' + f(b) + ' − ' + par(a) + ' = ' + f(key) + '.' },
+      answer: 'An arrow from ' + f(a) + ' to ' + f(b) + '; change ' + f(key),
+      work: ['Put Start on ' + f(a) + ' and End on ' + f(b) + '.', 'The arrow points ' + (key < 0 ? 'left' : 'right') + ', so the change is ' + (key < 0 ? 'negative' : 'positive') + '.', 'End − start = ' + f(b) + ' − ' + par(a) + ' = <b>' + f(key) + '</b>'],
       steps: [
-        { label: 'Does the arrow point left or right?', part: { kind: 'choice', opts: [{ t: 'Left', ok: key < 0 }, { t: 'Right', ok: key > 0 }], keep: true }, hint: 'Look at the arrowhead.' },
+        { label: 'An arrow from ' + f(a) + ' to ' + f(b) + ' points', part: { kind: 'choice', opts: [{ t: 'Left', ok: key < 0 }, { t: 'Right', ok: key > 0 }], keep: true }, hint: 'Is ' + f(b) + ' to the left or the right of ' + f(a) + ' on the number line?' },
         { label: 'How many steps long is the arrow?', part: { kind: 'num', key: Math.abs(key) }, hint: 'Count the steps from ' + f(a) + ' to ' + f(b) + '.' },
         { label: 'So the change is', part: { kind: 'num', key: key }, hint: 'Left is negative, right is positive.' }
       ]

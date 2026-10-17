@@ -129,20 +129,23 @@
     };
   } });
 
-  // converted from the plan's slider build: the student types the slider values instead of dragging them
-  C.add({ id: 'EQ-4c', skill: '11', level: 4, order: 2, type: 'NE', gen: function (R) {
-    var m, b, p;
-    do { m = R.pick([-2, -1, 1, 2, 0.5, -0.5]); b = R.nz(-6, 6); } while (m === b || m === -b);
-    p = Math.abs(m) < 1 ? R.pick([-4, -2, 2, 4]) : R.nz(-4, 4);
-    var val = m * p + b, on = R.chance(0.5), q = on ? val : val + R.pick([-3, -2, -1, 1, 2, 3]);
+  C.add({ id: 'EQ-4c', skill: '11', level: 4, order: 2, type: 'interactive', ia: true, gen: function (R) {
+    var m, b, p, val, on, q;
+    do {
+      do { m = R.pick([-2, -1, 1, 2, 0.5, -0.5]); b = R.nz(-6, 6); } while (m === b || m === -b);
+      p = Math.abs(m) < 1 ? R.pick([-4, -2, 2, 4]) : R.nz(-4, 4);
+      val = m * p + b; on = R.chance(0.5); q = on ? val : val + R.pick([-3, -2, -1, 1, 2, 3]);
+    } while (Math.abs(q) > 9);
+    var g = { x: [-10, 10], y: [-10, 10], size: 380, label: 'Your line' };
     return {
-      stem: 'A line builder has an <b>m</b> slider (the slope) and a <b>b</b> slider (where the line crosses the y-axis). You want to make the line ' + eq(m, b) + '. What should each slider be set to? Then check: is ' + C.pt(p, q) + ' on your line?',
+      stem: 'Use the <b>m</b> and <b>b</b> sliders to make the line ' + eq(m, b) + '. Then check: is ' + C.pt(p, q) + ' on your line?',
       think: 'm multiplies x. b is added on.',
       parts: [
-        { kind: 'num', label: 'm slider', key: m, wrong: [{ v: b, tag: 'M9' }, { v: -m, tag: 'M2' }] },
-        { kind: 'num', label: 'b slider', key: b, wrong: [{ v: m, tag: 'M9' }, { v: -b, tag: 'M2' }] },
+        { kind: 'slider', label: 'Line builder', sliders: [{ id: 'm', label: 'Slope m', min: -3, max: 3, step: 0.5, start: 0 }, { id: 'b', label: 'y-intercept b', min: -8, max: 8, step: 1, start: 0 }], grid: g,
+          key: { m: m, b: b }, wrong: [{ v: { m: b, b: m }, tag: 'M9' }, { v: { m: -m, b: b }, tag: 'M2' }, { v: { m: m, b: -b }, tag: 'M2' }] },
         { kind: 'choice', label: 'Is ' + C.pt(p, q) + ' on the line?', keep: true, opts: [{ t: 'Yes', ok: on, tag: 'G' }, { t: 'No', ok: !on, tag: 'G' }] }
       ],
+      answerFig: C.graph(Object.assign({}, g, { size: 260, lines: [{ m: m, b: b }], pts: [{ x: 0, y: b }, { x: p, y: q, l: C.pt(p, q), c: on ? C.COL.pt : C.COL.line2 }] })),
       answer: 'm = ' + f(m) + ', b = ' + f(b) + '; ' + (on ? 'yes' : 'no'),
       work: [
         'm is the number that multiplies x: m = ' + f(m) + '. b is the number added: b = ' + f(b) + '.',
@@ -224,8 +227,7 @@
     };
   } });
 
-  // converted from the plan's drag-to-match (match three): one choice per card, right only if every card is right
-  C.add({ id: 'EQ-5g', skill: '12', level: 5, order: 2, type: 'DM', gen: function (R) {
+  C.add({ id: 'EQ-5g', skill: '12', level: 5, order: 2, type: 'DM', ia: true, gen: function (R) {
     var m1, m2, b1, b2, L;
     function fits(l) { return Math.abs(l[0] + l[1]) <= 8; }
     do {
@@ -233,39 +235,37 @@
       b1 = R.nz(-5, 5); do { b2 = R.nz(-5, 5); } while (b2 === b1);
       L = [[m1, b1], [m1, b2], [m2, b1]];
     } while (!L.every(fits));
-    var order = R.shuffle([0, 1, 2]), perm = R.shuffle([0, 1, 2]);
+    var order = R.shuffle([0, 1, 2]), tl = R.shuffle([0, 1, 2]), gl = R.shuffle([0, 1, 2]);
+    // three sets: each equation has one table and one graph (pairs of lines share a slope or an intercept)
     var cards = [
-      { name: 'Table A', kind: 't', line: perm[0] },
-      { name: 'Table B', kind: 't', line: perm[1] },
-      { name: 'Graph C', kind: 'g', line: perm[2] },
-      { name: 'Graph D', kind: 'g', line: R.pick([perm[0], perm[1]]) }
+      { name: 'Table A', kind: 't', line: tl[0] }, { name: 'Table B', kind: 't', line: tl[1] }, { name: 'Table C', kind: 't', line: tl[2] },
+      { name: 'Graph D', kind: 'g', line: gl[0] }, { name: 'Graph E', kind: 'g', line: gl[1] }, { name: 'Graph F', kind: 'g', line: gl[2] }
     ];
-    function rel(i, j) { return (L[i][0] === L[j][0] || L[i][1] === L[j][1]) ? 'M11' : 'G'; }
-    function opts(j, tags) { return order.map(function (i) { var o = { t: eq(L[i][0], L[i][1]), ok: i === j }; if (tags && i !== j) o.tag = rel(i, j); return o; }); }
+    function opts(j) { return order.map(function (i) { return { t: eq(L[i][0], L[i][1]), ok: i === j }; }); }
     var xs = [1, 2, 3, 4];
-    var fig = '<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start">' + cards.map(function (c) {
-      var l = L[c.line], body;
-      if (c.kind === 't') body = C.table({ cols: ['x', 'y'], rows: xs.map(function (x) { return [x, l[0] * x + l[1]]; }) });
-      else body = C.graph({ x: [-5, 5], y: [-8, 8], size: 210, h: 307, lx: 2, ly: 2, lines: [{ m: l[0], b: l[1] }], pts: [{ x: 0, y: l[1] }, { x: 1, y: l[0] + l[1] }], label: c.name + ': a line through ' + C.pt(0, l[1]) + ' and ' + C.pt(1, l[0] + l[1]) });
-      return '<div><div style="font-weight:700;margin-bottom:4px">' + c.name + '</div>' + body + '</div>';
-    }).join('') + '</div>';
+    function body(c) {
+      var l = L[c.line];
+      if (c.kind === 't') return C.table({ cols: ['x', 'y'], rows: xs.map(function (x) { return [x, l[0] * x + l[1]]; }) });
+      return C.graph({ x: [-5, 5], y: [-8, 8], size: 150, h: 200, lx: 2, ly: 4, lines: [{ m: l[0], b: l[1] }], pts: [{ x: 0, y: l[1], r: 4 }, { x: 1, y: l[0] + l[1], r: 4 }], label: c.name + ': a line through ' + C.pt(0, l[1]) + ' and ' + C.pt(1, l[0] + l[1]) });
+    }
     var a = cards[0], la = L[a.line];
     return {
-      stem: 'Match each table and graph to its equation: ' + order.map(function (i) { return '<b>' + eq(L[i][0], L[i][1]) + '</b>'; }).join(', ') + '. One equation matches two cards.',
-      fig: fig,
+      stem: 'Sort each table and graph under its equation. Each equation gets one table and one graph.',
       think: 'Check both features: the change for every 1 more x, and the value at x = 0.',
-      parts: cards.map(function (c) { return { kind: 'choice', label: c.name + ' matches', keep: true, opts: opts(c.line, true) }; }),
-      answer: cards.map(function (c) { return c.name + ': ' + eq(L[c.line][0], L[c.line][1]); }).join('; '),
-      work: cards.map(function (c) {
-        var l = L[c.line];
-        return c.name + ': ' + (c.kind === 't' ? 'y changes by ' + f(l[0]) + ' for every 1 more x; working back to x = 0 gives ' + f(l[1]) : 'crosses the y-axis at ' + f(l[1]) + ' and goes ' + upDown(l[0]) + ' for every 1 step right') + ', so <b>' + eq(l[0], l[1]) + '</b>.';
+      parts: [{ kind: 'sort', label: 'Match three', bins: order.map(function (i) { return eq(L[i][0], L[i][1]); }),
+        cards: R.shuffle(cards.slice()).map(function (c) { return { t: '<div><b>' + c.name + '</b>' + body(c) + '</div>', bin: order.indexOf(c.line), tag: 'M11' }; }) }],
+      answerFig: '<div style="font-size:14px">' + order.map(function (i) { return '<b>' + eq(L[i][0], L[i][1]) + '</b>: ' + cards.filter(function (c) { return c.line === i; }).map(function (c) { return c.name; }).join(' and '); }).join('<br>') + '</div>',
+      answer: order.map(function (i) { return eq(L[i][0], L[i][1]) + ': ' + cards.filter(function (c) { return c.line === i; }).map(function (c) { return c.name; }).join(' and '); }).join('; '),
+      work: order.map(function (i) {
+        var l = L[i], t = cards.filter(function (c) { return c.line === i && c.kind === 't'; })[0], gc = cards.filter(function (c) { return c.line === i && c.kind === 'g'; })[0];
+        return '<b>' + eq(l[0], l[1]) + '</b>: ' + t.name + ' changes by ' + f(l[0]) + ' for every 1 more x and works back to ' + f(l[1]) + ' at x = 0; ' + gc.name + ' crosses the y-axis at ' + f(l[1]) + ' and goes ' + upDown(l[0]) + ' for every 1 step right.';
       }),
       why: { M11: 'That equation shares only one feature with the card. Check both the rate and the value at x = 0.' },
       steps: [
         { label: 'In Table A, for every 1 more x, y changes by', part: { kind: 'num', key: la[0] }, hint: 'Next row minus this row.' },
         { label: 'Work back from x = 1 to x = 0 in Table A: y =', part: { kind: 'num', key: la[1] }, hint: 'Take ' + f(la[0]) + ' away from the y-value at x = 1.' },
-        { label: 'So Table A matches', part: { kind: 'choice', keep: true, opts: opts(a.line, false) }, hint: 'Both the slope and the y-intercept must match.' },
-        { label: 'Graph C crosses the y-axis at y =', part: { kind: 'num', key: L[cards[2].line][1] }, hint: 'Look at x = 0.' }
+        { label: 'So Table A matches', part: { kind: 'choice', keep: true, opts: opts(a.line) }, hint: 'Both the slope and the y-intercept must match.' },
+        { label: 'Graph D crosses the y-axis at y =', part: { kind: 'num', key: L[cards[3].line][1] }, hint: 'Look at x = 0.' }
       ]
     };
   } });
@@ -429,16 +429,20 @@
     };
   } });
 
-  // converted from the plan's slider build: the student types the slider values instead of dragging them
-  C.add({ id: 'EQ-5h', skill: '13', level: 5, order: 4, type: 'NE', gen: function (R) {
-    var m, b; do { m = R.int(10, 30) * 10; b = R.int(10, 40) * 10; } while (m === b);
+  C.add({ id: 'EQ-5h', skill: '13', level: 5, order: 4, type: 'interactive', ia: true, gen: function (R) {
+    var m, b; do { m = R.int(2, 8) * 10; b = R.int(5, 20) * 10; } while (m === b);
+    var g = { x: [0, 10], y: [0, 1000], dy: 100, ly: 200, size: 380, xl: 'Months (n)', yl: 'Total cost (riyals)', label: 'Total cost against months' };
+    var wrong = [{ v: { m: b, b: m }, tag: 'M9' }, { v: { m: m, b: 0 }, tag: 'M16' }];
+    if (m + b <= 100) wrong.push({ v: { m: m + b, b: b }, tag: 'M14' });
     return {
-      stem: 'A gym costs ' + b + ' riyals to join plus ' + m + ' riyals per month. A graph builder draws the total cost C (riyals) against months n, with a <b>slope</b> slider and an <b>intercept</b> slider (where the line crosses the cost axis). What should each slider be set to?',
+      stem: 'A gym costs ' + b + ' riyals to join plus ' + m + ' riyals per month. Set the sliders so the line shows the total cost C (riyals) after n months.',
       think: 'The slope is the change for every 1 more month. The intercept is the cost at 0 months.',
       parts: [
-        { kind: 'num', label: 'Slope slider (riyals per month)', key: m, wrong: [{ v: b, tag: 'M9' }, { v: m + b, tag: 'M14' }] },
-        { kind: 'num', label: 'Intercept slider (riyals)', key: b, wrong: [{ v: m, tag: 'M9' }, { v: 0, tag: 'M16' }] }
+        { kind: 'slider', label: 'Cost line', sliders: [{ id: 'm', label: 'Slope (riyals per month)', min: 0, max: 100, step: 10, start: 0 }, { id: 'b', label: 'Intercept (riyals)', min: 0, max: 250, step: 10, start: 0 }], grid: g,
+          draw: function (v) { return { lines: [{ m: v.m, b: v.b, from: 0 }], pts: [{ x: 0, y: v.b, r: 5 }] }; },
+          key: { m: m, b: b }, wrong: wrong }
       ],
+      answerFig: C.graph(Object.assign({}, g, { size: 260, lines: [{ m: m, b: b, from: 0 }], pts: [{ x: 0, y: b, l: C.pt(0, b) }, { x: 5, y: 5 * m + b, l: C.pt(5, 5 * m + b) }] })),
       answer: 'slope ' + m + ' riyals per month, intercept ' + b + ' riyals',
       work: [
         'The monthly price is the rate: the cost goes up ' + m + ' riyals for every 1 more month, so slope = <b>' + m + '</b>.',

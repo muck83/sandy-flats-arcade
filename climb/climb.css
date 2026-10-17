@@ -62,6 +62,21 @@ a{color:var(--blue)}a:hover{color:var(--blue2)}
 .sentence select{font-size:19px;padding:6px 10px;border:2px solid var(--blue);border-radius:10px;background:#fff;min-height:44px}
 .sortrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line2);border-radius:14px;padding:10px 14px}
 .sortrow select{font-size:17px;padding:6px 10px;border:2px solid var(--blue);border-radius:10px;min-height:44px}
+/* interactive answers */
+.parts.wide{gap:14px}.ia{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ia .cfig{width:420px}.hdl:focus .halo,.hdl:hover .halo{fill:#FBD5BC;stroke:#F97316;stroke-width:2}
+.sliders{display:flex;flex-direction:column;gap:12px;width:100%;max-width:460px}
+.sld{display:grid;grid-template-columns:8em 1fr 3.5em;align-items:center;gap:12px;font-weight:700;font-size:17px}
+.sld input{accent-color:var(--blue);height:32px}.sld output{font:800 22px var(--disp);text-align:right;font-variant-numeric:tabular-nums}
+.sgraph .cfig{width:380px}
+.spool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:60px;width:100%;padding:12px;border:2px dashed var(--line2);border-radius:16px}
+.sbins{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;width:100%}
+.sbin{display:flex;flex-direction:column;gap:8px;align-items:stretch;min-height:120px;padding:10px;border:2px solid var(--line2);border-radius:16px;background:var(--bg)}
+.sbinh{font-weight:800;font-size:17px;border:0;border-radius:10px;padding:10px;background:var(--blue-soft);color:var(--blue);cursor:pointer;min-height:44px}
+.sbinh:hover{background:#D3E0FC}
+.scard{border:2px solid var(--line2);background:#fff;border-radius:12px;padding:10px 12px;font-size:16px;cursor:grab;text-align:left;display:flex;flex-direction:column;align-items:center;gap:4px}
+.scard .cfig{max-width:160px}.scard .ctbl{font-size:14px}.scard.on{border-color:var(--orange);box-shadow:0 0 0 3px #FBD5BC}
+.gl{font:inherit;color:inherit;background:none;border:0;padding:0;border-bottom:2px dotted var(--blue);cursor:help}
 .think{background:var(--bg);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
 .think b{font-size:15px}.think span{font-size:16px;color:var(--sub)}
 .ctbl{border-collapse:collapse;font-size:18px;margin:4px auto;background:#fff}

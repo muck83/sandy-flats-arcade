@@ -59,6 +59,16 @@
   // live = the ping cache when it is from this session and recent
   function liveOf(sid) { var h = data.here[sid], s = data.session; if (!h || !s || h.sess !== s.id || now() - h.at > 45000) return null; return h; }
   function onPage(sid) { var h = data.here[sid], s = data.session; return !!(h && s && now() - h.at < 15000 && (s.state === 'open' ? h.ph === 'wait' : true)); }
+  // pacing projection (teacher only; students never see a projected finish): core skills left ÷ skills secured per session lately
+  function pace(r) {
+    if (!r || !r.hist || r.hist.length < 2) return { text: '·', title: 'Needs 2 sessions' };
+    var m = parseMap(r.map), left = C.CORE.filter(function (id) { var v = m[id]; return !v || (v.c !== 'S' && v.c !== 'R'); }).length;
+    if (!left) return { text: 'Core done', title: 'Every core skill is secure: extension skills and review' };
+    var recent = r.hist.slice(-5), rate = recent.reduce(function (a, h) { return a + (h.sec || 0); }, 0) / recent.length;
+    if (!rate) return { text: left + ' left · stalled', title: 'No skills secured in the last ' + recent.length + ' sessions' };
+    var n = Math.ceil(left / rate);
+    return { text: left + ' left · ≈' + n + ' session' + (n === 1 ? '' : 's'), title: 'At ' + (Math.round(rate * 10) / 10) + ' skills secured per session over the last ' + recent.length + ' sessions' };
+  }
   function growthFlag(r) {
     if (!r || !r.hist || r.hist.length < 3) return '';
     var h = r.hist, last3 = h.slice(-3);
@@ -101,7 +111,9 @@
       row.appendChild(sel);
     }
     var foc = el('select', { 'aria-label': 'Focus skill' }); foc.appendChild(el('option', { value: '', text: 'No focus skill' }));
-    C.SKILLS.forEach(function (k) { var o = el('option', { value: k.id, text: 'Focus: ' + C.label(k.id) + ' · ' + k.name }); if (s && s.focus === k.id) o.selected = true; foc.appendChild(o); });
+    // set the focus to the skill of the film you taught in the previous lesson (the plan's rule), so new content comes from you first
+    C.SKILLS.forEach(function (k) { var o = el('option', { value: k.id, text: 'Focus: ' + C.label(k.id) + ' · ' + k.name + (C.FILM[k.id] ? ' · ' + C.FILM[k.id] : '') }); if (s && s.focus === k.id) o.selected = true; foc.appendChild(o); });
+    foc.title = 'Pick the skill from the film you showed last lesson';
     var all = el('input', { type: 'checkbox', id: 'fall' }); all.checked = !!(s && s.focusAll);
     row.appendChild(foc); row.appendChild(el('label', { 'for': 'fall', style: 'display:flex;gap:6px;align-items:center;font-size:15px', title: 'Students who haven\'t reached the focus skill get its guided items (not scored) between their own' }, [all, 'Open it for everyone']));
     if (running) { foc.onchange = all.onchange = function () { control('focus', { focus: foc.value, focusAll: all.checked }); }; }
@@ -128,7 +140,7 @@
 
   function classTable(s) {
     var wrap = el('div', { 'class': 'tw', style: 'margin-top:20px' }), t = el('table', { 'class': 'dash' });
-    var cols = [['name', 'Student'], ['here', 'Now'], ['frontier', 'Working on'], ['theta', 'Growth score'], ['map', 'Skill map (F1 F2 1-13)'], ['today', 'Today'], ['leaves', 'Left page'], ['flags', 'Flags'], ['time', 'Time']];
+    var cols = [['name', 'Student'], ['here', 'Now'], ['frontier', 'Working on'], ['theta', 'Growth score'], ['pace', 'Pace'], ['map', 'Skill map (F1 F2 1-21)'], ['today', 'Today'], ['leaves', 'Left page'], ['flags', 'Flags'], ['time', 'Time']];
     var hr = el('tr'); cols.forEach(function (c) { var th = el('th'); if (['name', 'frontier', 'theta', 'leaves'].indexOf(c[0]) >= 0) th.appendChild(el('button', { type: 'button', text: c[1] + (sortBy === c[0] ? ' ▾' : ''), onclick: function () { sortBy = c[0]; draw(); } })); else th.textContent = c[1]; hr.appendChild(th); });
     t.appendChild(hr);
     var rows = roster().map(function (r) {
@@ -154,6 +166,7 @@
       tr.appendChild(el('td', { text: (L && L.sk ? C.label(L.sk) : x.fr ? C.label(x.fr) : '·') + (s && s.focus && x.fr && C.SKILL[x.fr] && C.SKILL[s.focus] && C.SKILL[x.fr].i < C.SKILL[s.focus].i ? ' (behind focus)' : ''), title: x.fr && C.SKILL[x.fr] ? 'Frontier: ' + C.SKILL[x.fr].name : '' }));
       var th = row ? Math.round(row.theta) : null, th0 = row && row.hist && row.hist.length >= 2 ? Math.round(row.hist[1].th) : null;
       tr.appendChild(el('td', { text: th == null ? '·' : String(th) + (th0 != null ? ' (' + (th - th0 >= 0 ? '+' : '') + (th - th0) + ' since session 2)' : ''), title: 'LF growth score, 200-270' }));
+      var pc = pace(row); tr.appendChild(el('td', { text: pc.text, title: pc.title }));
       var mapTd = el('td'), mini = el('div', { 'class': 'mini' });
       C.SKILLS.forEach(function (k) { var v = x.m[k.id] || { c: '-' }; var i = el('i', { 'class': 'k-' + v.c + (v.chk ? ' chk' : ''), title: C.label(k.id) + ' ' + k.name + ': ' + ({ R: 'retained', S: 'secure', L: 'learning', B: 'back to learning', K: 'stuck', O: 'open', '-': 'not open' }[v.c] || '') + (v.chk ? ' · needs check' : '') }); mini.appendChild(i); });
       mapTd.appendChild(mini); tr.appendChild(mapTd);
@@ -180,7 +193,7 @@
       tm.appendChild(sel); tr.appendChild(tm);
       t.appendChild(tr);
     });
-    if (!rows.length) t.appendChild(el('tr', {}, [el('td', { colspan: '9', 'class': 'muted', text: 'No students on the roster for this class.' })]));
+    if (!rows.length) t.appendChild(el('tr', {}, [el('td', { colspan: '10', 'class': 'muted', text: 'No students on the roster for this class.' })]));
     wrap.appendChild(t);
     return wrap;
   }

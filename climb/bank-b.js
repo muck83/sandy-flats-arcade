@@ -15,11 +15,6 @@
   function upward(h, k, a) { var p = []; for (var x = h - 4; x <= h + 4.001; x += 0.25) p.push([x, k + a * (x - h) * (x - h)]); return { seg: p }; }
   function vee(h, k) { return { seg: [[h - 7, k + 7], [h, k], [h + 7, k + 7]] }; }
   function yn(yes, tagYes, tagNo) { return { kind: 'choice', keep: true, opts: [{ t: 'Yes', ok: yes, tag: yes ? undefined : tagYes }, { t: 'No', ok: !yes, tag: yes ? tagNo : undefined }] }; }
-  function cards(list) {
-    return '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start">' + list.map(function (c, i) {
-      return '<div style="flex:1 1 150px;min-width:0;max-width:320px;border:1px solid #DCE2EE;border-radius:10px;padding:8px;background:#fff"><b>Card ' + LET[i] + '</b><div>' + c.html + '</div></div>';
-    }).join('') + '</div>';
-  }
 
   /* ---------------- Skill 4 Function or not: graphs, tables, constant functions ---------------- */
   C.add({ id: 'FN-3a', skill: '4', level: 3, order: 1, type: 'MC', gen: function (R) {
@@ -86,8 +81,7 @@
     };
   } });
 
-  // the plan's 6-card drag sort, as 4 cards (2 functions, 2 not) with a Function / Not a function choice for each (no dragging in Version 1)
-  C.add({ id: 'FN-3c', skill: '4', level: 3, order: 3, type: 'DM', gen: function (R) {
+  C.add({ id: 'FN-3c', skill: '4', level: 3, order: 3, type: 'DM', ia: true, gen: function (R) {
     function eqTable() {
       var xs = R.distinct(4, -4, 9), c = R.int(-5, 9);
       return { fn: true, html: C.table({ cols: ['x', 'y'], rows: xs.map(function (x) { return [x, c]; }) }), name: 'the table where every y is ' + f(c), q: 'Every y is ' + f(c) + '. Does any x have two different outputs?', hint: 'The outputs repeat, but no x appears twice. Same outputs are fine.' };
@@ -113,17 +107,20 @@
       var L = R.distinct(3, 1, 9), Rt = R.distinct(3, 1, 12);
       return { fn: false, html: C.mapping({ left: L, right: Rt, arrows: [[0, 0], [1, 1], [1, 2], [2, 2]] }), name: 'the mapping where ' + f(L[1]) + ' has two arrows', q: 'In the mapping, how many arrows leave the input ' + f(L[1]) + '? Does it have two different outputs?', hint: f(L[1]) + ' points to both ' + f(Rt[1]) + ' and ' + f(Rt[2]) + '.' };
     }
-    var fns = R.shuffle([eqTable, hLine, scatter]).slice(0, 2), nots = R.shuffle([repTable, circ, branch]).slice(0, 2);
-    var list = R.shuffle(fns.concat(nots)).map(function (g) { return g(); });
+    // all six cards from the plan: three functions, three not
+    var list = R.shuffle([eqTable, hLine, scatter, repTable, circ, branch]).map(function (g) { return g(); });
+    var pick = [list.filter(function (c) { return c.fn; })[0], list.filter(function (c) { return c.fn; })[1], list.filter(function (c) { return !c.fn; })[0], list.filter(function (c) { return !c.fn; })[1]];
+    pick.sort(function (p, q) { return list.indexOf(p) - list.indexOf(q); });
+    function card(c, i) { return '<div style="max-width:150px"><b>' + LET[i] + '</b><div>' + c.html + '</div></div>'; }
     return {
-      stem: 'Sort each card: is it a function or not a function?',
-      fig: cards(list),
+      stem: 'Sort the six cards into "Function" and "Not a function".',
       think: 'One question per card: does any input have two outputs?',
-      parts: list.map(function (c, i) { return { kind: 'choice', label: 'Card ' + LET[i], keep: true, opts: [{ t: 'Function', ok: c.fn }, { t: 'Not a function', ok: !c.fn, tag: c.fn ? 'M15' : undefined }] }; }),
-      answer: list.map(function (c, i) { return LET[i] + ': ' + (c.fn ? 'function' : 'not a function'); }).join(', '),
-      work: ['Check one thing per card: does any input have two outputs?', 'Not functions: ' + list.filter(function (c) { return !c.fn; }).map(function (c) { return c.name; }).join(' and ') + ', because one input has two outputs.', 'Functions: <b>' + list.filter(function (c) { return c.fn; }).map(function (c) { return c.name; }).join(' and ') + '</b>. Same outputs, flat lines and no pattern are all fine.'],
-      why: { M15: 'Same outputs, flat lines and points with no pattern are all fine. A card is only "not a function" when one input has two outputs.' },
-      steps: list.map(function (c, i) { return { label: 'Card ' + LET[i] + ': ' + c.q, part: yn(!c.fn), hint: c.hint }; })
+      parts: [{ kind: 'sort', label: 'Cards', bins: ['Function', 'Not a function'], cards: list.map(function (c, i) { return { t: card(c, i), bin: c.fn ? 0 : 1, tag: c.fn ? 'M15' : 'M6' }; }) }],
+      answerFig: '<div style="font-size:14px"><b>Function:</b> ' + list.filter(function (c) { return c.fn; }).map(function (c) { return LET[list.indexOf(c)]; }).join(', ') + '. <b>Not a function:</b> ' + list.filter(function (c) { return !c.fn; }).map(function (c) { return LET[list.indexOf(c)]; }).join(', ') + '.</div>',
+      answer: 'Function: ' + list.filter(function (c) { return c.fn; }).map(function (c) { return LET[list.indexOf(c)]; }).join(', ') + '; not a function: ' + list.filter(function (c) { return !c.fn; }).map(function (c) { return LET[list.indexOf(c)]; }).join(', '),
+      work: ['Check one thing per card: does any input have two outputs?', 'Not functions: ' + list.filter(function (c) { return !c.fn; }).map(function (c) { return c.name; }).join(', ') + ', because one input has two outputs.', 'Functions: <b>' + list.filter(function (c) { return c.fn; }).map(function (c) { return c.name; }).join(', ') + '</b>. Same outputs, flat lines and no pattern are all fine.'],
+      why: { M15: 'Same outputs, flat lines and points with no pattern are all fine. A card is only "not a function" when one input has two outputs.', M6: 'An input with two different outputs breaks the rule, even if the rest of the card looks fine.' },
+      steps: pick.map(function (c) { var i = list.indexOf(c); return { label: 'Card ' + LET[i] + ': ' + c.q, part: yn(!c.fn), hint: c.hint }; })
     };
   } });
 
@@ -204,17 +201,16 @@
     };
   } });
 
-  // the plan's 4-card drag sort, as a Function / Not a function choice for each card (no dragging in Version 1)
-  C.add({ id: 'FN-5d', skill: '5', level: 4, type: 'DM', gen: function (R) {
+  C.add({ id: 'FN-5d', skill: '5', level: 4, type: 'DM', ia: true, gen: function (R) {
     var pk = R.shuffle(POOL).slice(0, 2);
     var list = R.shuffle([
       { t: pk[0].f, fn: true, x: pk[0].fx }, { t: pk[0].r, fn: false, x: pk[0].rx },
       { t: pk[1].f, fn: true, x: pk[1].fx }, { t: pk[1].r, fn: false, x: pk[1].rx }
     ]);
     return {
-      stem: 'Sort each situation (input → output): function or not a function?<ol type="A">' + list.map(function (c) { return '<li>' + cap(c.t) + '</li>'; }).join('') + '</ol>',
+      stem: 'Sort the 4 situations (input → output) into "Function" and "Not a function".',
       think: 'Does one input always give exactly one output?',
-      parts: list.map(function (c, i) { return { kind: 'choice', label: LET[i] + ': ' + cap(c.t), keep: true, opts: [{ t: 'Function', ok: c.fn, tag: c.fn ? undefined : 'M6' }, { t: 'Not a function', ok: !c.fn, tag: c.fn ? 'M6' : undefined }] }; }),
+      parts: [{ kind: 'sort', label: 'Situations', bins: ['Function', 'Not a function'], cards: list.map(function (c, i) { return { t: '<b>' + LET[i] + '</b>: ' + cap(c.t), bin: c.fn ? 0 : 1, tag: 'M6' }; }) }],
       answer: list.map(function (c, i) { return LET[i] + ': ' + (c.fn ? 'function' : 'not a function'); }).join(', '),
       work: ['Ask of each: does one input always give exactly one output?',
         list.map(function (c, i) { return c.fn ? LET[i] + ': ' + c.x : ''; }).filter(String).join(' ') + ' <b>Functions.</b>',

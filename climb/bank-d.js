@@ -185,27 +185,24 @@
     };
   } });
 
-  // the plan's drag-the-starting-point interactive: the student picks the right point from 4 drawn (no dragging in Version 1)
-  C.add({ id: 'EQ-2c', skill: '10', level: 3, order: 2, type: 'interactive', gen: function (R) {
+  C.add({ id: 'EQ-2c', skill: '10', level: 3, order: 2, type: 'interactive', ia: true, gen: function (R) {
     var b, m; do { b = R.int(3, 10); m = R.int(2, 5); } while (Math.abs(b - m) < 2);
-    var cands = R.shuffle([{ x: 0, y: b, ok: true }, { x: 0, y: m, tag: 'M9' }, { x: b, y: 0, tag: 'M3' }, { x: 0, y: b + m, tag: 'M14' }]);
-    var L = ['A', 'B', 'C', 'D'], right;
-    cands.forEach(function (c, i) { c.l = L[i]; if (c.ok) right = L[i]; });
-    var yMax = b + m + 3;
-    var fig = C.graph({ x: [0, 12], y: [0, yMax], ly: yMax > 12 ? 2 : 1, xl: 'Distance (km)', yl: 'Fare (riyals)', pts: cands.map(function (c) { return { x: c.x, y: c.y, l: c.l, r: 4 }; }), label: 'Four points A to D on a fare-against-distance grid' });
-    var opts = cands.map(function (c) { var o = { t: 'Point ' + c.l + ' ' + C.pt(c.x, c.y) }; if (c.ok) o.ok = true; else o.tag = c.tag; return o; });
+    var yMax = b + m + 3, sx = 0;
+    var g = { x: [0, 10], y: [0, yMax], ly: yMax > 12 ? 2 : 1, size: 400, xl: 'Distance (km)', yl: 'Fare (riyals)', label: 'Fare-against-distance grid' };
     return {
-      stem: 'A taxi charges a ' + b + '-riyal starting fee plus ' + m + ' riyals per km. Which point shows where the fare line starts?',
-      fig: fig,
+      stem: 'A taxi charges a ' + b + '-riyal starting fee plus ' + m + ' riyals per km. The fare line goes up ' + m + ' riyals for every 1 more km. Drag the line\'s starting point to the right place on the fare axis.',
       think: 'What do you pay before you travel any distance?',
-      parts: [{ kind: 'choice', label: 'The line starts at', keep: true, opts: opts }],
-      answer: 'Point ' + right + ' ' + C.pt(0, b),
-      work: ['At the start you have travelled 0 km, so the point is on the fare axis (x = 0).', 'At 0 km you pay only the starting fee, ' + b + ' riyals.', 'So the line starts at <b>' + C.pt(0, b) + '</b>, point ' + right + '.'],
-      why: { M9: 'That point is at ' + m + ' riyals, the cost per km. The start is the fee before you travel: ' + b + ' riyals.', M3: 'That point is on the distance axis. The start is at 0 km, on the fare axis.', M14: 'That adds the fee and one km (' + b + ' + ' + m + '). At the start you have not travelled yet.' },
+      parts: [{ kind: 'points', label: 'Starting point', grid: g, start: [[sx, 0]], names: ['Start'], lock: 'x',
+        extra: function (cur) { return [{ m: m, b: cur[0][1], from: 0 }]; },
+        key: [[0, b]], wrong: [{ v: [[0, m]], tag: 'M9' }, { v: [[0, b + m]], tag: 'M14' }, { v: [[0, 0]], tag: 'M16' }] }],
+      answerFig: C.graph(Object.assign({}, g, { size: 260, lines: [{ m: m, b: b, from: 0 }], pts: [{ x: 0, y: b, l: C.pt(0, b) }] })),
+      answer: 'The line starts at ' + C.pt(0, b),
+      work: ['At the start you have travelled 0 km, so the point is on the fare axis (x = 0).', 'At 0 km you pay only the starting fee, ' + b + ' riyals.', 'So the line starts at <b>' + C.pt(0, b) + '</b>.'],
+      why: { M9: 'Your point is at ' + m + ' riyals, the cost per km. The start is the fee before you travel: ' + b + ' riyals.', M14: 'Your point adds the fee and one km (' + b + ' + ' + m + '). At the start you have not travelled yet.', M16: 'The fare does not start at 0: before you travel you already pay the ' + b + '-riyal starting fee.' },
       steps: [
         { label: 'At the start, how many km have you travelled?', part: { kind: 'num', key: 0 }, hint: 'You have not moved yet.' },
         { label: 'At 0 km, what is the fare in riyals?', part: { kind: 'num', key: b }, hint: 'Only the starting fee.' },
-        { label: 'So the line starts at the point', part: { kind: 'choice', keep: true, opts: cands.map(function (c) { return { t: 'Point ' + c.l, ok: !!c.ok }; }) }, hint: 'Find the point at ' + C.pt(0, b) + '.' }
+        { label: 'So the line starts at the point', part: { kind: 'choice', keep: true, opts: [{ t: C.pt(0, b), ok: true }, { t: C.pt(0, m) }, { t: C.pt(b, 0) }] }, hint: 'x is the distance (0 km), y is the fare.' }
       ]
     };
   } });
