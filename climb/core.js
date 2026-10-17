@@ -25,7 +25,7 @@
     iaFrom: 4                // from this session on, every Secure streak includes the skill's interactive template
   };
 
-  /* ---------- the ladder (Version 1: F1, F2 and skills 1-13) ---------- */
+  /* ---------- the ladder: F1, F2, the unit's skills, then extension (array order = ladder order) ---------- */
   C.SKILLS = [
     { id: 'F1', name: 'Find the change', needs: [] },
     { id: 'F2', name: 'How two quantities change together', needs: ['F1'] },
@@ -34,6 +34,7 @@
     { id: '3', name: 'Function or not: pairs and mappings', needs: ['1'] },
     { id: '4', name: 'Function or not: graphs, tables, constant functions', needs: ['2', '3'] },
     { id: '5', name: 'Functions in context', needs: ['4'] },
+    { id: '22', name: 'Function notation: f(x)', needs: ['1', '3'] },
     { id: '6', name: 'Rate of change (the step) in stories and tables', needs: ['1', 'F2'] },
     { id: '7', name: 'Slope as a rate on a graph', needs: ['2', '6', 'F1'] },
     { id: '8', name: 'Slope from two points', needs: ['7'] },
@@ -42,12 +43,15 @@
     { id: '11', name: 'Equation from a graph', needs: ['7', '10'] },
     { id: '12', name: 'Equation from a table or two points', needs: ['9', '11'] },
     { id: '13', name: 'Slope and intercept in context', needs: ['11'] },
+    { id: '24', name: 'Graph a line from its equation; intercepts', needs: ['11'] },
     { id: '14', name: 'Linear or nonlinear: identify', needs: ['7'] },
     { id: '15', name: 'Linear or nonlinear: justify', needs: ['9', '14'] },
     { id: '16', name: 'Compare rate and initial value', needs: ['9', '10'] },
     { id: '17', name: 'Compare in context', needs: ['13', '16'] },
+    { id: '25', name: 'When two functions are equal (systems)', needs: ['13', '16'] },
     { id: '18', name: 'Qualitative graphs: describe and match', needs: ['2'] },
     { id: '19', name: 'Qualitative graphs: rates', needs: ['7', '18'] },
+    { id: '23', name: 'Domain and range', needs: ['5', '2'] },
     { id: '20', name: 'Extension: slope and equations', needs: ['12'], ext: true },
     { id: '21', name: 'Extension: reasoning', needs: ['5', '15', '17', '19'], ext: true }
   ];
@@ -56,9 +60,9 @@
   C.SKILL = {}; C.SKILLS.forEach(function (s, i) { s.i = i; C.SKILL[s.id] = s; });
   C.label = function (id) { return /^F/.test(id) ? id : 'Skill ' + id; };
   // a correct answer on the key skill also counts as review for these (plan: "Review credit flows backward")
-  C.BACK = { '4': ['3'], '5': ['4'], '6': ['F2'], '7': ['F1'], '8': ['7', 'F1'], '9': ['8'], '11': ['7', '10'], '12': ['8', '9', '11'], '13': ['11'], '15': ['14'], '16': ['9', '10'], '17': ['13', '16'], '19': ['7', '18'], '20': ['12'] };
+  C.BACK = { '4': ['3'], '5': ['4'], '6': ['F2'], '7': ['F1'], '8': ['7', 'F1'], '9': ['8'], '11': ['7', '10'], '12': ['8', '9', '11'], '13': ['11'], '15': ['14'], '16': ['9', '10'], '17': ['13', '16'], '19': ['7', '18'], '20': ['12'], '22': ['1'], '23': ['5'], '24': ['11', '10'], '25': ['16', '13'] };
   // a misconception seen on a later skill points back at the skill that teaches it
-  C.TAGSKILL = { M1: '7', M2: 'F1', M3: '10', M4: '7', M5: '9', M6: '3', M7: '14', M8: '9', M9: '10', M10: '18', M11: '16', M12: '7', M13: '7', M15: '4', M16: '13', M17: 'F2' };
+  C.TAGSKILL = { M1: '7', M2: 'F1', M3: '10', M4: '7', M5: '9', M6: '3', M7: '14', M8: '9', M9: '10', M10: '18', M11: '16', M12: '7', M13: '7', M15: '4', M16: '13', M17: 'F2', M18: '22', M19: '23', M20: '22', M21: '25', M22: '23' };
   // tap-to-see glossary for context words in questions
   C.GLOSS = {
     'fare': 'The price you pay for a trip, such as a taxi or bus ride.',
@@ -81,8 +85,57 @@
     'function': 'A rule where each input has exactly one output.',
     'constant': 'Staying the same: the output never changes, so the step is 0.'
   };
+  // standards and NWEA MAP Growth (Math 6+, Common Core) for each skill: codes, MAP instructional area, and the RIT
+  // range NWEA's MAP-to-Khan Academy correlation lists those skills under. A template can carry its own `std`
+  // (list of codes) when it differs from its skill's. MAP areas: OA-F = Operations & Algebraic Thinking: Use
+  // Functions to Model Relationships; OA-EE = Operations & Algebraic Thinking: Expressions & Equations;
+  // NS-RP = Real & Complex Number Systems: Ratios & Proportional Relationships; NS-OP = Real & Complex Number
+  // Systems: Perform Operations.
+  C.MAPAREA = { 'OA-F': 'Algebraic Thinking · Functions', 'OA-EE': 'Algebraic Thinking · Expressions & Equations', 'NS-RP': 'Number Systems · Ratios & Proportions', 'NS-OP': 'Number Systems · Operations' };
+  C.STD = {
+    F1: { codes: ['7.NS.A.1'], area: 'NS-OP', rit: 'below 220' },
+    F2: { codes: ['5.OA.B.3', '6.EE.C.9'], area: 'OA-F', rit: '213-219' },
+    '1': { codes: ['6.EE.A.2', '8.F.A.1'], area: 'OA-EE', rit: '220-223' },
+    '2': { codes: ['5.G.A.2', '8.F.A.1'], area: 'OA-F', rit: '213-219' },
+    '3': { codes: ['8.F.A.1'], area: 'OA-F', rit: '228-245' },
+    '4': { codes: ['8.F.A.1'], area: 'OA-F', rit: '228-245' },
+    '5': { codes: ['8.F.A.1', '8.F.B.5'], area: 'OA-F', rit: '228-245' },
+    '22': { codes: ['8.F.A.1', 'HSF-IF.A.2'], area: 'OA-F', rit: '228-245' },
+    '6': { codes: ['7.RP.A.2', '8.F.B.4'], area: 'NS-RP', rit: '224-227' },
+    '7': { codes: ['8.F.B.4', '8.EE.B.5'], area: 'OA-F', rit: '228-245' },
+    '8': { codes: ['8.F.B.4'], area: 'OA-F', rit: '228-245' },
+    '9': { codes: ['8.F.B.4', '8.EE.B.5'], area: 'OA-F', rit: '228-245' },
+    '10': { codes: ['8.F.B.4'], area: 'OA-F', rit: '228-245' },
+    '11': { codes: ['8.F.B.4'], area: 'OA-F', rit: '228-245' },
+    '12': { codes: ['8.F.B.4'], area: 'OA-F', rit: '228-245' },
+    '13': { codes: ['8.F.B.4'], area: 'OA-F', rit: '228-245' },
+    '24': { codes: ['8.F.A.3', 'HSF-IF.C.7'], area: 'OA-F', rit: '228-245' },
+    '14': { codes: ['8.F.A.3'], area: 'OA-F', rit: '228-231' },
+    '15': { codes: ['8.F.A.3'], area: 'OA-F', rit: '228-231' },
+    '16': { codes: ['8.F.A.2'], area: 'OA-F', rit: '228-245' },
+    '17': { codes: ['8.F.A.2'], area: 'OA-F', rit: '228-245' },
+    '25': { codes: ['8.EE.C.8'], area: 'OA-EE', rit: '228-245' },
+    '18': { codes: ['8.F.B.5'], area: 'OA-F', rit: '228-231' },
+    '19': { codes: ['8.F.B.5'], area: 'OA-F', rit: '228-231' },
+    '23': { codes: ['8.F.A.1', 'HSF-IF.B.5'], area: 'OA-F', rit: '228-245' },
+    '20': { codes: ['8.EE.B.6', '8.F.B.4'], area: 'OA-EE', rit: '232-245' },
+    '21': { codes: ['8.F.A.2', '8.F.A.3'], area: 'OA-F', rit: '232-245' }
+  };
+  // each standard's own MAP area and RIT range (from NWEA's MAP-to-Khan Academy correlation, Common Core Math 6+);
+  // '' where that correlation doesn't list the standard
+  C.CODE = {
+    '5.OA.B.3': { area: 'OA-F', rit: '213-219' }, '5.G.A.2': { area: 'OA-F', rit: '213-219' }, '6.EE.C.9': { area: 'OA-EE', rit: '' },
+    '6.EE.A.2': { area: 'OA-EE', rit: '220-223' }, '7.RP.A.2': { area: 'NS-RP', rit: '224-227' }, '7.NS.A.1': { area: 'NS-OP', rit: '' },
+    '8.F.A.1': { area: 'OA-F', rit: '228-245' }, '8.F.A.2': { area: 'OA-F', rit: '228-245' }, '8.F.A.3': { area: 'OA-F', rit: '228-231' },
+    '8.F.B.4': { area: 'OA-F', rit: '228-245' }, '8.F.B.5': { area: 'OA-F', rit: '228-231' },
+    '8.EE.B.5': { area: 'OA-EE', rit: '228-231' }, '8.EE.B.6': { area: 'OA-EE', rit: '' }, '8.EE.C.8': { area: 'OA-EE', rit: '228-245' },
+    'HSF-IF.A.2': { area: 'OA-F', rit: '228-245' }, 'HSF-IF.B.5': { area: 'OA-F', rit: '228-245' }, 'HSF-IF.C.7': { area: 'OA-F', rit: '228-245' }
+  };
+  C.codeInfo = function (code) { return C.CODE[code] || { area: /^\d\.F\.|^HSF/.test(code) ? 'OA-F' : /EE/.test(code) ? 'OA-EE' : /RP/.test(code) ? 'NS-RP' : 'NS-OP', rit: '' }; };
+  // the standards a question practises (its own tags, else its skill's)
+  C.stdOf = function (tid) { var t = C.T[tid]; if (!t) return []; return t.std || (C.STD[t.skill] || {}).codes || []; };
   // where each skill is taught in the Sandy Flats films (lesson number students see = film order)
-  C.FILM = { F1: 'before the unit (integer subtraction)', F2: 'Films 1-2', '1': 'Film 1', '2': 'Film 4', '3': 'Film 3', '4': 'Film 4', '5': 'Film 7', '6': 'Film 7', '7': 'Film 9', '8': 'Film 10', '9': 'Film 13', '10': 'Films 1 and 8', '11': 'Film 10', '12': 'Film 8', '13': 'Film 7', '14': 'Film 12', '15': 'Film 13', '16': 'Film 14', '17': 'Film 14', '18': 'Film 6', '19': 'Film 6', '20': 'stretch', '21': 'stretch' };
+  C.FILM = { '22': 'Film 5', '23': 'Film 16', '24': 'Films 7 and 10', '25': 'Films 11 and 14', F1: 'before the unit (integer subtraction)', F2: 'Films 1-2', '1': 'Film 1', '2': 'Film 4', '3': 'Film 3', '4': 'Film 4', '5': 'Film 7', '6': 'Film 7', '7': 'Film 9', '8': 'Film 10', '9': 'Film 13', '10': 'Films 1 and 8', '11': 'Film 10', '12': 'Film 8', '13': 'Film 7', '14': 'Film 12', '15': 'Film 13', '16': 'Film 14', '17': 'Film 14', '18': 'Film 6', '19': 'Film 6', '20': 'stretch', '21': 'stretch' };
 
   /* ---------- misconception tags ---------- */
   C.TAGS = {
@@ -103,6 +156,11 @@
     M15: { name: 'A function needs a formula', say: 'A function does not need a formula or a pattern. It only needs one output for each input.', habit: 'Ignore the pattern: check each input has exactly one output.' },
     M16: { name: 'Assumed proportional', say: 'Doubling x only doubles y when the line goes through (0, 0). Here it starts somewhere else.', habit: 'Check the starting value before you scale.' },
     M17: { name: 'Subtracted the changes', say: 'You subtracted the changes. To compare them as a rate, divide.', habit: 'Rate = change in y ÷ change in x.' },
+    M18: { name: 'f(x) read as f times x', say: 'f(x) is not f times x. It means the output of the function f when the input is x.', habit: 'Read f(3) as "f of 3": put 3 into the rule and find the output.' },
+    M19: { name: 'Domain and range swapped', say: 'You swapped domain and range. The domain is the inputs (x); the range is the outputs (y).', habit: 'Domain goes with the input, the across axis. Range goes with the output, the up axis.' },
+    M20: { name: 'Input and output mixed up in f(x) = k', say: 'f(x) = k asks for the INPUT that gives the output k. You found the output for the input k instead.', habit: 'In f(?) = k, the k is the output. Work back to find the input.' },
+    M21: { name: 'Where they are equal read wrongly', say: 'Two functions are equal where their lines cross: the same input gives the same output. Give the input (x) there, and check both outputs match.', habit: 'Find the x where both rules give the same y, then check it in both.' },
+    M22: { name: 'Dots vs line, or outside the domain', say: 'Check what the input can be. Counted things are whole numbers only (dots); measured things can be anything in between (a line). And nothing outside the first and last input counts.', habit: 'Ask: can the input be 2.5? Where does it start and stop?' },
     T0: { name: 'Timed out', say: 'Time ran out. Here is the method, step by step.', habit: 'Start with the first step even if you are unsure.' },
     G: { name: 'Other', say: 'Not yet. Here is the method with your numbers.', habit: 'Work one step at a time and check each step.' }
   };
@@ -281,7 +339,7 @@
     if (g.nums !== false) {
       var fs = 11;
       for (v = Math.ceil(x0 / lx) * lx; v <= x1 + 1e-9; v += lx) { if (Math.abs(v) < 1e-9 && x0 < 0) continue; s += '<text x="' + X(v) + '" y="' + Math.min(ax + 14, pad.t + ih + 14) + '" font-size="' + fs + '" text-anchor="middle" fill="' + COL.axis + '">' + C.fmt(Math.round(v * 1000) / 1000, 'dec') + '</text>'; }
-      for (v = Math.ceil(y0 / ly) * ly; v <= y1 + 1e-9; v += ly) { if (Math.abs(v) < 1e-9 && x0 < 0) continue; s += '<text x="' + (ay - 5) + '" y="' + (Y(v) + 4) + '" font-size="' + fs + '" text-anchor="end" fill="' + COL.axis + '">' + C.fmt(Math.round(v * 1000) / 1000, 'dec') + '</text>'; }
+      for (v = Math.ceil(y0 / ly) * ly; v <= y1 + 1e-9; v += ly) { if (Math.abs(v) < 1e-9 && (x0 < 0 || Math.abs(x0) < 1e-9)) continue; s += '<text x="' + (ay - 5) + '" y="' + (Y(v) + 4) + '" font-size="' + fs + '" text-anchor="end" fill="' + COL.axis + '">' + C.fmt(Math.round(v * 1000) / 1000, 'dec') + '</text>'; }   // (skipping 0 there leaves one "0" at the corner, not two)
       if (x0 < 0 && y0 < 0 && W >= 200) s +='<text x="' + (ay - 5) + '" y="' + (ax + 14) + '" font-size="' + fs + '" text-anchor="end" fill="' + COL.axis + '">0</text>';
     }
     if (g.xl) s += '<text x="' + (pad.l + iw / 2) + '" y="' + (H - 6) + '" font-size="13" font-weight="700" text-anchor="middle" fill="' + COL.ink + '">' + esc(g.xl) + '</text>';
@@ -354,6 +412,33 @@
     return it;
   };
   C.diff = function (level) { return 205 + (level - 1) * 10; };
+
+  /* ---------- each question's clock: time to read it, plus time to do it ---------- */
+  // 45 s to think and answer, plus about 0.45 s per word to read (a Grade 8 pace with room for second readings),
+  // plus time for each figure, each extra part, typing an equation or a sentence, and building an answer;
+  // harder levels get a little more. Between 60 and 150 seconds, in steps of 5. A template can set `secs` itself.
+  C.itemSecs = function (it) {
+    if (it.secs) return it.secs;
+    var t = C.T[it.tid] || {}, words = 0, s = 45;
+    function count(h) { var x = String(h || ''); if (/<svg/.test(x)) { s += 6; x = x.replace(/<svg[\s\S]*?<\/svg>/g, ' '); } if (/<table/.test(x)) s += 6; words += strip(x).split(/\s+/).filter(Boolean).length; }
+    count(it.stem); count(it.sentence);
+    if (it.fig) s += /<table/.test(it.fig) ? 8 : 10;
+    it.parts.forEach(function (p, i) {
+      count(p.label);
+      if (i > 0) s += 10;
+      if (p.opts) p.opts.forEach(function (o) { count(o.t); });
+      if (p.kind === 'eq') s += 15;
+      if (p.kind === 'text') s += 30;
+      if (p.kind === 'multi') s += 10;
+      if (p.kind === 'points') s += 15 + 5 * Math.max(0, (p.start || []).length - 1);
+      if (p.kind === 'slider') s += 15;
+      if (p.kind === 'sort') { s += 6 * p.cards.length; p.cards.forEach(function (c) { count(c.t); }); }
+      if (p.kind === 'arrows') s += 5 * (p.left || []).length;
+    });
+    s += words * 0.45;
+    if ((t.level || it.level) >= 5) s += 10;
+    return Math.max(60, Math.min(150, Math.round(s / 5) * 5));
+  };
 
   /* ---------- grading ---------- */
   // vals: one entry per part (string for num/eq/text, option index for choice, array of indexes for multi)

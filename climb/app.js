@@ -153,7 +153,7 @@
       '<p style="margin:0;font-size:20px" class="sub">Hi, ' + esc(first(S.me.name)) + '. ' + (open ? 'You\'re in.' : '') + '</p>' +
       (counting ? '<h1 class="big1">Starting in <span style="color:var(--blue)" id="cd">0:10</span></h1>' : open ? '<h1 class="big1">Waiting for Mr. Crowell to start</h1>' : '<h1 class="big1">Climb isn\'t open right now</h1>') +
       '<p style="margin:0;font-size:20px;max-width:560px">' + (open ? 'Everyone starts together and stops together. Work on your own, and show what you really know: that\'s how the questions find your level.' : (sess && sess.state === 'ended' ? 'Today\'s session has ended. ' : '') + 'Mr. Crowell opens Climb at the start of class. Keep this page open and it starts by itself.') + '</p>' +
-      '<div class="tiles"><div class="tile"><b>' + Math.round(C.P.session * mult / 60) + ' min</b><span>for today\'s session</span></div><div class="tile"><b>' + Math.round(C.P.item * mult) + ' sec</b><span>for each question</span></div><div class="tile warm"><b>Stay on this page</b><span>Leaving it changes your question.</span></div></div>' +
+      '<div class="tiles"><div class="tile"><b>' + Math.round(C.P.session * mult / 60) + ' min</b><span>for today\'s session</span></div><div class="tile"><b>' + Math.round(60 * mult) + '–' + Math.round(150 * mult) + ' sec</b><span>for each question: longer ones get more time</span></div><div class="tile warm"><b>Stay on this page</b><span>Leaving it changes your question.</span></div></div>' +
       '</section><aside class="card side"><h2 style="margin:0;font-size:18px" class="sub">You\'re working on</h2>' +
       (fr ? '<div style="display:flex;flex-direction:column;gap:8px"><span class="chip" style="align-self:flex-start">' + 'Step ' + (C.SKILL[fr].i + 1) + ' of ' + C.SKILLS.length + ' · ' + esc(C.label(fr)) + '</span><span style="font:800 28px/1.15 var(--disp)">' + esc(C.SKILL[fr].name) + '</span></div>' : '<span style="font:800 24px var(--disp)">Every open skill is secure. Today is review.</span>') +
       rungs() + '<p style="margin:0" class="sub">' + secure + ' skill' + (secure === 1 ? '' : 's') + ' secure.' + (due ? ' ' + due + ' ' + (due === 1 ? 'is' : 'are') + ' due for a quick review at the start.' : '') + '</p>' +
@@ -183,7 +183,7 @@
   function show(p, ctx) {
     it = C.make(p.tid, p.seed);
     if (!it) return msg('Something went wrong', 'A question couldn\'t load. Reload the page.');
-    meta = { mode: p.mode, start: now(), deadline: ctx.dev ? Infinity : now() + C.P.item * 1000 * mult, ext: false, left: 0, afterLeave: !!ctx.afterLeave, idle: false, twinOf: ctx.twinOf || null, dev: !!ctx.dev };
+    meta = { mode: p.mode, start: now(), limit: C.itemSecs(it) * mult, deadline: ctx.dev ? Infinity : now() + C.itemSecs(it) * 1000 * mult, ext: false, left: 0, afterLeave: !!ctx.afterLeave, idle: false, twinOf: ctx.twinOf || null, dev: !!ctx.dev };
     vals = it.parts.map(function (pp) {
       if (pp.kind === 'points') return pp.start.map(function (q) { return q.slice(); });
       if (pp.kind === 'slider') { var o = {}; pp.sliders.forEach(function (s) { o[s.id] = s.start; }); return o; }
@@ -404,7 +404,7 @@
     var r = timeout ? { ok: false, tag: 'T0', timeout: true, shown: C.shown(it, vals) } : C.grade(it, vals);
     if (!timeout && !r.ok && !r.tag) r.tag = 'G';
     var secs = (now() - meta.start) / 1000, fast = r.ok && secs < C.P.fastSecs && it.level >= 4;
-    var out = E.record(st, it, r, { mode: meta.mode, secs: secs, ext: meta.ext, fast: fast, afterLeave: meta.afterLeave, idle: meta.idle });
+    var out = E.record(st, it, r, { mode: meta.mode, secs: secs, limit: meta.limit, ext: meta.ext, fast: fast, afterLeave: meta.afterLeave, idle: meta.idle });
     var fl = [meta.ext ? 'ext' : '', fast ? 'fast' : '', meta.afterLeave ? 'afterleave' : '', meta.idle ? 'idle' : '', T().noSecure ? 'nosecure' : ''].filter(Boolean).join(' ');
     logRow({ at: now(), sess: T().id, skill: it.skill, tid: it.tid, seed: it.seed, mode: meta.mode, ans: r.shown, res: timeout ? 'time' : r.ok ? 'yes' : 'no', tag: r.ok ? '' : r.tag, secs: Math.round(secs), flags: fl });
     view = 'graded';
@@ -525,7 +525,7 @@
     o.innerHTML = '<section class="dialog" role="dialog" aria-labelledby="chgT"><div style="display:flex;align-items:center;gap:14px"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="#FDEDE3"/><path d="M14 18 H28 L24 14 M30 26 H16 L20 30" fill="none" stroke="#C2410C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><h1 id="chgT">Your question changed</h1></div><p style="margin:0;font-size:20px">You left the page, so that question was swapped for a new one. It\'s from the same skill, with new numbers.</p><p class="sub" style="margin:0;font-size:16px">The session clock kept running. Left the page today: ' + t.leaves + ' time' + (t.leaves === 1 ? '' : 's') + '.' + (t.noSecure ? ' Nothing more today counts toward Secure.' : '') + '</p><button type="button" class="btn primary big" style="align-self:flex-start" id="chgB">Back to work</button></section>';
     document.body.appendChild(o);
     // the new question's 90 seconds start when they press the button
-    document.getElementById('chgB').onclick = function () { o.remove(); view = 'item'; meta.start = now(); meta.deadline = now() + C.P.item * 1000 * mult; tick(); };
+    document.getElementById('chgB').onclick = function () { o.remove(); view = 'item'; meta.start = now(); meta.deadline = now() + meta.limit * 1000; tick(); };
     document.getElementById('chgB').focus();
   }
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') leave(); else { back(); ping(); } });
@@ -589,7 +589,7 @@
     if (view === 'item' && meta) {
       var il = meta.deadline - now(), ie = document.getElementById('ileft'), ring = document.getElementById('ring');
       if (ie) ie.textContent = mmss(il);
-      if (ring) { var tot = C.P.item * 1000 * mult + (meta.ext ? C.P.almost * 1000 : 0), fr = Math.max(0, il / tot); ring.setAttribute('stroke-dasharray', (188.5 * fr).toFixed(1) + ' 188.5'); ring.setAttribute('stroke', il < 20000 ? '#F97316' : '#1D4ED8'); }
+      if (ring) { var tot = (meta.limit || C.P.item) * 1000 + (meta.ext ? C.P.almost * 1000 : 0), fr = Math.max(0, il / tot); ring.setAttribute('stroke-dasharray', (188.5 * fr).toFixed(1) + ' 188.5'); ring.setAttribute('stroke', il < 20000 ? '#F97316' : '#1D4ED8'); }
       var al = document.getElementById('almost'); if (al) al.hidden = !(il <= C.P.almost * 1000 && !meta.ext && T() && T().almost < C.P.almostPerSession);
       if (Date.now() - lastAct > C.P.idleSecs * 1000) meta.idle = true;
       if (il <= 0) { readVals(); submit(true); }

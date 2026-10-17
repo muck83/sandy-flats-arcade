@@ -94,6 +94,7 @@
     var g = el('div', { 'class': 'grid2', style: 'margin-top:20px' });
     g.appendChild(groupsCard(s)); g.appendChild(tagsCard()); g.appendChild(itemReportCard(s)); g.appendChild(itemsCard());
     body.appendChild(g);
+    body.appendChild(standardsCard());
     body.appendChild(el('p', { 'class': 'muted small', style: 'margin-top:20px', text: 'Updates every ' + (s && s.state !== 'ended' ? '5' : '30') + ' seconds. Last update ' + new Date().toLocaleTimeString() + '. Students never see each other\'s progress.' }));
   }
   function sessionCard(s, classes) {
@@ -289,6 +290,61 @@
     c.appendChild(ul); return c;
   }
 
+  /* ---------- progress by NWEA MAP area and standard ---------- */
+  // skills secure across the class (from each student's skill map) and this week's answers, grouped by the
+  // MAP Growth instructional area and the Common Core standard each skill and question practises
+  function standardsCard() {
+    var c = el('section', { 'class': 'card', style: 'margin-top:20px;gap:14px' });
+    c.appendChild(el('h2', { text: 'By MAP area and standard' }));
+    c.appendChild(el('p', { 'class': 'muted small', style: 'margin:0', text: 'Secure = share of students with the skills for that standard secure or retained. Answers = this week\'s Climb answers on questions tagged with it. RIT = where NWEA\'s MAP-to-Khan Academy correlation lists these skills (Grade 8 averages 222 in fall, 229 in spring). Climb\'s growth score is not a RIT.' }));
+    var ids = sids(), R = roster(), maps = {};
+    R.forEach(function (r) { var row = rowOf(r.sid); maps[r.sid] = parseMap(row && row.map); });
+    var std = {};   // code -> {area, rit, skills:{}, ans, ok}
+    C.SKILLS.forEach(function (s) {
+      var d = C.STD[s.id]; if (!d) return;
+      d.codes.forEach(function (code) { var ci = C.codeInfo(code), o = std[code] = std[code] || { area: ci.area, rit: ci.rit || '·', skills: {}, ans: 0, ok: 0 }; o.skills[s.id] = 1; });
+    });
+    data.log.forEach(function (x) {
+      if (!ids[x[1]] || (x[8] !== 'yes' && x[8] !== 'no')) return;
+      C.stdOf(x[4]).forEach(function (code) { var ci = C.codeInfo(code), o = std[code] = std[code] || { area: ci.area, rit: ci.rit || '·', skills: {}, ans: 0, ok: 0 }; o.ans++; if (x[8] === 'yes') o.ok++; });
+    });
+    function secureShare(skills) {
+      var n = 0, have = 0;
+      R.forEach(function (r) { Object.keys(skills).forEach(function (id) { n++; var v = maps[r.sid][id]; if (v && (v.c === 'S' || v.c === 'R')) have++; }); });
+      return n ? Math.round(100 * have / n) : 0;
+    }
+    var areas = {};
+    Object.keys(std).forEach(function (code) { var o = std[code]; (areas[o.area] = areas[o.area] || []).push(code); });
+    var t = el('table', { 'class': 'dash' });
+    t.appendChild(el('tr', {}, ['MAP area', 'Standard', 'Climb skills', 'Secure', 'Answers this week', 'Right', 'NWEA RIT'].map(function (h) { return el('th', { text: h }); })));
+    ['OA-F', 'OA-EE', 'NS-RP', 'NS-OP'].forEach(function (a) {
+      if (!areas[a]) return;
+      var allSk = {}; areas[a].forEach(function (code) { Object.keys(std[code].skills).forEach(function (k) { allSk[k] = 1; }); });
+      var sh = secureShare(allSk), tot = areas[a].reduce(function (z, code) { return z + std[code].ans; }, 0), okk = areas[a].reduce(function (z, code) { return z + std[code].ok; }, 0);
+      t.appendChild(el('tr', { style: 'background:#F3F5FA;font-weight:700' }, [el('td', { text: C.MAPAREA[a] }), el('td', { text: 'all' }), el('td', { text: Object.keys(allSk).length + ' skills' }), el('td', {}, [bar(sh)]), el('td', { text: String(tot) }), el('td', { text: tot ? Math.round(100 * okk / tot) + '%' : '·' }), el('td', { text: '' })]));
+      areas[a].sort().forEach(function (code) {
+        var o = std[code], share = secureShare(o.skills);
+        t.appendChild(el('tr', {}, [el('td', { text: '' }), el('td', { text: code }), el('td', { text: Object.keys(o.skills).map(C.label).join(', '), style: 'white-space:normal;max-width:260px' }), el('td', {}, [bar(share)]), el('td', { text: String(o.ans) }), el('td', { text: o.ans ? Math.round(100 * o.ok / o.ans) + '%' : '·' }), el('td', { text: o.rit })]));
+      });
+    });
+    var tw = el('div', { 'class': 'tw' }); tw.appendChild(t); c.appendChild(tw);
+    c.appendChild(el('div', {}, [el('button', { type: 'button', 'class': 'btn small', text: 'Download by student and MAP area (CSV)', onclick: stdCsv })]));
+    return c;
+  }
+  function bar(p) { return el('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [el('span', { style: 'display:inline-block;width:80px;height:8px;border-radius:4px;background:#DCE2EE;overflow:hidden' }, [el('i', { style: 'display:block;height:8px;width:' + p + '%;background:#1D4ED8' })]), el('span', { text: p + '%' })]); }
+  // per student: skills secure in each MAP area, to set beside their MAP goal scores
+  function stdCsv() {
+    var q = function (v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+    var AREAS = ['OA-F', 'OA-EE', 'NS-RP', 'NS-OP'], skillsIn = {};
+    AREAS.forEach(function (a) { skillsIn[a] = C.SKILLS.filter(function (s) { return C.STD[s.id] && C.STD[s.id].area === a; }).map(function (s) { return s.id; }); });
+    var lines = [['Student', 'Class', 'Growth score'].concat(AREAS.map(function (a) { return C.MAPAREA[a] + ' (secure of ' + skillsIn[a].length + ')'; })).map(q).join(',')];
+    roster().forEach(function (r) {
+      var row = rowOf(r.sid), m = parseMap(row && row.map);
+      lines.push([nice(r.name), r.cls, row ? Math.round(row.theta) : ''].concat(AREAS.map(function (a) { return skillsIn[a].filter(function (id) { return m[id] && (m[id].c === 'S' || m[id].c === 'R'); }).length; })).map(q).join(','));
+    });
+    var a = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: 'climb-by-map-area.csv' }); document.body.appendChild(a); a.click(); a.remove();
+  }
+
   /* ---------- one student ---------- */
   function detail(r) {
     api('climbStudent', { sid: r.sid }).then(function (j) {
@@ -299,10 +355,10 @@
       else {
         st = E.norm(st);
         d.appendChild(el('p', { style: 'margin:0', text: 'Growth score ' + Math.round(st.theta) + ' after ' + st.sess + ' session' + (st.sess === 1 ? '' : 's') + ' and ' + st.nScored + ' scored questions.' }));
-        var t = el('table', { 'class': 'dash' }); t.appendChild(el('tr', {}, ['Skill', 'State', 'Right', 'Last 4', 'Secured in session'].map(function (h) { return el('th', { text: h }); })));
+        var t = el('table', { 'class': 'dash' }); t.appendChild(el('tr', {}, ['Skill', 'Standards', 'State', 'Right', 'Last 4', 'Secured in session'].map(function (h) { return el('th', { text: h }); })));
         C.SKILLS.forEach(function (s) {
           var k = st.skills[s.id], code = E.code(st, s.id);
-          t.appendChild(el('tr', {}, [el('td', { text: C.label(s.id) + ' ' + s.name }), el('td', { text: ({ R: 'Retained', S: 'Secure', L: 'Learning', B: 'Back to learning', K: 'Stuck', O: 'Open', '-': 'Not open' }[code]) + (k.testedOut ? ' (tested out)' : '') + (k.check ? ' · needs check' : '') }), el('td', { text: k.n ? k.ok + '/' + k.n : '·' }), el('td', { text: k.hist.slice(-4).map(function (a) { return a.to ? '⏱' : a.ok ? '✓' : '✗'; }).join(' ') || '·' }), el('td', { text: k.securedAt ? String(k.securedAt) : '·' })]));
+          t.appendChild(el('tr', {}, [el('td', { text: C.label(s.id) + ' ' + s.name }), el('td', { 'class': 'small', text: C.STD[s.id] ? C.STD[s.id].codes.join(', ') : '' }), el('td', { text: ({ R: 'Retained', S: 'Secure', L: 'Learning', B: 'Back to learning', K: 'Stuck', O: 'Open', '-': 'Not open' }[code]) + (k.testedOut ? ' (tested out)' : '') + (k.check ? ' · needs check' : '') }), el('td', { text: k.n ? k.ok + '/' + k.n : '·' }), el('td', { text: k.hist.slice(-4).map(function (a) { return a.to ? '⏱' : a.ok ? '✓' : '✗'; }).join(' ') || '·' }), el('td', { text: k.securedAt ? String(k.securedAt) : '·' })]));
         });
         d.appendChild(t);
         if (st.hist.length) d.appendChild(el('p', { 'class': 'muted small', style: 'margin:0', text: 'Sessions: ' + st.hist.map(function (h) { return '#' + h.s + ' ' + Math.round(h.th) + (h.sec ? ' +' + h.sec + ' secured' : '') + (h.leaves ? ' (left page ' + h.leaves + '×)' : ''); }).join(' · ') }));

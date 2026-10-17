@@ -160,7 +160,7 @@
     }
     // learning (new, practice on an unsecured skill, twin, check)
     if (k.st === 'new') k.st = 'learning';
-    k.hist.push({ ok: x, t: it.tid, to: r.timeout ? 1 : 0, s: Math.round(meta.secs || 0), ext: meta.ext ? 1 : 0, first: mode === 'new' ? 1 : 0, ia: C.T[it.tid] && C.T[it.tid].ia ? 1 : 0 });
+    k.hist.push({ ok: x, t: it.tid, to: r.timeout ? 1 : 0, s: Math.round(meta.secs || 0), ext: meta.ext ? 1 : 0, first: mode === 'new' ? 1 : 0, ia: C.T[it.tid] && C.T[it.tid].ia ? 1 : 0, lim: Math.round(meta.limit || C.P.item) });
     if (k.hist.length > 8) k.hist = k.hist.slice(-8);
     if (r.ok) k.next++;
     if (mode === 'twin' && r.ok && t) t.fixed++;
@@ -171,7 +171,7 @@
     } else if (!E.isSecure(st, id) && !blocked) {
       var h = k.hist;
       // tested out: the first 2 items of the skill right on the first try, each under 60 s, without the extension
-      if (k.n === 2 && h.length === 2 && h.every(function (a) { return a.ok && a.first && !a.ext && !a.to && a.s < C.P.testOutSecs; })) { secureNow(st, id, 'out'); out.secured = out.testedOut = true; }
+      if (k.n === 2 && h.length === 2 && h.every(function (a) { return a.ok && a.first && !a.ext && !a.to && a.s < (a.lim ? a.lim * 2 / 3 : C.P.testOutSecs); })) { secureNow(st, id, 'out'); out.secured = out.testedOut = true; }
       else {
         var last4 = h.slice(-4), right = last4.filter(function (a) { return a.ok; }).length, tpls = {};
         last4.forEach(function (a) { tpls[a.t] = 1; });

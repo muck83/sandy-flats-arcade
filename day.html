@@ -52,6 +52,10 @@
 <script src="climb/bank-cp.js"></script>
 <script src="climb/bank-qg.js"></script>
 <script src="climb/bank-x.js"></script>
+<script src="climb/bank-fx.js"></script>
+<script src="climb/bank-dr.js"></script>
+<script src="climb/bank-gl.js"></script>
+<script src="climb/bank-sy.js"></script>
 <script>
 /* One student's day across the Climb check-in, the lesson slideshows and the arcade games: pick a student and a day,
    choose which parts to show, and read it as one timeline. */
@@ -113,7 +117,7 @@
         out.push({ t: rows[0].time, src: 'climb', head: true, what: '🧗 Climb session ' + sid + ': ' + sc.length + ' questions, ' + ok + ' right' + (left ? ', left the page ' + left + '×' : '') + (td && td.secured ? ' · secured ' + td.secured.split(' ').map(C.label).join(', ') : '') });
         rows.forEach(function (r) {
           var res = { yes: ['✓', 'ok'], no: ['✗', 'no'], time: ['⏱ timed out', 'mid'], void: ['left page', 'mid'] }[r.result] || [r.result, ''];
-          out.push({ t: r.time, src: 'climb', what: C.label(r.skill) + (C.SKILL[r.skill] ? ' · ' + C.SKILL[r.skill].name : '') + ' · ' + r.tid + (r.mode !== 'new' ? ' (' + r.mode + ')' : ''), ans: r.answer, res: res, tag: r.tag && C.TAGS[r.tag] ? r.tag + ' ' + C.TAGS[r.tag].name : r.tag, extra: r.secs + ' s' + (r.flags ? ' · ' + r.flags : ''), climb: r });
+          out.push({ t: r.time, src: 'climb', what: C.label(r.skill) + (C.SKILL[r.skill] ? ' · ' + C.SKILL[r.skill].name : '') + ' · ' + r.tid + (r.mode !== 'new' ? ' (' + r.mode + ')' : ''), ans: r.answer, res: res, tag: r.tag && C.TAGS[r.tag] ? r.tag + ' ' + C.TAGS[r.tag].name : r.tag, extra: r.secs + ' s' + (r.flags ? ' · ' + r.flags : '') + (C.T[r.tid] ? ' · ' + C.stdOf(r.tid).join(', ') : ''), climb: r });
         });
       });
     }

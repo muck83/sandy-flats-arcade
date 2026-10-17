@@ -317,7 +317,7 @@ function participation() {
 /* ---------------- Climb: the linear functions check-in ---------------- */
 // One live session at a time (for one class or everyone), kept in Script properties so it survives cache loss.
 // Times are server milliseconds; each student's end = start + paused time + 12 minutes x their time multiplier.
-var CLIMB_LEN = 12 * 60 * 1000, CLIMB_SKILL = /^(F[12]|[1-9]|1[0-9]|2[01])$/, CLIMB_TPL = /^[A-Z]{2}-[0-9][a-z]$/;
+var CLIMB_LEN = 12 * 60 * 1000, CLIMB_SKILL = /^(F[12]|[1-9]|[12][0-9])$/, CLIMB_TPL = /^[A-Z]{2}-[0-9][a-z]$/;
 var CLIMB_MODES = /^(new|review|practice|twin|check|probe|preview)$/, CLIMB_RES = /^(yes|no|time|void)$/;
 
 function climbSheet(name) {

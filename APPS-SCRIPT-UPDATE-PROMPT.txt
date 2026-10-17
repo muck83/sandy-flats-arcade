@@ -25,10 +25,10 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
    Expected: {"ok":true,...}, then "climbClass ok: true" and "studentDay ok: true".
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
-   Description "Climb + student day" > Deploy. Do NOT use "New deployment" (that changes the URL).
+   Description "Climb skills 22-25" > Deploy. Do NOT use "New deployment" (that changes the URL).
 
 5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
 
-New operations in this version: climbHello, climbPing, climbSave, climbControl, climbClass, climbCheck, climbStudent,
+Latest change: Climb now has skills 22-25 (function notation, domain and range, graphing from an equation, systems); the script's skill-number check accepts them. Earlier operations in this version: climbHello, climbPing, climbSave, climbControl, climbClass, climbCheck, climbStudent,
 studentDay; Climb data is added to mine, class and live. The "Climb" and "ClimbLog" tabs create themselves.
 If anything errors, show me the exact message and line number before suggesting changes.

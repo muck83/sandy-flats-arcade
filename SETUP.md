@@ -97,3 +97,10 @@ The **Climb** and **ClimbLog** tabs are created the first time a student saves. 
 `day.html` (📅 **Student day** in the teacher bar, or 📅 beside a name on Class Results and in the Climb dashboard) shows one student's day in one timeline: Climb questions (open any one to see the exact question they got), lesson answers and focus-watch flags, and game levels and certificates. Tick Climb, Lessons and Arcade to choose what to see; the strip of days marks which days have activity; ◀ ▶ move between students; **Print** gives a clean copy for a meeting. Climb now also shows on **My Results**, the front page's results strip and as a sortable **Climb** column on **Class Results**.
 
 All of this needs the current `backend/Code.gs` deployed as a new version.
+
+## Climb and NWEA MAP Growth
+
+- **Four more skills** fill the gaps against MAP Growth's "Use Functions to Model Relationships": 22 Function notation f(x) (Film 5), 23 Domain and range (Film 16), 24 Graph a line from its equation and intercepts (Films 7 and 10), 25 When two functions are equal / systems (Films 11 and 14). 129 questions in all.
+- **Every question is tagged with Common Core standards**, and the Climb dashboard has a **By MAP area and standard** table: share of the class with those skills secure, this week's answers and % right, and the RIT range NWEA's MAP-to-Khan Academy correlation lists for each standard. **Download by student and MAP area (CSV)** gives skills secure per MAP area for each student, to set beside their MAP goal scores. Climb's growth score is not a RIT.
+- **Each question has its own clock** (60-150 seconds) from how much there is to read and do; 1.5x/2x time and "Almost got it" still apply.
+- These need the current `backend/Code.gs` deployed as a new version (the script now accepts skill numbers up to 29). Use APPS-SCRIPT-UPDATE-PROMPT.txt.
