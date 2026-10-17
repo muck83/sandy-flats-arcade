@@ -615,12 +615,19 @@ a.btn{text-decoration:none;display:inline-block}
 
   SFA.esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
 
+  // Climb (the linear functions check-in): growth score, skills secure, the skill they're working on
+  var climbIdx = null, climbFor = null;
+  function climbBy() { if (climbFor !== data) { climbIdx = {}; (data.climb || []).forEach(function (c) { climbIdx[c.sid] = c; }); climbFor = data; } return climbIdx; }
+  function climbCell(c) {
+    if (!c) return el('td', { 'class': 'muted', text: '·' });
+    return el('td', { title: 'Growth score ' + Math.round(c.theta) + ' · ' + c.secure + ' skills secure, ' + c.retained + ' retained · ' + c.sess + ' sessions · last ' + SFA.ago(c.updated) + (c.frontier ? ' · working on skill ' + c.frontier : ''), text: Math.round(c.theta) + ' · ' + c.secure + ' secure' + (c.frontier ? ' · ' + (/^F/.test(c.frontier) ? c.frontier : 'S' + c.frontier) : '') });
+  }
   function rows() {
     var by = {}; data.progress.forEach(function (p) { (by[p.sid] = by[p.sid] || {})[p.game] = p; });
     return data.roster.filter(function (s) { return (!cls || s.cls === cls) && (!q || s.name.toLowerCase().indexOf(q) >= 0); }).map(function (s) {
       var g = by[s.sid] || {}, lv = 0, std = 0, sp = 0, last = '';
       Object.keys(g).forEach(function (k) { lv += g[k].levelsDone || 0; std += g[k].standard ? 1 : 0; sp += (g[k].specials || []).length; if (g[k].updated > last) last = g[k].updated; });
-      return { s: s, g: g, lv: lv, std: std, sp: sp, last: last };
+      return { s: s, g: g, lv: lv, std: std, sp: sp, last: last, cl: climbBy()[s.sid] || null };
     });
   }
   function render() {
@@ -637,6 +644,7 @@ a.btn{text-decoration:none;display:inline-block}
       if (sortBy === 'email') return (emails[a.s.sid] || '').localeCompare(emails[b.s.sid] || '');
       if (sortBy === 'last') return (a.last || '').localeCompare(b.last || '');
       if (sortBy === 'lv') return b.lv - a.lv;
+      if (sortBy === 'climb') return (b.cl ? b.cl.theta : 0) - (a.cl ? a.cl.theta : 0);
       if (sortBy === 'les') return ((per[b.s.sid] || {}).n || 0) - ((per[a.s.sid] || {}).n || 0);
       var ga = a.g[sortBy], gb = b.g[sortBy]; return (gb ? gb.levelsDone : -1) - (ga ? ga.levelsDone : -1);
     });
@@ -656,7 +664,7 @@ a.btn{text-decoration:none;display:inline-block}
     var find = el('input', { type: 'search', placeholder: 'Find a student', value: q, 'aria-label': 'Find a student' });
     find.addEventListener('input', function () { q = find.value.toLowerCase(); render(); setTimeout(function () { var f = document.querySelector('.filters input'); if (f) { f.focus(); f.setSelectionRange(q.length, q.length); } }, 0); });
     var GS = gamesShown();
-    var head = el('tr', {}, [th('Student', 'name'), showEmail ? th('Email', 'email') : null, th('Last played', 'last'), th('Levels', 'lv'), th('Lessons', 'les')].concat(GS.map(function (G) { return th('Film ' + G.film + ' · ' + G.title, G.id); })));
+    var head = el('tr', {}, [th('Student', 'name'), showEmail ? th('Email', 'email') : null, th('Last played', 'last'), th('Levels', 'lv'), th('Lessons', 'les'), th('Climb', 'climb')].concat(GS.map(function (G) { return th('Film ' + G.film + ' · ' + G.title, G.id); })));
     // game picker
     var pick = el('details', { 'class': 'gpick' }); pick.open = pickOpen; pick.addEventListener('toggle', function () { pickOpen = pick.open; });
     pick.appendChild(el('summary', { text: 'Choose games to show (' + GS.length + ' of ' + SFA.GAMES.length + ')' }));
@@ -677,12 +685,13 @@ a.btn{text-decoration:none;display:inline-block}
     R.forEach(function (r) {
       var quiet = !r.last || new Date(r.last).getTime() < week;
       var tr = el('tr', { 'class': quiet ? 'quiet' : '' }, [
-        el('td', { 'class': 'nm' }, [el('a', { href: '#', 'class': 'who', title: 'Everything ' + r.s.name + ' has done, film by film', onclick: function (e) { e.preventDefault(); studentView(r.s.sid); } }, [r.s.name]), quiet ? el('span', { 'class': 'flag', text: r.last ? 'quiet 7d+' : 'no games yet' }) : null]),
+        el('td', { 'class': 'nm' }, [el('a', { href: '#', 'class': 'who', title: 'Everything ' + r.s.name + ' has done, film by film', onclick: function (e) { e.preventDefault(); studentView(r.s.sid); } }, [r.s.name]), el('a', { href: 'day.html#sid=' + encodeURIComponent(r.s.sid), title: r.s.name + "'s day: Climb, lessons and games together", 'aria-label': 'Day view for ' + r.s.name, style: 'margin-left:6px;text-decoration:none' }, ['📅']), quiet ? el('span', { 'class': 'flag', text: r.last ? 'quiet 7d+' : 'no games yet' }) : null]),
         showEmail ? el('td', { 'class': 'muted', style: 'font-size:13px', text: emails[r.s.sid] || '' }) : null,
         el('td', { text: r.last ? SFA.ago(r.last) : '—' }),
         el('td', { text: String(r.lv) }),
         (function () { var p = per[r.s.sid]; if (!les.by) return el('td', { 'class': 'muted', text: '…' }); if (!p) return el('td', { 'class': 'muted', text: '·' });
-          return el('td', { title: p.n + ' answers in ' + Object.keys(p.les).length + ' lessons' + (p.c ? ', ' + p.r + ' of ' + p.c + ' marked questions right' : ''), text: Object.keys(p.les).length + ' · ' + (p.c ? Math.round(100 * p.r / p.c) + '%' : p.n + ' ans') + (flagged[r.s.sid] ? ' ⚠' : '') }); })()
+          return el('td', { title: p.n + ' answers in ' + Object.keys(p.les).length + ' lessons' + (p.c ? ', ' + p.r + ' of ' + p.c + ' marked questions right' : ''), text: Object.keys(p.les).length + ' · ' + (p.c ? Math.round(100 * p.r / p.c) + '%' : p.n + ' ans') + (flagged[r.s.sid] ? ' ⚠' : '') }); })(),
+        climbCell(r.cl)
       ].concat(GS.map(function (G) {
         var p = r.g[G.id]; if (!p) return el('td', { 'class': 'muted', text: '·' });
         var pct = p.levelsTotal ? Math.round(100 * p.levelsDone / p.levelsTotal) : 0;

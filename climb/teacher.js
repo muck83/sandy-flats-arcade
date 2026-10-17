@@ -51,6 +51,12 @@
     return api('climbControl', b).then(function (j) { data.session = j.session; if (j.accom) data.accom = j.accom; draw(); refresh(); return j; }, fail);
   }
 
+  // the lessons' titles (for the "Then: Lesson" menu)
+  var LES = {};
+  (function () { var left = 17, prev = window.SFA_LESSON; window.SFA_LESSON = function (L) { LES[String(L.id).slice(1)] = L; };
+    for (var i = 1; i <= 17; i++) { var sc = document.createElement('script'); sc.src = (window.CLIMB_ROOT || '') + 'lessons/L' + i + '.js'; sc.onload = sc.onerror = function () { if (--left === 0) { window.SFA_LESSON = prev; if (data) draw(); } }; document.head.appendChild(sc); } })();
+  function nextL(s) { return s && s.state !== 'ended' ? (s.next || 0) : s && s.state === 'ended' && s.next ? s.next : SFA.store.get('teacher.climb.next', 0); }
+
   /* ---------- derived data ---------- */
   function roster() { return data.roster.filter(function (r) { return !cls || r.cls === cls; }); }
   function rowOf(sid) { return data.rows.filter(function (r) { return r.sid === sid; })[0] || null; }
@@ -117,12 +123,25 @@
     var all = el('input', { type: 'checkbox', id: 'fall' }); all.checked = !!(s && s.focusAll);
     row.appendChild(foc); row.appendChild(el('label', { 'for': 'fall', style: 'display:flex;gap:6px;align-items:center;font-size:15px', title: 'Students who haven\'t reached the focus skill get its guided items (not scored) between their own' }, [all, 'Open it for everyone']));
     if (running) { foc.onchange = all.onchange = function () { control('focus', { focus: foc.value, focusAll: all.checked }); }; }
+    // the lesson that follows: students who finish Climb wait on their summary and move into it when you go live
+    var nxt = el('select', { 'aria-label': 'Lesson after Climb', title: 'Students move into this lesson by themselves when you go live on it' });
+    nxt.appendChild(el('option', { value: '0', text: 'Then: no lesson' }));
+    (window.SFA_PLAN || []).slice().sort(function (a, b) { return a.n - b.n; }).forEach(function (p) { var L = LES[p.l], o = el('option', { value: String(p.l), text: 'Then: Lesson ' + p.n + (L ? ' · ' + L.title : '') }); if (String(p.l) === String(nextL(s))) o.selected = true; nxt.appendChild(o); });
+    nxt.onchange = function () { SFA.store.set('teacher.climb.next', +nxt.value); if (running) control('next', { next: +nxt.value }); else draw(); };
+    row.appendChild(nxt);
     var B = function (t, cl, f) { var b = el('button', { type: 'button', 'class': 'btn ' + (cl || ''), text: t }); b.onclick = function () { b.disabled = true; f(); }; row.appendChild(b); };
-    if (!s || s.state === 'ended') B('Open the waiting room', 'primary', function () { control('open', { cls: cls, focus: foc.value, focusAll: all.checked }); });
+    if (!s || s.state === 'ended') B('Open the waiting room', 'primary', function () { control('open', { cls: cls, focus: foc.value, focusAll: all.checked, next: +nxt.value }); });
     if (s && s.state === 'open') B('Start: 12 minutes for everyone', 'primary', function () { control('start'); });
     if (s && s.state === 'running') B('Pause all', 'warm', function () { control('pause'); });
     if (s && s.state === 'paused') B('Resume', 'primary', function () { control('resume'); });
     if (running) B('End now', '', function () { if (window.confirm('End the session for everyone now?')) control('end'); else draw(); });
+    // one press: end Climb for everyone, open the lesson's console and go live; students' pages follow by themselves
+    var nl = nextL(s), film = nl && window.SFA_LESSON_NUM ? window.SFA_LESSON_NUM[nl] : nl;
+    if (nl && running) B('End Climb → Lesson ' + film, 'primary', function () {
+      if (!window.confirm('End Climb for everyone and start Lesson ' + film + ' live?\n\nStudents still answering stop now. Everyone\'s page moves into the lesson by itself.')) return draw();
+      control('end').then(function () { location.href = (window.CLIMB_ROOT || '') + 'lesson.html?l=' + nl + '&teach&golive'; });
+    });
+    if (nl && s && s.state === 'ended') B('Start Lesson ' + film + ' live', 'primary', function () { location.href = (window.CLIMB_ROOT || '') + 'lesson.html?l=' + nl + '&teach&golive'; });
     if (s && s.state === 'ended') B('Clear', 'small', function () { control('clear'); });
     B('Refresh', 'small', function () { refresh(); });
     B('Download CSV', 'small', csv);
@@ -275,6 +294,7 @@
     api('climbStudent', { sid: r.sid }).then(function (j) {
       var st = j.state, p = el('div', { 'class': 'overlay' }), d = el('section', { 'class': 'dialog', style: 'max-width:900px;max-height:90vh;overflow:auto' });
       d.appendChild(el('h1', { text: nice(r.name) }));
+      d.appendChild(el('a', { href: (window.CLIMB_ROOT || '') + 'day.html#sid=' + encodeURIComponent(r.sid), text: '📅 See their whole day: Climb, lessons and games' }));
       if (!st) d.appendChild(el('p', { 'class': 'muted', text: 'Hasn\'t done a Climb session yet.' }));
       else {
         st = E.norm(st);

@@ -392,6 +392,7 @@ a.btn{text-decoration:none;display:inline-block}
 </script>
 <script src="sfa-sync.js"></script>
 <script src="sfa-account.js"></script>
+<script src="climb/core.js"></script>
 <script>
 (function () {
   'use strict';
@@ -436,9 +437,24 @@ a.btn{text-decoration:none;display:inline-block}
         el('div', { 'class': 'tot' }, [el('b', { text: String(sp) }), el('small', { text: 'special certificates' })])
       ]),
       el('p', { 'class': 'gus' }, [el('b', { text: 'GUS' }), line]),
+      climbCard(j.climb),
       grid
     ]);
     show(wrap);
+  }
+  // Climb, the linear functions check-in: growth score and skill map (the same ones the student sees at the end of a session)
+  function climbCard(c) {
+    var C = window.CLIMB, box = el('div', { 'class': 'rg' + (c ? ' started' : ''), style: 'margin-top:14px' }, [el('h3', { text: '🧗 Climb' })]);
+    if (!c || !C) { box.appendChild(el('span', { 'class': 'muted', text: 'No Climb sessions yet. Mr. Crowell opens Climb at the start of class.' })); return box; }
+    var codes = {}; String(c.map || '').split(' ').forEach(function (t) { var p = t.split(':'); if (p.length === 2) codes[p[0]] = p[1].replace('!', ''); });
+    var core = C.CORE.filter(function (id) { return codes[id] === 'S' || codes[id] === 'R'; }).length;
+    box.appendChild(el('span', { 'class': 'big', text: 'Growth score ' + Math.round(c.theta) }));
+    box.appendChild(el('span', { text: core + ' of ' + C.CORE.length + ' core skills secure' + (c.retained ? ' · ' + c.retained + ' retained' : '') + ' · ' + c.sess + ' session' + (c.sess == 1 ? '' : 's') }));
+    var COL = { R: '#5CE0B8', S: '#2E9E7B', L: '#FFC94A', B: '#FFC94A', K: '#E8584C', O: 'transparent', '-': 'rgba(255,255,255,.08)' };
+    box.appendChild(el('div', { 'class': 'pips', style: 'display:flex;gap:3px;flex-wrap:wrap', 'aria-label': 'Climb skill map' }, C.SKILLS.map(function (s) { var k = codes[s.id] || '-'; return el('i', { style: 'width:16px;height:16px;border-radius:4px;display:inline-block;background:' + COL[k] + ';border:1px solid rgba(255,255,255,.25)', title: C.label(s.id) + ' ' + s.name + ': ' + ({ R: 'retained', S: 'secure', L: 'learning', B: 'learning', K: 'learning', O: 'open', '-': 'not open yet' }[k]) }); })));
+    if (c.frontier && C.SKILL[c.frontier]) box.appendChild(el('small', { 'class': 'muted', text: 'Up next: ' + C.label(c.frontier) + ' · ' + C.SKILL[c.frontier].name + ' · last climbed ' + SFA.ago(c.updated) }));
+    box.appendChild(el('div', {}, [el('a', { 'class': 'btn small', href: 'climb.html', text: 'Open Climb' })]));
+    return box;
   }
   function again() {
     show(el('div', { 'class': 'acct' }, [el('div', {}, [el('b', { text: 'Sign in again to see your results' }), el('small', { text: 'Your sign-in ran out. Sign in again with the student code from your school email. Your progress is safe.' })]), el('a', { 'class': 'btn primary', href: 'index.html#signin', text: 'Sign in again' })]));

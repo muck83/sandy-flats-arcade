@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Student Day · Sandy Flats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css">
+<style>
+.bar1{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.bar1 select,.bar1 input{font:600 14px var(--ui);padding:7px 10px;border-radius:10px;border:2px solid var(--line);background:#0E0C14;color:var(--ink)}
+.src{display:inline-flex;gap:6px;align-items:center;font:700 14px var(--ui);padding:6px 10px;border-radius:999px;border:2px solid var(--line);cursor:pointer}
+.src input{accent-color:var(--marquee)}
+.days{display:flex;gap:4px;flex-wrap:wrap;margin-top:12px}
+.days button{font:600 12px var(--ui);min-width:46px;padding:6px 4px;border-radius:10px;border:2px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.days button.on{border-color:var(--marquee);background:#2a2410}
+.days button .dots{display:flex;gap:2px;height:7px}.days button .dots i{width:7px;height:7px;border-radius:50%}
+.days button.none{opacity:.45}
+.c-climb{background:#5B8DEF}.c-lesson{background:#5CE0B8}.c-arcade{background:#FFC94A}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.tl{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:10px 12px;border-top-width:5px}
+.tl.climb{border-top-color:#5B8DEF}.tl.lesson{border-top-color:#5CE0B8}.tl.arcade{border-top-color:#FFC94A}
+.tl b{display:block;font-family:var(--display);font-weight:400;font-size:26px;color:var(--ink);line-height:1.05}
+.tl small{color:var(--muted)}
+.tline{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.tline li{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:10px;padding:8px 12px}
+.tline li.climb{border-left-color:#5B8DEF}.tline li.lesson{border-left-color:#5CE0B8}.tline li.arcade{border-left-color:#FFC94A}
+.tline li.head{background:var(--panel2);font-weight:700}
+.tline .r1{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.tline time{font:500 13px var(--mono);color:var(--muted);min-width:4.2em}
+.tline .what{flex:1 1 300px}
+.tline .res{font-weight:700}.ok{color:#5CE0B8}.no{color:#E8584C}.mid{color:#FFC94A}
+.tline details{margin-top:6px}.tline summary{cursor:pointer;color:var(--muted);font-size:13px}
+.qbox{background:#fff;color:#111827;border-radius:12px;padding:12px 14px;margin-top:6px;font-size:15px}
+.qbox .cfig{max-width:320px;height:auto}.qbox table{border-collapse:collapse}.qbox td,.qbox th{border:1px solid #ccd;padding:3px 8px}
+.pill{display:inline-block;font:700 11px var(--ui);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:2px 8px;background:var(--panel2);color:var(--muted)}
+.empty{color:var(--muted);margin-top:14px}
+@media print{.bar1,.days,.sfanav,.topbar .chips{display:none}.tline details{display:none}body{background:#fff;color:#000}.tl,.tline li{background:#fff;color:#000}}
+</style>
+</head><body>
+<div class="wrap">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Student Day</h1><div class="chips"><button type="button" class="chip" id="print">Print</button></div></header>
+  <div id="body"><p class="muted" style="margin-top:16px">Loading…</p></div>
+</div>
+<script src="config.js"></script>
+<script src="sfa-kit.js"></script>
+<script src="climb/core.js"></script>
+<script src="climb/bank-f.js"></script>
+<script src="climb/bank-a.js"></script>
+<script src="climb/bank-b.js"></script>
+<script src="climb/bank-rc.js"></script>
+<script src="climb/bank-d.js"></script>
+<script src="climb/bank-e.js"></script>
+<script src="climb/bank-ln.js"></script>
+<script src="climb/bank-cp.js"></script>
+<script src="climb/bank-qg.js"></script>
+<script src="climb/bank-x.js"></script>
+<script>
+/* One student's day across the Climb check-in, the lesson slideshows and the arcade games: pick a student and a day,
+   choose which parts to show, and read it as one timeline. */
+(function () {
+  'use strict';
+  var SFA = window.SFA, el = SFA.el, esc = SFA.esc, C = window.CLIMB, CFG = window.SFA_CONFIG || {}, body = document.getElementById('body');
+  var KEY = 'sfa.classkey', roster = null, data = null, LES = {}, lesLeft = 17;
+  var P = new URLSearchParams(location.hash.slice(1));
+  var st = { sid: P.get('sid') || SFA.store.get('teacher.day.sid', ''), date: P.get('date') || '', cls: SFA.store.get('teacher.day.cls', ''), src: SFA.store.get('teacher.day.src', { climb: true, lesson: true, arcade: true }) };
+  var Key = {
+    get: function () { try { var s = sessionStorage.getItem(KEY); if (s) return s; var r = JSON.parse(localStorage.getItem(KEY) || 'null'); if (r && r.until > Date.now()) return r.k; } catch (e) { } return ''; },
+    set: function (k, remember) { try { sessionStorage.setItem(KEY, k); if (remember) { var d = new Date(); d.setHours(23, 59, 59, 0); localStorage.setItem(KEY, JSON.stringify({ k: k, until: d.getTime() })); } } catch (e) { } },
+    del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
+  };
+  function api(op, b) {
+    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ op: op, teacherKey: Key.get() }, b || {})) })
+      .then(function (r) { return r.text(); }).then(function (t) { var j; try { j = JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly.'); } if (!j.ok) throw new Error(j.error); return j; });
+  }
+  function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
+  function hhmm(iso) { var d = new Date(iso); return isNaN(d) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+  function askKey(msg) {
+    var inp = el('input', { type: 'password', 'class': 'num', style: 'width:22em;max-width:100%', autocomplete: 'off', 'aria-label': 'Teacher key' }), rem = el('input', { type: 'checkbox', id: 'rk' });
+    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Open', onclick: function () { Key.set(inp.value.trim(), rem.checked); start(); } });
+    inp.onkeydown = function (e) { if (e.key === 'Enter') go.click(); };
+    body.innerHTML = '';
+    body.appendChild(el('div', { 'class': 'card', style: 'margin-top:16px;max-width:640px' }, [el('h2', { text: 'Teacher key' }), el('p', { 'class': 'muted', text: msg || 'Same key as Class Results.' }), el('div', { 'class': 'row' }, [inp, go]), el('label', { 'for': 'rk', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' }, [rem, 'Remember on this computer until the end of today'])]));
+    inp.focus();
+  }
+  function fail(e) {
+    if (/teacher key/.test(e.message)) { Key.del(); return askKey('That key didn\'t work. Check it and try again.'); }
+    body.innerHTML = ''; body.appendChild(el('p', { 'class': 'say bad', style: 'margin-top:16px', text: /unknown op/.test(e.message) ? 'The results script needs updating first: paste the new Code.gs into Apps Script and deploy a new version.' : 'Couldn\'t reach the results sheet. ' + e.message }));
+  }
+  function start() {
+    if (!CFG.endpoint) { body.textContent = 'Results saving isn\'t switched on for this copy of the arcade.'; return; }
+    if (!Key.get()) return askKey();
+    api('roster').then(function (j) { roster = j.roster.sort(function (a, b) { return a.name < b.name ? -1 : 1; }); if (!st.sid && roster.length) st.sid = mine()[0] ? mine()[0].sid : roster[0].sid; load(); }, fail);
+  }
+  function mine() { return roster.filter(function (r) { return !st.cls || r.cls === st.cls; }); }
+  function load() {
+    SFA.store.set('teacher.day.sid', st.sid); SFA.store.set('teacher.day.cls', st.cls);
+    history.replaceState(null, '', '#sid=' + encodeURIComponent(st.sid) + (st.date ? '&date=' + st.date : ''));
+    body.innerHTML = '<p class="muted" style="margin-top:16px">Loading…</p>';
+    api('studentDay', { sid: st.sid, date: st.date }).then(function (j) { data = j; if (!st.date) st.date = j.date; draw(); }, fail);
+  }
+
+  /* ---------- the timeline ---------- */
+  function lessonSlide(lid, q) { var L = LES[lid]; if (!L) return null; return L.slides.filter(function (s) { return s.id === q; })[0] || null; }
+  function lessonName(lid) { var L = LES[lid]; return L ? 'Lesson ' + L.n + ' · ' + L.title : lid; }
+  function gameTitle(id) { var G = (SFA.GAMES || []).filter(function (g) { return g.id === id; })[0]; return G ? G.title + ' (Film ' + G.film + ')' : id; }
+  function plain(s) { return String(s || '').replace(/[*_]/g, ''); }
+  function items() {
+    var out = [];
+    if (st.src.climb) {
+      var bySess = {};
+      data.climb.forEach(function (r) { (bySess[r.sess] = bySess[r.sess] || []).push(r); });
+      Object.keys(bySess).forEach(function (sid) {
+        var rows = bySess[sid], sc = rows.filter(function (r) { return r.result === 'yes' || r.result === 'no' || r.result === 'time'; }), ok = sc.filter(function (r) { return r.result === 'yes'; }).length, left = rows.filter(function (r) { return r.result === 'void'; }).length;
+        var cr = data.climbRow, td = cr && cr.today && cr.today.id === sid ? cr.today : null;
+        out.push({ t: rows[0].time, src: 'climb', head: true, what: '🧗 Climb session ' + sid + ': ' + sc.length + ' questions, ' + ok + ' right' + (left ? ', left the page ' + left + '×' : '') + (td && td.secured ? ' · secured ' + td.secured.split(' ').map(C.label).join(', ') : '') });
+        rows.forEach(function (r) {
+          var res = { yes: ['✓', 'ok'], no: ['✗', 'no'], time: ['⏱ timed out', 'mid'], void: ['left page', 'mid'] }[r.result] || [r.result, ''];
+          out.push({ t: r.time, src: 'climb', what: C.label(r.skill) + (C.SKILL[r.skill] ? ' · ' + C.SKILL[r.skill].name : '') + ' · ' + r.tid + (r.mode !== 'new' ? ' (' + r.mode + ')' : ''), ans: r.answer, res: res, tag: r.tag && C.TAGS[r.tag] ? r.tag + ' ' + C.TAGS[r.tag].name : r.tag, extra: r.secs + ' s' + (r.flags ? ' · ' + r.flags : ''), climb: r });
+        });
+      });
+    }
+    if (st.src.lesson) data.lessons.forEach(function (r) {
+      if (r.q === 'here') return out.push({ t: r.time, src: 'lesson', head: true, what: '📺 Joined ' + lessonName(r.lesson) });
+      if (r.q === 'zflag') return out.push({ t: r.time, src: 'lesson', what: '⚠ ' + lessonName(r.lesson) + ': focus watch', ans: r.answer, res: ['flag', 'mid'] });
+      var s = lessonSlide(r.lesson, r.q), a = r.answer;
+      if (s && s.opts && /^\d+$/.test(a) && s.opts[+a] != null) a = s.opts[+a];
+      out.push({ t: r.time, src: 'lesson', what: lessonName(r.lesson) + ' · ' + (s ? plain(s.q || s.name || r.q) : r.q), ans: plain(a), res: r.correct === 'yes' ? ['✓', 'ok'] : r.correct === 'no' ? ['✗', 'no'] : null, extra: r.kind });
+    });
+    if (st.src.arcade) data.events.forEach(function (e) {
+      var d = String(e.detail).split(' '), what = e.type === 'certificate' ? (e.detail === 'standard' ? '★ Standard certificate' : '✦ ' + e.detail) : 'Cleared ' + (d.slice(2).join(' ') || d[0]) + (d[1] === 'stretch' ? ' (stretch)' : '');
+      out.push({ t: e.time, src: 'arcade', what: '🕹️ ' + gameTitle(e.game) + ': ' + what, res: ['✓', 'ok'] });
+    });
+    // a session or lesson heading sorts just before the answers it heads
+    out.sort(function (a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : (b.head ? 1 : 0) - (a.head ? 1 : 0); });
+    return out;
+  }
+  function tiles() {
+    var t = el('div', { 'class': 'tiles' });
+    function tile(cls, v, label) { t.appendChild(el('div', { 'class': 'tl ' + cls }, [el('b', { text: String(v) }), el('small', { text: label })])); }
+    if (st.src.climb) {
+      var sc = data.climb.filter(function (r) { return r.result === 'yes' || r.result === 'no' || r.result === 'time'; }), ok = sc.filter(function (r) { return r.result === 'yes'; }).length;
+      var cr = data.climbRow, sess = {}; data.climb.forEach(function (r) { sess[r.sess] = 1; });
+      var secured = cr && cr.today && sess[cr.today.id] && cr.today.secured ? cr.today.secured.split(' ').filter(Boolean) : [];
+      tile('climb', sc.length ? ok + '/' + sc.length : '·', 'Climb questions right');
+      tile('climb', secured.length, 'Climb skills secured' + (secured.length ? ' (' + secured.map(C.label).join(', ') + ')' : ''));
+      tile('climb', data.climb.filter(function (r) { return r.result === 'void'; }).length, 'times left the Climb page');
+      if (cr) tile('climb', Math.round(cr.theta), 'growth score now · ' + cr.secure + ' skills secure');
+    }
+    if (st.src.lesson) {
+      var la = data.lessons.filter(function (r) { return r.q !== 'here' && r.q !== 'zflag'; }), marked = la.filter(function (r) { return r.correct; }), right = marked.filter(function (r) { return r.correct === 'yes'; }).length;
+      var joined = {}; data.lessons.forEach(function (r) { if (r.q === 'here') joined[r.lesson] = 1; });
+      tile('lesson', Object.keys(joined).length, 'lessons joined' + (Object.keys(joined).length ? ' (' + Object.keys(joined).map(function (l) { return LES[l] ? 'L' + LES[l].n : l; }).join(', ') + ')' : ''));
+      tile('lesson', la.length, 'lesson answers');
+      tile('lesson', marked.length ? Math.round(100 * right / marked.length) + '%' : '·', 'right on marked lesson questions');
+      tile('lesson', data.lessons.filter(function (r) { return r.q === 'zflag'; }).length, 'focus-watch flags');
+    }
+    if (st.src.arcade) {
+      var lv = data.events.filter(function (e) { return e.type === 'level'; }).length, ce = data.events.filter(function (e) { return e.type === 'certificate'; }).length, gm = {};
+      data.events.forEach(function (e) { gm[e.game] = 1; });
+      tile('arcade', lv, 'game levels cleared');
+      tile('arcade', ce, 'certificates earned');
+      tile('arcade', Object.keys(gm).length, 'games played' + (Object.keys(gm).length ? ' (' + Object.keys(gm).map(function (g) { var G = SFA.GAMES.filter(function (x) { return x.id === g; })[0]; return G ? G.title : g; }).join(', ') + ')' : ''));
+    }
+    return t;
+  }
+  function dayStrip() {
+    var wrap = el('div', { 'class': 'days', 'aria-label': 'Days with activity' }), base = new Date(data.today + 'T12:00:00');
+    for (var i = 20; i >= 0; i--) {
+      var d = new Date(base.getTime() - i * 86400000), k = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2), c = data.days[k] || {};
+      var any = (st.src.climb && c.climb) || (st.src.lesson && c.lesson) || (st.src.arcade && c.arcade);
+      var b = el('button', { type: 'button', 'class': (k === st.date ? 'on ' : '') + (any ? '' : 'none'), title: k + ': ' + (c.climb || 0) + ' Climb answers, ' + (c.lesson || 0) + ' lesson answers, ' + (c.arcade || 0) + ' game levels/certificates' });
+      b.appendChild(el('span', { text: d.toLocaleDateString([], { weekday: 'short' }) + ' ' + d.getDate() }));
+      var dots = el('span', { 'class': 'dots' });
+      ['climb', 'lesson', 'arcade'].forEach(function (p) { if (st.src[p] && c[p]) dots.appendChild(el('i', { 'class': 'c-' + p })); });
+      b.appendChild(dots);
+      (function (k) { b.onclick = function () { st.date = k; load(); }; })(k);
+      wrap.appendChild(b);
+    }
+    return wrap;
+  }
+  function draw() {
+    body.innerHTML = '';
+    var bar = el('div', { 'class': 'bar1' });
+    var classes = {}; roster.forEach(function (r) { if (r.cls) classes[r.cls] = 1; });
+    if (Object.keys(classes).length > 1) {
+      var cs = el('select', { 'aria-label': 'Class' }, [el('option', { value: '', text: 'All classes' })].concat(Object.keys(classes).sort().map(function (c) { var o = el('option', { value: c, text: 'Class ' + c }); if (c === st.cls) o.selected = true; return o; })));
+      cs.onchange = function () { st.cls = cs.value; var m = mine(); if (m.length && !m.some(function (r) { return r.sid === st.sid; })) st.sid = m[0].sid; load(); };
+      bar.appendChild(cs);
+    }
+    var list = mine(), idx = list.findIndex(function (r) { return r.sid === st.sid; });
+    var ss = el('select', { 'aria-label': 'Student' }, list.map(function (r) { var o = el('option', { value: r.sid, text: nice(r.name) + (r.cls && !st.cls ? ' · ' + r.cls : '') }); if (r.sid === st.sid) o.selected = true; return o; }));
+    ss.onchange = function () { st.sid = ss.value; load(); };
+    bar.appendChild(el('button', { type: 'button', 'class': 'btn small', text: '◀', title: 'Previous student', onclick: function () { if (idx > 0) { st.sid = list[idx - 1].sid; load(); } } }));
+    bar.appendChild(ss);
+    bar.appendChild(el('button', { type: 'button', 'class': 'btn small', text: '▶', title: 'Next student', onclick: function () { if (idx >= 0 && idx < list.length - 1) { st.sid = list[idx + 1].sid; load(); } } }));
+    var di = el('input', { type: 'date', value: st.date, 'aria-label': 'Day' }); di.onchange = function () { st.date = di.value; load(); };
+    bar.appendChild(di);
+    [['climb', '🧗 Climb'], ['lesson', '📺 Lessons'], ['arcade', '🕹️ Arcade']].forEach(function (p) {
+      var c = el('input', { type: 'checkbox' }); c.checked = !!st.src[p[0]];
+      c.onchange = function () { st.src[p[0]] = c.checked; SFA.store.set('teacher.day.src', st.src); draw(); };
+      bar.appendChild(el('label', { 'class': 'src' }, [c, p[1]]));
+    });
+    body.appendChild(bar);
+    body.appendChild(dayStrip());
+    var dd = new Date(st.date + 'T12:00:00');
+    body.appendChild(el('h2', { style: 'margin:18px 0 0;font-family:var(--display);font-weight:400;color:var(--marquee)', text: nice(data.student.name) + (data.student.cls ? ' · Class ' + data.student.cls : '') + ' · ' + dd.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' }) }));
+    body.appendChild(tiles());
+    var its = items();
+    if (!its.length) { body.appendChild(el('p', { 'class': 'empty', text: 'Nothing on this day in the parts you\'ve chosen. Days with a dot above have activity.' })); return; }
+    var ul = el('ul', { 'class': 'tline' });
+    its.forEach(function (x) {
+      var li = el('li', { 'class': x.src + (x.head ? ' head' : '') }), r1 = el('div', { 'class': 'r1' });
+      r1.appendChild(el('time', { text: hhmm(x.t) }));
+      r1.appendChild(el('span', { 'class': 'what', text: x.what }));
+      if (x.ans != null && x.ans !== '') r1.appendChild(el('span', { 'class': 'muted', text: '→ ' + String(x.ans).slice(0, 140) }));
+      if (x.res) r1.appendChild(el('span', { 'class': 'res ' + x.res[1], text: x.res[0] }));
+      if (x.tag) r1.appendChild(el('span', { 'class': 'pill', text: x.tag }));
+      if (x.extra) r1.appendChild(el('span', { 'class': 'muted', style: 'font-size:12px', text: x.extra }));
+      li.appendChild(r1);
+      // the exact Climb question, rebuilt from its template and seed
+      if (x.climb && C.T[x.climb.tid]) {
+        var det = el('details'); det.appendChild(el('summary', { text: 'Show the question' }));
+        det.addEventListener('toggle', function () {
+          if (!det.open || det.querySelector('.qbox')) return;
+          var it = null; try { it = C.make(x.climb.tid, x.climb.seed); } catch (e) { }
+          var q = el('div', { 'class': 'qbox' });
+          q.innerHTML = it ? '<b>' + it.stem + '</b>' + (it.fig ? '<div>' + it.fig + '</div>' : '') + '<p style="margin:6px 0 0">Correct answer: ' + it.answer + '</p>' : 'This question can\'t be rebuilt.';
+          det.appendChild(q);
+        });
+        li.appendChild(det);
+      }
+      ul.appendChild(li);
+    });
+    body.appendChild(ul);
+  }
+  document.getElementById('print').onclick = function () { window.print(); };
+  window.SFA_LESSON = function (L) { LES[L.id] = L; };
+  for (var i = 1; i <= 17; i++) { var s = document.createElement('script'); s.src = (window.CLIMB_ROOT || '') + 'lessons/L' + i + '.js'; s.onload = s.onerror = function () { if (--lesLeft === 0) start(); }; document.head.appendChild(s); }
+})();
+</script>
+<script src="sfa-nav.js"></script>
+</body></html>

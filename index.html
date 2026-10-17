@@ -996,7 +996,7 @@ a.btn{text-decoration:none;display:inline-block}
     return { n: n, joined: joined, pct: checked ? Math.round(100 * right / checked) : null };
   }
   function tot(v, label) { return SFA.el('div', { 'class': 'tot' }, [SFA.el('b', { text: String(v) }), SFA.el('small', { text: label })]); }
-  function draw(games) {
+  function draw(games, climb) {
     var lv = 0, std = 0, sp = 0;
     (games || []).forEach(function (g) { lv += Number(g.levelsDone) || 0; std += g.standard ? 1 : 0; sp += (g.specials || []).length; });
     var L = lessons(), first = String(S.me.name || '').split(',').reverse()[0].trim().split(' ')[0];
@@ -1007,7 +1007,7 @@ a.btn{text-decoration:none;display:inline-block}
       tot(std + sp, 'certificates (' + std + ' standard)'),
       tot(L.joined, L.joined === 1 ? 'lesson joined' : 'lessons joined'),
       tot(L.pct == null ? L.n : L.pct + '%', L.pct == null ? 'lesson answers' : 'right in lessons (' + L.n + ' answers)')
-    ]));
+    ].concat(climb ? [tot(Math.round(climb.theta), 'Climb growth score (' + (Number(climb.secure) || 0) + ' skills secure)')] : [])));
     box.hidden = false;
   }
   var busy = false, shownFor = '';
@@ -1017,7 +1017,7 @@ a.btn{text-decoration:none;display:inline-block}
     if (!S.me) { box.hidden = true; shownFor = ''; return; }
     if (busy || shownFor === S.me.sid) return;
     busy = true;
-    S.mine().then(function (j) { busy = false; shownFor = S.me && S.me.sid; draw(j.games); }, function () { busy = false; });
+    S.mine().then(function (j) { busy = false; shownFor = S.me && S.me.sid; draw(j.games, j.climb); }, function () { busy = false; });
   });
 })();
 </script>

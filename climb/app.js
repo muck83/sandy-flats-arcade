@@ -74,7 +74,8 @@
     if (!S.me || document.visibilityState === 'hidden') { pingTimer = setTimeout(ping, 5000); return; }
     var t0 = Date.now();
     S.call('climbPing', { status: status() }).then(function (j) {
-      off = j.now + (Date.now() - t0) / 2 - Date.now(); mult = j.mult || 1; setSession(j.session);
+      off = j.now + (Date.now() - t0) / 2 - Date.now(); mult = j.mult || 1; liveL = j.lesson || null; setSession(j.session);
+      handoff();
       pingTimer = setTimeout(ping, live() ? 8000 : 4000);
     }, function () { pingTimer = setTimeout(ping, 10000); });
   }
@@ -86,6 +87,38 @@
     if (!was || !s || was.id !== s.id || was.state !== s.state || was.focus !== s.focus) route();
   }
   var pausedLocal = 0;
+
+  /* ---------- after Climb: straight into the lesson, no link to click ---------- */
+  // The teacher picks "Then: Lesson N" for the session. A student whose 12 minutes are up waits on their summary;
+  // the moment the teacher goes live on that lesson, every waiting page moves into it (signed in, following the teacher).
+  var liveL = null, nextInfo = null, going = false, ROOT = window.CLIMB_ROOT || '';
+  function nextLesson() { return sess && sess.next ? sess.next : 0; }
+  function lessonLive(n) { return !!(n && liveL && liveL.lesson === 'L' + n && !liveL.ended && Math.abs(now() - liveL.at) < 10 * 60000); }
+  function handoff() {
+    var n = nextLesson(), t = T();
+    var finished = view === 'done' || (view === 'wait' && sess && sess.state === 'ended');
+    if (!finished || going || !lessonLive(n)) return;
+    // a student still inside their own (extended) time keeps working: only a finished one moves on
+    if (t && t.id === sess.id && !t.closed) return;
+    going = true;
+    var box = document.getElementById('nextBox');
+    if (box) box.innerHTML = '<b style="font-size:22px">Mr. Crowell is starting the lesson. Taking you there…</b>';
+    else SFA.toast('Mr. Crowell is starting the lesson. Taking you there…', 3000);
+    setTimeout(function () { location.href = ROOT + 'lesson.html?l=' + n; }, 2500);
+  }
+  // the lesson's title and film number for the "Next" card
+  function loadNext(n, cb) {
+    if (nextInfo && nextInfo.n === n) return cb(nextInfo);
+    var prev = window.SFA_LESSON;
+    window.SFA_LESSON = function (L) { nextInfo = { n: n, title: L.title, film: (window.SFA_LESSON_NUM || {})[n] || L.n }; window.SFA_LESSON = prev; cb(nextInfo); };
+    var s = document.createElement('script'); s.src = ROOT + 'lessons/L' + n + '.js'; s.onerror = function () { window.SFA_LESSON = prev; }; document.head.appendChild(s);
+  }
+  function nextCard() {
+    var n = nextLesson(); if (!n) return '';
+    var href = ROOT + 'lesson.html?l=' + n;
+    setTimeout(function () { loadNext(n, function (I) { var h = document.getElementById('nextTitle'); if (h) h.textContent = 'Next: Lesson ' + I.film + ' · ' + I.title; }); }, 0);
+    return '<section class="card" id="nextBox" style="flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;border:2px solid var(--blue)"><div style="display:flex;flex-direction:column;gap:4px"><b id="nextTitle" style="font:800 24px var(--disp)">Next: the lesson</b><span class="sub">It opens by itself when Mr. Crowell starts it. Stay on this page.</span></div><a class="btn" href="' + href + '">Open it now</a></section>';
+  }
 
   /* ---------- screens ---------- */
   function msg(h, p, extra) { view = 'msg'; it = null; app.innerHTML = '<section class="card center"><h1 class="h2">' + esc(h) + '</h1><p class="sub" style="margin:0">' + esc(p) + '</p>' + (extra || '') + '</section>'; }
@@ -111,7 +144,7 @@
     var fr = E.frontier(st), secure = C.SKILLS.filter(function (s) { return E.isSecure(st, s.id); }).length;
     var due = C.SKILLS.filter(function (s) { var k = st.skills[s.id]; return k.st === 'secure' && st.sess + 1 - k.securedAt >= C.P.reviewGap; }).length;
     var counting = open && sess && sess.start && now() < sess.start;
-    app.innerHTML = '<div class="cgrid"><section class="card main" style="padding:44px;justify-content:center">' +
+    app.innerHTML = (sess && sess.state === 'ended' ? nextCard() : '') + '<div class="cgrid"' + (sess && sess.state === 'ended' && nextLesson() ? ' style="margin-top:20px"' : '') + '><section class="card main" style="padding:44px;justify-content:center">' +
       '<p style="margin:0;font-size:20px" class="sub">Hi, ' + esc(first(S.me.name)) + '. ' + (open ? 'You\'re in.' : '') + '</p>' +
       (counting ? '<h1 class="big1">Starting in <span style="color:var(--blue)" id="cd">0:10</span></h1>' : open ? '<h1 class="big1">Waiting for Mr. Crowell to start</h1>' : '<h1 class="big1">Climb isn\'t open right now</h1>') +
       '<p style="margin:0;font-size:20px;max-width:560px">' + (open ? 'Everyone starts together and stops together. Work on your own, and show what you really know: that\'s how the questions find your level.' : (sess && sess.state === 'ended' ? 'Today\'s session has ended. ' : '') + 'Mr. Crowell opens Climb at the start of class. Keep this page open and it starts by itself.') + '</p>' +
@@ -504,6 +537,7 @@
     var t = T(); if (!t) return waiting(false);
     var chg = document.getElementById('chg'); if (chg) chg.remove();
     if (!t.closed) { E.close(st); keep(); saveSoon(200); }
+    SFA.store.set('climb.doneId', t.id);   // the nav's "Climb is open" link stays away once you've finished this session
     it = null; meta = null; done();
   }
   function done(fromWait) {
@@ -514,7 +548,7 @@
     var map = '<div class="smap">' + C.SKILLS.map(function (s) { var c = E.code(st, s.id), cls = c === 'B' || c === 'K' ? 'L' : c; return '<span class="k-' + cls + '" title="' + esc(C.label(s.id) + ': ' + s.name) + '">' + esc(s.id) + '</span>'; }).join('') + '</div><div class="legend">' + LEG.map(function (l) { return '<span><i class="k-' + l[0] + '"></i>' + l[1] + '</span>'; }).join('') + '</div>';
     var today = !fromWait && t.id;
     app.innerHTML = (today ? '<header class="chead"><span class="chip">Session over</span></header>' : '') +
-      '<div style="display:flex;flex-direction:column;gap:20px;margin-top:12px">' +
+      '<div style="display:flex;flex-direction:column;gap:20px;margin-top:12px">' + (today ? nextCard() : '') +
       (today ? '<h1 class="big1" style="font-size:46px">Nice climbing. Here\'s what you did today.</h1><p style="margin:0;font-size:20px" class="sub">Your growth score went from <b style="color:var(--ink)">' + th0 + '</b> to <b style="color:var(--blue)">' + th1 + '</b>. It grows as you take on harder questions.</p>' +
         '<div class="tiles"><div class="tile blue"><span>Skills secured</span><b>' + t.secured.length + '</b><span>' + esc(t.secured.map(C.label).join(', ') || 'Next time!') + '</span></div>' +
         '<div class="tile white"><span>Reviews passed</span><b>' + t.revOk + ' of ' + t.revDone + '</b><span>' + esc(t.retained.length ? t.retained.map(C.label).join(', ') + ' now retained' : 'Reviews keep skills fresh') + '</span></div>' +
@@ -524,6 +558,7 @@
       '<section class="card" style="gap:18px"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px"><h2 style="margin:0;font-size:22px">Your skill map</h2><span class="sub">Up next: <b style="color:var(--ink)">' + (fr ? esc(skName(fr)) : 'review') + '</b></span></div>' + map + '</section>' +
       (fromWait ? '<div><button type="button" class="btn" id="bk">Back</button></div>' : '') + '</div>';
     var bk = document.getElementById('bk'); if (bk) bk.onclick = function () { route(); };
+    handoff();
   }
 
   /* ---------- the clock ---------- */

@@ -81,7 +81,7 @@ function route(req) {
     case 'save': return save(auth(req), req);
     case 'mine': return mine(auth(req));
     case 'class': teacher(req); return classView();
-    case 'live': var cs = climbSession(); return { ok: true, live: getLive(), climb: cs && cs.state !== 'ended' ? { state: cs.state, cls: cs.cls } : null };
+    case 'live': var cs = climbSession(); return { ok: true, live: getLive(), climb: cs && cs.state !== 'ended' ? { id: cs.id, state: cs.state, cls: cs.cls, next: cs.next || 0 } : null };
     case 'answer': return answer(auth(req), req);
     case 'myAnswers': return myAnswers(auth(req), req);
     case 'setLive': teacher(req); return setLive(req);
@@ -95,6 +95,7 @@ function route(req) {
     case 'climbClass': teacher(req); return climbClass(req);
     case 'climbCheck': teacher(req); return climbCheck(req);
     case 'climbStudent': teacher(req); return climbStudent(req);
+    case 'studentDay': teacher(req); return studentDay(req);
     default: throw new Error('unknown op');
   }
 }
@@ -214,7 +215,7 @@ function summaryRow(r) {
 function mine(s) {
   var sh = progressSheet(), at = rowsFor(sh, s.sid);
   var rows = Object.keys(at).map(function (g) { return summaryRow(sh.getRange(at[g], 1, 1, 12).getValues()[0]); });
-  return { ok: true, student: publicStudent(s), games: rows };
+  return { ok: true, student: publicStudent(s), games: rows, climb: climbRows(s.sid)[0] || null };
 }
 
 /* ---------------- teacher ---------------- */
@@ -227,7 +228,7 @@ function classView() {
     var from = Math.max(2, n - 299);
     events = es.getRange(from, 1, n - from + 1, 5).getValues().map(function (r) { return { time: r[0] instanceof Date ? r[0].toISOString() : String(r[0]), sid: String(r[1]), game: r[2], type: r[3], detail: r[4] }; }).reverse();
   }
-  return { ok: true, roster: roster, progress: prog, events: events };
+  return { ok: true, roster: roster, progress: prog, events: events, climb: climbRows() };
 }
 
 /* ---------------- lesson slideshows ---------------- */
@@ -339,7 +340,13 @@ function climbAccom() { try { return JSON.parse(prop('CLIMB_ACCOM') || '{}'); } 
 function climbFor(s) {
   var cs = climbSession();
   if (!cs || (cs.cls && cs.cls !== s.cls)) return null;
-  return { id: cs.id, state: cs.state, start: cs.start || 0, pausedAt: cs.pausedAt || 0, pausedMs: cs.pausedMs || 0, len: CLIMB_LEN, focus: cs.focus || '', focusAll: !!cs.focusAll, endedAt: cs.endedAt || 0 };
+  return { id: cs.id, state: cs.state, start: cs.start || 0, pausedAt: cs.pausedAt || 0, pausedMs: cs.pausedMs || 0, len: CLIMB_LEN, focus: cs.focus || '', focusAll: !!cs.focusAll, endedAt: cs.endedAt || 0, next: cs.next || 0 };
+}
+// the lesson the teacher is running live (Climb hands students over to it), or null
+function liveLesson() {
+  var L = getLive(); if (!L) return null;
+  var ended = !!(L.counts && L.counts.zend && L.counts.zend[0] === 1);
+  return { lesson: L.lesson, at: L.at, ended: ended };
 }
 function climbRow(sh, sid) {
   var n = sh.getLastRow(); if (n < 2) return -1;
@@ -361,7 +368,7 @@ function climbPing(s, req) {
     th: Math.round(Number(st.th) || 0), fl: String(st.fl || '').slice(0, 40), sess: String(st.sess || '').slice(0, 20), ok: num(st.ok), al: num(st.al), to: num(st.to)
   };
   try { CacheService.getScriptCache().put('cp_' + s.sid, JSON.stringify(me), 7200); } catch (e) { }
-  return { ok: true, now: Date.now(), session: climbFor(s), mult: climbAccom()[s.sid] || 1 };
+  return { ok: true, now: Date.now(), session: climbFor(s), mult: climbAccom()[s.sid] || 1, lesson: liveLesson() };
 }
 
 function climbSave(s, req) {
@@ -400,7 +407,9 @@ function climbControl(req) {
       PropertiesService.getScriptProperties().setProperty('CLIMB_ACCOM', JSON.stringify(acc));
       return { ok: true, session: cs, accom: acc };
     }
-    if (a === 'open') cs = { id: 'S' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyMMdd-HHmm'), cls: safe(req.cls, 20), state: 'open', openAt: now, start: 0, pausedAt: 0, pausedMs: 0, focus: CLIMB_SKILL.test(String(req.focus || '')) ? String(req.focus) : '', focusAll: !!req.focusAll };
+    var nx = Math.round(Number(req.next) || 0); nx = nx >= 1 && nx <= 30 ? nx : 0;   // the lesson (file number) students go on to afterwards
+    if (a === 'open') cs = { id: 'S' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyMMdd-HHmm'), cls: safe(req.cls, 20), state: 'open', openAt: now, start: 0, pausedAt: 0, pausedMs: 0, focus: CLIMB_SKILL.test(String(req.focus || '')) ? String(req.focus) : '', focusAll: !!req.focusAll, next: nx };
+    else if (a === 'next' && cs) cs.next = nx;
     else if (!cs) throw new Error('no session');
     else if (a === 'start') { if (cs.state !== 'open') throw new Error('already started'); cs.state = 'running'; cs.start = now + 10000; }
     else if (a === 'pause') { if (cs.state !== 'running') throw new Error('not running'); cs.state = 'paused'; cs.pausedAt = now; }
@@ -415,15 +424,21 @@ function climbControl(req) {
 }
 
 // teacher dashboard: every student's Climb row (no full state), who is on the page right now, and this week's answers
-function climbClass(req) {
-  var roster = rosterRows().map(publicStudent), sh = climbSheet('Climb'), n = sh.getLastRow(), rows = [];
-  if (n > 1) rows = sh.getRange(2, 1, n - 1, 11).getValues().filter(function (r) { return r[0]; }).map(function (r) {
+// each student's Climb row without the full state (one student when sid is given): Climb dashboard, Class Results, My Results
+function climbRows(sid) {
+  var sh = climbSheet('Climb'), n = sh.getLastRow();
+  if (n < 2) return [];
+  return sh.getRange(2, 1, n - 1, 11).getValues().filter(function (r) { return r[0] && (!sid || String(r[0]) === sid); }).map(function (r) {
     var o = { sid: String(r[0]), updated: r[1] instanceof Date ? r[1].toISOString() : String(r[1]), theta: Number(r[2]) || 205, sess: r[3], secure: r[4], retained: r[5], frontier: String(r[6]), map: String(r[7]) };
     try { o.today = JSON.parse(r[8] || '{}'); } catch (e) { o.today = {}; }
     try { o.hist = JSON.parse(r[9] || '[]'); } catch (e) { o.hist = []; }
     try { o.ov = r[10] ? JSON.parse(r[10]) : null; } catch (e) { o.ov = null; }
     return o;
   });
+}
+
+function climbClass(req) {
+  var roster = rosterRows().map(publicStudent), rows = climbRows();
   var keys = roster.map(function (r) { return 'cp_' + r.sid; }), got = keys.length ? CacheService.getScriptCache().getAll(keys) : {}, here = {};
   Object.keys(got).forEach(function (k) { try { here[k.slice(3)] = JSON.parse(got[k]); } catch (e) { } });
   // answers from the last 8 days (at most the last 6000 rows)
@@ -461,4 +476,35 @@ function climbStudent(req) {
   if (at < 0) return { ok: true, state: null };
   var v = sh.getRange(at, 12).getValue(), st = null; try { st = JSON.parse(v); } catch (e) { }
   return { ok: true, state: st };
+}
+
+/* ---------------- one student's day: Climb, lessons and arcade together ---------------- */
+// For the teacher's day view. Dates are in the script's time zone (File > Project settings). Also returns, for the last
+// 60 days, how much the student did each day in each part, so the page can show which days have anything.
+function studentDay(req) {
+  var sid = String(req.sid || ''), tz = Session.getScriptTimeZone();
+  var s = rosterRows().filter(function (r) { return r.sid === sid; })[0];
+  if (!s) throw new Error('no such student');
+  var day = /^\d{4}-\d{2}-\d{2}$/.test(String(req.date || '')) ? String(req.date) : Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  var since = Date.now() - 60 * 86400000, days = {};
+  function dkey(t) { return Utilities.formatDate(t instanceof Date ? t : new Date(t), tz, 'yyyy-MM-dd'); }
+  function count(t, part) { var ms = t instanceof Date ? t.getTime() : Date.parse(t); if (!(ms >= since)) return; var k = dkey(t), o = days[k] || (days[k] = { climb: 0, lesson: 0, arcade: 0 }); o[part]++; }
+  // Climb answers
+  var climb = [], ls = climbSheet('ClimbLog'), n = ls.getLastRow();
+  if (n > 1) ls.getRange(2, 1, n - 1, 12).getValues().forEach(function (r) {
+    if (String(r[1]) !== sid) return;
+    count(r[0], 'climb');
+    if (dkey(r[0]) === day) climb.push({ time: r[0] instanceof Date ? r[0].toISOString() : String(r[0]), sess: String(r[2]), skill: String(r[3]), tid: String(r[4]), seed: Number(r[5]) || 0, mode: String(r[6]), answer: String(r[7]), result: String(r[8]), tag: String(r[9]), secs: Number(r[10]) || 0, flags: String(r[11]) });
+  });
+  // lesson answers (and the "joined" and focus-watch markers)
+  var lessons = [];
+  responseRows().forEach(function (r) { if (r.sid !== sid) return; if (r.q !== 'here' && r.q !== 'zflag') count(r.time, 'lesson'); if (dkey(r.time) === day) lessons.push(r); });
+  // arcade: levels and certificates
+  var events = [], es = SpreadsheetApp.getActive().getSheetByName('Events'), m = es.getLastRow();
+  if (m > 1) es.getRange(2, 1, m - 1, 5).getValues().forEach(function (r) {
+    if (String(r[1]) !== sid) return;
+    count(r[0], 'arcade');
+    if (dkey(r[0]) === day) events.push({ time: r[0] instanceof Date ? r[0].toISOString() : String(r[0]), game: String(r[2]), type: String(r[3]), detail: String(r[4]) });
+  });
+  return { ok: true, student: publicStudent(s), date: day, today: dkey(new Date()), days: days, climb: climb, climbRow: climbRows(sid)[0] || null, lessons: lessons, events: events, games: mine(s).games };
 }

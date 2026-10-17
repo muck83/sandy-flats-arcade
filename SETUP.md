@@ -84,3 +84,16 @@ The **Climb** and **ClimbLog** tabs are created the first time a student saves. 
 - **Try it without the Sheet:** `climb/dev/student.html` and `climb/dev/teacher.html` run against a pretend results script kept in your browser (student codes `AAAAAA`, `BBBBBB`, `CCCCCC`; teacher key `test`). Open them in two tabs. `climb/test.html` checks every question template.
 - **The ladder:** all 23 skills (F1, F2, the unit's skills 1-19, extension skills 20-21, which open only after the core skills). Question types include drag-the-point, slider builds, card sorts and mapping arrows. Review items use these hands-on formats when a skill has one, and from session 4 every Secure streak includes the skill's hands-on question. Context words like *fare* and *call-out fee* have a tap-to-see meaning.
 - **Pace** on the dashboard estimates how many more sessions each student needs for the core ladder, from their recent rate. Students never see it.
+
+## One class, no links to click: Climb → lesson → game
+
+1. **Before class:** on the Climb dashboard, pick the class, the focus skill and **Then: Lesson N** (the lesson you're teaching today), then press **Open the waiting room**. Students on the arcade's front page or the lessons page are taken into Climb by themselves after a 5-second countdown (they can press *Stay here*). Anywhere else they see a red **Climb is open** link.
+2. **Start:** press **Start** when most are in. Everyone gets the same 12 minutes (more with 1.5×/2× time).
+3. **Into the lesson:** press **End Climb → Lesson N**. Climb ends for everyone, the lesson's console opens and goes live, and every student's page moves into the lesson within a few seconds, signed in and following your slide. Students who finished earlier wait on their Climb summary ("Next: Lesson N … opens by itself") and move then too. If you go live on the lesson without ending Climb, students still answering keep going until their own time is up, then move on.
+4. **Into the game:** in the lesson console press **End → everyone plays [game]**. The lesson ends and students' pages open that lesson's game, signed in. (**End live lesson** still ends it without moving anyone.)
+
+## Student day (teacher)
+
+`day.html` (📅 **Student day** in the teacher bar, or 📅 beside a name on Class Results and in the Climb dashboard) shows one student's day in one timeline: Climb questions (open any one to see the exact question they got), lesson answers and focus-watch flags, and game levels and certificates. Tick Climb, Lessons and Arcade to choose what to see; the strip of days marks which days have activity; ◀ ▶ move between students; **Print** gives a clean copy for a meeting. Climb now also shows on **My Results**, the front page's results strip and as a sortable **Climb** column on **Class Results**.
+
+All of this needs the current `backend/Code.gs` deployed as a new version.

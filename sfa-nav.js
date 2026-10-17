@@ -6,7 +6,7 @@
   'use strict';
   var CFG = window.SFA_CONFIG || {}, Q = location.search, page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   if (/[?&]screen/.test(Q)) return;   // the class screen stays clean for screen sharing
-  var teach = /^(class|participation|teacher|climb-teacher)\.html$/.test(page) || (/^lessons?\.html$/.test(page) && /[?&]teach/.test(Q));
+  var teach = /^(class|participation|teacher|climb-teacher|day)\.html$/.test(page) || (/^lessons?\.html$/.test(page) && /[?&]teach/.test(Q));
   var PLAN = [   // film order: lesson file number, the number students see (= film), its game
     { l: 10, n: 1, game: 'g9-try-zero-first.html' },
     { l: 1, n: 2, game: 'g1-crack-the-fair.html' },
@@ -62,6 +62,7 @@
     nav.appendChild(link('class.html', '🏆 Class Results', page === 'class.html'));
     nav.appendChild(link('participation.html', '✋ Participation', page === 'participation.html'));
     nav.appendChild(link('climb-teacher.html', '🧗 Climb', page === 'climb-teacher.html'));
+    nav.appendChild(link('day.html', '📅 Student day', page === 'day.html'));
     nav.appendChild(link('teacher.html', '🧭 Teacher guide', page === 'teacher.html'));
     nav.appendChild(link('index.html', '👀 Student view', false));
   } else {
@@ -100,6 +101,7 @@
   }
 
   /* ---------- "Live now": students see the lesson the teacher is running ---------- */
+  var autoGo = 0;
   function liveCheck() {
     if (teach || !CFG.endpoint) return;
     var here = page === 'lesson.html' ? 'L' + ((Q.match(/[?&]l=(\d+)/) || [])[1] || '') : '';
@@ -112,11 +114,26 @@
           var on = L && !ended && /^L\d+$/.test(L.lesson) && Math.abs(Date.now() - L.at) < 15 * 60000 && L.lesson !== here;
           liveSlot.innerHTML = '';
           var big = document.getElementById('sfaLive'); if (big) big.remove();
-          // the Climb check-in is open: a red link to it (the session is for one class or everyone; climb.html sorts out which)
-          if (!on && j && j.climb && page !== 'climb.html') {
+          // the Climb check-in is open for this student's class (and they haven't finished it): a red link, and on the
+          // arcade and lessons pages a short countdown that takes them there by itself (start of class, nothing to click)
+          var me = null, doneId = null;
+          try { me = JSON.parse(localStorage.getItem('sfa.sync.me') || 'null'); doneId = JSON.parse(localStorage.getItem('sfa.climb.doneId') || 'null'); } catch (e) { }
+          var cl = j && j.climb, mine = cl && (!cl.cls || !me || me.cls === cl.cls) && doneId !== cl.id;
+          if (!on && mine && page !== 'climb.html') {
             liveSlot.appendChild(link('climb.html', '🔴 Climb is open', false, 'live'));
             var anc = document.getElementById('nextUp') || document.getElementById('grid');
-            if (anc) { var cb = document.createElement('div'); cb.id = 'sfaLive'; cb.className = 'sfalive'; cb.innerHTML = '<span><b>Climb is open. Join the check-in now.</b></span>'; var ca = document.createElement('a'); ca.href = 'climb.html'; ca.textContent = '▶ Open Climb'; cb.appendChild(ca); anc.parentNode.insertBefore(cb, anc); }
+            if (anc) {
+              var cb = document.createElement('div'); cb.id = 'sfaLive'; cb.className = 'sfalive'; cb.innerHTML = '<span><b>Climb is open. Join the check-in now.</b> <small id="sfaGo"></small></span>';
+              var ca = document.createElement('a'); ca.href = 'climb.html'; ca.textContent = '▶ Open Climb'; cb.appendChild(ca); anc.parentNode.insertBefore(cb, anc);
+              var skip = false; try { skip = sessionStorage.getItem('sfa.climbskip') === cl.id; } catch (e) { }
+              if (me && !skip && /^(index|lessons)\.html$|^$/.test(page) && !autoGo) {
+                autoGo = 5;
+                var stay = document.createElement('a'); stay.href = '#'; stay.textContent = 'Stay here'; stay.style.background = 'transparent'; stay.style.border = '1px solid #fff';
+                stay.onclick = function (e) { e.preventDefault(); clearInterval(goT); autoGo = -1; try { sessionStorage.setItem('sfa.climbskip', cl.id); } catch (x) { } stay.remove(); var g0 = document.getElementById('sfaGo'); if (g0) g0.textContent = ''; };
+                cb.appendChild(stay);
+                var goT = setInterval(function () { var g = document.getElementById('sfaGo'); if (autoGo < 0) return clearInterval(goT); if (g) g.textContent = 'Opening in ' + autoGo + '…'; if (autoGo-- <= 0) { clearInterval(goT); location.href = 'climb.html'; } }, 1000);
+              }
+            }
             return;
           }
           if (!on) return;
@@ -132,7 +149,7 @@
         }, function () { });
     }
     check();
-    if (/^(index|lessons)\.html$/.test(page) || page === '') setInterval(check, 45000);
+    if (/^(index|lessons)\.html$/.test(page) || page === '') setInterval(check, 20000);   // often enough that "Climb is open" reaches the class within seconds of the bell
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

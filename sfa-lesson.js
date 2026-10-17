@@ -750,7 +750,7 @@
   /* ---------------- live: students check what the teacher is showing ---------------- */
   var pollT = null;
   function sameLive(a, beforeJson) { var b = beforeJson ? JSON.parse(beforeJson) : null; function k(x) { if (!x) return 'null'; var c = {}; Object.keys(x).forEach(function (n) { if (n !== 'at') c[n] = x[n]; }); return JSON.stringify(c); } return k(a) === k(b); }
-  var polling = false, pollFails = 0;
+  var polling = false, pollFails = 0, toGame = false;
   function pollLive() {
     clearTimeout(pollT);
     if (!CFG.endpoint || polling) return;   // one request at a time: switching tabs used to start extra polling loops
@@ -766,6 +766,11 @@
       if (isLive() && follow && live.slide !== cur) render(live.slide, live.slide > cur ? 1 : -1);
       else if (sameLive(live, before) === false) upd();   // ignore the heartbeat time, so typing isn't redrawn for nothing
       if (!was && isLive()) { follow = true; SFA.toast(TEACHER + ' is live. Your screen will follow the lesson.', 3500); }
+      // the teacher ended the lesson with "everyone plays the game": students who were in it move on by themselves
+      if (MODE === 'student' && was && live && live.lesson === LID && ended(live) && live.counts && live.counts.zgame && LES && LES.game && LES.game.file && !toGame) {
+        toGame = true; SFA.toast('Lesson over. Opening ' + LES.game.title + '…', 3000);
+        setTimeout(function () { location.href = LES.game.file; }, 2500);
+      }
       drawTop(); refreshDots(); if (dropped || liveRun()) sayHere();
       pollT = setTimeout(pollLive, isLive() ? 4500 + Math.random() * 1500 : 8000 + Math.random() * 2000);
     }, function (e) {
@@ -832,7 +837,15 @@
       if (!console_.on || console_.offline || Date.now() - lastPush < 20000) return;
       tpost('live').then(function (j) { if (console_.on && ended(j.live) && j.live.lesson === LID && Date.now() - lastPush > 20000) { console_.on = false; clearTimeout(pushT); consolePanel(); liveChip.hidden = true; SFA.toast('The live lesson was ended from another window.', 4000); } }, function () { });
     }, 15000);
-    if (!console_.offline) tpost('live').then(function (j) { if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); } }, function () { });
+    if (!console_.offline) tpost('live').then(function (j) {
+      console_.climb = j.climb || null;
+      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
+      // opened from the Climb dashboard ("End Climb → Lesson N"): go live straight away, so students' pages move into this lesson
+      else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
+      else consolePanel();
+    }, function () { });
+    // keep the Climb status line current
+    setInterval(function () { if (!console_.offline && Date.now() - lastPush > 20000) tpost('live').then(function (j) { var was = JSON.stringify(console_.climb || null); console_.climb = j.climb || null; if (JSON.stringify(console_.climb) !== was) consolePanel(); }, function () { }); }, 30000);
     return true;
   }
   // one request at a time: the Sheet can take longer than the 4 s between checks, and an older reply landing after a
@@ -919,9 +932,10 @@
     clearTimeout(pushT);
     pushT = setTimeout(function () { if (!console_.on) return; var L = liveObj(); lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) { var sk = j.live.at - Math.round((t0 + Date.now()) / 2), moved = Math.abs(sk - (console_.skew || 0)) > 3000; console_.skew = sk; if (moved && console_.data) { computeFeed(); consolePanel(); upd(); broadcast(); } } }).catch(function (e) { SFA.toast('Couldn\'t update the class: ' + e.message, 4000); }); }, 300);
   }
-  function endLive() {
+  // toGame: students' pages move on to this lesson's game by themselves (counts.zgame rides along with the end marker)
+  function endLive(toGame) {
     clearTimeout(pushT);
-    var tries = 0, endObj = { lesson: LID, slide: cur, reveal: {}, counts: { zend: [1] }, spot: null, timer: null, lock: false };
+    var tries = 0, endObj = { lesson: LID, slide: cur, reveal: {}, counts: toGame ? { zend: [1], zgame: [1] } : { zend: [1] }, spot: null, timer: null, lock: false };
     live = endObj; upd(); broadcast();
     function send() {
       if (console_.on) return;   // gone live again meanwhile
@@ -1007,12 +1021,21 @@
       SFA.toast('Fresh start. Students\' screens reset within a few seconds.', 4000);
     };
     if (console_.offline) fr.disabled = true;
-    var row = H('div', 'row'); row.appendChild(lb); row.appendChild(sc); row.appendChild(fr); top.appendChild(row);
+    var row = H('div', 'row'); row.appendChild(lb);
+    // end the lesson and send everyone straight into its game: no link for students to click
+    if (console_.on && LES.game && LES.game.file) {
+      var tg = el('button', { type: 'button', 'class': 'btn primary', text: 'End → everyone plays ' + LES.game.title });
+      tg.title = 'Ends the live lesson. Students\' pages open ' + LES.game.title + ' by themselves, signed in.';
+      tg.onclick = function () { console_.on = false; endLive(true); consolePanel(); liveChip.hidden = true; SFA.toast('Lesson ended. Students are moving into ' + LES.game.title + '.', 4000); };
+      row.appendChild(tg);
+    }
+    row.appendChild(sc); row.appendChild(fr); top.appendChild(row);
     var hd = console_.hidden || {};
     if (hd.fresh && !console_.showOld) { var hf = H('p', 'state bad', hd.fresh + ' answer' + (hd.fresh > 1 ? 's are' : ' is') + ' hidden because ' + (hd.fresh > 1 ? 'they' : 'it') + ' arrived before you pressed Start fresh. '); hf.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Show them', onclick: function () { console_.showOld = true; computeFeed(); consolePanel(); upd(); broadcast(); } })); top.appendChild(hf); }
     if (hd.cls) top.appendChild(H('p', 'state bad', hd.cls + ' answer' + (hd.cls > 1 ? 's' : '') + ' in this lesson ' + (hd.cls > 1 ? 'are' : 'is') + ' from students outside Class ' + esc(console_.cls) + ', so they\'re hidden. Choose "All classes" under Settings to see them.'));
     top.appendChild(H('p', 'muted', console_.on ? 'Live for ' + Math.round((Date.now() - console_.since) / 60000) + ' min. Share the class screen window, not this one.' : 'Share the class screen window. Go live so students\' devices follow you and the polls open.'));
     if (console_.err) top.appendChild(H('p', 'state bad', esc(console_.err)));
+    if (console_.climb) top.appendChild(H('p', 'state', '🧗 Climb is ' + ({ open: 'open (waiting room)', running: 'running', paused: 'paused' }[console_.climb.state] || console_.climb.state) + (console_.climb.cls ? ' for Class ' + esc(console_.climb.cls) : '') + '. Students who finish it join this lesson by themselves' + (console_.climb.next && String(console_.climb.next) === String(N) ? '' : ' if it is set as the next lesson') + '. <a href="climb-teacher.html">Climb dashboard</a>'));
     if (!console_.offline) { var fr2 = H('p', 'state' + (console_.got && Date.now() - console_.got < 20000 ? ' ok' : ' bad'), ''); fr2.id = 'fresh'; top.appendChild(fr2); }
     p.appendChild(top);
     freshTick();
@@ -1118,7 +1141,7 @@
       var li = H('li'); li.appendChild(b); ul.appendChild(li);
     });
     ol.appendChild(ul); p.appendChild(ol);
-    var links = H('p', 'muted', '<a href="participation.html">Participation across all lessons</a> · <a href="lessons.html">All lessons</a>');
+    var links = H('p', 'muted', '<a href="participation.html">Participation across all lessons</a> · <a href="lessons.html">All lessons</a> · <a href="climb-teacher.html">Climb</a>');
     p.appendChild(links);
     p.scrollTop = keep;
   }
