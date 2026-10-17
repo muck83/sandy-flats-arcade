@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Climb dashboard · Sandy Flats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="climb/climb.css">
+<style>
+.cwrap{max-width:1500px}
+.ctl{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center}
+.ctl select{font-size:16px;padding:8px 10px;border:1px solid var(--line2);border-radius:10px;background:#fff;min-height:44px}
+.state{font:800 26px var(--disp)}
+.pill{display:inline-block;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700;background:var(--bg);color:var(--sub);white-space:nowrap}
+.pill.on{background:var(--green-soft);color:var(--green)}.pill.amber{background:#FEF3C7;color:#92400E}.pill.red{background:var(--red-soft);color:var(--red)}.pill.blue{background:var(--blue-soft);color:var(--blue)}
+.tw{overflow-x:auto;border:1px solid var(--line2);border-radius:18px;background:#fff}
+table.dash{border-collapse:collapse;width:100%;font-size:15px}
+.dash th,.dash td{padding:8px 10px;border-bottom:1px solid var(--line2);text-align:left;white-space:nowrap;vertical-align:middle}
+.dash th{font-size:13px;color:var(--sub);background:#F8FAFD;position:sticky;top:0}
+.dash th button{font:inherit;font-weight:700;background:none;border:0;color:var(--blue);cursor:pointer;padding:0}
+.dash td.nm{position:sticky;left:0;background:#fff;font-weight:700}
+.dash td.nm button{font:inherit;font-weight:700;background:none;border:0;color:var(--ink);cursor:pointer;padding:0;text-align:left;text-decoration:underline dotted}
+.mini{display:flex;gap:2px}.mini i{width:14px;height:18px;border-radius:3px;display:inline-block;border:1px solid transparent}
+.mini i.k-L,.mini i.k-B{background:#FDEDE3;border-color:#F97316}.mini i.k-K{background:#F97316;border-color:#C2410C}.mini i.chk{outline:2px solid #B91C1C;outline-offset:-1px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+.card h2{margin:0;font:800 22px var(--disp)}
+.list{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.list li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line2);padding:6px 0}
+.proj{position:fixed;inset:0;background:#fff;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:40px;text-align:center}
+.proj .stem{max-width:1000px;font-size:34px}
+.proj .ask{font:800 40px var(--disp);color:var(--orange-ink)}
+.ck{font:inherit;font-size:13px;font-weight:700;border-radius:8px;padding:3px 8px;border:1px solid var(--line2);background:#fff;cursor:pointer}
+.small{font-size:14px}
+</style>
+</head><body>
+<div class="cwrap">
+  <header class="chead topbar"><a class="clogo brand" href="climb.html"><svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true"><rect x="1" y="1" width="34" height="34" rx="9" fill="#1D4ED8"/><path d="M9 26 L27 10" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="9" cy="26" r="3" fill="#FDBA74"/><circle cx="27" cy="10" r="3" fill="#FDBA74"/></svg><b>Climb</b></a><h1 class="gtitle" style="margin:0;font:800 22px var(--disp)">Teacher dashboard</h1></header>
+  <main id="body"><p class="muted">Loading…</p></main>
+</div>
+<script src="config.js"></script>
+<script src="sfa-kit.js"></script>
+<script src="climb/core.js"></script>
+<script src="climb/bank-f.js"></script>
+<script src="climb/bank-a.js"></script>
+<script src="climb/bank-b.js"></script>
+<script src="climb/bank-rc.js"></script>
+<script src="climb/bank-d.js"></script>
+<script src="climb/bank-e.js"></script>
+<script src="climb/engine.js"></script>
+<script src="climb/teacher.js"></script>
+<script src="sfa-nav.js"></script>
+</body></html>

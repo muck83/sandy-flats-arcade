@@ -1,0 +1,425 @@
+/* Climb: the student page. Signs in with the arcade's student code, waits for the teacher's Start,
+   runs the 12-minute session (90-second items, the teaching loop after a miss, the leave-the-page swap),
+   and saves every answer and the student's skill map to the class Google Sheet. */
+(function () {
+  'use strict';
+  var SFA = window.SFA, S = SFA.sync, C = window.CLIMB, E = C.engine, app = document.getElementById('app'), esc = SFA.esc;
+  var CFG = window.SFA_CONFIG || {};
+  var st = null, sess = null, off = 0, mult = 1, helloFor = '', view = '', paused = false;
+  var it = null, meta = null, loop = null, guided = null, last = { skill: '' }, after = null, screenEnd = 0;
+  var q = SFA.store.get('climb.q', []), inflight = false, saveTimer = null, pingTimer = null;
+  var lastAct = Date.now();
+
+  function now() { return Date.now() + off; }
+  function T() { return st && st.today; }
+  function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
+  function first(n) { n = String(n || ''); return (n.indexOf(',') >= 0 ? n.split(',')[1] : n).trim().split(' ')[0] || n; }
+  function skName(id) { return C.label(id) + ' · ' + C.SKILL[id].name; }
+  function sEnd() { return sess.start + (sess.pausedMs || 0) + sess.len * mult; }
+  function sessLeft() { if (!sess || !sess.start) return sess ? sess.len * mult : 0; if (sess.state === 'ended') return 0; return sEnd() - (sess.state === 'paused' ? sess.pausedAt : now()); }
+  function live() { return sess && (sess.state === 'running' || sess.state === 'paused') && sess.start && now() >= sess.start; }
+
+  /* ---------- local state ---------- */
+  function keep() { if (S.me) SFA.store.set('climb.st', { sid: S.me.sid, st: st }); }
+  function loadLocal() { var L = SFA.store.get('climb.st', null); return L && S.me && L.sid === S.me.sid ? L.st : null; }
+
+  /* ---------- saving: the skill map and every answer, queued in this browser until the Sheet has them ---------- */
+  function logRow(r) { q.push(r); SFA.store.set('climb.q', q); keep(); saveSoon(1500); }
+  function saveSoon(ms) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, ms); }
+  function flush(unloading) {
+    if (inflight || !S.me || !st) return;
+    if (!navigator.onLine) { saveSoon(8000); return; }
+    var batch = q.slice(0, 40); inflight = true;
+    S.call('climbSave', { state: st, summary: E.summary(st), log: batch }, unloading).then(function () {
+      inflight = false; q = q.slice(batch.length); SFA.store.set('climb.q', q);
+      if (q.length) saveSoon(400);
+    }, function (e) {
+      inflight = false;
+      if (e.server && /too big/.test(e.message)) { st.hist = st.hist.slice(-10); C.SKILLS.forEach(function (s) { st.skills[s.id].hist = st.skills[s.id].hist.slice(-4); }); if (T()) T().flags = T().flags.slice(-10); saveSoon(500); return; }
+      if (e.server && /unknown op/.test(e.message)) { SFA.toast('Climb can\'t save yet: Mr. Crowell needs to update the results script. Your work is kept on this computer.', 6000); saveSoon(60000); return; }
+      if (e.server && /sign in|bad code|not on roster/.test(e.message)) return;
+      saveSoon(8000 + Math.random() * 12000);
+    });
+  }
+  window.addEventListener('pagehide', function () { if (q.length) flush(true); });
+
+  /* ---------- talking to the teacher's session ---------- */
+  function hello() {
+    if (!S.me || helloFor === S.me.sid) return;
+    helloFor = S.me.sid;
+    var t0 = Date.now();
+    S.call('climbHello').then(function (j) {
+      off = j.now + (Date.now() - t0) / 2 - Date.now();
+      var local = loadLocal(), srv = j.state && j.state.v === 1 ? j.state : null;
+      // this browser's copy wins only when it has answers the Sheet doesn't have yet
+      st = E.norm(local && (!srv || local.nScored > srv.nScored) ? local : srv);
+      if (E.applyOverrides(st, j.ov)) saveSoon(1000);
+      mult = j.mult || 1; setSession(j.session); keep(); route(); ping();
+    }, function (e) {
+      helloFor = '';
+      if (e.server && /unknown op/.test(e.message)) return msg('Climb isn\'t switched on yet', 'Mr. Crowell needs to update the results script first. Tell him you saw this message.');
+      if (e.server) return;   // the sign-in card already says what's wrong
+      msg('Can\'t reach Mr. Crowell\'s results sheet', 'Check your internet connection. This page keeps trying.');
+      setTimeout(hello, 8000);
+    });
+  }
+  function status() {
+    var t = T() || {}, fl = [];
+    if ((t.leaves || 0) >= C.P.leavesNoSecure) fl.push('red'); else if (t.awayLong) fl.push('amber');
+    (t.flags || []).forEach(function (f) { if (f.k === 'check') fl.push('check' + f.skill); if (f.k === 'stuck') fl.push('stuck' + f.skill + (f.tag ? '.' + f.tag : '')); });
+    return { ph: paused ? 'paused' : view, sk: it ? it.skill : (st ? E.frontier(st) || '' : ''), n: t.scored || 0, lv: t.leaves || 0, aw: t.away || 0, th: st ? st.theta : 0, fl: fl.slice(-6).join(','), sess: t.id || '', ok: t.right || 0, al: t.almost || 0, to: t.timeouts || 0 };
+  }
+  function ping() {
+    clearTimeout(pingTimer);
+    if (!S.me || document.visibilityState === 'hidden') { pingTimer = setTimeout(ping, 5000); return; }
+    var t0 = Date.now();
+    S.call('climbPing', { status: status() }).then(function (j) {
+      off = j.now + (Date.now() - t0) / 2 - Date.now(); mult = j.mult || 1; setSession(j.session);
+      pingTimer = setTimeout(ping, live() ? 8000 : 4000);
+    }, function () { pingTimer = setTimeout(ping, 10000); });
+  }
+  function setSession(s) {
+    var was = sess; sess = s;
+    var p = !!(s && s.state === 'paused');
+    if (p && !paused) { paused = true; pausedLocal = now(); showPause(); }
+    else if (!p && paused) { paused = false; var gap = now() - pausedLocal; if (meta) meta.deadline += gap; if (screenEnd) screenEnd += gap; hidePause(); }
+    if (!was || !s || was.id !== s.id || was.state !== s.state || was.focus !== s.focus) route();
+  }
+  var pausedLocal = 0;
+
+  /* ---------- screens ---------- */
+  function msg(h, p, extra) { view = 'msg'; it = null; app.innerHTML = '<section class="card center"><h1 class="h2">' + esc(h) + '</h1><p class="sub" style="margin:0">' + esc(p) + '</p>' + (extra || '') + '</section>'; }
+  function route() {
+    if (!S.on) return msg('Climb needs the class results sheet', 'Saving isn\'t switched on for this copy of the arcade.');
+    if (!S.me) { view = 'signin'; app.innerHTML = '<section class="card center"><h1 class="h2">Sign in to climb</h1><p class="sub" style="margin:0">Use the student code from your school email (the box above). Your skill map follows you to any computer.</p></section>'; return; }
+    if (!st) { app.innerHTML = '<p class="muted">Loading your skill map…</p>'; return; }
+    var t = T();
+    if (!sess) { if (t && t.closed && view === 'done') return; return waiting(false); }
+    if (sess.state === 'ended') { if (t && t.id === sess.id) { finish(); return; } return waiting(false); }
+    if (sess.state === 'open' || !sess.start || now() < sess.start) return waiting(true);
+    // running (or paused): join, or carry on after a reload
+    if (t && t.id === sess.id && t.closed) return done();
+    if (view === 'item' || view === 'explain' || view === 'guided' || view === 'right' || view === 'changed') return;
+    begin();
+  }
+  function rungs() {
+    var fr = E.frontier(st);
+    return '<div class="rungs" aria-label="Your ladder">' + C.SKILLS.map(function (s) { var c = E.isSecure(st, s.id) ? '#1D4ED8' : s.id === fr ? '#F97316' : '#DCE2EE'; return '<i style="background:' + c + '" title="' + esc(C.label(s.id)) + '"></i>'; }).join('') + '</div>';
+  }
+  function waiting(open) {
+    view = 'wait'; it = null;
+    var fr = E.frontier(st), secure = C.SKILLS.filter(function (s) { return E.isSecure(st, s.id); }).length;
+    var due = C.SKILLS.filter(function (s) { var k = st.skills[s.id]; return k.st === 'secure' && st.sess + 1 - k.securedAt >= C.P.reviewGap; }).length;
+    var counting = open && sess && sess.start && now() < sess.start;
+    app.innerHTML = '<div class="cgrid"><section class="card main" style="padding:44px;justify-content:center">' +
+      '<p style="margin:0;font-size:20px" class="sub">Hi, ' + esc(first(S.me.name)) + '. ' + (open ? 'You\'re in.' : '') + '</p>' +
+      (counting ? '<h1 class="big1">Starting in <span style="color:var(--blue)" id="cd">0:10</span></h1>' : open ? '<h1 class="big1">Waiting for Mr. Crowell to start</h1>' : '<h1 class="big1">Climb isn\'t open right now</h1>') +
+      '<p style="margin:0;font-size:20px;max-width:560px">' + (open ? 'Everyone starts together and stops together. Work on your own, and show what you really know: that\'s how the questions find your level.' : (sess && sess.state === 'ended' ? 'Today\'s session has ended. ' : '') + 'Mr. Crowell opens Climb at the start of class. Keep this page open and it starts by itself.') + '</p>' +
+      '<div class="tiles"><div class="tile"><b>' + Math.round(C.P.session * mult / 60) + ' min</b><span>for today\'s session</span></div><div class="tile"><b>' + Math.round(C.P.item * mult) + ' sec</b><span>for each question</span></div><div class="tile warm"><b>Stay on this page</b><span>Leaving it changes your question.</span></div></div>' +
+      '</section><aside class="card side"><h2 style="margin:0;font-size:18px" class="sub">You\'re working on</h2>' +
+      (fr ? '<div style="display:flex;flex-direction:column;gap:8px"><span class="chip" style="align-self:flex-start">' + esc(C.label(fr)) + ' of ' + C.SKILLS.length + ' on the ladder</span><span style="font:800 28px/1.15 var(--disp)">' + esc(C.SKILL[fr].name) + '</span></div>' : '<span style="font:800 24px var(--disp)">Every open skill is secure. Today is review.</span>') +
+      rungs() + '<p style="margin:0" class="sub">' + secure + ' skill' + (secure === 1 ? '' : 's') + ' secure.' + (due ? ' ' + due + ' ' + (due === 1 ? 'is' : 'are') + ' due for a quick review at the start.' : '') + '</p>' +
+      '<hr style="border:none;border-top:1px solid var(--line2);margin:4px 0"><p style="margin:0;font-size:15px" class="sub">' + (open ? 'Mr. Crowell starts the session for everyone.' : 'Your skill map saves to your class.') + '</p>' +
+      (st.hist.length ? '<a href="#map" id="mapLink" style="font-size:15px">See your skill map</a>' : '') + '</aside></div>';
+    var ml = document.getElementById('mapLink'); if (ml) ml.onclick = function (e) { e.preventDefault(); done(true); };
+  }
+  function header(extra) {
+    var left = sessLeft(), frac = sess ? Math.min(1, Math.max(0, 1 - left / (sess.len * mult))) : 0;
+    return '<header class="chead">' + (extra || '') + '<div class="sbar"><span>Session</span><div class="trk" aria-hidden="true"><i id="sbarI" style="width:' + Math.round(frac * 100) + '%"></i></div><b id="sleft">' + mmss(left) + ' left</b></div></header>';
+  }
+
+  /* ---------- the session ---------- */
+  function begin() {
+    var t = E.begin(st, sess.id, { late: now() > sess.start + 30000, focus: sess.focus, focusAll: sess.focusAll });
+    t.focus = sess.focus || ''; t.focusAll = !!sess.focusAll;
+    keep(); saveSoon(500);
+    next({});
+  }
+  function next(ctx) {
+    if (!live() || sessLeft() <= 0) return finish();
+    ctx.lastSkill = last.skill;
+    var p = E.next(st, ctx, C.newSeed());
+    if (!p) return msg('Nothing to work on', 'Every skill you can reach right now is done. Tell Mr. Crowell!');
+    it = C.make(p.tid, p.seed);
+    if (!it) return msg('Something went wrong', 'A question couldn\'t load. Reload the page.');
+    meta = { mode: p.mode, start: now(), deadline: now() + C.P.item * 1000 * mult, ext: false, left: 0, afterLeave: !!ctx.afterLeave, idle: false, twinOf: ctx.twinOf || null };
+    vals = it.parts.map(function (pp) { return pp.kind === 'multi' ? [] : pp.kind === 'choice' ? -1 : ''; });
+    last.skill = it.skill; lastAct = Date.now();
+    question();
+  }
+  var vals = [];
+  function progressLine() {
+    var k = st.skills[it.skill], mode = meta.mode;
+    if (mode === 'review') return 'Review: show it stuck';
+    if (mode === 'probe') return 'Bonus question: try your best';
+    if (mode === 'preview') return 'Today\'s lesson topic: practice, not scored';
+    if (E.isSecure(st, it.skill)) return 'Secure: keep it sharp';
+    if (k.st === 'relearn') return (2 - k.run) + ' more right in a row secures it again';
+    // how many more right answers would secure it
+    for (var n = 1; n <= 3; n++) {
+      var h = k.hist.slice(); for (var j = 0; j < n; j++) h.push({ ok: 1, t: 'x' + j, to: 0 });
+      var l4 = h.slice(-4); if (l4.length >= 3 && l4.filter(function (a) { return a.ok; }).length >= 3 && !l4.some(function (a) { return a.to; })) return n + ' more correct secure' + (n === 1 ? 's' : '') + ' this skill';
+    }
+    return 'Every right answer counts';
+  }
+  function partHtml(p, i) {
+    var id = 'p' + i, lab = p.label ? '<label class="pl" for="' + id + '">' + p.label + '</label>' : '';
+    if (p.kind === 'num') return '<div class="part">' + lab + '<input class="ninp" id="' + id + '" data-i="' + i + '" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. 3, −2 or 2/3"></div>';
+    if (p.kind === 'eq') return '<div class="part">' + lab + '<input class="ninp" id="' + id + '" data-i="' + i + '" type="text" autocomplete="off" spellcheck="false" placeholder="' + esc((p.yv || 'y') + ' = 2' + (p.xv || 'x') + ' + 3') + '"><div class="hintline">Type it like ' + esc((p.yv || 'y') + ' = 2' + (p.xv || 'x') + ' − 3') + ' or ' + esc((p.yv || 'y') + ' = (1/2)' + (p.xv || 'x') + ' + 4') + '.</div></div>';
+    if (p.kind === 'text') return '<div class="part">' + lab + '<textarea class="ninp" style="font-size:19px;min-height:90px" id="' + id + '" data-i="' + i + '" spellcheck="true"></textarea></div>';
+    var order = p.order, multi = p.kind === 'multi', figs = p.opts.some(function (o) { return /<svg/.test(o.t); });
+    return '<fieldset class="part" style="border:0;margin:0;padding:0">' + (p.label ? '<legend class="pl">' + p.label + (multi ? ' <span class="sub" style="font-weight:400">(choose all that apply)</span>' : '') + '</legend>' : (multi ? '<legend class="pl sub" style="font-weight:400">Choose all that apply.</legend>' : '')) + '<div class="opts' + (figs ? ' figs' : '') + '">' +
+      order.map(function (k) { return '<label class="opt"><input type="' + (multi ? 'checkbox' : 'radio') + '" name="' + id + '" data-i="' + i + '" value="' + k + '"><span>' + p.opts[k].t + '</span></label>'; }).join('') + '</div></fieldset>';
+  }
+  function inlineHtml(p, i) {
+    if (p.kind === 'num') return '<input class="ninp sm" data-i="' + i + '" type="text" autocomplete="off" aria-label="number ' + (i + 1) + '">';
+    return '<select data-i="' + i + '" aria-label="choice ' + (i + 1) + '"><option value="-1">choose…</option>' + p.order.map(function (k) { return '<option value="' + k + '">' + esc(C.strip(p.opts[k].t)) + '</option>'; }).join('') + '</select>';
+  }
+  function orderParts(item) {
+    item.parts.forEach(function (p, i) {
+      if (!p.opts) return;
+      var idx = p.opts.map(function (o, k) { return k; });
+      p.order = p.keep ? idx : C.rng((item.seed + 31 * (i + 1)) >>> 0).shuffle(idx);
+    });
+  }
+  function question() {
+    view = 'item'; orderParts(it);
+    var t = T(), qn = (t ? t.items : 0) + 1, chip = meta.mode === 'review' ? '<span class="chip dark">Review · ' + esc(skName(it.skill)) + '</span>' : '<span class="chip">' + esc(skName(it.skill)) + '</span>';
+    var body;
+    if (it.sentence) { var s = it.sentence; it.parts.forEach(function (p, i) { s = s.replace('{' + i + '}', inlineHtml(p, i)); }); body = '<div class="part sentence">' + s + '</div>'; }
+    else body = it.parts.map(partHtml).join('');
+    var almostLeft = C.P.almostPerSession - (t ? t.almost : 0);
+    app.innerHTML = header('<span class="chip-wrap">' + chip + '</span><span class="cnext">' + esc(progressLine()) + '</span>') +
+      '<div class="cgrid" style="margin-top:20px"><section class="card main noselect" id="qcard"><div class="qhead"><span class="qnum">Question ' + qn + '</span><button type="button" class="btn listen" id="listen" aria-label="Read the question aloud"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16.5 8.5 Q19 12 16.5 15.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Listen</button></div>' +
+      '<h1 class="stem">' + it.stem + '</h1>' + (it.fig ? '<figure class="figw" style="margin:0">' + it.fig + '</figure>' : '') + '</section>' +
+      '<aside class="card side"><div class="timer"><svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30" fill="none" stroke="#E6EDFD" stroke-width="8"/><circle id="ring" cx="36" cy="36" r="30" fill="none" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round" stroke-dasharray="188.5 188.5" transform="rotate(-90 36 36)"/></svg><div style="display:flex;flex-direction:column"><b id="ileft">1:30</b><span>left on this question</span></div></div>' +
+      '<div class="almost" id="almost" hidden><button type="button" class="btn warm" id="almostB">Almost got it? +' + C.P.almost + ' seconds</button><small>Once per question · ' + almostLeft + ' left this session</small></div>' +
+      '<form class="parts" id="ans" novalidate>' + body + '<p class="hint" id="need" hidden>Answer every part first.</p>' +
+      (it.think ? '<div class="think"><b>Think</b><span>' + it.think + '</span></div>' : '') +
+      '<button type="submit" class="btn primary big" style="margin-top:4px">Check my answer</button></form></aside></div>';
+    var form = document.getElementById('ans');
+    form.addEventListener('input', readVals); form.addEventListener('change', readVals);
+    form.addEventListener('submit', function (e) { e.preventDefault(); readVals(); submit(false); });
+    [].forEach.call(form.querySelectorAll('.opt input'), function (inp) { inp.addEventListener('change', function () { [].forEach.call(form.querySelectorAll('input[name="' + inp.name + '"]'), function (o) { o.parentNode.classList.toggle('sel', o.checked); }); }); });
+    document.getElementById('listen').onclick = function () { say(C.strip(it.stem) + '. ' + (it.sentence ? C.strip(it.sentence.replace(/\{\d\}/g, ' blank ')) : it.parts.map(function (p) { return C.strip(p.label || ''); }).join('. '))); };
+    document.getElementById('almostB').onclick = function () { if (meta.ext) return; meta.ext = true; meta.deadline += C.P.almost * 1000; T().almost++; document.getElementById('almost').hidden = true; };
+    var f1 = form.querySelector('input,select,textarea'); if (f1 && window.matchMedia('(pointer:fine)').matches) f1.focus({ preventScroll: true });
+    tick();
+  }
+  function readVals() {
+    var form = document.getElementById('ans'); if (!form || !it) return;
+    it.parts.forEach(function (p, i) {
+      if (p.kind === 'choice') { var c = form.querySelector('[data-i="' + i + '"]:checked'), sel = form.querySelector('select[data-i="' + i + '"]'); vals[i] = sel ? +sel.value : c ? +c.value : -1; }
+      else if (p.kind === 'multi') vals[i] = [].map.call(form.querySelectorAll('[data-i="' + i + '"]:checked'), function (c) { return +c.value; });
+      else { var inp = form.querySelector('[data-i="' + i + '"]'); vals[i] = inp ? inp.value : ''; }
+    });
+  }
+  function blank() { return it.parts.some(function (p, i) { var v = vals[i]; return p.kind === 'choice' ? v < 0 : p.kind === 'multi' ? !v.length : !String(v).trim(); }); }
+  function say(text) { try { var u = new SpeechSynthesisUtterance(text.replace(/−/g, 'minus ').replace(/\//g, ' over ')); u.rate = 0.95; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { SFA.toast('Read-aloud isn\'t available in this browser.'); } }
+
+  function submit(timeout) {
+    if (view !== 'item' || paused) return;
+    if (!timeout && blank()) { var n = document.getElementById('need'); if (n) n.hidden = false; return; }
+    var r = timeout ? { ok: false, tag: 'T0', timeout: true, shown: C.shown(it, vals) } : C.grade(it, vals);
+    if (!timeout && !r.ok && !r.tag) r.tag = 'G';
+    var secs = (now() - meta.start) / 1000, fast = r.ok && secs < C.P.fastSecs && it.level >= 4;
+    var out = E.record(st, it, r, { mode: meta.mode, secs: secs, ext: meta.ext, fast: fast, afterLeave: meta.afterLeave, idle: meta.idle });
+    var fl = [meta.ext ? 'ext' : '', fast ? 'fast' : '', meta.afterLeave ? 'afterleave' : '', meta.idle ? 'idle' : '', T().noSecure ? 'nosecure' : ''].filter(Boolean).join(' ');
+    logRow({ at: now(), sess: T().id, skill: it.skill, tid: it.tid, seed: it.seed, mode: meta.mode, ans: r.shown, res: timeout ? 'time' : r.ok ? 'yes' : 'no', tag: r.ok ? '' : r.tag, secs: Math.round(secs), flags: fl });
+    view = 'graded';
+    if (r.ok) return right(out);
+    // a miss: the teaching loop (explanation, guided try, then a scored twin); probes and previews just show the method
+    var mode = meta.mode;
+    if (mode === 'twin' || mode === 'check' || mode === 'probe' || mode === 'preview') {
+      var then = mode === 'twin' && out.stuck ? { check: E.checkFor(it.skill, r.tag) } : {};
+      if (mode === 'twin' && out.stuck && !then.check) then = {};
+      return explain(r, then, false);
+    }
+    explain(r, null, true);
+  }
+  function right(out) {
+    view = 'right';
+    var lines = ['Right!'];
+    if (out.secured) lines.push((out.testedOut ? 'Tested out: ' : '') + C.label(it.skill) + ' is secure!');
+    if (out.retained) lines.push(C.label(it.skill) + ' passed its review: retained.');
+    if (out.credited) lines.push('That also counted as review for ' + out.credited.map(C.label).join(' and ') + '.');
+    var side = document.querySelector('aside.card');
+    if (side) side.innerHTML = '<div class="feedback good" role="status">' + lines.map(esc).join('<br>') + '</div>';
+    setTimeout(function () { if (view === 'right') next({}); }, out.secured || out.retained ? 2200 : 1100);
+  }
+
+  /* ---------- the teaching loop ---------- */
+  function explain(r, then, loopOn) {
+    view = 'explain'; screenEnd = now() + C.P.explain * 1000;
+    var tag = r.timeout ? 'T0' : r.tag || 'G', T0 = C.TAGS[tag] || C.TAGS.G;
+    var head = (it.why && it.why[tag]) || T0.say;
+    loop = { tid: it.tid, skill: it.skill, mode: meta.mode, then: then, on: loopOn };
+    var btn = loopOn ? 'Got it: try one with steps' : then && then.check ? 'Next: a quick check on ' + C.label(then.check) : 'Next question';
+    app.innerHTML = header('<span class="chip">' + esc(skName(it.skill)) + '</span>') +
+      '<div style="display:flex;flex-direction:column;gap:20px;margin-top:20px"><section class="card" style="flex-direction:row;flex-wrap:wrap;align-items:center;gap:16px 24px;padding:28px 36px"><div style="flex:999 1 480px;display:flex;flex-direction:column;gap:8px"><span class="chip warm" style="align-self:flex-start">' + (r.timeout ? 'Out of time: here\'s how' : 'Not yet: let\'s fix it') + '</span><h1 class="h2" style="font-size:30px">' + head + '</h1></div>' +
+      '<div style="flex:1 1 200px;display:flex;flex-direction:column;gap:8px;align-items:flex-end"><span class="sub" style="font-size:15px" id="nxt">Next screen in 0:30</span><div style="width:200px;height:8px;background:var(--orange-soft);border-radius:4px;overflow:hidden" aria-hidden="true"><div id="nxtbar" style="width:0;height:8px;background:var(--orange)"></div></div></div></section>' +
+      '<div class="cgrid" style="gap:20px"><section class="card main" style="border:2px solid var(--blue);flex-basis:520px"><div style="display:flex;align-items:center;gap:10px"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="#1D4ED8"/><path d="M8 14.5 L12 18.5 L20 10" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><h2 style="margin:0;font-size:22px">The correct way, with your numbers</h2></div>' +
+      (it.fig ? '<figure class="figw" style="margin:0">' + it.fig + '</figure>' : '') + '<p style="margin:0;font-size:17px" class="sub">' + it.stem + '</p>' +
+      '<ol class="work">' + it.work.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ol><p class="why">Answer: ' + it.answer + '</p></section>' +
+      '<section class="card side"><h2 style="margin:0;font-size:20px;color:var(--orange-ink)">Your answer: ' + esc(r.timeout ? (r.shown && !/^\(blank\)/.test(r.shown) ? r.shown + ' (not checked)' : 'none yet') : r.shown) + '</h2>' +
+      '<div style="margin-top:auto" class="think"><b>Habit for next time</b><span style="color:var(--ink)">' + esc(T0.habit) + '</span></div></section></div>' +
+      '<div style="display:flex;justify-content:flex-end"><button type="button" class="btn primary big" id="go">' + esc(btn) + '</button></div></div>';
+    document.getElementById('go').onclick = afterExplain;
+    tick();
+  }
+  function afterExplain() {
+    if (view !== 'explain') return;
+    if (loop.on) return guide();
+    next(loop.then || {});
+  }
+  function guide() {
+    view = 'guided'; screenEnd = now() + C.P.guided * 1000;
+    var g = C.make(loop.tid, C.newSeed());
+    guided = { it: g, i: 0, tries: 0, done: [] };
+    drawGuide();
+  }
+  function stepVal(p) { if (p.kind === 'choice') { var o = p.opts.filter(function (o) { return o.ok; })[0]; return o ? C.strip(o.t) : ''; } return C.fmt(p.key); }
+  function drawGuide() {
+    var g = guided.it, steps = g.steps || [], cur = steps[guided.i];
+    var doneRows = guided.done.map(function (d) { return '<div class="steprow"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="' + (d.shown ? '#F97316' : '#1D4ED8') + '"/><path d="M8 14.5 L12 18.5 L20 10" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lab">Step ' + (d.n + 1) + ' · ' + d.label + '</span><b>' + esc(d.val) + '</b></div>'; }).join('');
+    var now1 = '';
+    if (cur) {
+      var p = cur.part, ctl;
+      if (p.kind === 'choice') ctl = p.opts.map(function (o, k) { return '<button type="button" class="btn" data-k="' + k + '">' + o.t + '</button>'; }).join('');
+      else ctl = '<input id="gstep" class="ninp" style="flex:1 1 200px;font-size:24px" type="text" autocomplete="off" aria-label="Step answer"><button type="submit" class="btn primary">Check step</button>';
+      now1 = '<form class="stepnow" id="gform"><label for="gstep" style="font-size:18px;font-weight:700">Step ' + (guided.i + 1) + ' · ' + cur.label + '</label><div class="row">' + ctl + '</div>' + (guided.tries ? '<p class="hint">' + (cur.hint || 'Look at the step before this one.') + '</p>' : '') + '</form>';
+    } else now1 = '<div class="feedback good">All steps done. Now one on your own: it counts.</div><div><button type="button" class="btn primary big" id="gonext">Next question</button></div>';
+    app.innerHTML = header('<span class="chip">' + esc(C.label(g.skill)) + ' · Guided try</span>') +
+      '<div class="cgrid" style="margin-top:20px"><section class="card side" style="align-items:center"><p style="margin:0;align-self:stretch;font-size:19px">Same idea, new numbers. Work it out one step at a time.</p><p style="margin:0;align-self:stretch;font-weight:700">' + g.stem + '</p>' + (g.fig ? '<figure class="figw" style="margin:0">' + g.fig + '</figure>' : '') + '</section>' +
+      '<section class="card main">' + doneRows + now1 + '<p style="margin:0;font-size:15px" class="sub">Guided tries don\'t count toward your score. The next question will.</p></section></div>';
+    var gf = document.getElementById('gform');
+    if (gf) {
+      gf.addEventListener('submit', function (e) { e.preventDefault(); var v = document.getElementById('gstep'); if (v) checkStep(v.value); });
+      [].forEach.call(gf.querySelectorAll('[data-k]'), function (b) { b.onclick = function () { checkStep(+b.getAttribute('data-k')); }; });
+      var inp = document.getElementById('gstep'); if (inp && window.matchMedia('(pointer:fine)').matches) inp.focus({ preventScroll: true });
+    }
+    var gn = document.getElementById('gonext'); if (gn) gn.onclick = toTwin;
+    tick();
+  }
+  function checkStep(v) {
+    var cur = guided.it.steps[guided.i], g = C.grade({ parts: [cur.part] }, [v]);
+    if (g.ok || guided.tries >= 2) {
+      guided.done.push({ n: guided.i, label: cur.label, val: stepVal(cur.part), shown: !g.ok });
+      guided.i++; guided.tries = 0;
+    } else guided.tries++;
+    drawGuide();
+  }
+  function toTwin() {
+    if (view !== 'guided') return;
+    screenEnd = 0;
+    next({ twin: loop.tid, twinMode: loop.mode === 'review' || loop.mode === 'practice' ? 'twin' : 'twin' });
+  }
+
+  /* ---------- leaving the page ---------- */
+  function leave() {
+    if (paused) return;
+    if (view === 'item' && meta && !meta.left) meta.left = now();
+    else if ((view === 'explain' || view === 'guided') && T()) { T().leavesTeach = (T().leavesTeach || 0) + 1; }
+  }
+  function back() {
+    if (view !== 'item' || !meta || !meta.left) return;
+    var t = T(), away = (now() - meta.left) / 1000;
+    t.leaves++; t.away = Math.round((t.away || 0) + away);
+    if (away > C.P.awayAmber) t.awayLong = true;
+    if (t.leaves >= C.P.leavesNoSecure) { t.noSecure = true; if (!t.flags.some(function (f) { return f.k === 'red'; })) t.flags.push({ k: 'red', at: now() }); }
+    logRow({ at: now(), sess: t.id, skill: it.skill, tid: it.tid, seed: it.seed, mode: meta.mode, ans: '(left the page ' + Math.round(away) + ' s)', res: 'void', tag: '', secs: Math.round((now() - meta.start) / 1000), flags: 'left' });
+    // a different template from the same skill, new numbers, a fresh 90 seconds; the session clock never stopped
+    var list = E.templates(it.skill).filter(function (x) { return x.id !== it.tid; }), mode = meta.mode;
+    var tid = list.length ? list[Math.floor(Math.random() * list.length)].id : it.tid;
+    last.skill = '';
+    next({ twin: tid, twinMode: mode, afterLeave: true });
+    view = 'changed';
+    var o = document.createElement('div'); o.className = 'overlay'; o.id = 'chg';
+    o.innerHTML = '<section class="dialog" role="dialog" aria-labelledby="chgT"><div style="display:flex;align-items:center;gap:14px"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="#FDEDE3"/><path d="M14 18 H28 L24 14 M30 26 H16 L20 30" fill="none" stroke="#C2410C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><h1 id="chgT">Your question changed</h1></div><p style="margin:0;font-size:20px">You left the page, so that question was swapped for a new one. It\'s from the same skill, with new numbers.</p><p class="sub" style="margin:0;font-size:16px">The session clock kept running. Left the page today: ' + t.leaves + ' time' + (t.leaves === 1 ? '' : 's') + '.' + (t.noSecure ? ' Nothing more today counts toward Secure.' : '') + '</p><button type="button" class="btn primary big" style="align-self:flex-start" id="chgB">Back to work</button></section>';
+    document.body.appendChild(o);
+    // the new question's 90 seconds start when they press the button
+    document.getElementById('chgB').onclick = function () { o.remove(); view = 'item'; meta.start = now(); meta.deadline = now() + C.P.item * 1000 * mult; tick(); };
+    document.getElementById('chgB').focus();
+  }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') leave(); else { back(); ping(); } });
+  window.addEventListener('blur', function () { setTimeout(function () { if (!document.hasFocus()) leave(); }, 150); });
+  window.addEventListener('focus', back);
+  ['pointerdown', 'keydown', 'pointermove', 'wheel'].forEach(function (ev) { document.addEventListener(ev, function () { lastAct = Date.now(); }, { passive: true }); });
+  app.addEventListener('paste', function (e) { if (view === 'item' || view === 'guided') { e.preventDefault(); if (T()) T().paste = (T().paste || 0) + 1; SFA.toast('Pasting is turned off in Climb. Type your answer.'); } });
+  app.addEventListener('copy', function (e) { if (view === 'item') e.preventDefault(); });
+  app.addEventListener('contextmenu', function (e) { if (view === 'item') e.preventDefault(); });
+
+  /* ---------- pause and end ---------- */
+  function showPause() {
+    if (document.getElementById('pz')) return;
+    var o = document.createElement('div'); o.className = 'overlay'; o.id = 'pz';
+    o.innerHTML = '<section class="dialog" role="dialog" aria-labelledby="pzT"><h1 id="pzT">Paused</h1><p style="margin:0;font-size:20px">Mr. Crowell paused the session. Every clock is frozen. It carries on by itself.</p></section>';
+    document.body.appendChild(o);
+  }
+  function hidePause() { var o = document.getElementById('pz'); if (o) o.remove(); tick(); }
+  function finish() {
+    var t = T(); if (!t) return waiting(false);
+    var chg = document.getElementById('chg'); if (chg) chg.remove();
+    if (!t.closed) { E.close(st); keep(); saveSoon(200); }
+    it = null; meta = null; done();
+  }
+  function done(fromWait) {
+    view = 'done';
+    var t = T() || {}, h = st.hist[st.hist.length - 1];
+    var th0 = Math.round(t.th0 || st.theta), th1 = Math.round(st.theta), fr = E.frontier(st);
+    var LEG = [['R', 'Retained'], ['S', 'Secure'], ['L', 'Learning'], ['O', 'Open'], ['-', 'Not open yet']];
+    var map = '<div class="smap">' + C.SKILLS.map(function (s) { var c = E.code(st, s.id), cls = c === 'B' || c === 'K' ? 'L' : c; return '<span class="k-' + cls + '" title="' + esc(C.label(s.id) + ': ' + s.name) + '">' + esc(s.id) + '</span>'; }).join('') + '</div><div class="legend">' + LEG.map(function (l) { return '<span><i class="k-' + l[0] + '"></i>' + l[1] + '</span>'; }).join('') + '</div>';
+    var today = !fromWait && t.id;
+    app.innerHTML = (today ? '<header class="chead"><span class="chip">Session over</span></header>' : '') +
+      '<div style="display:flex;flex-direction:column;gap:20px;margin-top:12px">' +
+      (today ? '<h1 class="big1" style="font-size:46px">Nice climbing. Here\'s what you did today.</h1><p style="margin:0;font-size:20px" class="sub">Your growth score went from <b style="color:var(--ink)">' + th0 + '</b> to <b style="color:var(--blue)">' + th1 + '</b>. It grows as you take on harder questions.</p>' +
+        '<div class="tiles"><div class="tile blue"><span>Skills secured</span><b>' + t.secured.length + '</b><span>' + esc(t.secured.map(C.label).join(', ') || 'Next time!') + '</span></div>' +
+        '<div class="tile white"><span>Reviews passed</span><b>' + t.revOk + ' of ' + t.revDone + '</b><span>' + esc(t.retained.length ? t.retained.map(C.label).join(', ') + ' now retained' : 'Reviews keep skills fresh') + '</span></div>' +
+        '<div class="tile white"><span>Fixed after a miss</span><b>' + t.fixed + '</b><span>Mistakes turned into right answers</span></div>' +
+        '<div class="tile white"><span>Stayed on page</span><b>' + (t.leaves ? 'Left ' + t.leaves + '×' : 'Yes') + '</b><span>' + (t.leaves ? 'Next time, stay for the whole session' : 'The whole session') + '</span></div></div>'
+        : '<h1 class="h2">Your skill map</h1><p class="sub" style="margin:0">Growth score: <b style="color:var(--blue)">' + th1 + '</b> after ' + st.sess + ' session' + (st.sess === 1 ? '' : 's') + '.</p>') +
+      '<section class="card" style="gap:18px"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px"><h2 style="margin:0;font-size:22px">Your skill map</h2><span class="sub">Up next: <b style="color:var(--ink)">' + (fr ? esc(skName(fr)) : 'review') + '</b></span></div>' + map + '</section>' +
+      (fromWait ? '<div><button type="button" class="btn" id="bk">Back</button></div>' : '') + '</div>';
+    var bk = document.getElementById('bk'); if (bk) bk.onclick = function () { route(); };
+  }
+
+  /* ---------- the clock ---------- */
+  var acct = document.getElementById('sfaAccount');
+  function tick() {
+    // the sign-in card stays out of the way while a question or the teaching loop is on screen
+    if (acct) acct.hidden = !!(S.me && S.status !== 'signedout' && /^(item|graded|right|explain|guided|changed)$/.test(view));
+    if (!sess) return;
+    var left = sessLeft(), sl = document.getElementById('sleft'), sb = document.getElementById('sbarI');
+    if (sl) sl.textContent = mmss(left) + ' left';
+    if (sb) sb.style.width = Math.round(Math.min(1, Math.max(0, 1 - left / (sess.len * mult))) * 100) + '%';
+    var cd = document.getElementById('cd'); if (cd && sess.start) cd.textContent = mmss(sess.start - now());
+    if (view === 'wait' && sess.start && sess.state !== 'open' && now() >= sess.start && sess.state !== 'ended') return route();
+    if (paused) return;
+    if ((view === 'item' || view === 'explain' || view === 'guided' || view === 'right' || view === 'changed') && live() && left <= 0) return finish();
+    if (view === 'item' && meta) {
+      var il = meta.deadline - now(), ie = document.getElementById('ileft'), ring = document.getElementById('ring');
+      if (ie) ie.textContent = mmss(il);
+      if (ring) { var tot = C.P.item * 1000 * mult + (meta.ext ? C.P.almost * 1000 : 0), fr = Math.max(0, il / tot); ring.setAttribute('stroke-dasharray', (188.5 * fr).toFixed(1) + ' 188.5'); ring.setAttribute('stroke', il < 20000 ? '#F97316' : '#1D4ED8'); }
+      var al = document.getElementById('almost'); if (al) al.hidden = !(il <= C.P.almost * 1000 && !meta.ext && T() && T().almost < C.P.almostPerSession);
+      if (Date.now() - lastAct > C.P.idleSecs * 1000) meta.idle = true;
+      if (il <= 0) { readVals(); submit(true); }
+    }
+    if ((view === 'explain' || view === 'guided') && screenEnd) {
+      var sl2 = screenEnd - now(), nx = document.getElementById('nxt'), nb = document.getElementById('nxtbar');
+      if (nx) nx.textContent = 'Next screen in ' + mmss(sl2);
+      if (nb) nb.style.width = Math.round(100 * (1 - sl2 / (C.P.explain * 1000))) + '%';
+      if (sl2 <= 0) { screenEnd = 0; if (view === 'explain') afterExplain(); else toTwin(); }
+    }
+  }
+  setInterval(tick, 250);
+
+  /* ---------- start ---------- */
+  if (!S || !S.on) { msg('Climb needs the class results sheet', 'Saving isn\'t switched on for this copy of the arcade.'); return; }
+  S.onChange(function () {
+    if (S.me && helloFor !== S.me.sid) { st = null; helloFor = ''; hello(); }
+    if (!S.me) { st = null; helloFor = ''; }
+    if (view === '' || view === 'signin' || (!S.me && view !== 'signin')) route();
+  });
+  route();
+  window.CLIMB_APP = { state: function () { return st; }, session: function () { return sess; }, item: function () { return it; }, view: function () { return view; } };   // for checking in the browser console
+})();

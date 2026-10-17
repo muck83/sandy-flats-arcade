@@ -7,6 +7,9 @@
  *   Progress  sid | game | updated | levelsDone | levelsTotal | coreDone | coreTotal | standard | specials | assisted | tickets | levels | raw
  *   Events    time | sid | game | type | detail
  *   Responses time | sid | lesson | q | kind | answer | correct   (lesson slideshows: polls, typed answers)
+ *   Climb     sid | updated | theta | sessions | secure | retained | frontier | map | today | hist | ov | state   (one row per student)
+ *   ClimbLog  time | sid | session | skill | template | seed | mode | answer | result | tag | secs | flags   (every Climb answer)
+ *   (Responses, Climb and ClimbLog are created the first time they are needed.)
  *
  * Script properties (Project Settings > Script properties):
  *   TEACHER_KEY   long random string; the class view asks for it once
@@ -22,7 +25,9 @@ var TABS = {
   Roster: ['sid', 'name', 'class', 'email', 'code'],
   Progress: ['sid', 'game', 'updated', 'levelsDone', 'levelsTotal', 'coreDone', 'coreTotal', 'standard', 'specials', 'assisted', 'tickets', 'levels', 'raw'],
   Events: ['time', 'sid', 'game', 'type', 'detail'],
-  Responses: ['time', 'sid', 'lesson', 'q', 'kind', 'answer', 'correct']
+  Responses: ['time', 'sid', 'lesson', 'q', 'kind', 'answer', 'correct'],
+  Climb: ['sid', 'updated', 'theta', 'sessions', 'secure', 'retained', 'frontier', 'map', 'today', 'hist', 'ov', 'state'],
+  ClimbLog: ['time', 'sid', 'session', 'skill', 'template', 'seed', 'mode', 'answer', 'result', 'tag', 'secs', 'flags']
 };
 var GAMES = /^g[1-9][0-9]?$/;
 var MAX_RAW = 40000;
@@ -76,13 +81,20 @@ function route(req) {
     case 'save': return save(auth(req), req);
     case 'mine': return mine(auth(req));
     case 'class': teacher(req); return classView();
-    case 'live': return { ok: true, live: getLive() };
+    case 'live': var cs = climbSession(); return { ok: true, live: getLive(), climb: cs && cs.state !== 'ended' ? { state: cs.state, cls: cs.cls } : null };
     case 'answer': return answer(auth(req), req);
     case 'myAnswers': return myAnswers(auth(req), req);
     case 'setLive': teacher(req); return setLive(req);
     case 'answers': teacher(req); return answersFor(req);
     case 'participation': teacher(req); return participation();
     case 'roster': teacher(req); return { ok: true, roster: rosterRows().map(function (r) { return { sid: r.sid, name: r.name, cls: r.cls, email: r.email, code: r.code }; }) };
+    case 'climbHello': return climbHello(auth(req));
+    case 'climbPing': return climbPing(auth(req), req);
+    case 'climbSave': return climbSave(auth(req), req);
+    case 'climbControl': teacher(req); return climbControl(req);
+    case 'climbClass': teacher(req); return climbClass(req);
+    case 'climbCheck': teacher(req); return climbCheck(req);
+    case 'climbStudent': teacher(req); return climbStudent(req);
     default: throw new Error('unknown op');
   }
 }
@@ -299,4 +311,154 @@ function participation() {
     if (r.time > o.last) o.last = r.time;
   });
   return { ok: true, roster: rosterRows().map(publicStudent), cells: Object.keys(by).map(function (k) { return by[k]; }) };
+}
+
+/* ---------------- Climb: the linear functions check-in ---------------- */
+// One live session at a time (for one class or everyone), kept in Script properties so it survives cache loss.
+// Times are server milliseconds; each student's end = start + paused time + 12 minutes x their time multiplier.
+var CLIMB_LEN = 12 * 60 * 1000, CLIMB_SKILL = /^(F[12]|[1-9]|1[0-9]|2[01])$/, CLIMB_TPL = /^[A-Z]{2}-[0-9][a-z]$/;
+var CLIMB_MODES = /^(new|review|practice|twin|check|probe|preview)$/, CLIMB_RES = /^(yes|no|time|void)$/;
+
+function climbSheet(name) {
+  var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(name);
+  if (!sh) { sh = ss.insertSheet(name); sh.appendRow(TABS[name]); sh.setFrozenRows(1); }
+  return sh;
+}
+function climbSession() {
+  var cache = CacheService.getScriptCache(), v = cache.get('climbS');
+  if (v === null) { v = prop('CLIMB_SESSION'); try { cache.put('climbS', v || '', 21600); } catch (e) { } }
+  try { return v ? JSON.parse(v) : null; } catch (e) { return null; }
+}
+function climbPut(s) {
+  var v = s ? JSON.stringify(s) : '';
+  PropertiesService.getScriptProperties().setProperty('CLIMB_SESSION', v);
+  CacheService.getScriptCache().put('climbS', v, 21600);
+}
+function climbAccom() { try { return JSON.parse(prop('CLIMB_ACCOM') || '{}'); } catch (e) { return {}; } }
+// what a student needs to know about the session: only the one for their class
+function climbFor(s) {
+  var cs = climbSession();
+  if (!cs || (cs.cls && cs.cls !== s.cls)) return null;
+  return { id: cs.id, state: cs.state, start: cs.start || 0, pausedAt: cs.pausedAt || 0, pausedMs: cs.pausedMs || 0, len: CLIMB_LEN, focus: cs.focus || '', focusAll: !!cs.focusAll, endedAt: cs.endedAt || 0 };
+}
+function climbRow(sh, sid) {
+  var n = sh.getLastRow(); if (n < 2) return -1;
+  var ids = sh.getRange(2, 1, n - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) if (String(ids[i][0]) === sid) return i + 2;
+  return -1;
+}
+
+function climbHello(s) {
+  var sh = climbSheet('Climb'), at = climbRow(sh, s.sid), state = null, ov = null;
+  if (at > 0) { var r = sh.getRange(at, 11, 1, 2).getValues()[0]; try { ov = r[0] ? JSON.parse(r[0]) : null; } catch (e) { } try { state = r[1] ? JSON.parse(r[1]) : null; } catch (e) { } }
+  return { ok: true, student: publicStudent(s), state: state, ov: ov, session: climbFor(s), mult: climbAccom()[s.sid] || 1, now: Date.now() };
+}
+
+// every few seconds from each student's page: where they are (for the live dashboard) and the session clock
+function climbPing(s, req) {
+  var st = req.status || {}, me = {
+    at: Date.now(), ph: String(st.ph || '').slice(0, 10), sk: String(st.sk || '').slice(0, 4), n: num(st.n), lv: num(st.lv), aw: num(st.aw),
+    th: Math.round(Number(st.th) || 0), fl: String(st.fl || '').slice(0, 40), sess: String(st.sess || '').slice(0, 20), ok: num(st.ok), al: num(st.al), to: num(st.to)
+  };
+  try { CacheService.getScriptCache().put('cp_' + s.sid, JSON.stringify(me), 7200); } catch (e) { }
+  return { ok: true, now: Date.now(), session: climbFor(s), mult: climbAccom()[s.sid] || 1 };
+}
+
+function climbSave(s, req) {
+  var state = JSON.stringify(req.state || {});
+  if (state.length > 45000) throw new Error('too big');
+  var m = req.summary || {};
+  var hist = JSON.stringify((req.state && req.state.hist || []).slice(-30));
+  var row = [s.sid, new Date(), Number(m.theta) || 205, num(m.sess), num(m.secure), num(m.retained), safe(m.frontier, 4), safe(m.map, 200), safe(JSON.stringify(m.today || {}), 1500), hist.length < 6000 ? hist : '[]'];
+  var log = (req.log || []).slice(0, 40).map(function (x) {
+    x = x || {};
+    return [new Date(Number(x.at) || Date.now()), s.sid, safe(x.sess, 20), CLIMB_SKILL.test(String(x.skill)) ? String(x.skill) : '?', CLIMB_TPL.test(String(x.tid)) ? String(x.tid) : '?', String(Math.floor(Math.abs(Number(x.seed) || 0)) % 4294967296), CLIMB_MODES.test(String(x.mode)) ? String(x.mode) : '?',
+      safe(x.ans, 300), CLIMB_RES.test(String(x.res)) ? String(x.res) : '?', /^(M[0-9]{1,2}|T0|G)$/.test(String(x.tag || '')) ? String(x.tag) : '', num(x.secs), safe(x.flags, 60)];
+  });
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(8000)) throw new Error('busy');
+  try {
+    var sh = climbSheet('Climb'), at = climbRow(sh, s.sid);
+    if (at > 0) { sh.getRange(at, 1, 1, row.length).setValues([row]); sh.getRange(at, 12).setValue(state); }
+    else { sh.appendRow(row.concat(['', state])); }
+    if (log.length) { var ls = climbSheet('ClimbLog'); ls.getRange(ls.getLastRow() + 1, 1, log.length, 12).setValues(log); }
+  } finally { lock.releaseLock(); }
+  return { ok: true };
+}
+
+// teacher: open (waiting room), start (10 s countdown), pause, resume, end, focus, accommodations
+function climbControl(req) {
+  var a = String(req.action || ''), now = Date.now();
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(8000)) throw new Error('busy');
+  try {
+    var cs = climbSession();
+    if (a === 'accom') {
+      var acc = climbAccom(), sid = String(req.sid || ''), m = Number(req.mult);
+      if (!sid) throw new Error('bad student');
+      if (m === 1.5 || m === 2) acc[sid] = m; else delete acc[sid];
+      PropertiesService.getScriptProperties().setProperty('CLIMB_ACCOM', JSON.stringify(acc));
+      return { ok: true, session: cs, accom: acc };
+    }
+    if (a === 'open') cs = { id: 'S' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyMMdd-HHmm'), cls: safe(req.cls, 20), state: 'open', openAt: now, start: 0, pausedAt: 0, pausedMs: 0, focus: CLIMB_SKILL.test(String(req.focus || '')) ? String(req.focus) : '', focusAll: !!req.focusAll };
+    else if (!cs) throw new Error('no session');
+    else if (a === 'start') { if (cs.state !== 'open') throw new Error('already started'); cs.state = 'running'; cs.start = now + 10000; }
+    else if (a === 'pause') { if (cs.state !== 'running') throw new Error('not running'); cs.state = 'paused'; cs.pausedAt = now; }
+    else if (a === 'resume') { if (cs.state !== 'paused') throw new Error('not paused'); cs.pausedMs = (cs.pausedMs || 0) + (now - cs.pausedAt); cs.pausedAt = 0; cs.state = 'running'; }
+    else if (a === 'end') { if (cs.state === 'paused') { cs.pausedMs = (cs.pausedMs || 0) + (now - cs.pausedAt); cs.pausedAt = 0; } cs.state = 'ended'; cs.endedAt = now; }
+    else if (a === 'focus') { cs.focus = CLIMB_SKILL.test(String(req.focus || '')) ? String(req.focus) : ''; cs.focusAll = !!req.focusAll; }
+    else if (a === 'clear') cs = null;
+    else throw new Error('bad action');
+    climbPut(cs);
+    return { ok: true, session: cs, accom: climbAccom(), now: now };
+  } finally { lock.releaseLock(); }
+}
+
+// teacher dashboard: every student's Climb row (no full state), who is on the page right now, and this week's answers
+function climbClass(req) {
+  var roster = rosterRows().map(publicStudent), sh = climbSheet('Climb'), n = sh.getLastRow(), rows = [];
+  if (n > 1) rows = sh.getRange(2, 1, n - 1, 11).getValues().filter(function (r) { return r[0]; }).map(function (r) {
+    var o = { sid: String(r[0]), updated: r[1] instanceof Date ? r[1].toISOString() : String(r[1]), theta: Number(r[2]) || 205, sess: r[3], secure: r[4], retained: r[5], frontier: String(r[6]), map: String(r[7]) };
+    try { o.today = JSON.parse(r[8] || '{}'); } catch (e) { o.today = {}; }
+    try { o.hist = JSON.parse(r[9] || '[]'); } catch (e) { o.hist = []; }
+    try { o.ov = r[10] ? JSON.parse(r[10]) : null; } catch (e) { o.ov = null; }
+    return o;
+  });
+  var keys = roster.map(function (r) { return 'cp_' + r.sid; }), got = keys.length ? CacheService.getScriptCache().getAll(keys) : {}, here = {};
+  Object.keys(got).forEach(function (k) { try { here[k.slice(3)] = JSON.parse(got[k]); } catch (e) { } });
+  // answers from the last 8 days (at most the last 6000 rows)
+  var ls = climbSheet('ClimbLog'), m = ls.getLastRow(), log = [], since = Date.now() - 8 * 86400000;
+  if (m > 1) {
+    var from = Math.max(2, m - 5999);
+    ls.getRange(from, 1, m - from + 1, 12).getValues().forEach(function (r) {
+      var t = r[0] instanceof Date ? r[0].getTime() : Date.parse(r[0]); if (!(t >= since)) return;
+      log.push([t, String(r[1]), String(r[2]), String(r[3]), String(r[4]), Number(r[5]) || 0, String(r[6]), String(r[7]), String(r[8]), String(r[9]), Number(r[10]) || 0, String(r[11])]);
+    });
+  }
+  return { ok: true, now: Date.now(), roster: roster, rows: rows, here: here, session: climbSession(), accom: climbAccom(), log: log };
+}
+
+// teacher: a "needs check" skill was checked live. ok = it counts; not ok = back to learning. Applied on the student's next sign-in or ping.
+function climbCheck(req) {
+  var sid = String(req.sid || ''), skill = String(req.skill || '');
+  if (!sid || !CLIMB_SKILL.test(skill)) throw new Error('bad check');
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(8000)) throw new Error('busy');
+  try {
+    var sh = climbSheet('Climb'), at = climbRow(sh, sid);
+    if (at < 0) throw new Error('no climb yet');
+    var ov = {}; try { ov = JSON.parse(sh.getRange(at, 11).getValue() || '{}'); } catch (e) { }
+    ov.cleared = (ov.cleared || []).filter(function (x) { return x !== skill; }); ov.back = (ov.back || []).filter(function (x) { return x !== skill; });
+    if (req.ok) ov.cleared.push(skill); else ov.back.push(skill);
+    ov.at = Date.now();
+    sh.getRange(at, 11).setValue(JSON.stringify(ov));
+    return { ok: true, ov: ov };
+  } finally { lock.releaseLock(); }
+}
+
+function climbStudent(req) {
+  var sh = climbSheet('Climb'), at = climbRow(sh, String(req.sid || ''));
+  if (at < 0) return { ok: true, state: null };
+  var v = sh.getRange(at, 12).getValue(), st = null; try { st = JSON.parse(v); } catch (e) { }
+  return { ok: true, state: st };
 }

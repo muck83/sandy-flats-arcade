@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Climb bank check</title>
+<link rel="stylesheet" href="climb.css">
+<style>
+body{background:#F3F5FA;font-family:system-ui,sans-serif;color:#111827;margin:0;padding:24px}
+h1{margin:0 0 8px}.bad{color:#B91C1C}.ok{color:#047857}
+.sum{font-size:18px;margin:8px 0 18px}
+.tpl{background:#fff;border:1px solid #DCE2EE;border-radius:14px;padding:16px;margin:12px 0}
+.tpl h2{font-size:16px;margin:0 0 6px}.tpl pre{white-space:pre-wrap;color:#B91C1C;font-size:12px}
+.prev{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}.prev .st{flex:1 1 320px}
+</style>
+</head><body>
+<h1>Climb question bank check</h1>
+<p>Builds every template with 60 seeds and checks: the key is graded right, wrong answers are graded wrong, choices are distinct with one right answer, nothing prints NaN or undefined, and every guided step accepts its own key. <a href="?seed=7">Other seed for the previews</a>.</p>
+<div class="sum" id="sum">Running…</div>
+<div id="out"></div>
+<script src="core.js"></script>
+<script src="bank-f.js"></script>
+<script src="bank-a.js"></script>
+<script src="bank-b.js"></script>
+<script src="bank-rc.js"></script>
+<script src="bank-d.js"></script>
+<script src="bank-e.js"></script>
+<script>
+(function () {
+  var C = window.CLIMB, out = document.getElementById('out'), fails = 0, n = 0;
+  var pseed = +((location.search.match(/seed=(\d+)/) || [])[1] || 3);
+  function rightVal(p) {
+    if (p.kind === 'num') return C.fmt(p.key);
+    if (p.kind === 'choice') return p.opts.findIndex(function (o) { return o.ok; });
+    if (p.kind === 'multi') return p.opts.map(function (o, i) { return o.ok ? i : -1; }).filter(function (i) { return i >= 0; });
+    if (p.kind === 'eq') return p.show;
+    if (p.kind === 'text') return p.sample;
+  }
+  function bad(s) { return /NaN|undefined|Infinity|\[object/.test(String(s)); }
+  function checkItem(it, errs) {
+    ['stem', 'answer'].forEach(function (k) { if (!it[k]) errs.push('missing ' + k); else if (bad(it[k])) errs.push(k + ' prints: ' + C.strip(it[k]).slice(0, 120)); });
+    if (it.fig && bad(it.fig)) errs.push('figure has NaN/undefined');
+    if (!it.work || !it.work.length) errs.push('missing work'); else it.work.forEach(function (w) { if (bad(w)) errs.push('work prints: ' + C.strip(w)); });
+    if (!it.parts || !it.parts.length) { errs.push('no parts'); return; }
+    if (it.sentence && (it.sentence.match(/\{\d\}/g) || []).length !== it.parts.length) errs.push('sentence slots ≠ parts');
+    it.parts.forEach(function (p, i) {
+      if (['num', 'choice', 'multi', 'eq', 'text'].indexOf(p.kind) < 0) errs.push('part ' + i + ' bad kind ' + p.kind);
+      if (p.kind === 'num') { if (!isFinite(p.key)) errs.push('part ' + i + ' key not a number'); (p.wrong || []).forEach(function (w) { if (!isFinite(w.v)) errs.push('part ' + i + ' wrong value not a number'); }); }
+      if (p.kind === 'choice') { var oks = p.opts.filter(function (o) { return o.ok; }).length; if (oks !== 1) errs.push('part ' + i + ' has ' + oks + ' right options'); var seen = {}; p.opts.forEach(function (o) { var t = C.strip(o.t); if (seen[t]) errs.push('part ' + i + ' repeated option "' + t + '"'); seen[t] = 1; if (bad(o.t)) errs.push('option prints: ' + t); }); }
+      if (p.kind === 'multi') { if (!p.opts.some(function (o) { return o.ok; })) errs.push('part ' + i + ' multi with no right option'); }
+      if (p.kind === 'eq') { if (!p.show) errs.push('eq part needs show'); else if (!C.parseEq(p.show, p.xv, p.yv)) errs.push('eq show does not parse: ' + p.show); }
+      if (p.kind === 'text' && !p.sample) errs.push('text part needs sample');
+      if ((p.label && bad(p.label))) errs.push('label prints: ' + p.label);
+    });
+    var vals = it.parts.map(rightVal), g = C.grade(it, vals);
+    if (!g.ok) errs.push('key graded WRONG: ' + g.shown);
+    // each tagged wrong value is graded wrong
+    it.parts.forEach(function (p, i) {
+      if (p.kind === 'num') (p.wrong || []).forEach(function (w) { if (C.near(w.v, p.key, p.tol)) return; var v2 = vals.slice(); v2[i] = C.fmt(w.v); var g2 = C.grade(it, v2); if (g2.ok) errs.push('wrong value ' + C.fmt(w.v) + ' graded right'); });
+      if (p.kind === 'choice') p.opts.forEach(function (o, k) { if (o.ok) return; var v2 = vals.slice(); v2[i] = k; if (C.grade(it, v2).ok) errs.push('wrong option "' + C.strip(o.t) + '" graded right'); });
+    });
+    (it.steps || []).forEach(function (s, k) {
+      if (!s.part) { errs.push('step ' + k + ' has no part'); return; }
+      if (bad(s.label)) errs.push('step label prints: ' + C.strip(s.label));
+      var fake = { parts: [s.part] }, g3 = C.grade(fake, [rightVal(s.part)]);
+      if (!g3.ok) errs.push('step ' + k + ' rejects its own key');
+    });
+    if (!it.steps || it.steps.length < 2 || it.steps.length > 4) errs.push('needs 2-4 guided steps (has ' + (it.steps ? it.steps.length : 0) + ')');
+  }
+  var ids = Object.keys(C.T).sort();
+  C.SKILLS.forEach(function (s) { var k = (C.BY[s.id] || []).length; if (k < 3) { var d = document.createElement('p'); d.className = 'bad'; d.textContent = C.label(s.id) + ' has only ' + k + ' templates'; out.appendChild(d); } });
+  ids.forEach(function (id) {
+    var t = C.T[id], errs = [], first = null;
+    for (var s = 1; s <= 60; s++) {
+      var it; try { it = C.make(id, s * 7919 + 13); } catch (e) { errs.push('seed ' + s + ' throws: ' + e.message); continue; }
+      if (s === 1) first = it;
+      var e2 = []; checkItem(it, e2); e2.forEach(function (e) { errs.push('seed ' + (s * 7919 + 13) + ': ' + e); });
+      if (errs.length > 12) break;
+    }
+    n++; if (errs.length) fails++;
+    var box = document.createElement('div'); box.className = 'tpl';
+    box.innerHTML = '<h2 class="' + (errs.length ? 'bad' : 'ok') + '">' + id + ' · ' + C.label(t.skill) + ' · L' + t.level + ' · ' + t.type + (errs.length ? ' · ' + errs.length + ' problems' : ' · OK') + '</h2>';
+    if (errs.length) { var pre = document.createElement('pre'); pre.textContent = errs.slice(0, 12).join('\n'); box.appendChild(pre); }
+    try {
+      var p = C.make(id, pseed * 101 + 1), pv = document.createElement('div'); pv.className = 'prev';
+      pv.innerHTML = '<div class="st"><b>' + p.stem + '</b>' + (p.sentence ? '<p>' + p.sentence + '</p>' : '') + '<p>Parts: ' + p.parts.map(function (q) { return (q.label || '') + ' [' + q.kind + (q.kind === 'num' ? ' = ' + C.fmt(q.key) : q.kind === 'eq' ? ' = ' + q.show : q.kind === 'choice' ? ': ' + q.opts.map(function (o) { return (o.ok ? '✓' : '') + C.strip(o.t); }).join(' / ') : '') + ']'; }).join('; ') + '</p><p>Answer: ' + p.answer + '</p><ol>' + p.work.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ol></div>' + (p.fig ? '<div>' + p.fig + '</div>' : '');
+      box.appendChild(pv);
+    } catch (e) { }
+    out.appendChild(box);
+  });
+  var sum = document.getElementById('sum');
+  sum.innerHTML = '<b class="' + (fails ? 'bad' : 'ok') + '">' + (n - fails) + ' of ' + n + ' templates pass.</b> ' + C.SKILLS.map(function (s) { return C.label(s.id) + ': ' + (C.BY[s.id] || []).length; }).join(' · ');
+  window.CLIMB_TEST = { n: n, fails: fails };
+})();
+</script>
+</body></html>

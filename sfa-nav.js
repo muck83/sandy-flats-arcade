@@ -6,7 +6,7 @@
   'use strict';
   var CFG = window.SFA_CONFIG || {}, Q = location.search, page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   if (/[?&]screen/.test(Q)) return;   // the class screen stays clean for screen sharing
-  var teach = /^(class|participation|teacher)\.html$/.test(page) || (/^lessons?\.html$/.test(page) && /[?&]teach/.test(Q));
+  var teach = /^(class|participation|teacher|climb-teacher)\.html$/.test(page) || (/^lessons?\.html$/.test(page) && /[?&]teach/.test(Q));
   var PLAN = [   // film order: lesson file number, the number students see (= film), its game
     { l: 10, n: 1, game: 'g9-try-zero-first.html' },
     { l: 1, n: 2, game: 'g1-crack-the-fair.html' },
@@ -61,6 +61,7 @@
     nav.appendChild(link('lessons.html?teach', '📚 Lessons', /^lessons?\.html$/.test(page)));
     nav.appendChild(link('class.html', '🏆 Class Results', page === 'class.html'));
     nav.appendChild(link('participation.html', '✋ Participation', page === 'participation.html'));
+    nav.appendChild(link('climb-teacher.html', '🧗 Climb', page === 'climb-teacher.html'));
     nav.appendChild(link('teacher.html', '🧭 Teacher guide', page === 'teacher.html'));
     nav.appendChild(link('index.html', '👀 Student view', false));
   } else {
@@ -72,6 +73,7 @@
       var ln = +((Q.match(/[?&]l=(\d+)/) || [])[1] || 0), gf = (PLAN.filter(function (p) { return p.l === ln; })[0] || {}).game;
       if (gf) nav.appendChild(link(gf, '🕹️ Play the game', false));
     }
+    nav.appendChild(link('climb.html', '🧗 Climb', page === 'climb.html'));
     nav.appendChild(link('results.html', '⭐ My Results', page === 'results.html'));
     // on a game page the top bar also holds the game's chips: show Arcade, Lessons and My Results as icons so it stays on one row
     if (LESSON_OF[page]) [].forEach.call(nav.children, function (a) {
@@ -110,6 +112,13 @@
           var on = L && !ended && /^L\d+$/.test(L.lesson) && Math.abs(Date.now() - L.at) < 15 * 60000 && L.lesson !== here;
           liveSlot.innerHTML = '';
           var big = document.getElementById('sfaLive'); if (big) big.remove();
+          // the Climb check-in is open: a red link to it (the session is for one class or everyone; climb.html sorts out which)
+          if (!on && j && j.climb && page !== 'climb.html') {
+            liveSlot.appendChild(link('climb.html', '🔴 Climb is open', false, 'live'));
+            var anc = document.getElementById('nextUp') || document.getElementById('grid');
+            if (anc) { var cb = document.createElement('div'); cb.id = 'sfaLive'; cb.className = 'sfalive'; cb.innerHTML = '<span><b>Climb is open. Join the check-in now.</b></span>'; var ca = document.createElement('a'); ca.href = 'climb.html'; ca.textContent = '▶ Open Climb'; cb.appendChild(ca); anc.parentNode.insertBefore(cb, anc); }
+            return;
+          }
           if (!on) return;
           var id = L.lesson.slice(1), n = NUM[id] || id, href = 'lesson.html?l=' + id;
           liveSlot.appendChild(link(href, '🔴 Live now: Lesson ' + n, false, 'live'));
