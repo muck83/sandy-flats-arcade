@@ -18,11 +18,12 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
      Logger.log(JSON.stringify(route({ op: 'live' })));
      var key = PropertiesService.getScriptProperties().getProperty('TEACHER_KEY');
      var c = route({ op: 'climbClass', teacherKey: key });
-     Logger.log('climbClass ok: ' + c.ok + ', students: ' + c.roster.length + ', climb rows: ' + c.rows.length);
+     Logger.log('climbClass ok: ' + c.ok + ', students: ' + c.roster.length + ', climb rows: ' + c.rows.length + ', questions today: ' + c.asks.length);
      var s = c.roster[0];
      if (s) { var d = route({ op: 'studentDay', teacherKey: key, sid: s.sid }); Logger.log('studentDay ok: ' + d.ok + ' for ' + s.name + ' on ' + d.date); }
    }
-   Expected: {"ok":true,...}, then "climbClass ok: true" and "studentDay ok: true".
+   Expected: {"ok":true,...}, then "climbClass ok: true ... questions today: 0" and "studentDay ok: true".
+   (If it says "questions today: undefined", the old code is still in Code.gs.)
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
    Description "Climb ask button" > Deploy. Do NOT use "New deployment" (that changes the URL).
