@@ -25,7 +25,18 @@
       case 'setLive': tch(r); d.live = r.live ? Object.assign({}, r.live, { at: Date.now() }) : null; put(d); return { ok: true, live: d.live };
       case 'live': return { ok: true, live: d.live || null, climb: d.session && d.session.state !== 'ended' ? { id: d.session.id, state: d.session.state, cls: d.session.cls, next: d.session.next || 0 } : null };
       case 'climbHello': s = auth(r); var row = d.rows[s.sid] || {}; return { ok: true, student: pub(s), state: row.state || null, ov: row.ov || null, session: forS(d, s), mult: d.accom[s.sid] || 1, now: Date.now() };
-      case 'climbPing': s = auth(r); var st = r.status || {}; st.at = Date.now(); d.here[s.sid] = st; put(d); return { ok: true, now: Date.now(), session: forS(d, s), mult: d.accom[s.sid] || 1, lesson: liveLesson(d) };
+      case 'climbPing': s = auth(r); var st = r.status || {}; st.at = Date.now(); d.here[s.sid] = st; put(d); var hh = (d.asks || []).filter(function (a) { return a.sid === s.sid; }).pop(); return { ok: true, now: Date.now(), session: forS(d, s), mult: d.accom[s.sid] || 1, lesson: liveLesson(d), hand: hh && hh.open ? { at: hh.at, reply: hh.last || '', repAt: hh.repAt || 0, status: hh.status } : null };
+      case 'climbAsk':
+        s = auth(r); d.asks = d.asks || [];
+        d.asks.forEach(function (a) { if (a.sid === s.sid && a.open) { if (a.status === 'waiting') { a.status = 'lowered'; a.closed = Date.now(); } a.open = false; } });
+        if (r.cancel) { put(d); return { ok: true }; }
+        var h = r.hand || {}, ask = { row: d.asks.length + 2, at: Date.now(), sid: s.sid, sess: d.session ? d.session.id : '', view: h.view, skill: h.skill, tid: h.tid, seed: h.seed, note: h.note || '', shown: h.shown || '', vals: h.vals || [], status: 'waiting', reply: '', closed: 0, open: true };
+        d.asks.push(ask); put(d); return { ok: true, at: ask.at };
+      case 'climbReply':
+        tch(r); var q = (d.asks || []).filter(function (a) { return a.row === r.row && a.sid === r.sid; })[0]; if (!q) throw new Error('no such question');
+        if (r.reply) { q.reply = (q.reply ? q.reply + ' / ' : '') + r.reply; q.last = r.reply; q.repAt = Date.now(); }
+        if (r.done) { q.status = 'answered'; q.closed = Date.now(); }
+        put(d); return { ok: true, status: q.status };
       case 'climbSave':
         s = auth(r); var m = r.summary || {}, rw = d.rows[s.sid] || {};
         if (JSON.stringify(r.state).length > 45000) throw new Error('too big');
@@ -48,7 +59,7 @@
         d.session = c; put(d); return { ok: true, session: c, accom: d.accom, now: now };
       case 'climbClass':
         tch(r);
-        return { ok: true, now: Date.now(), roster: ROSTER.map(pub), rows: Object.keys(d.rows).map(function (k) { var o = Object.assign({}, d.rows[k]); delete o.state; return o; }), here: d.here, session: d.session || null, accom: d.accom, log: d.log.filter(function (x) { return x[0] > Date.now() - 8 * 86400000; }) };
+        return { ok: true, now: Date.now(), roster: ROSTER.map(pub), rows: Object.keys(d.rows).map(function (k) { var o = Object.assign({}, d.rows[k]); delete o.state; return o; }), here: d.here, session: d.session || null, accom: d.accom, log: d.log.filter(function (x) { return x[0] > Date.now() - 8 * 86400000; }), asks: (d.asks || []).filter(function (a) { return a.at > Date.now() - 16 * 3600000; }) };
       case 'climbCheck':
         tch(r); var rr = d.rows[r.sid]; if (!rr) throw new Error('no climb yet'); var ov = rr.ov || {}; ov.cleared = (ov.cleared || []).filter(function (x) { return x !== r.skill; }); ov.back = (ov.back || []).filter(function (x) { return x !== r.skill; }); (r.ok ? ov.cleared : ov.back).push(r.skill); ov.at = Date.now(); rr.ov = ov; put(d); return { ok: true, ov: ov };
       case 'climbStudent': tch(r); return { ok: true, state: d.rows[r.sid] ? d.rows[r.sid].state : null };

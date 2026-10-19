@@ -130,3 +130,17 @@ ol.work{margin:0;padding-left:24px;display:flex;flex-direction:column;gap:12px;f
 .muted{color:var(--sub)}
 @media (max-width:640px){.cwrap{padding:14px 14px 30px}.card{padding:22px;border-radius:20px}.stem{font-size:22px}.big1{font-size:40px}.sbar .trk{width:100px}}
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+/* ✋ Ask Mr. Crowell: the student's button and hand bar, and the teacher's queue */
+.askslot{display:inline-flex}.askslot:empty{display:none}
+.handbar{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:#FFF7ED;border:2px solid var(--orange);border-radius:14px;padding:6px 8px 6px 14px;font-size:16px;max-width:620px}
+.handbar .rep{font-weight:700;color:var(--orange-ink);font-size:18px}
+.askcard.hot{border:2px solid var(--orange)}
+.askq{display:flex;flex-direction:column;gap:10px;border:1px solid var(--line2);border-radius:16px;padding:14px 16px;background:#FFFBF7}
+.askh{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.askn{font:800 22px var(--disp);color:var(--orange-ink)}
+.asknote{margin:0;font-size:18px;font-style:italic}
+.askd summary{cursor:pointer;font-weight:700;color:var(--blue)}
+.snap{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+.snap .stem2{margin:0;font-size:20px;font-weight:700}
+.snap .figw svg{max-height:340px}
+.snap .opt .pick{font-size:12px;color:var(--blue)}.snap .opt .key{font-size:12px;color:var(--green)}

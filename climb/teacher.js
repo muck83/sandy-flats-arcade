@@ -95,6 +95,7 @@
     g.appendChild(groupsCard(s)); g.appendChild(tagsCard()); g.appendChild(itemReportCard(s)); g.appendChild(itemsCard());
     body.appendChild(g);
     body.appendChild(standardsCard());
+    renderAsks();
     body.appendChild(el('p', { 'class': 'muted small', style: 'margin-top:20px', text: 'Updates every ' + (s && s.state !== 'ended' ? '5' : '30') + ' seconds. Last update ' + new Date().toLocaleTimeString() + '. Students never see each other\'s progress.' }));
   }
   function sessionCard(s, classes) {
@@ -373,6 +374,122 @@
       p.appendChild(d); p.onclick = function (e) { if (e.target === p) p.remove(); };
       document.body.appendChild(p);
     }, fail);
+  }
+
+  /* ---------- ✋ questions from students ---------- */
+  // Students press "Ask Mr. Crowell" in Climb: their screen (the question rebuilt from template + seed, with what they'd
+  // entered) arrives here with their name. Open ones form a queue, oldest first; every question today is numbered in the
+  // order it was sent and stays in the list below with what happened to it. Done takes it off the queue.
+  var asksBox = el('div', { id: 'asks' }); body.parentNode.insertBefore(asksBox, body);
+  var askSig = '', seenAsk = null, openSnap = {};
+  var QUICK = ['I\'m coming over', 'Re-read the question slowly', 'Try the first step, then check', 'Make your best try'];
+  var WHERE = { item: 'on a question', explain: 'on the explanation', guided: 'on a guided try' };
+  var STATUS = { waiting: 'Waiting', answered: 'Done', lowered: 'Hand lowered' };
+  function asksToday() {
+    var ids = {}; roster().forEach(function (r) { ids[r.sid] = r; });
+    return (data.asks || []).filter(function (a) { return ids[a.sid]; }).sort(function (a, b) { return a.at - b.at; }).map(function (a, i) { a.n = i + 1; a.who = nice(ids[a.sid].name); return a; });
+  }
+  function hhmm(t) { return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+  function partSnap(p, v) {
+    var lab = p.label ? '<div class="pl">' + p.label + '</div>' : '', got;
+    if (p.kind === 'points' && v && v.length) {
+      var g = p.grid, lines = (g.lines || []).slice();
+      if (p.connect === 'line' && v.length >= 2 && v[0][0] !== v[1][0]) lines.push({ p: [v[0], v[1]] });
+      if ((p.connect === 'poly' || p.connect === 'seg') && v.length >= 2) lines.push({ seg: v.slice().sort(function (a, b) { return p.connect === 'poly' ? a[0] - b[0] : 0; }) });
+      if (p.extra) try { lines = lines.concat(p.extra(v) || []); } catch (e) { }
+      var pts = (g.pts || []).concat(v.map(function (q, k) { return { x: q[0], y: q[1], l: (p.names ? p.names[k] + ' ' : '') + C.pt(q[0], q[1]) }; }));
+      return '<div class="part">' + lab + '<div class="figw">' + C.graph(Object.assign({}, g, { lines: lines, pts: pts, label: 'The student\'s points' })) + '</div></div>';
+    }
+    if (p.kind === 'slider' && p.grid && v) {
+      var add = {}; try { add = p.draw ? p.draw(v) : { lines: [{ m: v.m, b: v.b }] }; } catch (e) { }
+      return '<div class="part">' + lab + '<p class="small" style="margin:0">' + esc(C.shown({ parts: [p] }, [v])) + '</p><div class="figw">' + C.graph(Object.assign({}, p.grid, { lines: (p.grid.lines || []).concat(add.lines || []), pts: (p.grid.pts || []).concat(add.pts || []), label: 'The student\'s line' })) + '</div></div>';
+    }
+    if ((p.kind === 'choice' || p.kind === 'multi') && p.opts) {
+      var pick = p.kind === 'multi' ? (v || []) : [v];
+      return '<div class="part">' + lab + '<div class="opts' + (p.opts.some(function (o) { return /<svg/.test(o.t); }) ? ' figs' : '') + '">' + p.opts.map(function (o, k) { var on = pick.indexOf(k) >= 0; return '<div class="opt' + (on ? ' sel' : '') + '" style="cursor:default">' + (on ? '<b class="pick">Their pick</b>' : '') + '<span>' + o.t + '</span>' + (o.ok ? '<b class="key">✓ right</b>' : '') + '</div>'; }).join('') + '</div></div>';
+    }
+    got = C.shown({ parts: [p] }, [v]);
+    return '<div class="part">' + lab + '<p class="small" style="margin:0">Their answer so far: <b>' + esc(got) + '</b></p></div>';
+  }
+  function screenHtml(a) {
+    var it = null; try { it = C.make(a.tid, a.seed); } catch (e) { }
+    if (!it) return '<p class="muted">This question couldn\'t be rebuilt (' + esc(a.tid) + ').</p>';
+    var h = '<div class="snap"><p class="stem2">' + it.stem + '</p>' + (it.fig ? '<div class="figw">' + it.fig + '</div>' : '');
+    if (a.view === 'guided') h += '<p class="small" style="margin:0">' + esc(a.shown) + ' (a guided try on this question, new numbers each time).</p>';
+    else h += it.parts.map(function (p, i) { return partSnap(p, (a.vals || [])[i]); }).join('');
+    if (a.view === 'explain') h += '<p class="small" style="margin:0">They had already answered: <b>' + esc(a.shown) + '</b>, and were reading the explanation.</p>';
+    return h + '<details><summary>Answer and working</summary><ol class="work" style="font-size:16px">' + it.work.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ol><p style="margin:0"><b>Answer:</b> ' + it.answer + '</p></details></div>';
+  }
+  function reply(a, msg, done, btn) {
+    if (btn) btn.disabled = true;
+    api('climbReply', { sid: a.sid, row: a.row, reply: msg || '', done: !!done }).then(function () {
+      if (msg) a.reply = (a.reply ? a.reply + ' / ' : '') + msg;
+      if (done) { a.status = 'answered'; a.closed = Date.now(); }
+      askSig = ''; renderAsks(true);
+      SFA.toast(done ? '#' + a.n + ' ' + a.who + ': done.' : 'Sent to ' + a.who + ': ' + msg);
+    }, function (e) { if (btn) btn.disabled = false; fail(e); });
+  }
+  function renderAsks(force) {
+    if (!data) return;
+    var list = asksToday(), open = list.filter(function (a) { return a.status === 'waiting'; });
+    // a chime and the tab title when a new question comes in
+    var rows = open.map(function (a) { return a.row; });
+    if (seenAsk && rows.some(function (r) { return seenAsk.indexOf(r) < 0; })) chime();
+    seenAsk = (seenAsk || []).concat(rows.filter(function (r) { return (seenAsk || []).indexOf(r) < 0; }));
+    document.title = (open.length ? '(' + open.length + ' ✋) ' : '') + document.title.replace(/^\(\d+ ✋\) /, '');
+    var sig = cls + '|' + list.map(function (a) { return a.row + a.status + a.reply; }).join(',');
+    if (!force && sig === askSig) return;
+    var act = document.activeElement;
+    if (!force && act && asksBox.contains(act) && act.tagName === 'INPUT' && act.value) return;   // don't wipe a reply being typed
+    askSig = sig;
+    asksBox.innerHTML = '';
+    if (!list.length) return;
+    var c = el('section', { 'class': 'card askcard' + (open.length ? ' hot' : ''), style: 'gap:14px;margin-bottom:20px' });
+    c.appendChild(el('h2', { text: open.length ? '✋ ' + open.length + ' question' + (open.length === 1 ? '' : 's') + ' waiting (oldest first)' : '✋ Questions: none waiting' }));
+    open.forEach(function (a) {
+      var box = el('div', { 'class': 'askq' });
+      box.innerHTML = '<div class="askh"><span class="askn">#' + a.n + '</span><b style="font-size:20px">' + esc(a.who) + '</b><span class="muted">' + esc(C.label(a.skill)) + ' · ' + WHERE[a.view] + ' · sent ' + hhmm(a.at) + ' · waiting <span data-wait="' + a.at + '">' + mmss(now() - a.at) + '</span></span></div>' +
+        (a.note ? '<p class="asknote">“' + esc(a.note) + '”</p>' : '') + (a.reply ? '<p class="small muted" style="margin:0">You replied: ' + esc(a.reply) + '</p>' : '');
+      var det = el('details', { 'class': 'askd' }); det.open = openSnap[a.row] !== false; det.ontoggle = function () { openSnap[a.row] = det.open; };
+      det.innerHTML = '<summary>Their screen</summary>' + screenHtml(a);
+      box.appendChild(det);
+      var row = el('div', { 'class': 'ctl', style: 'gap:8px' });
+      QUICK.forEach(function (q) { var b = el('button', { type: 'button', 'class': 'ck', text: q }); b.onclick = function () { reply(a, q, false, b); }; row.appendChild(b); });
+      var inp = el('input', { type: 'text', 'class': 'ninp', maxlength: '140', placeholder: 'Or type a short reply…', style: 'flex:1 1 220px;font-size:16px;min-height:40px;padding:6px 10px', 'aria-label': 'Reply to ' + a.who });
+      var send = el('button', { type: 'button', 'class': 'btn small', text: 'Send' }); send.onclick = function () { if (inp.value.trim()) reply(a, inp.value.trim(), false, send); };
+      inp.onkeydown = function (e) { if (e.key === 'Enter') send.click(); };
+      var dn = el('button', { type: 'button', 'class': 'btn primary small', text: '✓ Done', title: 'Takes it off the queue and lowers their hand' }); dn.onclick = function () { reply(a, inp.value.trim(), true, dn); };
+      row.appendChild(inp); row.appendChild(send); row.appendChild(dn);
+      box.appendChild(row);
+      c.appendChild(box);
+    });
+    // every question today, in the order it was sent
+    var d = el('details', { 'class': 'askd' }); d.open = !!openSnap.log;
+    d.ontoggle = function () { openSnap.log = d.open; };
+    d.appendChild(el('summary', { text: 'All questions today, in order (' + list.length + ')' }));
+    var tw = el('div', { 'class': 'tw', style: 'margin-top:10px' }), t = el('table', { 'class': 'dash' });
+    t.appendChild(el('tr', {}, ['#', 'Sent', 'Student', 'Skill', 'Where', 'Note', 'Their answer then', 'Status', 'Your reply', 'Took', ''].map(function (h) { return el('th', { text: h }); })));
+    list.forEach(function (a) {
+      var sh = el('button', { type: 'button', 'class': 'ck', text: 'Screen' }); sh.onclick = function () { showSnap(a); };
+      t.appendChild(el('tr', {}, [el('td', { text: '#' + a.n }), el('td', { text: hhmm(a.at) }), el('td', { text: a.who, style: 'font-weight:700' }), el('td', { text: C.label(a.skill) + ' · ' + a.tid }), el('td', { text: (WHERE[a.view] || '').replace(/^on (a |the )?/, '') }),
+        el('td', { text: a.note, style: 'white-space:normal;max-width:220px' }), el('td', { text: a.view === 'guided' ? '' : a.shown, style: 'white-space:normal;max-width:220px' }),
+        el('td', {}, [el('span', { 'class': 'pill ' + (a.status === 'waiting' ? 'amber' : a.status === 'answered' ? 'on' : ''), text: STATUS[a.status] || a.status })]), el('td', { text: a.reply, style: 'white-space:normal;max-width:200px' }),
+        el('td', { text: a.closed ? mmss(a.closed - a.at) : '' }), el('td', {}, [sh])]));
+    });
+    tw.appendChild(t); d.appendChild(tw); c.appendChild(d);
+    asksBox.appendChild(c);
+  }
+  function showSnap(a) {
+    var p = el('div', { 'class': 'overlay', role: 'dialog', 'aria-label': 'Question #' + a.n });
+    var d = el('section', { 'class': 'dialog', style: 'max-width:900px;max-height:90vh;overflow:auto' });
+    d.innerHTML = '<h1 style="font-size:26px">#' + a.n + ' · ' + esc(a.who) + ' · ' + hhmm(a.at) + '</h1>' + (a.note ? '<p class="asknote">“' + esc(a.note) + '”</p>' : '') + screenHtml(a).replace('<details>', '<details open>');
+    d.appendChild(el('div', {}, [el('button', { type: 'button', 'class': 'btn', text: 'Close', onclick: function () { p.remove(); } })]));
+    p.appendChild(d); p.onclick = function (e) { if (e.target === p) p.remove(); };
+    document.body.appendChild(p);
+  }
+  setInterval(function () { [].forEach.call(asksBox.querySelectorAll('[data-wait]'), function (x) { x.textContent = mmss(now() - +x.getAttribute('data-wait')); }); }, 1000);
+  function chime() {
+    try { var A = window.AudioContext || window.webkitAudioContext, ctx = new A(), o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.55); } catch (e) { }
   }
 
   function csv() {

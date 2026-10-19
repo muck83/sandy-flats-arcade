@@ -75,8 +75,9 @@
     var t0 = Date.now();
     S.call('climbPing', { status: status() }).then(function (j) {
       off = j.now + (Date.now() - t0) / 2 - Date.now(); mult = j.mult || 1; liveL = j.lesson || null; setSession(j.session);
+      handReply(j.hand);
       handoff();
-      pingTimer = setTimeout(ping, live() ? 8000 : 4000);
+      pingTimer = setTimeout(ping, hand ? 4000 : live() ? 8000 : 4000);
     }, function () { pingTimer = setTimeout(ping, 10000); });
   }
   function setSession(s) {
@@ -163,7 +164,7 @@
   }
   function header(extra) {
     var left = sessLeft(), frac = sess ? Math.min(1, Math.max(0, 1 - left / (sess.len * mult))) : 0;
-    return '<header class="chead">' + (extra || '') + '<div class="sbar"><span>Session</span><div class="trk" aria-hidden="true"><i id="sbarI" style="width:' + Math.round(frac * 100) + '%"></i></div><b id="sleft">' + mmss(left) + ' left</b></div></header>';
+    return '<header class="chead">' + (extra || '') + '<span id="askSlot" class="askslot"></span><div class="sbar"><span>Session</span><div class="trk" aria-hidden="true"><i id="sbarI" style="width:' + Math.round(frac * 100) + '%"></i></div><b id="sleft">' + mmss(left) + ' left</b></div></header>';
   }
 
   /* ---------- the session ---------- */
@@ -192,6 +193,7 @@
       return pp.kind === 'multi' ? [] : pp.kind === 'choice' ? -1 : '';
     });
     last.skill = it.skill; lastAct = Date.now();
+    if (hand && hand.hold) { hand.hold = now(); if (!ctx.dev) meta.asked = true; }
     question();
   }
   var vals = [];
@@ -404,8 +406,8 @@
     var r = timeout ? { ok: false, tag: 'T0', timeout: true, shown: C.shown(it, vals) } : C.grade(it, vals);
     if (!timeout && !r.ok && !r.tag) r.tag = 'G';
     var secs = (now() - meta.start) / 1000, fast = r.ok && secs < C.P.fastSecs && it.level >= 4;
-    var out = E.record(st, it, r, { mode: meta.mode, secs: secs, limit: meta.limit, ext: meta.ext, fast: fast, afterLeave: meta.afterLeave, idle: meta.idle });
-    var fl = [meta.ext ? 'ext' : '', fast ? 'fast' : '', meta.afterLeave ? 'afterleave' : '', meta.idle ? 'idle' : '', T().noSecure ? 'nosecure' : ''].filter(Boolean).join(' ');
+    var out = E.record(st, it, r, { mode: meta.mode, secs: secs, limit: meta.limit, ext: meta.ext || meta.asked, fast: fast, afterLeave: meta.afterLeave, idle: meta.idle });
+    var fl = [meta.ext ? 'ext' : '', fast ? 'fast' : '', meta.afterLeave ? 'afterleave' : '', meta.idle ? 'idle' : '', T().noSecure ? 'nosecure' : '', meta.asked ? 'asked' : ''].filter(Boolean).join(' ');
     logRow({ at: now(), sess: T().id, skill: it.skill, tid: it.tid, seed: it.seed, mode: meta.mode, ans: r.shown, res: timeout ? 'time' : r.ok ? 'yes' : 'no', tag: r.ok ? '' : r.tag, secs: Math.round(secs), flags: fl });
     view = 'graded';
     if (r.ok) return right(out);
@@ -431,7 +433,7 @@
 
   /* ---------- the teaching loop ---------- */
   function explain(r, then, loopOn) {
-    view = 'explain'; screenEnd = now() + C.P.explain * 1000;
+    view = 'explain'; screenEnd = now() + C.P.explain * 1000; if (hand && hand.hold) hand.hold = now();
     var tag = r.timeout ? 'T0' : r.tag || 'G', T0 = C.TAGS[tag] || C.TAGS.G;
     var head = (it.why && it.why[tag]) || T0.say;
     loop = { tid: it.tid, skill: it.skill, mode: meta.mode, then: then, on: loopOn };
@@ -454,7 +456,7 @@
     next(loop.then || {});
   }
   function guide() {
-    view = 'guided'; screenEnd = now() + C.P.guided * 1000;
+    view = 'guided'; screenEnd = now() + C.P.guided * 1000; if (hand && hand.hold) hand.hold = now();
     var g = C.make(loop.tid, C.newSeed());
     guided = { it: g, i: 0, tries: 0, done: [] };
     drawGuide();
@@ -573,6 +575,76 @@
     handoff();
   }
 
+  /* ---------- ✋ Ask Mr. Crowell ---------- */
+  // The student's screen (the question rebuilt from its template and seed, plus what they've entered so far) goes to the
+  // dashboard with their name. They stay on the page, so the question doesn't swap. While the hand is up the question's
+  // own clock (or the explanation's timer) stops, for at most C.P.askHold seconds; the session clock keeps going.
+  var hand = null, askSig = '';
+  function snapshot() {
+    if (view === 'guided' && guided) return { view: 'guided', tid: guided.it.tid, seed: guided.it.seed, skill: guided.it.skill, vals: [], shown: 'Guided try, step ' + (guided.i + 1) };
+    if (!it || (view !== 'item' && view !== 'explain')) return null;
+    if (view === 'item') readVals();
+    return { view: view, tid: it.tid, seed: it.seed, skill: it.skill, vals: vals, shown: C.shown(it, vals) };
+  }
+  function askUi() {
+    var slot = document.getElementById('askSlot'); if (!slot) return;
+    var can = !!(S.me && /^(item|explain|guided)$/.test(view) && !paused);
+    var sig = hand ? 'h' + hand.repAt + (hand.hold ? 'f' : '') : can ? 'a' : '';
+    if (sig === askSig && slot.childNodes.length === (sig ? 1 : 0)) return;
+    askSig = sig;
+    if (hand) {
+      slot.innerHTML = '<span class="handbar" role="status"><b>✋ Mr. Crowell has your screen.</b> ' + (hand.reply ? '<span class="rep">' + esc(hand.reply) + '</span>' : '<span>' + (hand.hold ? 'Your question clock is stopped.' : 'Keep going.') + '</span>') + ' <button type="button" class="btn small" id="lowerB">Lower my hand</button></span>';
+      document.getElementById('lowerB').onclick = function () { lowerHand(false); };
+    } else if (can) {
+      slot.innerHTML = '<button type="button" class="btn warm small" id="askB" title="Sends this screen to Mr. Crowell with your name. Stay on this page: your question won\'t change.">✋ Ask Mr. Crowell</button>';
+      document.getElementById('askB').onclick = askDialog;
+    } else slot.innerHTML = '';
+  }
+  function askDialog() {
+    if (hand || document.getElementById('askD')) return;
+    var o = document.createElement('div'); o.className = 'overlay'; o.id = 'askD';
+    o.innerHTML = '<section class="dialog" role="dialog" aria-labelledby="askT"><h1 id="askT">✋ Ask Mr. Crowell</h1><p style="margin:0;font-size:19px">Your screen goes to Mr. Crowell with your name. Stay on this page: your question won\'t change, and its clock stops while you wait.</p>' +
+      '<label for="askN" style="font-weight:700;font-size:18px">What are you stuck on? <span class="sub" style="font-weight:400">(optional)</span></label><textarea id="askN" class="ninp" maxlength="160" style="font-size:18px;min-height:70px"></textarea>' +
+      '<div style="display:flex;gap:12px;flex-wrap:wrap"><button type="button" class="btn primary big" id="askGo">Send my screen</button><button type="button" class="btn" id="askNo">Cancel</button></div></section>';
+    document.body.appendChild(o);
+    var go = document.getElementById('askGo'), note = document.getElementById('askN');
+    document.getElementById('askNo').onclick = function () { o.remove(); };
+    note.focus();
+    go.onclick = function () {
+      var snap = snapshot(); if (!snap) { o.remove(); SFA.toast('Nothing to send on this screen. Raise your hand instead.'); return; }
+      snap.note = note.value.trim().slice(0, 160);
+      go.disabled = true; go.textContent = 'Sending…';
+      S.call('climbAsk', { hand: snap }).then(function (j) {
+        o.remove();
+        hand = { at: now(), id: j.at || 0, hold: now(), reply: '', repAt: 0 };
+        if (view === 'item' && meta && !meta.dev) meta.asked = true;
+        if (T()) T().asks = (T().asks || 0) + 1;
+        askSig = ''; askUi(); clearTimeout(pingTimer); pingTimer = setTimeout(ping, 4000);
+      }, function (e) {
+        go.disabled = false; go.textContent = 'Send my screen';
+        SFA.toast(e.server && /unknown op/.test(e.message) ? 'Asking isn\'t switched on yet. Raise your hand.' : 'Couldn\'t send it. Raise your hand instead.', 5000);
+      });
+    };
+  }
+  function unhold() {
+    if (!hand || !hand.hold) return;
+    var gap = now() - hand.hold; hand.hold = 0;
+    if (view === 'item' && meta) meta.deadline += gap;
+    else if ((view === 'explain' || view === 'guided') && screenEnd) screenEnd += gap;
+  }
+  function lowerHand(byTeacher) {
+    if (!hand) return;
+    unhold(); hand = null; askSig = '';
+    if (!byTeacher) S.call('climbAsk', { cancel: true }).then(null, function () { });
+    askUi();
+  }
+  // from each ping: Mr. Crowell's reply, or "done"
+  function handReply(h) {
+    if (!hand || !h || (hand.id && h.at !== hand.id)) return;
+    if (h.repAt && h.repAt !== hand.repAt) { hand.repAt = h.repAt; hand.reply = h.reply; askSig = ''; SFA.toast('Mr. Crowell: ' + h.reply, 7000); }
+    if (h.status === 'answered') { lowerHand(true); if (!h.reply) SFA.toast('Mr. Crowell marked your question as answered.', 5000); }
+  }
+
   /* ---------- the clock ---------- */
   var acct = document.getElementById('sfaAccount');
   function tick() {
@@ -584,18 +656,21 @@
     if (sb) sb.style.width = Math.round(Math.min(1, Math.max(0, 1 - left / (sess.len * mult))) * 100) + '%';
     var cd = document.getElementById('cd'); if (cd && sess.start) cd.textContent = mmss(sess.start - now());
     if (view === 'wait' && sess.start && sess.state !== 'open' && now() >= sess.start && sess.state !== 'ended') return route();
+    askUi();
     if (paused) return;
+    if (hand && hand.hold && now() - hand.at > C.P.askHold * 1000) { unhold(); SFA.toast('Your question clock is running again. Keep your hand up: Mr. Crowell still has your screen.', 6000); }
+    var tnow = hand && hand.hold ? hand.hold : now();
     if ((view === 'item' || view === 'explain' || view === 'guided' || view === 'right' || view === 'changed') && live() && left <= 0 && !(meta && meta.dev)) return finish();
     if (view === 'item' && meta) {
-      var il = meta.deadline - now(), ie = document.getElementById('ileft'), ring = document.getElementById('ring');
+      var il = meta.deadline - tnow, ie = document.getElementById('ileft'), ring = document.getElementById('ring');
       if (ie) ie.textContent = mmss(il);
       if (ring) { var tot = (meta.limit || C.P.item) * 1000 + (meta.ext ? C.P.almost * 1000 : 0), fr = Math.max(0, il / tot); ring.setAttribute('stroke-dasharray', (188.5 * fr).toFixed(1) + ' 188.5'); ring.setAttribute('stroke', il < 20000 ? '#F97316' : '#1D4ED8'); }
       var al = document.getElementById('almost'); if (al) al.hidden = !(il <= C.P.almost * 1000 && !meta.ext && T() && T().almost < C.P.almostPerSession);
-      if (Date.now() - lastAct > C.P.idleSecs * 1000) meta.idle = true;
+      if (!(hand && hand.hold) && Date.now() - lastAct > C.P.idleSecs * 1000) meta.idle = true;
       if (il <= 0) { readVals(); submit(true); }
     }
     if ((view === 'explain' || view === 'guided') && screenEnd) {
-      var sl2 = screenEnd - now(), nx = document.getElementById('nxt'), nb = document.getElementById('nxtbar');
+      var sl2 = screenEnd - tnow, nx = document.getElementById('nxt'), nb = document.getElementById('nxtbar');
       if (nx) nx.textContent = 'Next screen in ' + mmss(sl2);
       if (nb) nb.style.width = Math.round(100 * (1 - sl2 / (C.P.explain * 1000))) + '%';
       if (sl2 <= 0) { screenEnd = 0; if (view === 'explain') afterExplain(); else toTwin(); }

@@ -27,7 +27,8 @@ var TABS = {
   Events: ['time', 'sid', 'game', 'type', 'detail'],
   Responses: ['time', 'sid', 'lesson', 'q', 'kind', 'answer', 'correct'],
   Climb: ['sid', 'updated', 'theta', 'sessions', 'secure', 'retained', 'frontier', 'map', 'today', 'hist', 'ov', 'state'],
-  ClimbLog: ['time', 'sid', 'session', 'skill', 'template', 'seed', 'mode', 'answer', 'result', 'tag', 'secs', 'flags']
+  ClimbLog: ['time', 'sid', 'session', 'skill', 'template', 'seed', 'mode', 'answer', 'result', 'tag', 'secs', 'flags'],
+  ClimbAsk: ['time', 'sid', 'session', 'screen', 'skill', 'template', 'seed', 'note', 'answer', 'vals', 'status', 'reply', 'closed']
 };
 var GAMES = /^g[1-9][0-9]?$/;
 var MAX_RAW = 40000;
@@ -95,6 +96,8 @@ function route(req) {
     case 'climbClass': teacher(req); return climbClass(req);
     case 'climbCheck': teacher(req); return climbCheck(req);
     case 'climbStudent': teacher(req); return climbStudent(req);
+    case 'climbAsk': return climbAsk(auth(req), req);
+    case 'climbReply': teacher(req); return climbReply(req);
     case 'studentDay': teacher(req); return studentDay(req);
     default: throw new Error('unknown op');
   }
@@ -368,7 +371,66 @@ function climbPing(s, req) {
     th: Math.round(Number(st.th) || 0), fl: String(st.fl || '').slice(0, 40), sess: String(st.sess || '').slice(0, 20), ok: num(st.ok), al: num(st.al), to: num(st.to)
   };
   try { CacheService.getScriptCache().put('cp_' + s.sid, JSON.stringify(me), 7200); } catch (e) { }
-  return { ok: true, now: Date.now(), session: climbFor(s), mult: climbAccom()[s.sid] || 1, lesson: liveLesson() };
+  var h = null; try { h = JSON.parse(CacheService.getScriptCache().get('ch_' + s.sid) || 'null'); } catch (e) { }
+  return { ok: true, now: Date.now(), session: climbFor(s), mult: climbAccom()[s.sid] || 1, lesson: liveLesson(), hand: h ? { at: h.at, reply: h.reply || '', repAt: h.repAt || 0, status: h.status } : null };
+}
+
+/* ---------- Ask Mr. Crowell: a student sends their screen (the question, rebuilt from template + seed, and what
+   they've entered so far) to the dashboard without leaving the page. One row per question in the ClimbAsk tab, in
+   the order they were sent; the cache keeps the open one for the student's ping. ---------- */
+var ASK_VIEW = /^(item|explain|guided)$/, ASK_DONE = /^(answered|lowered)$/;
+function askSet(row, status, reply) {
+  var sh = climbSheet('ClimbAsk');
+  sh.getRange(row, 11).setValue(status);
+  if (reply != null) sh.getRange(row, 12).setValue(reply);
+  if (ASK_DONE.test(status)) sh.getRange(row, 13).setValue(new Date());
+}
+function climbAsk(s, req) {
+  var cache = CacheService.getScriptCache(), key = 'ch_' + s.sid, old = null;
+  try { old = JSON.parse(cache.get(key) || 'null'); } catch (e) { }
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(8000)) throw new Error('busy');
+  try {
+    if (old && old.status === 'waiting' && old.row) askSet(old.row, 'lowered');
+    if (req.cancel) { cache.remove(key); return { ok: true }; }
+    var h = req.hand || {}, cs = climbSession(), vals = JSON.stringify(h.vals || []);
+    if (!ASK_VIEW.test(String(h.view)) || !CLIMB_TPL.test(String(h.tid)) || !CLIMB_SKILL.test(String(h.skill))) throw new Error('bad question');
+    var sh = climbSheet('ClimbAsk'), at = new Date();
+    sh.appendRow([at, s.sid, safe(cs ? cs.id : '', 20), String(h.view), String(h.skill), String(h.tid), String(Math.floor(Math.abs(Number(h.seed) || 0)) % 4294967296),
+      safe(h.note, 160), safe(h.shown, 300), vals.length <= 3000 ? vals : '[]', 'waiting', '', '']);
+    var me = { row: sh.getLastRow(), at: at.getTime(), status: 'waiting', reply: '', repAt: 0 };
+    cache.put(key, JSON.stringify(me), 7200);
+    return { ok: true, at: me.at };
+  } finally { lock.releaseLock(); }
+}
+// teacher: a short reply (shown on the student's screen) and/or done (takes it off the queue)
+function climbReply(req) {
+  var sid = String(req.sid || ''), cache = CacheService.getScriptCache(), key = 'ch_' + sid, h = null;
+  try { h = JSON.parse(cache.get(key) || 'null'); } catch (e) { }
+  var row = Math.round(Number(req.row) || 0), msg = safe(req.reply, 140);
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(8000)) throw new Error('busy');
+  try {
+    var sh = climbSheet('ClimbAsk');
+    if (row < 2 || row > sh.getLastRow() || String(sh.getRange(row, 2).getValue()) !== sid) throw new Error('no such question');
+    var prev = String(sh.getRange(row, 12).getValue() || ''), all = msg ? (prev ? prev + ' / ' : '') + msg : null;
+    var status = req.done ? 'answered' : String(sh.getRange(row, 11).getValue());
+    askSet(row, status, all);
+    if (h && h.row === row) { if (msg) { h.reply = msg; h.repAt = Date.now(); } h.status = status; cache.put(key, JSON.stringify(h), 7200); }
+    return { ok: true, status: status };
+  } finally { lock.releaseLock(); }
+}
+// every question asked in the last 16 hours (at most the last 300), oldest first
+function climbAsks() {
+  var sh = climbSheet('ClimbAsk'), n = sh.getLastRow(), since = Date.now() - 16 * 3600000;
+  if (n < 2) return [];
+  var from = Math.max(2, n - 299), out = [];
+  sh.getRange(from, 1, n - from + 1, 13).getValues().forEach(function (r, i) {
+    var t = r[0] instanceof Date ? r[0].getTime() : Date.parse(r[0]); if (!(t >= since)) return;
+    var v = []; try { v = JSON.parse(r[9] || '[]'); } catch (e) { }
+    out.push({ row: from + i, at: t, sid: String(r[1]), sess: String(r[2]), view: String(r[3]), skill: String(r[4]), tid: String(r[5]), seed: Number(r[6]) || 0, note: String(r[7]), shown: String(r[8]), vals: v, status: String(r[10]), reply: String(r[11]), closed: r[12] instanceof Date ? r[12].getTime() : 0 });
+  });
+  return out;
 }
 
 function climbSave(s, req) {
@@ -450,7 +512,7 @@ function climbClass(req) {
       log.push([t, String(r[1]), String(r[2]), String(r[3]), String(r[4]), Number(r[5]) || 0, String(r[6]), String(r[7]), String(r[8]), String(r[9]), Number(r[10]) || 0, String(r[11])]);
     });
   }
-  return { ok: true, now: Date.now(), roster: roster, rows: rows, here: here, session: climbSession(), accom: climbAccom(), log: log };
+  return { ok: true, now: Date.now(), roster: roster, rows: rows, here: here, session: climbSession(), accom: climbAccom(), log: log, asks: climbAsks() };
 }
 
 // teacher: a "needs check" skill was checked live. ok = it counts; not ok = back to learning. Applied on the student's next sign-in or ping.

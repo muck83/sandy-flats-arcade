@@ -12,6 +12,7 @@
     item: 90,                // seconds per item
     almost: 20,              // "Almost got it" extra seconds, offered in the last 20 s
     almostPerSession: 3,
+    askHold: 180,            // "Ask Mr. Crowell": the question's own clock stops while the hand is up, for at most this long
     explain: 30,             // teaching loop: explanation screen, at most
     guided: 60,              // teaching loop: guided try, at most
     testOutSecs: 60,
