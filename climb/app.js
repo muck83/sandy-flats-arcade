@@ -505,15 +505,25 @@
   }
 
   /* ---------- leaving the page ---------- */
-  function leave() {
+  // kind: 'hidden' (another tab, minimised, screen locked) or 'blur' (the page still shows but something else has focus).
+  // Short trips don't swap the question: browsers and devices take focus away for many innocent reasons.
+  function leave(kind) {
     if (paused) return;
-    if (view === 'item' && meta && !meta.left) meta.left = now();
+    if (view === 'item' && meta) { if (!meta.left) meta.left = now(); if (kind === 'hidden') meta.leftHidden = true; }
     else if ((view === 'explain' || view === 'guided') && T()) { T().leavesTeach = (T().leavesTeach || 0) + 1; }
   }
   function back() {
     if (view !== 'item' || !meta || !meta.left) return;
-    var t = T(), away = (now() - meta.left) / 1000;
-    t.leaves++; t.away = Math.round((t.away || 0) + away);
+    var t = T(), away = (now() - meta.left) / 1000, hid = !!meta.leftHidden, need = hid ? C.P.swapHidden : C.P.swapBlur;
+    meta.left = 0; meta.leftHidden = false;
+    t.away = Math.round((t.away || 0) + away);
+    if (away < need) {
+      // a blip: counted for the teacher, the question stays
+      t.blips = (t.blips || 0) + 1; if (hid) meta.afterLeave = true;
+      if (hid) SFA.toast('Stay on this page: leaving for more than ' + need + ' seconds swaps your question.', 5000);
+      return;
+    }
+    t.leaves++;
     if (away > C.P.awayAmber) t.awayLong = true;
     if (t.leaves >= C.P.leavesNoSecure) { t.noSecure = true; if (!t.flags.some(function (f) { return f.k === 'red'; })) t.flags.push({ k: 'red', at: now() }); }
     logRow({ at: now(), sess: t.id, skill: it.skill, tid: it.tid, seed: it.seed, mode: meta.mode, ans: '(left the page ' + Math.round(away) + ' s)', res: 'void', tag: '', secs: Math.round((now() - meta.start) / 1000), flags: 'left' });
@@ -530,8 +540,8 @@
     document.getElementById('chgB').onclick = function () { o.remove(); view = 'item'; meta.start = now(); meta.deadline = now() + meta.limit * 1000; tick(); };
     document.getElementById('chgB').focus();
   }
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') leave(); else { back(); ping(); } });
-  window.addEventListener('blur', function () { setTimeout(function () { if (!document.hasFocus()) leave(); }, 150); });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') leave('hidden'); else { back(); ping(); } });
+  window.addEventListener('blur', function () { setTimeout(function () { if (!document.hasFocus()) leave('blur'); }, 1000); });
   window.addEventListener('focus', back);
   ['pointerdown', 'keydown', 'pointermove', 'wheel'].forEach(function (ev) { document.addEventListener(ev, function () { lastAct = Date.now(); }, { passive: true }); });
   app.addEventListener('paste', function (e) { if (view === 'item' || view === 'guided') { e.preventDefault(); if (T()) T().paste = (T().paste || 0) + 1; SFA.toast('Pasting is turned off in Climb. Type your answer.'); } });

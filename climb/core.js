@@ -18,6 +18,8 @@
     testOutSecs: 60,
     reviewGap: 2,            // sessions after Secure before a review is due
     leavesNoSecure: 3,       // tab leaves in a session after which nothing counts toward Secure
+    swapHidden: 10,          // seconds on another tab (or minimised) before the question is swapped; shorter is only counted
+    swapBlur: 30,            // seconds with the page still showing but not in focus (a notification, the on-screen keyboard, another window)
     awayAmber: 20,           // seconds away that flag amber
     fastSecs: 10,            // correct this fast on Level 4+ marks "needs check"
     idleSecs: 60,
