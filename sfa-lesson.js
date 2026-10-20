@@ -772,7 +772,7 @@
         setTimeout(function () { location.href = LES.game.file; }, 2500);
       }
       drawTop(); refreshDots(); if (dropped || liveRun()) sayHere();
-      pollT = setTimeout(pollLive, isLive() ? 4500 + Math.random() * 1500 : 8000 + Math.random() * 2000);
+      pollT = setTimeout(pollLive, isLive() ? 3000 + Math.random() * 1000 : 8000 + Math.random() * 2000);
     }, function (e) {
       polling = false;
       if (/unknown op/.test(e.message)) return;   // older results script: no live mode
@@ -830,7 +830,7 @@
     document.querySelector('.lmain').appendChild(panel);
     if (bc) bc.onmessage = function (e) { var m = e.data || {}; if (m.t === 'hello') broadcast(); if (m.t === 'nav') go(m.to, true); };
     if (!console_.offline) fetchAnswers();
-    setInterval(function () { if (!console_.offline) fetchAnswers(); }, 4000);
+    setInterval(function () { if (!console_.offline) fetchAnswers(); }, 2500);
     setInterval(function () { if (console_.on) pushLive(); }, 120000);
     // a console left open in another tab or device must not keep the class live after you end it elsewhere
     setInterval(function () {
@@ -848,7 +848,7 @@
     setInterval(function () { if (!console_.offline && Date.now() - lastPush > 20000) tpost('live').then(function (j) { var was = JSON.stringify(console_.climb || null); console_.climb = j.climb || null; if (JSON.stringify(console_.climb) !== was) consolePanel(); }, function () { }); }, 30000);
     return true;
   }
-  // one request at a time: the Sheet can take longer than the 4 s between checks, and an older reply landing after a
+  // one request at a time: the Sheet can take longer than the 2.5 s between checks, and an older reply landing after a
   // newer one would make answers vanish and come back. Unchanged replies don't redraw, so buttons don't jump under the mouse.
   var fetching = 0, fetchSeq = 0, applied = 0, lastData = '';
   function fetchAnswers() {

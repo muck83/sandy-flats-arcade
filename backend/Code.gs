@@ -252,6 +252,19 @@ function responseRows() {
   });
 }
 
+// One lesson's rows only. The Responses tab holds every answer from every lesson, and the console asks every 4 seconds:
+// read just the lesson column, then only the block from the lesson's first row to its last.
+function lessonRows(lesson) {
+  var sh = responsesSheet(), n = sh.getLastRow();
+  if (n < 2) return [];
+  var col = sh.getRange(2, 3, n - 1, 1).getValues(), lo = -1, hi = -1;
+  for (var i = 0; i < col.length; i++) if (String(col[i][0]) === lesson) { if (lo < 0) lo = i; hi = i; }
+  if (lo < 0) return [];
+  return sh.getRange(2 + lo, 1, hi - lo + 1, 7).getValues().filter(function (r) { return String(r[2]) === lesson; }).map(function (r) {
+    return { time: r[0] instanceof Date ? r[0].toISOString() : String(r[0]), sid: String(r[1]), lesson: String(r[2]), q: String(r[3]), kind: String(r[4]), answer: String(r[5]), correct: String(r[6]) };
+  });
+}
+
 // the newest answer per student per question
 function latest(rows) {
   var by = {};
@@ -264,16 +277,15 @@ function answer(s, req) {
   if (!LESSON.test(lesson) || !QID.test(q) || !KINDS.test(kind)) throw new Error('bad answer');
   var correct = req.correct === true ? 'yes' : req.correct === false ? 'no' : '';
   var row = [new Date(), s.sid, lesson, q, kind, safe(req.answer, 600), correct];
-  var lock = LockService.getScriptLock();
-  if (!lock.tryLock(8000)) throw new Error('busy');
-  try { responsesSheet().appendRow(row); } finally { lock.releaseLock(); }
+  // appendRow is atomic, so answers don't need the script lock (and don't queue behind Climb's saves)
+  responsesSheet().appendRow(row);
   return { ok: true };
 }
 
 function myAnswers(s, req) {
   var lesson = String(req.lesson || ''), out = {};
   if (!LESSON.test(lesson)) throw new Error('bad lesson');
-  responseRows().forEach(function (r) { if (r.sid === s.sid && r.lesson === lesson) out[r.q] = { answer: r.answer, correct: r.correct }; });
+  lessonRows(lesson).forEach(function (r) { if (r.sid === s.sid) out[r.q] = { answer: r.answer, correct: r.correct }; });
   return { ok: true, student: publicStudent(s), answers: out };
 }
 
@@ -301,7 +313,7 @@ function setLive(req) {
 function answersFor(req) {
   var lesson = String(req.lesson || '');
   if (!LESSON.test(lesson)) throw new Error('bad lesson');
-  var rows = latest(responseRows().filter(function (r) { return r.lesson === lesson; }));
+  var rows = latest(lessonRows(lesson));
   return { ok: true, roster: rosterRows().map(publicStudent), answers: rows };
 }
 

@@ -26,11 +26,12 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
    (If it says "questions today: undefined", the old code is still in Code.gs.)
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
-   Description "Climb ask button" > Deploy. Do NOT use "New deployment" (that changes the URL).
+   Description "Faster lesson answers" > Deploy. Do NOT use "New deployment" (that changes the URL).
 
 5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
 
-Latest change: students can press "Ask Mr. Crowell" in Climb; new operations climbAsk and climbReply, and a "ClimbAsk" tab that creates itself.
+Latest change: the lesson console reads only the current lesson's rows of the Responses tab, and saving an answer no longer waits for the script lock (appendRow is atomic). Nothing to set up.
+Before that: students can press "Ask Mr. Crowell" in Climb; new operations climbAsk and climbReply, and a "ClimbAsk" tab that creates itself.
 Before that: Climb skills 22-25 (function notation, domain and range, graphing from an equation, systems). Earlier operations in this version: climbHello, climbPing, climbSave, climbControl, climbClass, climbCheck, climbStudent,
 studentDay; Climb data is added to mine, class and live. The "Climb" and "ClimbLog" tabs create themselves.
 If anything errors, show me the exact message and line number before suggesting changes.
