@@ -138,7 +138,8 @@
     if (sess.state === 'open' || !sess.start || now() < sess.start) return waiting(true);
     // running (or paused): join, or carry on after a reload
     if (t && t.id === sess.id && t.closed) return done();
-    if (view === 'item' || view === 'explain' || view === 'guided' || view === 'right' || view === 'changed') return;
+    if (view === 'item' || view === 'explain' || view === 'guided' || view === 'right' || view === 'changed' || view === 'quizdone') return;
+    if (quizDue()) return quizStart();
     begin();
   }
   function rungs() {
@@ -154,7 +155,7 @@
       '<p style="margin:0;font-size:20px" class="sub">Hi, ' + esc(first(S.me.name)) + '. ' + (open ? 'You\'re in.' : '') + '</p>' +
       (counting ? '<h1 class="big1">Starting in <span style="color:var(--blue)" id="cd">0:10</span></h1>' : open ? '<h1 class="big1">Waiting for Mr. Crowell to start</h1>' : '<h1 class="big1">Climb isn\'t open right now</h1>') +
       '<p style="margin:0;font-size:20px;max-width:560px">' + (open ? 'Everyone starts together and stops together. Work on your own, and show what you really know: that\'s how the questions find your level.' : (sess && sess.state === 'ended' ? 'Today\'s session has ended. ' : '') + 'Mr. Crowell opens Climb at the start of class. Keep this page open and it starts by itself.') + '</p>' +
-      '<div class="tiles"><div class="tile"><b>' + Math.round(C.P.session * mult / 60) + ' min</b><span>for today\'s session</span></div><div class="tile"><b>' + Math.round(60 * mult) + '–' + Math.round(150 * mult) + ' sec</b><span>for each question: longer ones get more time</span></div><div class="tile warm"><b>Stay on this page</b><span>Leaving it changes your question.</span></div></div>' +
+      '<div class="tiles">' + (sess && sess.quiz ? '<div class="tile warm"><b>' + Math.round(sess.quiz.secs * mult / 60) + '-min check-in first</b><span>The same ' + sess.quiz.tids.length + ' questions for everyone, then your Climb</span></div>' : '') + '<div class="tile"><b>' + Math.round(C.P.session * mult / 60) + ' min</b><span>for ' + (sess && sess.quiz ? 'your Climb' : 'today\'s session') + '</span></div><div class="tile"><b>' + Math.round(60 * mult) + '–' + Math.round(150 * mult) + ' sec</b><span>for each question: longer ones get more time</span></div><div class="tile warm"><b>Stay on this page</b><span>Leaving it changes your question.</span></div></div>' +
       '</section><aside class="card side"><h2 style="margin:0;font-size:18px" class="sub">You\'re working on</h2>' +
       (fr ? '<div style="display:flex;flex-direction:column;gap:8px"><span class="chip" style="align-self:flex-start">' + 'Step ' + (C.SKILL[fr].i + 1) + ' of ' + C.SKILLS.length + ' · ' + esc(C.label(fr)) + '</span><span style="font:800 28px/1.15 var(--disp)">' + esc(C.SKILL[fr].name) + '</span></div>' : '<span style="font:800 24px var(--disp)">Every open skill is secure. Today is review.</span>') +
       rungs() + '<p style="margin:0" class="sub">' + secure + ' skill' + (secure === 1 ? '' : 's') + ' secure.' + (due ? ' ' + due + ' ' + (due === 1 ? 'is' : 'are') + ' due for a quick review at the start.' : '') + '</p>' +
@@ -168,11 +169,49 @@
   }
 
   /* ---------- the session ---------- */
-  function begin() {
+  function begin(noItem) {
     var t = E.begin(st, sess.id, { late: now() > sess.start + 30000, focus: sess.focus, focusAll: sess.focusAll });
     t.focus = sess.focus || ''; t.focusAll = !!sess.focusAll;
     keep(); saveSoon(500);
-    next({});
+    if (!noItem) next({});
+  }
+
+  /* ---------- the check-in: a few minutes of the same questions for everyone, then straight into Climb ---------- */
+  // No right/wrong shown and nothing changes the ladder: it's for the teacher. Students who finish early start climbing early.
+  var QZ = null;
+  function qEnd() { return sess.start + (sess.pausedMs || 0) + sess.quiz.secs * 1000 * mult; }
+  function quizState() {
+    if (!QZ || QZ.id !== sess.id) { var L = SFA.store.get('climb.quiz', null); QZ = L && S.me && L.sid === S.me.sid && L.id === sess.id ? L : { sid: S.me.sid, id: sess.id, i: 0, done: false }; }
+    return QZ;
+  }
+  function quizDue() { return !!(sess && sess.quiz && sess.quiz.tids && sess.quiz.tids.length && !quizState().done && now() < qEnd()); }
+  function quizStart() { begin(true); quizNext(); }
+  function quizNext() {
+    var q = sess.quiz, Z = quizState();
+    while (Z.i < q.tids.length && !C.T[q.tids[Z.i]]) Z.i++;
+    if (Z.i >= q.tids.length || now() >= qEnd()) return quizDone(Z.i < q.tids.length);
+    show({ tid: q.tids[Z.i], seed: C.quizSeed(q, Z.i), mode: 'quiz' }, {});
+    if (it && meta) { meta.deadline = qEnd(); meta.limit = q.secs * mult; }
+  }
+  function quizAnswer(r, timeout, skipped) {
+    var Z = quizState(), secs = (now() - meta.start) / 1000;
+    logRow({ at: now(), sess: T().id, skill: it.skill, tid: it.tid, seed: it.seed, mode: 'quiz', ans: skipped ? '(skipped)' : r.shown, res: timeout ? 'time' : r.ok ? 'yes' : 'no', tag: r.ok || skipped ? '' : r.tag, secs: Math.round(secs), flags: [meta.afterLeave ? 'afterleave' : '', skipped ? 'skip' : ''].filter(Boolean).join(' ') });
+    Z.i++; if (skipped) Z.skip = (Z.skip || 0) + 1; SFA.store.set('climb.quiz', Z);
+    view = 'graded';
+    if (timeout) return quizDone(true);
+    quizNext();
+  }
+  function quizDone(timeUp) {
+    var Z = quizState(), n = sess.quiz.tids.length, did = Math.max(0, Math.min(Z.i, n) - (Z.skip || 0));
+    Z.done = true; SFA.store.set('climb.quiz', Z);
+    it = null; meta = null; view = 'quizdone';
+    app.innerHTML = header('<span class="chip warm">Check-in done</span>') +
+      '<section class="card center" style="margin-top:20px;gap:14px"><h1 class="big1" style="font-size:40px">' + (timeUp ? 'Time\'s up for the check-in.' : 'Check-in done. Nice work.') + '</h1>' +
+      '<p style="margin:0;font-size:20px" class="sub">You answered ' + did + ' of ' + n + '. Mr. Crowell will go over these questions with the class.</p>' +
+      '<p style="margin:0;font-size:22px;font-weight:700">Your Climb starts in <span id="qzgo">5</span>…</p><div><button type="button" class="btn primary big" id="qzB">Start my Climb now</button></div></section>';
+    var k = 5, go = function () { clearInterval(iv); if (view === 'quizdone') next({}); };
+    var iv = setInterval(function () { var g = document.getElementById('qzgo'); if (--k <= 0 || view !== 'quizdone') return go(); if (g) g.textContent = k; }, 1000);
+    document.getElementById('qzB').onclick = go;
   }
   function next(ctx) {
     if (!live() || sessLeft() <= 0) return finish();
@@ -199,6 +238,7 @@
   var vals = [];
   function progressLine() {
     var k = st.skills[it.skill], mode = meta.mode;
+    if (mode === 'quiz') return 'Question ' + (quizState().i + 1) + ' of ' + sess.quiz.tids.length + ' · no right or wrong shown yet';
     if (mode === 'review') return 'Review: show it stuck';
     if (mode === 'probe') return 'Bonus question: try your best';
     if (mode === 'preview') return 'Today\'s lesson topic: practice, not scored';
@@ -235,7 +275,7 @@
   }
   function question() {
     view = 'item'; orderParts(it);
-    var t = T(), qn = (t ? t.items : 0) + 1, chip = meta.mode === 'review' ? '<span class="chip dark">Review · ' + esc(skName(it.skill)) + '</span>' : '<span class="chip">' + esc(skName(it.skill)) + '</span>';
+    var t = T(), quiz = meta.mode === 'quiz', qn = quiz ? quizState().i + 1 : (t ? t.items : 0) + 1, chip = quiz ? '<span class="chip warm">' + esc(sess.quiz.name || 'Check-in') + ' · same questions for everyone</span>' : meta.mode === 'review' ? '<span class="chip dark">Review · ' + esc(skName(it.skill)) + '</span>' : '<span class="chip">' + esc(skName(it.skill)) + '</span>';
     var body, wide = '';
     if (it.sentence) { var s = it.sentence; it.parts.forEach(function (p, i) { s = s.replace('{' + i + '}', inlineHtml(p, i)); }); body = '<div class="part sentence">' + s + '</div>'; }
     else {
@@ -248,11 +288,11 @@
     app.innerHTML = header('<span class="chip-wrap">' + chip + '</span><span class="cnext">' + esc(progressLine()) + '</span>') +
       '<div class="cgrid" style="margin-top:20px"><section class="card main noselect' + (wide ? ' build' : '') + '" id="qcard"><div class="qhead"><span class="qnum">Question ' + qn + '</span><button type="button" class="btn listen" id="listen" aria-label="Read the question aloud"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16.5 8.5 Q19 12 16.5 15.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Listen</button></div>' +
       '<h1 class="stem' + (wide ? ' small' : '') + '">' + it.stem + '</h1>' + (it.fig ? '<figure class="figw" style="margin:0">' + it.fig + '</figure>' : '') + (wide ? '<div class="parts wide">' + wide + '</div>' : '') + '</section>' +
-      '<aside class="card side"><div class="timer"><svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30" fill="none" stroke="#E6EDFD" stroke-width="8"/><circle id="ring" cx="36" cy="36" r="30" fill="none" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round" stroke-dasharray="188.5 188.5" transform="rotate(-90 36 36)"/></svg><div style="display:flex;flex-direction:column"><b id="ileft">1:30</b><span>left on this question</span></div></div>' +
+      '<aside class="card side"><div class="timer"><svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30" fill="none" stroke="#E6EDFD" stroke-width="8"/><circle id="ring" cx="36" cy="36" r="30" fill="none" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round" stroke-dasharray="188.5 188.5" transform="rotate(-90 36 36)"/></svg><div style="display:flex;flex-direction:column"><b id="ileft">1:30</b><span>' + (quiz ? 'left in the check-in' : 'left on this question') + '</span></div></div>' +
       '<div class="almost" id="almost" hidden><button type="button" class="btn warm" id="almostB">Almost got it? +' + C.P.almost + ' seconds</button><small>Once per question · ' + almostLeft + ' left this session</small></div>' +
       '<form class="parts" id="ans" novalidate>' + body + '<p class="hint" id="need" hidden>Answer every part first.</p>' +
-      (it.think ? '<div class="think"><b>Think</b><span>' + it.think + '</span></div>' : '') +
-      '<button type="submit" class="btn primary big" style="margin-top:4px">Check my answer</button></form></aside></div>';
+      (it.think && !quiz ? '<div class="think"><b>Think</b><span>' + it.think + '</span></div>' : '') +
+      '<button type="submit" class="btn primary big" style="margin-top:4px">' + (quiz ? 'Save and go on' : 'Check my answer') + '</button>' + (quiz ? '<button type="button" class="btn small" id="skipB" style="align-self:flex-start">Skip this one</button>' : '') + '</form></aside></div>';
     var form = document.getElementById('ans');
     mountAll(app);
     var stemEl = app.querySelector('.stem'); if (stemEl) glossify(stemEl);
@@ -260,6 +300,7 @@
     form.addEventListener('submit', function (e) { e.preventDefault(); readVals(); submit(false); });
     [].forEach.call(form.querySelectorAll('.opt input'), function (inp) { inp.addEventListener('change', function () { [].forEach.call(form.querySelectorAll('input[name="' + inp.name + '"]'), function (o) { o.parentNode.classList.toggle('sel', o.checked); }); }); });
     document.getElementById('listen').onclick = function () { say(C.strip(it.stem) + '. ' + (it.sentence ? C.strip(it.sentence.replace(/\{\d\}/g, ' blank ')) : it.parts.map(function (p) { return C.strip(p.label || ''); }).join('. '))); };
+    var skB = document.getElementById('skipB'); if (skB) skB.onclick = function () { if (view === 'item') quizAnswer({ ok: false, shown: '' }, false, true); };
     document.getElementById('almostB').onclick = function () { if (meta.ext) return; meta.ext = true; meta.deadline += C.P.almost * 1000; T().almost++; document.getElementById('almost').hidden = true; };
     var f1 = form.querySelector('input,select,textarea'); if (f1 && window.matchMedia('(pointer:fine)').matches) f1.focus({ preventScroll: true });
     tick();
@@ -405,6 +446,7 @@
     if (!timeout && blank()) { var n = document.getElementById('need'); if (n) n.hidden = false; return; }
     var r = timeout ? { ok: false, tag: 'T0', timeout: true, shown: C.shown(it, vals) } : C.grade(it, vals);
     if (!timeout && !r.ok && !r.tag) r.tag = 'G';
+    if (meta.mode === 'quiz') return quizAnswer(r, timeout, false);
     var secs = (now() - meta.start) / 1000, fast = r.ok && secs < C.P.fastSecs && it.level >= 4;
     var out = E.record(st, it, r, { mode: meta.mode, secs: secs, limit: meta.limit, ext: meta.ext || meta.asked, fast: fast, afterLeave: meta.afterLeave, idle: meta.idle });
     var fl = [meta.ext ? 'ext' : '', fast ? 'fast' : '', meta.afterLeave ? 'afterleave' : '', meta.idle ? 'idle' : '', T().noSecure ? 'nosecure' : '', meta.asked ? 'asked' : ''].filter(Boolean).join(' ');
@@ -517,6 +559,7 @@
     var t = T(), away = (now() - meta.left) / 1000, hid = !!meta.leftHidden, need = hid ? C.P.swapHidden : C.P.swapBlur;
     meta.left = 0; meta.leftHidden = false;
     t.away = Math.round((t.away || 0) + away);
+    if (meta.mode === 'quiz') { if (away >= 2) meta.afterLeave = true; if (hid) SFA.toast('Stay on this page during the check-in.', 4000); return; }
     if (away < need) {
       // a blip: counted for the teacher, the question stays
       t.blips = (t.blips || 0) + 1; if (hid) meta.afterLeave = true;
@@ -598,7 +641,7 @@
   }
   function askUi() {
     var slot = document.getElementById('askSlot'); if (!slot) return;
-    var can = !!(S.me && /^(item|explain|guided)$/.test(view) && !paused);
+    var can = !!(S.me && /^(item|explain|guided)$/.test(view) && !paused && !(meta && meta.mode === 'quiz'));
     var sig = hand ? 'h' + hand.repAt + (hand.hold ? 'f' : '') : can ? 'a' : '';
     if (sig === askSig && slot.childNodes.length === (sig ? 1 : 0)) return;
     askSig = sig;
@@ -675,7 +718,8 @@
       var il = meta.deadline - tnow, ie = document.getElementById('ileft'), ring = document.getElementById('ring');
       if (ie) ie.textContent = mmss(il);
       if (ring) { var tot = (meta.limit || C.P.item) * 1000 + (meta.ext ? C.P.almost * 1000 : 0), fr = Math.max(0, il / tot); ring.setAttribute('stroke-dasharray', (188.5 * fr).toFixed(1) + ' 188.5'); ring.setAttribute('stroke', il < 20000 ? '#F97316' : '#1D4ED8'); }
-      var al = document.getElementById('almost'); if (al) al.hidden = !(il <= C.P.almost * 1000 && !meta.ext && T() && T().almost < C.P.almostPerSession);
+      if (meta.mode === 'quiz' && sess && sess.quiz) meta.deadline = qEnd();
+      var al = document.getElementById('almost'); if (al) al.hidden = !(meta.mode !== 'quiz' && il <= C.P.almost * 1000 && !meta.ext && T() && T().almost < C.P.almostPerSession);
       if (!(hand && hand.hold) && Date.now() - lastAct > C.P.idleSecs * 1000) meta.idle = true;
       if (il <= 0) { readVals(); submit(true); }
     }

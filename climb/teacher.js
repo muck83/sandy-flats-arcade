@@ -90,6 +90,7 @@
     classes.sort();
     body.innerHTML = '';
     body.appendChild(sessionCard(s, classes));
+    if (s && s.quiz) body.appendChild(quizCard(s));
     body.appendChild(classTable(s));
     var g = el('div', { 'class': 'grid2', style: 'margin-top:20px' });
     g.appendChild(groupsCard(s)); g.appendChild(tagsCard()); g.appendChild(itemReportCard(s)); g.appendChild(itemsCard());
@@ -132,8 +133,14 @@
     nxt.onchange = function () { SFA.store.set('teacher.climb.next', +nxt.value); if (running) control('next', { next: +nxt.value }); else draw(); };
     row.appendChild(nxt);
     var B = function (t, cl, f) { var b = el('button', { type: 'button', 'class': 'btn ' + (cl || ''), text: t }); b.onclick = function () { b.disabled = true; f(); }; row.appendChild(b); };
-    if (!s || s.state === 'ended') B('Open the waiting room', 'primary', function () { control('open', { cls: cls, focus: foc.value, focusAll: all.checked, next: +nxt.value }); });
-    if (s && s.state === 'open') B('Start: 12 minutes for everyone', 'primary', function () { control('start'); });
+    // the check-in: the same questions for everyone before Climb (C.QUIZ), one seed per session
+    var qz = el('input', { type: 'checkbox', id: 'qz' }); qz.checked = s && s.state !== 'ended' ? !!s.quiz : !!SFA.store.get('teacher.climb.quiz', false);
+    qz.onchange = function () { SFA.store.set('teacher.climb.quiz', qz.checked); };
+    if (running) qz.disabled = true;
+    row.appendChild(el('label', { 'for': 'qz', style: 'display:flex;gap:6px;align-items:center;font-size:15px', title: C.QUIZ.items.length + ' questions, one per lesson, the same numbers for everyone. Then each student goes straight into their Climb.' }, [qz, 'Start with the ' + Math.round(C.QUIZ.secs / 60) + '-min check-in (' + C.QUIZ.name.replace(/ check-in$/, '') + ')']));
+    function quizSpec() { return qz.checked ? { tids: C.QUIZ.items.map(function (x) { return x.tid; }), seed: Math.floor(Math.random() * 4294967296), secs: C.QUIZ.secs, name: C.QUIZ.name } : null; }
+    if (!s || s.state === 'ended') B('Open the waiting room', 'primary', function () { control('open', { cls: cls, focus: foc.value, focusAll: all.checked, next: +nxt.value, quiz: quizSpec() }); });
+    if (s && s.state === 'open') B(s.quiz ? 'Start: check-in, then Climb' : 'Start: 12 minutes for everyone', 'primary', function () { control('start'); });
     if (s && s.state === 'running') B('Pause all', 'warm', function () { control('pause'); });
     if (s && s.state === 'paused') B('Resume', 'primary', function () { control('resume'); });
     if (running) B('End now', '', function () { if (window.confirm('End the session for everyone now?')) control('end'); else draw(); });
@@ -153,11 +160,12 @@
   function tick() {
     var s = data && data.session, ck = document.getElementById('clock'); if (!ck || !s) { if (ck) ck.textContent = ''; return; }
     if (s.state === 'running' && now() < s.start) ck.textContent = 'Starts in ' + mmss(s.start - now());
-    else if (s.state === 'running') ck.textContent = mmss(s.start + (s.pausedMs || 0) + 720000 - now()) + ' left';
-    else if (s.state === 'paused') ck.textContent = mmss(s.start + (s.pausedMs || 0) + 720000 - s.pausedAt) + ' left (paused)';
+    else if (s.state === 'running') ck.textContent = (s.quiz && now() < s.start + (s.pausedMs || 0) + s.quiz.secs * 1000 ? 'Check-in ' + mmss(s.start + (s.pausedMs || 0) + s.quiz.secs * 1000 - now()) + ' · ' : '') + mmss(s.start + (s.pausedMs || 0) + 720000 + qms(s) - now()) + ' left';
+    else if (s.state === 'paused') ck.textContent = mmss(s.start + (s.pausedMs || 0) + 720000 + qms(s) - s.pausedAt) + ' left (paused)';
     else ck.textContent = '';
   }
   setInterval(tick, 500);
+  function qms(s) { return s && s.quiz ? s.quiz.secs * 1000 : 0; }
 
   function classTable(s) {
     var wrap = el('div', { 'class': 'tw', style: 'margin-top:20px' }), t = el('table', { 'class': 'dash' });
@@ -251,7 +259,7 @@
     var c = el('section', { 'class': 'card' }); c.appendChild(el('h2', { text: 'Item report' }));
     var ids = sids(), sessIds = []; data.log.forEach(function (r) { if (sessIds.indexOf(r[2]) < 0) sessIds.push(r[2]); });
     var sid = s ? s.id : sessIds[sessIds.length - 1];
-    var rows = data.log.filter(function (r) { return r[2] === sid && ids[r[1]] && (r[8] === 'yes' || r[8] === 'no') && r[6] !== 'probe' && r[6] !== 'preview'; });
+    var rows = data.log.filter(function (r) { return r[2] === sid && ids[r[1]] && (r[8] === 'yes' || r[8] === 'no') && r[6] !== 'probe' && r[6] !== 'preview' && r[6] !== 'quiz'; });
     if (!rows.length) { c.appendChild(el('p', { 'class': 'muted', style: 'margin:0', text: 'Ready after a session: the most-missed question, its most common wrong answer, and a Project button that shows it to the class with no names.' })); return c; }
     var by = {}; rows.forEach(function (r) { var o = by[r[4]] = by[r[4]] || { n: 0, miss: 0, wrong: {}, tag: {}, row: null }; o.n++; if (r[8] === 'no') { o.miss++; o.wrong[r[7]] = (o.wrong[r[7]] || 0) + 1; if (r[9]) o.tag[r[9]] = (o.tag[r[9]] || 0) + 1; if (!o.row) o.row = r; } });
     var worst = Object.keys(by).filter(function (k) { return by[k].miss; }).sort(function (a, b) { return by[b].miss - by[a].miss || by[b].miss / by[b].n - by[a].miss / by[a].n; })[0];
@@ -490,6 +498,44 @@
   setInterval(function () { [].forEach.call(asksBox.querySelectorAll('[data-wait]'), function (x) { x.textContent = mmss(now() - +x.getAttribute('data-wait')); }); }, 1000);
   function chime() {
     try { var A = window.AudioContext || window.webkitAudioContext, ctx = new A(), o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.55); } catch (e) { }
+  }
+
+  /* ---------- the check-in's results: per question and per student ---------- */
+  function quizCard(s) {
+    var q = s.quiz, c = el('section', { 'class': 'card', style: 'gap:14px;margin-top:20px' }), ids = {};
+    roster().forEach(function (r) { ids[r.sid] = r; });
+    var rows = data.log.filter(function (r) { return r[2] === s.id && r[6] === 'quiz' && ids[r[1]]; });
+    var got = {}; rows.forEach(function (r) { var i = q.tids.indexOf(r[4]); if (i >= 0) (got[r[1]] = got[r[1]] || {})[i] = r; });
+    var lesson = function (tid) { var x = C.QUIZ.items.filter(function (y) { return y.tid === tid; })[0]; return x ? 'Lesson ' + x.lesson : C.label(C.T[tid] ? C.T[tid].skill : ''); };
+    var took = Object.keys(got).length;
+    c.appendChild(el('h2', { text: '📝 ' + (q.name || 'Check-in') + ': ' + took + ' of ' + roster().length + ' students so far' }));
+    c.appendChild(el('p', { 'class': 'muted small', style: 'margin:0', text: 'The same questions and numbers for everyone. Students don\'t see right or wrong, and these answers don\'t move anyone on the ladder. ✓ right · ✗ wrong · – skipped · ⏱ time ran out on it · blank: not reached.' }));
+    // per question
+    var qt = el('table', { 'class': 'dash' });
+    qt.appendChild(el('tr', {}, ['#', 'Lesson', 'Skill', '% right', 'Most common wrong answer', ''].map(function (h) { return el('th', { text: h }); })));
+    q.tids.forEach(function (tid, i) {
+      var a = Object.keys(got).map(function (sid) { return got[sid][i]; }).filter(function (r) { return r && r[8] !== 'time' && !/skip/.test(r[11]); });
+      var ok = a.filter(function (r) { return r[8] === 'yes'; }).length, wrong = {};
+      a.forEach(function (r) { if (r[8] === 'no') wrong[r[7]] = (wrong[r[7]] || 0) + 1; });
+      var wa = Object.keys(wrong).sort(function (x, y) { return wrong[y] - wrong[x]; })[0], pct = a.length ? Math.round(100 * ok / a.length) : null;
+      var item = null; try { item = C.make(tid, C.quizSeed(q, i)); } catch (e) { }
+      var pb = el('button', { type: 'button', 'class': 'ck', text: 'Project', onclick: function () { if (item) project(item, wa || '…'); } });
+      qt.appendChild(el('tr', {}, [el('td', { text: 'Q' + (i + 1) }), el('td', { text: lesson(tid) }), el('td', { text: C.T[tid] ? C.label(C.T[tid].skill) + ' · ' + C.SKILL[C.T[tid].skill].name : tid, style: 'white-space:normal' }),
+        el('td', {}, [el('span', { 'class': 'pill ' + (pct == null ? '' : pct >= 80 ? 'on' : pct >= 50 ? 'amber' : 'red'), text: pct == null ? '·' : pct + '% of ' + a.length })]),
+        el('td', { text: wa ? '"' + wa + '" (' + wrong[wa] + ')' : '', style: 'white-space:normal;max-width:280px' }), el('td', {}, item ? [pb] : [])]));
+    });
+    var w1 = el('div', { 'class': 'tw' }); w1.appendChild(qt); c.appendChild(w1);
+    // per student
+    var d = el('details'); d.appendChild(el('summary', { text: 'By student', style: 'cursor:pointer;font-weight:700;color:var(--blue)' }));
+    var st = el('table', { 'class': 'dash' });
+    st.appendChild(el('tr', {}, ['Student'].concat(q.tids.map(function (t, i) { return 'Q' + (i + 1); })).concat(['Score']).map(function (h) { return el('th', { text: h }); })));
+    roster().slice().sort(function (a, b) { return a.name < b.name ? -1 : 1; }).forEach(function (r) {
+      var g = got[r.sid] || {}, sc = 0;
+      var cells = q.tids.map(function (t, i) { var x = g[i]; if (!x) return el('td', { text: '' }); if (x[8] === 'yes') sc++; var sym = /skip/.test(x[11]) ? '–' : x[8] === 'yes' ? '✓' : x[8] === 'time' ? '⏱' : '✗'; return el('td', { text: sym, title: x[7] + (/afterleave/.test(x[11]) ? ' (after leaving the page)' : ''), style: 'color:' + (x[8] === 'yes' ? 'var(--green)' : 'var(--red)') }); });
+      st.appendChild(el('tr', {}, [el('td', { text: nice(r.name), style: 'font-weight:700' })].concat(cells).concat([el('td', { text: got[r.sid] ? sc + ' / ' + q.tids.length : '' })])));
+    });
+    var w2 = el('div', { 'class': 'tw', style: 'margin-top:10px' }); w2.appendChild(st); d.appendChild(w2); c.appendChild(d);
+    return c;
   }
 
   function csv() {

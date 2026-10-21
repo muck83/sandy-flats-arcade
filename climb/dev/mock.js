@@ -12,7 +12,7 @@
   function pub(s) { return { sid: s.sid, name: s.name, cls: s.cls }; }
   function auth(r) { var s = ROSTER.filter(function (x) { return x.code === String(r.code || '').toUpperCase(); })[0]; if (!s) throw new Error(r.code ? 'bad code' : 'sign in'); return s; }
   function tch(r) { if (r.teacherKey !== 'test') throw new Error('teacher key'); }
-  function forS(d, s) { var c = d.session; if (!c || (c.cls && c.cls !== s.cls)) return null; return { id: c.id, state: c.state, start: c.start || 0, pausedAt: c.pausedAt || 0, pausedMs: c.pausedMs || 0, len: LEN, focus: c.focus || '', focusAll: !!c.focusAll, endedAt: c.endedAt || 0, next: c.next || 0 }; }
+  function forS(d, s) { var c = d.session; if (!c || (c.cls && c.cls !== s.cls)) return null; return { id: c.id, state: c.state, start: c.start || 0, pausedAt: c.pausedAt || 0, pausedMs: c.pausedMs || 0, len: LEN + (c.quiz ? c.quiz.secs * 1000 : 0), focus: c.focus || '', focusAll: !!c.focusAll, endedAt: c.endedAt || 0, next: c.next || 0, quiz: c.quiz || null }; }
   function liveLesson(d) { var L = d.live; if (!L) return null; return { lesson: L.lesson, at: L.at, ended: !!(L.counts && L.counts.zend && L.counts.zend[0] === 1) }; }
   function route(r) {
     var d = db(); d.rows = d.rows || {}; d.log = d.log || []; d.here = d.here || {}; d.accom = d.accom || {};
@@ -47,7 +47,7 @@
       case 'climbControl':
         tch(r); var a = r.action, c = d.session, now = Date.now();
         if (a === 'accom') { if (r.mult === 1.5 || r.mult === 2) d.accom[r.sid] = r.mult; else delete d.accom[r.sid]; put(d); return { ok: true, session: c, accom: d.accom }; }
-        if (a === 'open') c = { id: 'S' + new Date().toISOString().slice(2, 16).replace(/[-:T]/g, ''), cls: r.cls || '', state: 'open', start: 0, pausedAt: 0, pausedMs: 0, focus: r.focus || '', focusAll: !!r.focusAll, next: +r.next || 0 };
+        if (a === 'open') c = { id: 'S' + new Date().toISOString().slice(2, 16).replace(/[-:T]/g, ''), cls: r.cls || '', state: 'open', start: 0, pausedAt: 0, pausedMs: 0, focus: r.focus || '', focusAll: !!r.focusAll, next: +r.next || 0, quiz: r.quiz && r.quiz.tids ? { tids: r.quiz.tids, seed: r.quiz.seed, secs: r.quiz.secs || 300, name: r.quiz.name || '' } : null };
         else if (a === 'next' && c) c.next = +r.next || 0;
         else if (!c) throw new Error('no session');
         else if (a === 'start') { c.state = 'running'; c.start = now + 10000; }

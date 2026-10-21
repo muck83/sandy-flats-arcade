@@ -140,6 +140,24 @@
   // where each skill is taught in the Sandy Flats films (lesson number students see = film order)
   C.FILM = { '22': 'Film 5', '23': 'Film 16', '24': 'Films 7 and 10', '25': 'Films 11 and 14', F1: 'before the unit (integer subtraction)', F2: 'Films 1-2', '1': 'Film 1', '2': 'Film 4', '3': 'Film 3', '4': 'Film 4', '5': 'Film 7', '6': 'Film 7', '7': 'Film 9', '8': 'Film 10', '9': 'Film 13', '10': 'Films 1 and 8', '11': 'Film 10', '12': 'Film 8', '13': 'Film 7', '14': 'Film 12', '15': 'Film 13', '16': 'Film 14', '17': 'Film 14', '18': 'Film 6', '19': 'Film 6', '20': 'stretch', '21': 'stretch' };
 
+  /* ---------- the check-in: a short formative quiz before Climb, the same questions (and numbers) for everyone ---------- */
+  // One quick question per lesson, Lessons 1-8 (the films). The teacher's dashboard picks one seed per session, so every
+  // student gets the same numbers; answer options are still shuffled per student. Answers don't change anyone's ladder.
+  C.QUIZ = {
+    name: 'Lessons 1–8 check-in', secs: 300,
+    items: [
+      { tid: 'FN-1a', lesson: 1 },   // evaluate a rule
+      { tid: 'CV-2b', lesson: 2 },   // how two quantities change together
+      { tid: 'FN-2a', lesson: 3 },   // function or not: pairs
+      { tid: 'QG-1a', lesson: 4 },   // read values from a graph
+      { tid: 'FX-1a', lesson: 5 },   // function notation
+      { tid: 'QG-2a', lesson: 6 },   // qualitative graphs
+      { tid: 'RC-1a', lesson: 7 },   // rate of change
+      { tid: 'EQ-4b', lesson: 8 }    // equation from a table
+    ]
+  };
+  C.quizSeed = function (q, i) { return (q.seed + (i + 1) * 7919) % 4294967296; };
+
   /* ---------- misconception tags ---------- */
   C.TAGS = {
     M1: { name: 'Slope as run over rise', say: 'You found run over rise. Slope is rise over run: the change in y divided by the change in x.', habit: 'Ask: for every 1 step right, how far up or down? Up goes on top.' },
