@@ -144,3 +144,5 @@ ol.work{margin:0;padding-left:24px;display:flex;flex-direction:column;gap:12px;f
 .snap .stem2{margin:0;font-size:20px;font-weight:700}
 .snap .figw svg{max-height:340px}
 .snap .opt .pick{font-size:12px;color:var(--blue)}.snap .opt .key{font-size:12px;color:var(--green)}
+/* 👁 see a student's screen (teacher) */
+.dash td.nm button.eye{text-decoration:none;margin-right:6px;font-size:16px;border:1px solid var(--line2);border-radius:8px;padding:0 5px;background:#fff}

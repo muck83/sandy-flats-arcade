@@ -39,12 +39,12 @@
   function refresh(first) {
     if (busy) return; busy = true;
     var t0 = Date.now();
-    api('climbClass').then(function (j) { busy = false; off = j.now + (Date.now() - t0) / 2 - Date.now(); data = j; draw(); schedule(); }, function (e) { fail(e); schedule(); });
+    api('climbClass', watching ? { watch: watching.sid } : {}).then(function (j) { busy = false; off = j.now + (Date.now() - t0) / 2 - Date.now(); data = j; draw(); drawWatch(); schedule(); }, function (e) { fail(e); schedule(); });
   }
   function schedule() {
     clearTimeout(timer);
     var s = data && data.session, hot = s && s.state !== 'ended';
-    timer = setTimeout(function () { if (document.visibilityState === 'visible' && Key.get()) refresh(); else schedule(); }, hot ? 5000 : 30000);
+    timer = setTimeout(function () { if (document.visibilityState === 'visible' && Key.get()) refresh(); else schedule(); }, watching ? 3000 : hot ? 5000 : 30000);
   }
   function control(action, extra) {
     var b = Object.assign({ action: action }, extra || {});
@@ -185,10 +185,10 @@
     });
     rows.forEach(function (x) {
       var tr = el('tr'), r = x.r, row = x.row, L = x.L;
-      var nm = el('td', { 'class': 'nm' }); nm.appendChild(el('button', { type: 'button', text: nice(r.name), onclick: function () { detail(r); } })); if (!cls && r.cls) nm.appendChild(el('span', { 'class': 'muted small', text: ' · ' + r.cls })); tr.appendChild(nm);
+      var nm = el('td', { 'class': 'nm' }); nm.appendChild(el('button', { type: 'button', 'class': 'eye', text: '👁', title: 'See ' + nice(r.name) + '\'s screen', 'aria-label': 'See ' + nice(r.name) + '\'s screen', onclick: function () { watch(r); } })); nm.appendChild(el('button', { type: 'button', text: nice(r.name), onclick: function () { detail(r); } })); if (!cls && r.cls) nm.appendChild(el('span', { 'class': 'muted small', text: ' · ' + r.cls })); tr.appendChild(nm);
       // now
       var nowTd = el('td'), here = onPage(r.sid), ph = L ? L.ph : '';
-      var label = !here ? (L ? 'Away' : 'Not here') : ph === 'wait' ? 'Waiting' : ph === 'item' ? 'Question' : ph === 'explain' ? 'Explanation' : ph === 'guided' ? 'Guided try' : ph === 'done' ? 'Done' : ph === 'paused' ? 'Paused' : 'On page';
+      var label = !here ? (L ? 'Away' : 'Not here') : ph === 'wait' ? 'Waiting' : ph === 'item' ? (L.scr && L.scr.v === 'quiz' ? 'Check-in' : 'Question') : ph === 'quizdone' ? 'Check-in done' : ph === 'explain' ? 'Explanation' : ph === 'guided' ? 'Guided try' : ph === 'done' ? 'Done' : ph === 'paused' ? 'Paused' : 'On page';
       nowTd.appendChild(el('span', { 'class': 'pill' + (here ? ' on' : ''), text: label }));
       if (x.td && x.td.late) nowTd.appendChild(el('span', { 'class': 'pill amber', style: 'margin-left:4px', text: 'late' }));
       tr.appendChild(nowTd);
@@ -537,6 +537,49 @@
     var w2 = el('div', { 'class': 'tw', style: 'margin-top:10px' }); w2.appendChild(st); d.appendChild(w2); c.appendChild(d);
     return c;
   }
+
+  /* ---------- 👁 a student's screen, live ---------- */
+  // Their page sends what's on screen with each check-in (every 3 s while you watch): the question is rebuilt from its
+  // template and seed, with what they've typed, picked or dragged so far.
+  var watching = null, watchSig = '';
+  var VIEWS = { wait: 'In the waiting room', quiz: 'On a check-in question', item: 'On a question', explain: 'Reading the explanation after a miss', guided: 'On a guided try', right: 'Just got one right', changed: 'Question swapped after leaving the page', done: 'Finished: on their summary', quizdone: 'Check-in done, starting Climb', paused: 'Paused', signin: 'Signing in', msg: 'On a message screen' };
+  function watch(r) {
+    watching = { sid: r.sid, name: nice(r.name), el: null }; watchSig = '';
+    var p = el('div', { 'class': 'overlay', role: 'dialog', 'aria-label': nice(r.name) + '\'s screen' });
+    var d = el('section', { 'class': 'dialog', style: 'max-width:960px;max-height:92vh;overflow:auto;gap:12px' });
+    p.appendChild(d); document.body.appendChild(p); watching.el = d; watching.box = p;
+    var close = function () { p.remove(); watching = null; schedule(); };
+    p.onclick = function (e) { if (e.target === p) close(); };
+    watching.close = close;
+    drawWatch(); refresh();
+  }
+  function drawWatch() {
+    if (!watching || !data) return;
+    var L = data.here[watching.sid], sc = L && L.scr, age = L ? Math.round((now() - L.at) / 1000) : null;
+    var sig = JSON.stringify(sc || null) + (age != null && age > 20 ? 'old' : '');
+    var meta = watching.el.querySelector('[data-age]');
+    if (meta && sig === watchSig) { meta.textContent = age == null ? '' : 'Updated ' + age + ' s ago'; return; }
+    watchSig = sig;
+    var d = watching.el; d.innerHTML = '';
+    var head = el('div', { style: 'display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px' });
+    head.appendChild(el('h1', { style: 'font-size:26px', text: '👁 ' + watching.name }));
+    head.appendChild(el('span', { 'class': 'muted small', 'data-age': '1', text: age == null ? '' : 'Updated ' + age + ' s ago' }));
+    d.appendChild(head);
+    var line = !L ? 'Not on Climb today.' : age > 45 ? 'Not on the page right now (last seen ' + Math.round(age / 60) + ' min ago).' : (VIEWS[sc && sc.v] || VIEWS[L.ph] || 'On the page');
+    var bits = [line];
+    if (sc && sc.tid && C.T[sc.tid]) bits.push(C.label(C.T[sc.tid].skill) + ' · ' + C.SKILL[C.T[sc.tid].skill].name);
+    if (sc && sc.left != null && (sc.v === 'item' || sc.v === 'quiz')) bits.push(mmss(sc.left * 1000) + ' left on their clock');
+    if (L && L.lv) bits.push('left the page ' + L.lv + '×');
+    d.appendChild(el('p', { style: 'margin:0;font-size:18px', text: bits.join(' · ') }));
+    if (sc && sc.tid) {
+      var v = []; try { v = JSON.parse(sc.vals || '[]'); } catch (e) { }
+      var box = el('div'); box.innerHTML = screenHtml({ tid: sc.tid, seed: sc.seed, view: sc.v === 'quiz' ? 'item' : sc.v, vals: v, shown: sc.shown });
+      d.appendChild(box);
+    }
+    d.appendChild(el('p', { 'class': 'muted small', style: 'margin:0', text: 'Rebuilt from what their page sends every 3 seconds while this is open. Answer choices may be in a different order on their screen.' }));
+    d.appendChild(el('div', {}, [el('button', { type: 'button', 'class': 'btn', text: 'Close', onclick: watching.close })]));
+  }
+  setInterval(function () { if (watching && data) drawWatch(); }, 1000);
 
   function csv() {
     var q = function (v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };

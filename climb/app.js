@@ -67,7 +67,16 @@
     var t = T() || {}, fl = [];
     if ((t.leaves || 0) >= C.P.leavesNoSecure) fl.push('red'); else if (t.awayLong) fl.push('amber');
     (t.flags || []).forEach(function (f) { if (f.k === 'check') fl.push('check' + f.skill); if (f.k === 'stuck') fl.push('stuck' + f.skill + (f.tag ? '.' + f.tag : '')); });
-    return { ph: paused ? 'paused' : view, sk: it ? it.skill : (st ? E.frontier(st) || '' : ''), n: t.scored || 0, lv: t.leaves || 0, aw: t.away || 0, th: st ? st.theta : 0, fl: fl.slice(-6).join(','), sess: t.id || '', ok: t.right || 0, al: t.almost || 0, to: t.timeouts || 0 };
+    return { scr: screenSnap(), ph: paused ? 'paused' : view, sk: it ? it.skill : (st ? E.frontier(st) || '' : ''), n: t.scored || 0, lv: t.leaves || 0, aw: t.away || 0, th: st ? st.theta : 0, fl: fl.slice(-6).join(','), sess: t.id || '', ok: t.right || 0, al: t.almost || 0, to: t.timeouts || 0 };
+  }
+  // what's on this student's screen, for the teacher's 👁 view: the question (template + seed rebuild it exactly) and what they've entered
+  var watched = false;
+  function screenSnap() {
+    var o = { v: paused ? 'paused' : view === 'item' && meta && meta.mode === 'quiz' ? 'quiz' : view };
+    var sn = /^(item|explain|guided)$/.test(view) ? snapshot() : null;
+    if (sn) { var vs = JSON.stringify(sn.vals || []); o.tid = sn.tid; o.seed = sn.seed; o.vals = vs.length <= 1500 ? vs : '[]'; o.shown = sn.shown; }
+    if (view === 'item' && meta && isFinite(meta.deadline)) o.left = Math.max(0, Math.round((meta.deadline - now()) / 1000));
+    return o;
   }
   function ping() {
     clearTimeout(pingTimer);
@@ -75,9 +84,9 @@
     var t0 = Date.now();
     S.call('climbPing', { status: status() }).then(function (j) {
       off = j.now + (Date.now() - t0) / 2 - Date.now(); mult = j.mult || 1; liveL = j.lesson || null; setSession(j.session);
-      handReply(j.hand);
+      handReply(j.hand); watched = !!j.watch;
       handoff();
-      pingTimer = setTimeout(ping, hand ? 4000 : live() ? 8000 : 4000);
+      pingTimer = setTimeout(ping, watched ? 3000 : hand ? 4000 : live() ? 8000 : 4000);
     }, function () { pingTimer = setTimeout(ping, 10000); });
   }
   function setSession(s) {

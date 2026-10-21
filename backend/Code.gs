@@ -382,9 +382,15 @@ function climbPing(s, req) {
     at: Date.now(), ph: String(st.ph || '').slice(0, 10), sk: String(st.sk || '').slice(0, 4), n: num(st.n), lv: num(st.lv), aw: num(st.aw),
     th: Math.round(Number(st.th) || 0), fl: String(st.fl || '').slice(0, 40), sess: String(st.sess || '').slice(0, 20), ok: num(st.ok), al: num(st.al), to: num(st.to)
   };
-  try { CacheService.getScriptCache().put('cp_' + s.sid, JSON.stringify(me), 7200); } catch (e) { }
-  var h = null; try { h = JSON.parse(CacheService.getScriptCache().get('ch_' + s.sid) || 'null'); } catch (e) { }
-  return { ok: true, now: Date.now(), session: climbFor(s), mult: climbAccom()[s.sid] || 1, lesson: liveLesson(), hand: h ? { at: h.at, reply: h.reply || '', repAt: h.repAt || 0, status: h.status } : null };
+  // the student's current screen, for the teacher's 👁 view (the question is rebuilt on the dashboard from template + seed)
+  var sc = st.scr || {};
+  me.scr = { v: /^[a-z]{1,10}$/.test(String(sc.v)) ? String(sc.v) : '' };
+  if (CLIMB_TPL.test(String(sc.tid))) { me.scr.tid = String(sc.tid); me.scr.seed = Math.floor(Math.abs(Number(sc.seed) || 0)) % 4294967296; me.scr.vals = String(sc.vals || '[]').slice(0, 1500); me.scr.shown = String(sc.shown || '').slice(0, 300); }
+  if (sc.left != null) me.scr.left = num(sc.left);
+  var cache = CacheService.getScriptCache();
+  try { cache.put('cp_' + s.sid, JSON.stringify(me), 7200); } catch (e) { }
+  var got = cache.getAll(['ch_' + s.sid, 'cw_' + s.sid]), h = null; try { h = JSON.parse(got['ch_' + s.sid] || 'null'); } catch (e) { }
+  return { ok: true, now: Date.now(), session: climbFor(s), mult: climbAccom()[s.sid] || 1, lesson: liveLesson(), hand: h ? { at: h.at, reply: h.reply || '', repAt: h.repAt || 0, status: h.status } : null, watch: !!got['cw_' + s.sid] };
 }
 
 /* ---------- Ask Mr. Crowell: a student sends their screen (the question, rebuilt from template + seed, and what
@@ -520,6 +526,8 @@ function climbRows(sid) {
 }
 
 function climbClass(req) {
+  // the teacher is watching one student's screen: their page checks in every 3 s for the next 30 s
+  if (req.watch) try { CacheService.getScriptCache().put('cw_' + String(req.watch).slice(0, 40), '1', 30); } catch (e) { }
   var roster = rosterRows().map(publicStudent), rows = climbRows();
   var keys = roster.map(function (r) { return 'cp_' + r.sid; }), got = keys.length ? CacheService.getScriptCache().getAll(keys) : {}, here = {};
   Object.keys(got).forEach(function (k) { try { here[k.slice(3)] = JSON.parse(got[k]); } catch (e) { } });

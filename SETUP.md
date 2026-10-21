@@ -118,3 +118,7 @@ All of this needs the current `backend/Code.gs` deployed as a new version.
 - **You:** the **check-in** card at the top of the dashboard shows each question's lesson, skill, % right, the most common wrong answer and **Project** (shows it to the class with no names), and **By student** shows ✓ ✗ – ⏱ per question with a score. Check-in answers don't move anyone on the ladder, are logged in ClimbLog with mode *quiz*, and show on Student day.
 - **Changing the questions:** they're listed in `C.QUIZ` in `climb/core.js` (template IDs from `climb/test.html`).
 - Needs the current `backend/Code.gs` deployed as a new version.
+
+## 👁 See a student's screen during Climb
+
+Press 👁 beside any name on the Climb dashboard. It shows that student's screen: which screen they're on (waiting, check-in, question, explanation, guided try, summary), the question rebuilt exactly, what they've typed, picked or dragged so far, the time left on their clock and how often they've left the page. While it's open their page reports every 3 seconds (normally every 8), so it stays about 3 seconds behind. Close it to stop. Students don't see anything change. Needs the current `backend/Code.gs` deployed as a new version.
