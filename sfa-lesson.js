@@ -711,7 +711,7 @@
 
 
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261023e', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261023f', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }
@@ -741,10 +741,13 @@
     var sec = H('div', 'sect');
     sec.appendChild(H('h3', '', '⚔️ Finish with a Lane Clash? (optional, 5 minutes)'));
     sec.appendChild(H('p', 'muted', 'Plants vs Zombies, team against team, with the Sandy Flats characters. Fair teams (dealt out by participation). Students answer this lesson\'s questions for coins, send characters down 3 lanes and plant defenders, and grab the other team\'s gold. Good lesson participation starts them with more coins and a higher hero level. The class screen shows the whole battle.'));
+    var len = el('select', { 'aria-label': 'Battle length' }), lv0 = SFA.store.get('teacher.clash.mins', 5);
+    [3, 5, 8].forEach(function (m) { var o = el('option', { value: String(m), text: m + ' minutes' }); if (m === lv0) o.selected = true; len.appendChild(o); });
+    len.onchange = function () { SFA.store.set('teacher.clash.mins', +len.value); };
     var sb = el('button', { type: 'button', 'class': 'btn primary', text: '⚔️ Start a Lane Clash' });
     if (!console_.on) { sb.disabled = true; sec.appendChild(H('p', 'state', 'Go live first.')); }
-    sb.onclick = function () { sb.disabled = true; sb.textContent = 'Loading the characters and picking fair teams…'; clashAssets(function () { SFA_CLASH.start().then(function () { SFA.toast('Lane Clash on! Students\' screens switch within a few seconds.', 3500); }); }); };
-    sec.appendChild(sb); p.appendChild(sec);
+    sb.onclick = function () { sb.disabled = true; sb.textContent = 'Loading the characters and picking fair teams…'; clashAssets(function () { SFA_CLASH.start(+len.value).then(function () { SFA.toast('Lane Clash on! Students\' screens switch within a few seconds.', 3500); }); }); };
+    var rowc = H('div', 'row'); rowc.appendChild(len); rowc.appendChild(sb); sec.appendChild(rowc); p.appendChild(sec);
   }
 
   /* ---------------- deck ---------------- */

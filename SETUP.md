@@ -135,5 +135,10 @@ Press 👁 beside any name on the Climb dashboard. It shows that student's scree
   - **Mux the Machine** guards each lane at each vault like a lawnmower: the first attacker to reach it sends Mux charging through your half of the lane; he parks again 90 seconds later.
   - **Waves:** a wave meter across the top, "a wave is coming" at halfway, and the **final wave** in the last minute: everyone faster, double gold (triple for the team behind).
   - **Built for the delay:** everything placed waits 8 seconds in its gate (you see the countdown), the console referees and sends the board out every second, and every screen plays the battle forward smoothly in between. The console shows the time, gold, how many characters are on the board, the teams and the top heroes, with **End the battle now** and **Back to the lesson**. No script update needed.
+  - **Time:** pick 3, 5 or 8 minutes before **Start a Lane Clash**; during the battle **⏰ +1 minute** adds a minute (everyone sees "+1 MINUTE!", and the final wave moves with it). Longer battles are closer: in playtests 8-minute battles were close 7 times in 10.
+  - **Teamwork:** each lane button has a 📣: it calls the student's team for help in that lane ("📣 AISHA: Help in lane 2!").
+  - **The end:** the winner, both teams' MVPs and five awards, each to a different student where possible: 💰 Gold Grabber, 🧠 Brain Box (most right), 🔥 On Fire (longest streak), 🛡️ Wall Builder (most defenders), 🦸 Top Hero (highest level).
+  - **The class screen** shows a live Top Heroes board under the battle. Sound effects are off until someone presses 🔇 (per device).
   - Balance was tuned over 70 simulated battles with bot classes of different abilities and strategies: no side advantage, smart lane choices beat random spamming, and about 4 in 10 battles change leader in the final wave.
+- **Playtest the balance:** `climb/dev/clash-playtest.html` runs 70 bot battles with the real rules and reports fairness and intensity.
 - **Try it without the Sheet:** `lesson-practice.html?l=13&teach` (teacher key `test`) and `lesson-practice.html?l=13` (student codes `AAAAAA`, `BBBBBB`, `CCCCCC`) in two tabs.

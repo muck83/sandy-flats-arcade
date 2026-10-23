@@ -27,7 +27,7 @@
   L.ORDER = [0, 5, 1, 2, 3, 4];   // seed-packet order on screen
   L.unit = function (t) { return L.UNITS[t]; };
   L.mul = function (lv) { return 1 + 0.12 * (lv - 1); };                           // each hero level: 12% stronger
-  L.frenzy = function (t) { return t >= L.DUR - L.FRENZY && t < L.DUR; };          // the final wave
+  L.frenzy = function (t, dur) { dur = dur || L.DUR; return t >= dur - L.FRENZY && t < dur; };   // the final wave: the last minute
   // hero level: every 3 right answers in the battle, plus a head start for a good lesson
   L.lvOf = function (right, boost) { return Math.min(5, 1 + (boost || 0) + Math.floor(right / 3)); };
   // the lesson bonus: what a student did in today's lesson buys their starting coins and a head-start level
@@ -42,7 +42,7 @@
   };
   // a team more than 25 gold and 20% behind is in comeback mode: a bonus coin on every right answer, 25% tougher units
   L.comeback = function (S, team) { var me = S.score[team], them = S.score[1 - team]; return them - me > 25 && me < them * 0.8; };
-  L.newState = function () { return { t: 0, units: [], pend: [], score: [0, 0], next: 1, mow: [[1, 1, 1], [1, 1, 1]], mowAt: [[0, 0, 0], [0, 0, 0]] }; };
+  L.newState = function (dur) { return { dur: dur || L.DUR, t: 0, units: [], pend: [], score: [0, 0], next: 1, mow: [[1, 1, 1], [1, 1, 1]], mowAt: [[0, 0, 0], [0, 0, 0]] }; };
   function vaultX(team) { return team ? L.LEN : 0; }
   function tileX(team, k) { return team ? L.LEN - L.TILES[k] : L.TILES[k]; }
 
@@ -63,7 +63,7 @@
   // one tick (0.1 s). fx (optional) hears about what happened, for animation and shout-outs.
   L.step = function (S, fx) {
     S.t++;
-    var fz = L.frenzy(S.t), i, j;
+    var fz = L.frenzy(S.t, S.dur), i, j;
     if (!S.mowAt) S.mowAt = [[0, 0, 0], [0, 0, 0]];
     for (var mt = 0; mt < 2; mt++) for (var ml = 0; ml < 3; ml++) if (!S.mow[mt][ml] && S.mowAt[mt][ml] && S.t >= S.mowAt[mt][ml]) { S.mow[mt][ml] = 1; S.mowAt[mt][ml] = 0; if (fx) fx({ k: 'mowback', team: mt, lane: ml }); }
     // leave the gate
@@ -142,14 +142,14 @@
     });
     S.units = keep;
   };
-  L.advance = function (S, toT, fx) { var n = 0; toT = Math.min(toT, L.DUR); while (S.t < toT && n++ < 4000) L.step(S, fx); return S; };
+  L.advance = function (S, toT, fx) { var n = 0; toT = Math.min(toT, S.dur || L.DUR); while (S.t < toT && n++ < 4000) L.step(S, fx); return S; };
 
   // the snapshot the console sends out with the live state: 4 numbers a unit (id, x or leave-tick, code, hp; hp 0 = in
-  // the gate), 3 units per counts key (zu0, zu1, …), plus zcs = [tick, gold 0, gold 1, state, Mux bits]. Every number 0..9999.
+  // the gate), 3 units per counts key (zu0, zu1, …), plus zcs = [tick, gold 0, gold 1, state, Mux bits, length in ticks]. Every number 0..9999.
   function code(u) { return u.lane * 1000 + u.type * 100 + u.lv * 10 + u.team; }
   L.encode = function (S, state, maxKeys) {
     var bits = 0; for (var tm = 0; tm < 2; tm++) for (var ln = 0; ln < 3; ln++) if (S.mow[tm][ln]) bits |= 1 << (tm * 3 + ln);
-    var out = { zcs: [S.t, Math.min(9999, S.score[0]), Math.min(9999, S.score[1]), state || 1, bits] }, nums = [];
+    var out = { zcs: [S.t, Math.min(9999, S.score[0]), Math.min(9999, S.score[1]), state || 1, bits, Math.min(9999, S.dur || L.DUR)] }, nums = [];
     S.pend.forEach(function (p) { nums.push(p.id % 10000, Math.max(0, Math.min(9999, p.at)), code(p), 0); });
     S.units.forEach(function (u) { nums.push(u.id % 10000, Math.round(Math.max(0, Math.min(L.LEN, u.x))), code(u), Math.max(1, Math.min(9999, Math.round(u.hp)))); });
     for (var k = 0; k * 12 < nums.length && k < (maxKeys || 48); k++) out['zu' + k] = nums.slice(k * 12, k * 12 + 12);
@@ -158,7 +158,7 @@
   L.decode = function (counts) {
     if (!counts || !Array.isArray(counts.zcs)) return null;
     var z = counts.zcs, bits = z[4] == null ? 63 : z[4];
-    var S = { t: z[0], units: [], pend: [], score: [z[1], z[2]], next: 1, state: z[3], mow: [[0, 1, 2].map(function (l) { return bits >> l & 1; }), [0, 1, 2].map(function (l) { return bits >> (3 + l) & 1; })] };
+    var S = { dur: z[5] || L.DUR, t: z[0], units: [], pend: [], score: [z[1], z[2]], next: 1, state: z[3], mow: [[0, 1, 2].map(function (l) { return bits >> l & 1; }), [0, 1, 2].map(function (l) { return bits >> (3 + l) & 1; })] };
     for (var k = 0; Array.isArray(counts['zu' + k]); k++) {
       var a = counts['zu' + k];
       for (var i = 0; i + 3 < a.length; i += 4) {
@@ -174,5 +174,5 @@
     }
     return S;
   };
-  L.clone = function (S) { return { mowAt: S.mowAt ? [S.mowAt[0].slice(), S.mowAt[1].slice()] : null, t: S.t, units: S.units.map(function (u) { return Object.assign({}, u); }), pend: S.pend.map(function (p) { return Object.assign({}, p); }), score: S.score.slice(), next: S.next, state: S.state, mow: [S.mow[0].slice(), S.mow[1].slice()] }; };
+  L.clone = function (S) { return { dur: S.dur, mowAt: S.mowAt ? [S.mowAt[0].slice(), S.mowAt[1].slice()] : null, t: S.t, units: S.units.map(function (u) { return Object.assign({}, u); }), pend: S.pend.map(function (p) { return Object.assign({}, p); }), score: S.score.slice(), next: S.next, state: S.state, mow: [S.mow[0].slice(), S.mow[1].slice()] }; };
 })();

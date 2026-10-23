@@ -374,3 +374,30 @@ body.clashing{overflow:hidden}
 @media (prefers-reduced-motion:reduce){.lcshout,.lcshout img,.lcintro-in,.lcend h1,.lccb,.lcintro-cast img,.lclane.ready{animation:none!important}}
 .lcintro-in{max-width:min(92vw,820px);box-sizing:border-box}.lcintro h1{font-size:clamp(36px,7vw,88px)}
 .lc .ftab td{animation:none}
+
+/* Lane Clash, round 2: fits a laptop without scrolling; sound, flying coins, calls for help, awards, top heroes */
+.lc{gap:6px;padding:8px 10px}
+.lcboard{height:clamp(200px,40vh,400px)}
+.lc.screen .lcboard{height:clamp(300px,64vh,640px)}
+.lcq{padding:10px 14px;gap:6px;min-height:0}
+.lcq .q{font-size:16px;line-height:1.3}
+.lcq .cfig{max-width:300px;max-height:150px;overflow:hidden}
+.lcq .cfig svg{max-height:150px;width:auto}
+.lcq .ftab{font-size:.85em}.lcq .ftab td,.lcq .ftab th{padding:.2em .9em}
+.lcq .opts{gap:6px}.lcq .opt{min-height:0;padding:7px 10px}
+.lccard img{width:38px;height:38px}
+.lcmid{position:relative}
+.lcsound{position:absolute;right:-6px;top:-4px;border:0;background:rgba(255,255,255,.1);color:inherit;border-radius:999px;width:30px;height:30px;cursor:pointer;font-size:15px}
+.lccoin{position:fixed;z-index:99;font-size:20px;pointer-events:none;margin:-10px 0 0 -10px}
+.lclane{position:relative}
+.lcping{position:absolute;right:6px;top:4px;font-size:15px;opacity:.75;cursor:pointer;padding:2px}
+.lcping:hover{opacity:1;transform:scale(1.2)}
+.lcheroes{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:center;align-items:center;font-size:18px;min-height:28px}
+.lcheroes b{font:400 20px "Luckiest Guy",system-ui;color:#FFC94A}.lcheroes small{opacity:.75}
+.lcawards{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0}
+.lcaward{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:118px;padding:10px 12px;border-radius:16px;background:rgba(255,201,74,.12);border:2px solid rgba(255,201,74,.5);animation:boomIn .5s cubic-bezier(.2,1.6,.4,1) both}
+.lcaward:nth-child(2){animation-delay:.15s}.lcaward:nth-child(3){animation-delay:.3s}.lcaward:nth-child(4){animation-delay:.45s}.lcaward:nth-child(5){animation-delay:.6s}
+.lcaward .i{font-size:30px}.lcaward b{font:400 17px "Luckiest Guy",system-ui;color:#FFC94A}.lcaward small{opacity:.75}
+.lcend{max-height:92vh;overflow:auto}
+@media (max-height:700px){.lcboard{height:clamp(180px,36vh,320px)}.lcteam{padding:4px 10px}.lcflag{font-size:28px}.lcgold{font-size:30px}.lcclock{font-size:26px}}
+@media (prefers-reduced-motion:reduce){.lcaward{animation:none}}

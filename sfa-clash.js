@@ -22,16 +22,18 @@
   // the battle in the live state: id (also names the teams), start in server time, and the board
   function clashOf(Lv) {
     var c = Lv && Lv.counts; if (!c || Lv.lesson !== A.LID || !Array.isArray(c.zcs) || !Array.isArray(c.zcid)) return null;
-    return { id: decRun(c.zcid), start: A.MODE === 'screen' ? decRun(c.zcid) : decRun(c.zcst) || decRun(c.zcid), state: c.zcs[3], t: c.zcs[0], score: [c.zcs[1], c.zcs[2]] };
+    return { id: decRun(c.zcid), start: A.MODE === 'screen' ? decRun(c.zcid) : decRun(c.zcst) || decRun(c.zcid), state: c.zcs[3], t: c.zcs[0], score: [c.zcs[1], c.zcs[2]], dur: c.zcs[5] || L.DUR };
   }
   // the spotlight slot: "T:sid,…#E:seq~kind~name~team~lane~type~n;…#M:name~gold~right;…"
   function clashSpot(Lv) {
-    var o = { t0: null, ev: [], mvp: [] }, sp = Lv && Lv.spot && Lv.spot.q === 'zclash' ? String(Lv.spot.text || '') : '';
+    var o = { t0: null, ev: [], mvp: [], awards: [], heroes: [] }, sp = Lv && Lv.spot && Lv.spot.q === 'zclash' ? String(Lv.spot.text || '') : '';
     sp.split('#').forEach(function (part) {
       var k = part.slice(0, 2), v = part.slice(2);
       if (k === 'T:') { o.t0 = {}; v.split(',').forEach(function (x) { if (x) o.t0[x] = 1; }); }
       else if (k === 'E:') o.ev = v.split(';').map(function (x) { var p = x.split('~'); return { seq: +p[0], k: p[1], name: p[2], team: +p[3], lane: +p[4], type: +p[5], n: +p[6] }; }).filter(function (e) { return e.seq && e.k; });
       else if (k === 'M:') o.mvp = v.split(';').map(function (x) { var p = x.split('~'); return p[0] ? { name: p[0], gold: +p[1] || 0, right: +p[2] || 0 } : null; });
+      else if (k === 'A:') o.awards = v.split(';').map(function (x) { var p = x.split('~'); return { k: p[0], name: p[1], team: +p[2], n: +p[3] }; }).filter(function (a) { return a.name; });
+      else if (k === 'H:') o.heroes = v.split(';').map(function (x) { var p = x.split('~'); return { name: p[0], team: +p[1], gold: +p[2], right: +p[3], lv: +p[4] || 1 }; }).filter(function (a) { return a.name; });
     });
     return o;
   }
@@ -46,7 +48,7 @@
   /* =========================== student page and class screen =========================== */
   var root = null, cvs = null, ctx = null, hud = {}, V = null, CL = null, raf = 0, seen = null, me = -1, shoutSeen = -1, shoutQ = [], shoutBusy = false;
   function sNow() { return Date.now() + (A.srvSkew() || 0); }
-  function nowT(c) { return Math.max(0, Math.min(L.DUR, (sNow() - c.start) / 100)); }
+  function nowT(c) { return Math.max(0, Math.min(c.dur || L.DUR, (sNow() - c.start) / 100)); }
 
   function sync() {
     var Lv = A.live(), c = A.isLive() || A.MODE === 'screen' ? clashOf(Lv) : null;
@@ -65,7 +67,7 @@
     }
     V.c = c; V.sp = sp;
     shoutsFromSpot(sp, c);
-    if (c.state === 2 && !V.over) showEnd(c, sp);
+    if (c.state === 2 && !V.over && (sp.mvp.length || sp.awards.length || Date.now() - (V.endSeen || (V.endSeen = Date.now())) > 4000)) showEnd(c, sp);
     hudTick();
   }
   function close() {
@@ -84,11 +86,14 @@
       var b = H('div', 'lcteam t' + t);
       b.innerHTML = '<span class="lcflag">' + T[t].e + '</span><span class="lcname">' + esc(T[t].name) + '<i class="lcyou" hidden>you</i></span><b class="lcgold">0</b><span class="lccb" hidden>⚡ comeback</span>';
       hud['team' + t] = b; top.appendChild(b);
-      if (t === 0) { var mid = H('div', 'lcmid', '<div class="lcclock">5:00</div><div class="lcwave"><i class="lcbar"></i><span class="lcflag1" title="A wave">⚑</span><span class="lcflag2" title="The final wave">🚩</span><span class="lchead">🧟</span></div><div class="lcwavet">Battle!</div>'); hud.mid = mid; top.appendChild(mid); }
+      if (t === 0) { var mid = H('div', 'lcmid', '<button type="button" class="lcsound" title="Sound effects">' + (soundOn() ? '🔊' : '🔇') + '</button><div class="lcclock">5:00</div><div class="lcwave"><i class="lcbar"></i><span class="lcflag1" title="A wave">⚑</span><span class="lcflag2" title="The final wave">🚩</span><span class="lchead">🧟</span></div><div class="lcwavet">Battle!</div>'); hud.mid = mid; top.appendChild(mid); }
     });
     root.appendChild(top);
+    hud.mid.querySelector('.lcsound').onclick = function () { SFA.store.set('clash.sound', !soundOn()); this.textContent = soundOn() ? '🔊' : '🔇'; sfx('pop'); };
     var stage = H('div', 'lcstage'); cvs = document.createElement('canvas'); cvs.className = 'lcboard'; stage.appendChild(cvs); root.appendChild(stage);
     ctx = cvs.getContext('2d');
+    cvs.addEventListener('mousemove', function (e) { var r = cvs.getBoundingClientRect(); V.hover = Math.max(0, Math.min(2, Math.floor((e.clientY - r.top) / (r.height / 3)))); });
+    cvs.addEventListener('mouseleave', function () { V.hover = -1; });
     cvs.addEventListener('click', function (e) { if (A.MODE !== 'student' || V.sel < 0) return; var r = cvs.getBoundingClientRect(), y = e.clientY - r.top, lh = r.height / 3; pickLane(Math.max(0, Math.min(2, Math.floor(y / lh)))); });
     if (A.MODE === 'student') {
       var low = H('div', 'lclow'); root.appendChild(low);
@@ -97,10 +102,11 @@
       hud.hero = H('div', 'lchero'); side.appendChild(hud.hero);
       hud.cards = H('div', 'lccards'); side.appendChild(hud.cards);
       hud.lanes = H('div', 'lclanes'); side.appendChild(hud.lanes);
-      [0, 1, 2].forEach(function (l) { var b = el('button', { type: 'button', 'class': 'lclane' }); b.onclick = function () { pickLane(l); }; hud.lanes.appendChild(b); });
+      [0, 1, 2].forEach(function (l) { var b = el('button', { type: 'button', 'class': 'lclane' }); b.onclick = function (e) { if (e.target.closest('.lcping')) return callHelp(l); pickLane(l); }; hud.lanes.appendChild(b); });
       initMine(c);
       drawCards(); drawQ();
     } else {
+      hud.heroes = H('div', 'lcheroes'); root.appendChild(hud.heroes);
       var leg = H('div', 'lclegend'); L.ORDER.forEach(function (t) { var U = L.UNITS[t]; leg.appendChild(H('span', '', '<img alt="" src="' + thumb(U.who) + '"><b>' + esc(U.name) + '</b> ' + esc(U.role))); }); root.appendChild(leg);
     }
     document.body.appendChild(root);
@@ -125,7 +131,7 @@
   function send() {
     keep(); clearTimeout(saveT);
     var p = CL.places.map(function (x) { return x.l + '.' + x.t + '.' + x.d + '.' + x.v; }).join(',');
-    A.record({ id: 'zclash', k: 'open' }, 'c3;id:' + Math.round(CL.id / 1000) + ';r:' + CL.right + ';e:' + CL.earned + ';b:' + CL.bonus + ';v:' + CL.boost + ';p:' + p, null);
+    A.record({ id: 'zclash', k: 'open' }, 'c3;id:' + Math.round(CL.id / 1000) + ';r:' + CL.right + ';e:' + CL.earned + ';b:' + CL.bonus + ';v:' + CL.boost + ';sk:' + (CL.best || 0) + (CL.ping ? ';g:' + CL.ping.l + '.' + CL.ping.t : '') + ';p:' + p, null);
   }
   function sendSoon() { clearTimeout(saveT); saveT = setTimeout(send, 4000); }
   function pool_() {
@@ -139,7 +145,7 @@
   }
   function canPlace(t, l) {
     var U = L.UNITS[t], c = V.c, T0 = nowT(c);
-    if (!CL || c.state !== 1 || T0 >= L.DUR - 5) return 'The battle is over.';
+    if (!CL || c.state !== 1 || T0 >= c.dur - 5) return 'The battle is over.';
     if (U.lv > lv()) return 'Unlocks at hero level ' + U.lv + '.';
     if (CL.coins < U.cost) return 'Not enough coins: answer questions to earn more.';
     if ((CL.cd[t] || 0) > T0) return U.name + ' is recharging.';
@@ -154,12 +160,19 @@
     var U = L.UNITS[t], T0 = Math.floor(nowT(V.c));
     CL.coins -= U.cost; CL.cd[t] = T0 + U.cd; CL.sent++;
     var p = { l: l, t: t, d: T0, v: lv() };
-    CL.places.push(p); CL.temps.push({ l: l, t: t, at: T0 + L.DEPLOY, made: Date.now() });
+    sfx('pop'); CL.places.push(p); CL.temps.push({ l: l, t: t, at: T0 + L.DEPLOY, made: Date.now() });
     if (CL.places.length > 60) CL.places = CL.places.slice(-60);
     send();
     V.sel = -1; drawCards();
     var T = teamNames(V.c.id);
     shout({ e: U.who, who: 'YOU', text: (U.kind === 'd' ? 'planted ' : U.kind === 's' ? 'sent ' : 'sent ') + '<b>' + esc(U.name.toUpperCase()) + '</b> ' + (U.kind === 'd' ? 'in lane ' + (l + 1) : U.kind === 's' ? 'rolling down lane ' + (l + 1) + '!' : 'down lane ' + (l + 1) + '!'), team: me, mine: true, small: U.cost < 5 });
+  }
+  // a call for help: shows on your team's screens a few seconds later (it rides with your running row)
+  function callHelp(l) {
+    var T0 = Math.floor(nowT(V.c));
+    if (CL.ping && T0 - CL.ping.t < 150) { SFA.toast('You just called for help. Give your team a moment.'); return; }
+    CL.ping = { l: l, t: T0 }; send(); sfx('ping');
+    shout({ e: 'gus', who: '📣 YOU:', text: '<b>Help in lane ' + (l + 1) + '!</b>', team: me, mine: true, small: true });
   }
   // a snapshot that now holds one of my placements: claim it (its glow and "You" tag), drop the gate placeholder
   function claimMine(S) {
@@ -192,7 +205,7 @@
       box.appendChild(nx); return;
     }
     function right() {
-      var first = !CL.tries; CL.streak = first ? CL.streak + 1 : 0;
+      var first = !CL.tries; CL.streak = first ? CL.streak + 1 : 0; CL.best = Math.max(CL.best || 0, CL.streak);
       var got = L.coinsFor(first, q.hard, CL.streak, bonusRound) + (V.S && L.comeback(V.S, me) ? 1 : 0), before = lv();
       CL.coins += got; CL.earned += got; CL.right++; A.confetti();
       CL.fb = { ok: true, html: '<b>Yes! +' + got + ' coin' + (got === 1 ? '' : 's') + '.</b>' + (first && CL.streak % 3 === 0 ? ' 🔥 Three in a row!' : '') + (V.S && L.comeback(V.S, me) ? ' ⚡ comeback coin' : '') };
@@ -223,6 +236,7 @@
     }
   }
   function levelUp(n) {
+    sfx('level');
     var un = L.UNITS.filter(function (U) { return U.lv === n; })[0];
     shout({ e: un ? un.who : 'one', who: 'LEVEL ' + n + '!', text: un ? '<b>' + esc(un.name.toUpperCase()) + '</b> unlocked. Your characters are stronger.' : 'Your characters are stronger.', team: me, mine: true, gold: true });
   }
@@ -256,8 +270,30 @@
     [].forEach.call(hud.lanes.children, function (b, l) {
       var foes = V.S.units.filter(function (u) { return u.team !== me && u.lane === l && L.UNITS[u.type].kind === 'a'; }), near = foes.filter(function (u) { return Math.abs(u.x - (me ? L.LEN : 0)) < L.LEN / 2; }).length, coming = V.S.pend.filter(function (u) { return u.team !== me && u.lane === l; }).length;
       b.className = 'lclane' + (V.sel >= 0 ? ' ready' : '') + (near ? ' danger' : '');
-      b.innerHTML = '<b>Lane ' + (l + 1) + '</b><small>' + (near ? '⚠️ ' + near + ' attacking' : coming ? '⚠️ ' + coming + ' incoming' : 'quiet') + (V.S.mow[me] && !V.S.mow[me][l] ? ' · Mux recharging' : '') + '</small>';
+      b.innerHTML = '<span class="lcping" title="Ask your team for help in this lane">📣</span><b>Lane ' + (l + 1) + '</b><small>' + (near ? '⚠️ ' + near + ' attacking' : coming ? '⚠️ ' + coming + ' incoming' : 'quiet') + (V.S.mow[me] && !V.S.mow[me][l] ? ' · Mux recharging' : '') + '</small>';
     });
+  }
+
+  /* ---------- sound: tiny synthesized effects, off until someone turns them on ---------- */
+  var AC = null, lastSfx = {};
+  function soundOn() { return !!SFA.store.get('clash.sound', false); }
+  function sfx(k) {
+    if (!soundOn()) return;
+    var now = performance.now(); if (now - (lastSfx[k] || 0) < (k === 'bonk' ? 90 : 40)) return; lastSfx[k] = now;
+    try {
+      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+      var t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain(); o.connect(g); g.connect(AC.destination);
+      var tone = function (type, f0, f1, dur, vol) { o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.start(t); o.stop(t + dur + 0.02); };
+      if (k === 'coin') tone('square', 990, 1480, 0.18, 0.08);
+      else if (k === 'bonk') tone('triangle', 220, 70, 0.16, 0.18);
+      else if (k === 'pop') tone('sine', 500, 900, 0.1, 0.12);
+      else if (k === 'zero') tone('sawtooth', 300, 1200, 0.5, 0.07);
+      else if (k === 'mow') tone('sawtooth', 90, 40, 0.8, 0.16);
+      else if (k === 'level') tone('square', 660, 1320, 0.45, 0.08);
+      else if (k === 'wave') tone('sawtooth', 160, 120, 1.1, 0.12);
+      else if (k === 'ping') tone('sine', 880, 660, 0.25, 0.1);
+      else if (k === 'win') tone('square', 523, 1046, 0.9, 0.09);
+    } catch (e) { }
   }
 
   /* ---------- animation ---------- */
@@ -267,10 +303,15 @@
     if (e.k !== 'hit') { if (V.fxKeys[key]) return; V.fxKeys[key] = 1; }
     if (e.k === 'hit') { var R = V.units[e.u.id]; if (R) R.flash = 1; return; }
     if (e.k === 'spawn') { var R2 = V.units[e.u.id] = V.units[e.u.id] || {}; R2.born = performance.now(); dust(e.u); return; }
-    if (e.k === 'die') { die(e.u, e.mowed); return; }
+    if (e.k === 'die') { die(e.u, e.mowed); sfx('bonk'); return; }
     if (e.k === 'grab') { grab(e.u, e.gold); return; }
-    if (e.k === 'zero') { V.rollers.push({ lane: e.p.lane, team: e.p.team, t0: performance.now() }); if (e.hits.length) V.shake = Math.max(V.shake, 6); return; }
-    if (e.k === 'mow') { V.mowers.push({ lane: e.lane, team: e.team, t0: performance.now() }); V.shake = Math.max(V.shake, 10); var T = teamNames(V.c.id); shout({ e: 'mux', who: 'MUX', text: 'charged down lane ' + (e.lane + 1) + ' for <b>' + esc(T[e.team].name.toUpperCase()) + '</b>!', team: e.team, mine: e.team === me }); return; }
+    if (e.k === 'zero') {
+      V.rollers.push({ lane: e.p.lane, team: e.p.team, t0: performance.now() }); if (e.hits.length) V.shake = Math.max(V.shake, 6); sfx('zero');
+      // damage numbers on everyone Zero erased
+      var G0 = geo(); e.hits.forEach(function (id) { var u = V.S && V.S.units.filter(function (x) { return x.id === id; })[0]; if (u) V.parts.push({ k: 'text', s: '-' + Math.round(L.UNITS[3].pie * L.mul(e.p.lv)), col: '#FF8A5A', x: G0.X(u.x), y: laneY(G0, u.lane) - sizeOf(L.UNITS[u.type].who, G0) - 6, vy: -60, life: 0.9, t: 0 }); });
+      return;
+    }
+    if (e.k === 'mow') { V.mowers.push({ lane: e.lane, team: e.team, t0: performance.now() }); V.shake = Math.max(V.shake, 10); sfx('mow'); var T = teamNames(V.c.id); shout({ e: 'mux', who: 'MUX', text: 'charged down lane ' + (e.lane + 1) + ' for <b>' + esc(T[e.team].name.toUpperCase()) + '</b>!', team: e.team, mine: e.team === me }); return; }
   }
   function geo() {
     var w = cvs.clientWidth, h = cvs.clientHeight, vw = Math.max(46, w * 0.075), top = 0;
@@ -290,8 +331,18 @@
     var G = geo(), x = u.team ? G.vw * 0.5 : G.w - G.vw * 0.5, y = laneY(G, u.lane) - G.lh * 0.35;
     for (var i = 0; i < Math.min(26, 6 + gold); i++) V.parts.push({ k: 'coin', x: x, y: y, vx: (u.team ? 1 : -1) * (60 + Math.random() * 180), vy: -180 - Math.random() * 260, life: 1.1, t: 0, g: 520 });
     V.parts.push({ k: 'text', s: '+' + gold, col: TC[u.team], big: true, x: x + (u.team ? 30 : -30), y: y - 10, vy: -70, life: 1.2, t: 0 });
-    V.bump[u.team] = 1; V.shake = Math.max(V.shake, gold >= 20 ? 9 : 4);
+    V.bump[u.team] = 1; V.shake = Math.max(V.shake, gold >= 20 ? 9 : 4); sfx('coin'); coinsToBank(u.team, x, y, Math.min(8, 2 + Math.round(gold / 4)));
     if (CL && CL.mineIds[u.id]) { CL.gold += gold; keep(); shout({ e: L.UNITS[u.type].who, who: 'YOUR ' + L.UNITS[u.type].name.toUpperCase(), text: 'grabbed <b>' + gold + ' GOLD</b>!', team: me, mine: true, gold: true }); }
+  }
+  function coinsToBank(team, bx, by, n) {
+    var bank = hud['team' + team] && hud['team' + team].querySelector('.lcgold'); if (!bank || !bank.animate) return;
+    var r = cvs.getBoundingClientRect(), to = bank.getBoundingClientRect();
+    for (var i = 0; i < n; i++) (function (i) {
+      var c = H('span', 'lccoin', '🪙'); c.style.left = (r.left + bx) + 'px'; c.style.top = (r.top + by) + 'px'; document.body.appendChild(c);
+      var dx = to.left + to.width / 2 - (r.left + bx), dy = to.top + to.height / 2 - (r.top + by), mid = { x: dx * 0.5 + (Math.random() - 0.5) * 120, y: Math.min(dy, 0) - 80 - Math.random() * 60 };
+      var a = c.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: 'translate(' + mid.x + 'px,' + mid.y + 'px) scale(1.3)', opacity: 1 }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(.6)', opacity: 0.8 }], { duration: 800 + i * 70, easing: 'cubic-bezier(.3,.1,.5,1)', delay: i * 40 });
+      a.onfinish = function () { c.remove(); };
+    })(i);
   }
   var lastF = 0;
   function frame(ts) {
@@ -306,7 +357,7 @@
   function draw(dt, T0) {
     var dpr = Math.min(2, window.devicePixelRatio || 1), w = cvs.clientWidth, h = cvs.clientHeight;
     if (cvs.width !== Math.round(w * dpr) || cvs.height !== Math.round(h * dpr)) { cvs.width = Math.round(w * dpr); cvs.height = Math.round(h * dpr); }
-    var G = geo(), c = ctx, now = performance.now(), fz = L.frenzy(T0);
+    var G = geo(), c = ctx, now = performance.now(), fz = L.frenzy(T0, V.c.dur);
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     V.shake *= Math.pow(0.02, dt);
     if (V.shake > 0.3) c.translate((Math.random() - 0.5) * V.shake, (Math.random() - 0.5) * V.shake);
@@ -323,19 +374,37 @@
       // planting spots (dirt patches)
       [0, 1].forEach(function (t) { L.TILES.forEach(function (tx) { var x = G.X(t ? L.LEN - tx : tx); c.fillStyle = 'rgba(90,60,30,.35)'; c.beginPath(); c.ellipse(x, y0 + G.lh * 0.84, G.lh * 0.28, G.lh * 0.08, 0, 0, 7); c.fill(); }); });
     }
+    // lane numbers, faint
+    c.font = '400 ' + Math.round(G.lh * 0.5) + 'px "Luckiest Guy", system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = 'rgba(255,255,255,.07)';
+    for (var ln0 = 0; ln0 < 3; ln0++) c.fillText(String(ln0 + 1), w / 2, G.top + G.lh * (ln0 + 0.5));
+    c.textBaseline = 'alphabetic';
+    // where the picked card would go: a ghost in the lane under the mouse
+    if (A.MODE === 'student' && V.sel >= 0 && V.hover >= 0 && me >= 0) {
+      var GU = L.UNITS[V.sel], gsp = SP.get(GU.who), gx0 = GU.kind === 'd' ? G.X(me ? L.LEN - L.TILES[GU.id === 'sam' ? 0 : 1] : L.TILES[GU.id === 'sam' ? 0 : 1]) : me ? w - G.vw - 30 : G.vw + 30;
+      c.fillStyle = 'rgba(255,201,74,.16)'; c.fillRect(G.vw, G.top + V.hover * G.lh, w - 2 * G.vw, G.lh);
+      if (gsp) { c.save(); c.globalAlpha = 0.5 + 0.15 * Math.sin(now / 120); drawSprite(gsp, gx0, laneY(G, V.hover), sizeOf(GU.who, G), me, 0); c.restore(); }
+    }
     // halfway line
     c.strokeStyle = 'rgba(255,255,255,.18)'; c.setLineDash([6, 8]); c.beginPath(); c.moveTo(w / 2, 0); c.lineTo(w / 2, h); c.stroke(); c.setLineDash([]);
     // the vaults: walls, a treasure pile that grows with the gold your team has grabbed, Mux parked in each lane
-    var S = V.S;
+    var S = V.S, T0n = teamNames(V.c.id);
     [0, 1].forEach(function (t) {
       var x0 = t ? w - G.vw : 0;
       var g = c.createLinearGradient(x0, 0, x0 + G.vw, 0); g.addColorStop(0, t ? '#2b3a55' : '#5a3d12'); g.addColorStop(1, t ? '#1d2a42' : '#3e2a0c');
       c.fillStyle = g; c.fillRect(x0, 0, G.vw, h);
-      c.fillStyle = TC[t]; c.fillRect(t ? x0 : x0 + G.vw - 4, 0, 4, h);
-      var pile = S ? Math.min(1, S.score[t] / 400) : 0;
-      c.font = Math.round(G.vw * 0.62) + 'px serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText('💰', x0 + G.vw / 2, h - G.vw * 0.45 - pile * 10);
-      for (var p = 0; p < Math.round(pile * 10); p++) { c.font = Math.round(G.vw * 0.3) + 'px serif'; c.fillText('🪙', x0 + G.vw * (0.25 + (p % 3) * 0.25), h - 8 - Math.floor(p / 3) * 8); }
+      // the fort: stone courses, a team-coloured trim and the team's flag on a pole
+      c.strokeStyle = 'rgba(0,0,0,.18)'; c.lineWidth = 1;
+      for (var row = 0; row < h; row += 16) { c.beginPath(); c.moveTo(x0, row); c.lineTo(x0 + G.vw, row); c.stroke(); for (var col = (row / 16) % 2 ? 0 : 12; col < G.vw; col += 24) { c.beginPath(); c.moveTo(x0 + col, row); c.lineTo(x0 + col, row + 16); c.stroke(); } }
+      c.fillStyle = TC[t]; c.fillRect(t ? x0 : x0 + G.vw - 5, 0, 5, h);
+      var px = x0 + G.vw / 2, wave = Math.sin(now / 300 + t) * 4;
+      c.strokeStyle = '#ddd'; c.lineWidth = 2; c.beginPath(); c.moveTo(px, 6); c.lineTo(px, 40); c.stroke();
+      c.fillStyle = TC[t]; c.beginPath(); c.moveTo(px, 7); c.quadraticCurveTo(px + (t ? -14 : 14), 10 + wave, px + (t ? -26 : 26), 14); c.lineTo(px, 22); c.fill();
+      c.font = '13px serif'; c.textAlign = 'center'; c.fillText(T0n[t].e, px + (t ? -12 : 12), 19);
+      // the treasure: a pile of coins that grows with the gold this team has grabbed
+      var pile = S ? Math.min(1, S.score[t] / 400) : 0, base = h - 10, cw = G.vw * 0.26;
+      c.font = Math.round(G.vw * 0.5) + 'px serif'; c.textBaseline = 'middle'; c.fillText('💰', px, base - 14 - pile * G.vw * 0.5);
+      for (var p = 0; p < Math.round(pile * 18); p++) { var row2 = Math.floor(p / 4), colx = (p % 4) - 1.5 + (row2 % 2) * 0.5; c.fillStyle = '#E8B730'; c.strokeStyle = '#8a6a10'; c.beginPath(); c.ellipse(px + colx * cw * 0.5, base - row2 * 5, cw * 0.32, cw * 0.14, 0, 0, 7); c.fill(); c.stroke(); }
+      c.textBaseline = 'alphabetic';
       for (var ln = 0; ln < 3; ln++) {
         var ready = !S || S.mow[t][ln], sp = SP.get('mux'), sz = sizeOf('mux', G) * 0.62, mx = t ? w - G.vw - sz * 0.45 : G.vw + sz * 0.45;
         if (sp && !V.mowers.some(function (m) { return m.team === t && m.lane === ln && now - m.t0 < 900; })) {
@@ -369,7 +438,8 @@
       // shadow
       c.fillStyle = 'rgba(0,0,0,.28)'; c.beginPath(); c.ellipse(R.dx, y + 2, sz * 0.32, sz * 0.07, 0, 0, 7); c.fill();
       if (CL && CL.mineIds[u.id]) { c.save(); c.shadowColor = TC[u.team]; c.shadowBlur = 14; }
-      if (sp) drawSprite(sp, R.dx + lunge, y + bob + drop, sz * squash, u.team, Math.floor(now / 180 + u.id) % sp.frames.length, R.flash);
+      var sway = U.kind === 'a' && !u.fight ? Math.sin(now / 130 + u.id) * 0.06 : u.fight ? Math.sin(now / 90 + u.id) * 0.05 : 0;
+      if (sp) drawSprite(sp, R.dx + lunge, y + bob + drop, sz * squash, u.team, Math.floor(now / 180 + u.id) % sp.frames.length, R.flash, sway);
       if (CL && CL.mineIds[u.id]) c.restore();
       R.flash = Math.max(0, (R.flash || 0) - dt * 6);
       // health
@@ -416,9 +486,9 @@
     });
     if (fz && Math.random() < dt * 3) V.parts.push({ k: 'spark', x: Math.random() * w, y: 0, vx: 0, vy: 160, life: 1.2, t: 0, col: 'rgba(255,120,60,.8)' });
   }
-  function drawSprite(sp, x, y, height, team, frame, flash) {
+  function drawSprite(sp, x, y, height, team, frame, flash, rot) {
     var f = sp.frames[frame % sp.frames.length], k = height / sp.h, wdt = sp.w * k;
-    ctx.save(); ctx.translate(x, y); if (team) ctx.scale(-1, 1);
+    ctx.save(); ctx.translate(x, y); if (rot) ctx.rotate(rot); if (team) ctx.scale(-1, 1);
     ctx.drawImage(f, -wdt / 2, -height, wdt, height);
     if (flash > 0.05) { ctx.globalAlpha = Math.min(0.7, flash); ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(f, -wdt / 2, -height, wdt, height); }
     ctx.restore();
@@ -440,15 +510,16 @@
       b.querySelector('.lcyou').hidden = t !== me; b.classList.toggle('mine', t === me);
       b.querySelector('.lccb').hidden = !(S && L.comeback(S, t) && c.state === 1);
     });
-    var left = Math.max(0, (L.DUR - T0) / 10), m = hud.mid;
+    var left = Math.max(0, (c.dur - T0) / 10), m = hud.mid;
     m.querySelector('.lcclock').textContent = c.state === 2 ? 'Time!' : Math.floor(left / 60) + ':' + ('0' + Math.floor(left % 60)).slice(-2);
-    var u = T0 / L.DUR; m.querySelector('.lcbar').style.width = (u * 100) + '%'; m.querySelector('.lchead').style.left = (u * 100) + '%';
-    var fz = L.frenzy(T0), wave = fz ? 2 : u >= 0.5 ? 1 : 0;
+    var u = T0 / c.dur; m.querySelector('.lcbar').style.width = (u * 100) + '%'; m.querySelector('.lchead').style.left = (u * 100) + '%';
+    var fz = L.frenzy(T0, c.dur), wave = fz ? 2 : u >= 0.5 ? 1 : 0;
     m.querySelector('.lcwavet').textContent = c.state === 2 ? 'Battle over' : fz ? '🔥 FINAL WAVE: faster, double gold!' : wave ? '⚑ Wave 2' : 'Battle!';
     root.classList.toggle('frenzy', fz);
-    if (wave > V.wave && c.state === 1) { V.wave = wave; shout({ e: wave === 2 ? 'max' : 'one', who: wave === 2 ? 'THE FINAL WAVE!' : 'A WAVE IS COMING!', text: wave === 2 ? 'Everyone moves faster. <b>Double gold</b> (triple for the team behind)!' : 'Halfway! Defend your lanes.', team: -1, mine: true, gold: true }); }
+    if (wave > V.wave && c.state === 1) { V.wave = wave; sfx('wave'); shout({ e: wave === 2 ? 'max' : 'one', who: wave === 2 ? 'THE FINAL WAVE!' : 'A WAVE IS COMING!', text: wave === 2 ? 'Everyone moves faster. <b>Double gold</b> (triple for the team behind)!' : 'Halfway! Defend your lanes.', team: -1, mine: true, gold: true }); }
     if (S && me >= 0 && c.state === 1) { var cb = L.comeback(S, me); if (cb && !V.cb) shout({ e: 'one', who: '⚡ COMEBACK!', text: 'Your team is behind: <b>+1 coin</b> on every right answer and tougher characters!', team: me, mine: true }); V.cb = cb; }
     if (A.MODE === 'student') laneButtons();
+    if (hud.heroes && V.sp) hud.heroes.innerHTML = V.sp.heroes.length ? '<b>Top heroes</b>' + V.sp.heroes.map(function (h, i) { return '<span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + ' ' + T[h.team].e + ' ' + esc(h.name) + ' <small>Lv ' + h.lv + ' · ' + h.gold + ' gold · ' + h.right + ' right</small></span>'; }).join('') : '';
   }
   function intro(c, T) {
     if (CL && CL.intro) return;
@@ -461,12 +532,14 @@
     setTimeout(function () { b.remove(); }, A.MODE === 'screen' ? 6600 : 5100);
     if (CL) { CL.intro = true; keep(); }
   }
+  var AWARD = { gold: ['💰', 'Gold Grabber', 'gold'], right: ['🧠', 'Brain Box', 'right'], best: ['🔥', 'On Fire', 'in a row'], def: ['🛡️', 'Wall Builder', 'defenders'], lv: ['🦸', 'Top Hero', ''] };
   function showEnd(c, sp) {
-    V.over = true;
+    V.over = true; sfx('win');
     var T = teamNames(c.id), S = V.S || { score: c.score }, win = S.score[0] === S.score[1] ? -1 : S.score[0] > S.score[1] ? 0 : 1;
     var b = H('div', 'lcend');
     b.innerHTML = '<h1>' + (win < 0 ? 'It\'s a draw!' : T[win].e + ' ' + esc(T[win].name) + ' wins!') + '</h1><p class="lcfinal"><span style="color:' + TC[0] + '">' + S.score[0] + '</span> gold to <span style="color:' + TC[1] + '">' + S.score[1] + '</span> gold</p>' +
       (sp.mvp.some(Boolean) ? '<p class="lcmvp">🏅 MVPs: ' + [0, 1].map(function (t) { var m = sp.mvp[t]; return m ? T[t].e + ' <b>' + esc(m.name) + '</b> (' + m.gold + ' gold, ' + m.right + ' right)' : ''; }).filter(Boolean).join(' · ') + '</p>' : '') +
+      (sp.awards && sp.awards.length ? '<div class="lcawards">' + sp.awards.map(function (a) { var t = AWARD[a.k] || ['🏅', a.k, '']; return '<div class="lcaward"><span class="i">' + t[0] + '</span><b>' + esc(t[1]) + '</b><span>' + T[a.team].e + ' ' + esc(a.name) + '</span><small>' + (a.k === 'lv' ? 'hero level ' + a.n : a.n + ' ' + t[2]) + '</small></div>'; }).join('') + '</div>' : '') +
       (CL && A.MODE === 'student' ? '<p>You answered <b>' + CL.right + '</b> right, reached <b>hero level ' + lv() + '</b>, sent <b>' + CL.sent + '</b> characters and grabbed <b>' + CL.gold + '</b> gold.</p>' : '') +
       '<p class="sub">Back to the lesson when ' + A.TEACHER + ' says so.</p>';
     root.appendChild(b);
@@ -484,6 +557,8 @@
       var U = L.UNITS[e.type] || L.UNITS[0], mine = me >= 0 && e.team === me, isMe = mine && e.name === myName;
       if (e.k === 's' && !isMe) shoutQ.push({ e: U.who, who: e.name.toUpperCase(), text: (U.kind === 'd' ? 'planted ' : 'sent ') + '<b>' + esc(U.name.toUpperCase()) + '</b> ' + (U.kind === 's' ? 'rolling down lane ' + (e.lane + 1) : U.kind === 'd' ? 'in lane ' + (e.lane + 1) : 'down lane ' + (e.lane + 1)) + '!', team: e.team, mine: mine });
       if (e.k === 'g' && !isMe) shoutQ.push({ e: U.who, who: e.name.toUpperCase() + '\'S ' + U.name.toUpperCase(), text: 'grabbed <b>' + e.n + ' GOLD</b> from ' + esc(T[1 - e.team].name) + '!', team: e.team, mine: mine, gold: true });
+      if (e.k === 'p' && (mine || A.MODE === 'screen') && !isMe) shoutQ.push({ e: 'gus', who: '📣 ' + e.name.toUpperCase() + ':', text: '<b>Help in lane ' + (e.lane + 1) + '!</b>', team: e.team, mine: mine, small: true });
+      if (e.k === 't') shoutQ.push({ e: 'max', who: '⏰ +1 MINUTE!', text: A.TEACHER + ' added time to the battle.', team: -1, mine: true });
       if (e.k === 'h') shoutQ.push({ e: 'max', who: e.name.toUpperCase(), text: 'reached <b>HERO LEVEL ' + e.n + '</b>!', team: e.team, mine: mine, gold: true });
     });
     shoutSeen = Math.max(shoutSeen, top); if (shoutQ.length > 5) shoutQ = shoutQ.slice(-5);
@@ -514,14 +589,14 @@
       return team;
     });
   }
-  function start() {
+  function start(mins) {
     return draftTeams().then(function (team) {
       var t = Math.round(Date.now() / 1000) * 1000;
-      A.console_().clash = { id: t, state: 1, S: L.newState(), team: team, acc: {}, hero: {}, events: [], seq: Math.round(t / 1000) % 100000, mvp: [], frozen: false, lastPush: 0 };
+      A.console_().clash = { id: t, state: 1, S: L.newState(Math.round((mins || 5) * 600)), team: team, acc: {}, hero: {}, events: [], seq: Math.round(t / 1000) % 100000, mvp: [], frozen: false, lastPush: 0 };
       A.pushLive(); A.consolePanel();
     });
   }
-  function cNow(K) { return Math.max(0, Math.min(L.DUR, (Date.now() - K.id) / 100)); }
+  function cNow(K) { return Math.max(0, Math.min(K.S.dur, (Date.now() - K.id) / 100)); }
   // the lesson numbers for one student, from the console's copy of the answers (the same rule the student page uses)
   function statsFor(sid) { var last = {}; (A.consoleAnswers() || []).forEach(function (a) { if (a.sid === sid && !A.beforeRun(a)) last[a.q] = a; }); return lessonStatsFrom(last); }
   function ev(K, k, name, team, lane, type, n) { K.events.push({ seq: ++K.seq, k: k, name: String(name || '').replace(/[~;#,]/g, '').slice(0, 16), team: team, lane: lane || 0, type: type || 0, n: n || 0 }); if (K.events.length > 6) K.events = K.events.slice(-6); }
@@ -536,9 +611,12 @@
       var s = String(last[sid].answer), get = function (k) { var m = s.match(new RegExp(';' + k + ':(\\d+)')); return m ? +m[1] : 0; };
       var team = K.team && sid in K.team ? K.team[sid] : hashTeam(sid, K.id), r = get('r');
       var st = statsFor(sid), bonus = L.lessonBonus(st.answered, st.correct, st.extras);
-      var acc = K.acc[sid] || (K.acc[sid] = { n: K.primed === false ? -1 : 0, spent: 0, cd: {}, lvSeen: 0 });
+      var acc = K.acc[sid] || (K.acc[sid] = { n: K.primed === false ? -1 : 0, spent: 0, cd: {}, lvSeen: 0, ping: K.primed === false ? null : 0 });
       var budget = bonus.coins + 8 * r + 2, lvMax = L.lvOf(r, bonus.boost);
-      var H0 = K.hero[sid] || (K.hero[sid] = { name: A.first(ids[sid].name), team: team, gold: 0, right: 0 }); H0.right = r;
+      var H0 = K.hero[sid] || (K.hero[sid] = { name: A.first(ids[sid].name), team: team, gold: 0, right: 0, best: 0, def: 0, lv: 1 }); H0.right = r; H0.best = Math.min(get('sk'), r); H0.lv = lvMax;
+      // a call for help: "g:lane.tick", newest only
+      var g = (s.match(/;g:(\d)\.(\d+)/) || null);
+      if (g && (acc.ping == null || +g[2] > acc.ping)) { if (acc.ping != null) ev(K, 'p', H0.name, team, +g[1], 0, 0); acc.ping = +g[2]; } else if (acc.ping == null) acc.ping = 0;   // after a console reload, an old call isn't replayed
       if (lvMax >= 4 && lvMax > acc.lvSeen && acc.lvSeen) ev(K, 'h', H0.name, team, 0, 0, lvMax);
       acc.lvSeen = lvMax;
       var list = ((s.match(/;p:([0-9.,]*)/) || [, ''])[1]).split(',').filter(Boolean);
@@ -548,7 +626,7 @@
         if (!U || !(l >= 0 && l < 3) || U.lv > lvMax || acc.spent + U.cost > budget || (acc.cd[t] || -1e9) > d + 20) continue;
         if (K.S.units.concat(K.S.pend).filter(function (u) { return u.team === team; }).length >= BOARD_CAP) continue;
         if (U.kind === 'd' && L.planted(K.S, team, l) >= L.TILES.length) continue;
-        acc.spent += U.cost; acc.cd[t] = d + U.cd;
+        acc.spent += U.cost; acc.cd[t] = d + U.cd; if (U.kind === 'd') H0.def++;
         var at = Math.max(Math.ceil(T0) + 5, Math.min(d + L.DEPLOY, Math.ceil(T0) + L.DEPLOY + 20));
         L.place(K.S, { team: team, lane: l, type: t, lv: Math.min(v || 1, lvMax), at: at, owner: H0.name, sid: sid });
         if (U.cost >= 5) ev(K, 's', H0.name, team, l, t, 0);
@@ -564,7 +642,7 @@
       L.advance(K.S, Math.floor(cNow(K)), function (e) {
         if (e.k === 'grab') { var h = K.hero[e.u.sid]; if (h) h.gold += e.gold; if (e.gold >= 8) ev(K, 'g', e.u.owner, e.u.team, e.u.lane, e.u.type, e.gold); }
       });
-      if (K.S.t >= L.DUR) end();
+      if (K.S.t >= K.S.dur) end();
     }
     if (Date.now() - K.lastPush >= PUSH_MS) { K.lastPush = Date.now(); A.pushLive(); }
     var sig = K.state + '|' + K.S.score + '|' + Math.floor(K.S.t / 50);
@@ -573,6 +651,16 @@
   function end() {
     var K = C(); if (!K || K.frozen) return;
     agg(); K.state = 2; K.frozen = true;
+    // awards, so more than two students hear their name at the end
+    var hs = Object.keys(K.hero).map(function (s) { return K.hero[s]; });
+    // each award goes to a different student where possible (the best one not already named), so five students hear their name
+    var named = {};
+    K.awards = ['gold', 'right', 'best', 'def', 'lv'].map(function (k) {
+      var ok = hs.filter(function (h) { return h[k] > (k === 'lv' ? 1 : 0); }).sort(function (x, y) { return y[k] - x[k] || y.gold - x.gold; });
+      var top = ok.filter(function (h) { return !named[h.name + h.team]; })[0] || ok[0];
+      if (top) named[top.name + top.team] = 1;
+      return top ? { k: k, name: top.name, team: top.team, n: top[k] } : null;
+    }).filter(Boolean);
     K.mvp = [0, 1].map(function (t) { return Object.keys(K.hero).map(function (s) { return K.hero[s]; }).filter(function (h) { return h.team === t; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); })[0] || null; });
     A.pushLive(); A.consolePanel();
   }
@@ -585,7 +673,10 @@
     var K = C(), t0 = Object.keys(K.team || {}).filter(function (sid) { return K.team[sid] === 0 && /^[A-Za-z0-9_.@-]{1,30}$/.test(sid); }).join(',');
     var E = K.events.map(function (e) { return [e.seq, e.k, e.name, e.team, e.lane, e.type, e.n].join('~'); }).join(';');
     var M = K.state === 2 ? K.mvp.map(function (m) { return m ? [m.name, m.gold, m.right].join('~') : ''; }).join(';') : '';
-    var txt = '#E:' + E + (M ? '#M:' + M : '');
+    var AW = K.state === 2 ? (K.awards || []).map(function (a) { return [a.k, a.name, a.team, a.n].join('~'); }).join(';') : '';
+    // during the battle: the top five heroes, for the class screen
+    var HS = K.state === 1 ? Object.keys(K.hero).map(function (s) { return K.hero[s]; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); }).slice(0, 5).map(function (h) { return [h.name, h.team, h.gold, h.right, h.lv].join('~'); }).join(';') : '';
+    var txt = '#E:' + E + (M ? '#M:' + M : '') + (AW ? '#A:' + AW : '') + (HS ? '#H:' + HS : '');
     return { q: 'zclash', text: ('T:' + t0).slice(0, 595 - txt.length) + txt };
   }
   function restore(Lv) {
@@ -594,15 +685,16 @@
     A.console_().clash = { id: c.id, state: c.state, S: S, team: null, t0: sp.t0, acc: {}, hero: {}, events: [], seq: sp.ev.reduce(function (m, e) { return Math.max(m, e.seq); }, 0), mvp: [], frozen: c.state === 2, lastPush: 0, primed: false };
   }
   function section(p) {
-    var sec = H('div', 'sect'), K = C(), T = teamNames(K.id), left = Math.max(0, (L.DUR - K.S.t) / 10);
+    var sec = H('div', 'sect'), K = C(), T = teamNames(K.id), left = Math.max(0, (K.S.dur - K.S.t) / 10);
     sec.appendChild(H('h3', '', '⚔️ Lane Clash'));
     var on = [0, 1].map(function (t) { return K.S.units.concat(K.S.pend).filter(function (u) { return u.team === t; }).length; });
     var size = [0, 0]; Object.keys(K.team || {}).forEach(function (s) { size[K.team[s]]++; });
-    sec.appendChild(H('p', '', (K.state === 2 ? '<b>Over.</b> ' : '<b>' + Math.floor(left / 60) + ':' + ('0' + Math.floor(left % 60)).slice(-2) + '</b> left' + (L.frenzy(K.S.t) ? ' · 🔥 final wave' : '') + '. ') + [0, 1].map(function (t) { return T[t].e + ' ' + esc(T[t].name) + ': <b>' + K.S.score[t] + ' gold</b> · ' + on[t] + ' on the board' + (size[t] ? ' · team of ' + size[t] : ''); }).join(' · ')));
+    sec.appendChild(H('p', '', (K.state === 2 ? '<b>Over.</b> ' : '<b>' + Math.floor(left / 60) + ':' + ('0' + Math.floor(left % 60)).slice(-2) + '</b> left' + (L.frenzy(K.S.t, K.S.dur) ? ' · 🔥 final wave' : '') + '. ') + [0, 1].map(function (t) { return T[t].e + ' ' + esc(T[t].name) + ': <b>' + K.S.score[t] + ' gold</b> · ' + on[t] + ' on the board' + (size[t] ? ' · team of ' + size[t] : ''); }).join(' · ')));
     var heroes = Object.keys(K.hero).map(function (s) { return K.hero[s]; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); }).slice(0, 6);
     if (heroes.length) sec.appendChild(H('p', 'muted', 'Top heroes: ' + heroes.map(function (h) { return esc(h.name) + ' ' + T[h.team].e + ' ' + h.gold + 'g/' + h.right + '✓'; }).join(', ')));
     if (K.team) { var d = el('details'); d.appendChild(el('summary', { text: 'The teams' })); [0, 1].forEach(function (t) { d.appendChild(H('p', 'muted', T[t].e + ' <b>' + esc(T[t].name) + ':</b> ' + A.rosterIn().filter(function (r) { return K.team[r.sid] === t; }).map(function (r) { return esc(A.nice(r.name)); }).join(', '))); }); sec.appendChild(d); }
     var r = H('div', 'row');
+    if (K.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: '⏰ +1 minute', title: 'Add a minute to the battle (the final wave moves with it)', onclick: function () { K.S.dur = Math.min(9999, K.S.dur + 600); ev(K, 't', '', 0, 0, 0, 1); A.pushLive(); A.consolePanel(); } }));
     if (K.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'End the battle now', onclick: function () { end(); } }));
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: 'Back to the lesson', onclick: function () { A.console_().clash = null; A.pushLive(); A.consolePanel(); } }));
     sec.appendChild(r); p.appendChild(sec);

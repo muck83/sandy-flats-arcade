@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lane Clash playtest · Sandy Flats</title>
+<style>
+:root{color-scheme:light dark;--bg:#fff;--ink:#1b1a22;--muted:#5a5868;--line:#dcd9e6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14121a;--ink:#f1eef7;--muted:#a7a3b5;--line:#34304a}}
+:root[data-theme="dark"]{--bg:#14121a;--ink:#f1eef7;--muted:#a7a3b5;--line:#34304a}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,sans-serif;padding:16px}
+h1{font-size:22px;margin:0 0 4px}p{color:var(--muted);margin:0 0 12px;max-width:80ch}
+pre{white-space:pre-wrap;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px}
+button{font:inherit;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:transparent;color:inherit;cursor:pointer}
+</style></head><body>
+<h1>Lane Clash playtest</h1>
+<p>Plays simulated 5-minute battles with bot classes (strong to struggling students; smart, rush, turtle and random strategies) using the real rules in sfa-lanes.js, and reports fairness and intensity. For tuning only: students never see this page.</p>
+<p><button id="go">Run the battles</button></p>
+<pre id="out">…</pre>
+<script src="../../sfa-lanes.js"></script>
+<script>
+(function () {
+  'use strict';
+  var L = window.SFA_LANES;
+  // one battle: cfg = { seed, teamOf(i), n, skills[], strat(i, rnd), dur }
+  function play(cfg) {
+    var seed = cfg.seed; function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+    var S = L.newState(cfg.dur), bots = [], N = cfg.n || 24, i;
+    for (i = 0; i < N; i++) {
+      var skill = cfg.skills ? cfg.skills[i] : [0.92, 0.78, 0.62, 0.42][i % 4];
+      var strat = cfg.strat ? cfg.strat(i, rnd) : ['smart', 'smart', 'rush', 'turtle', 'random'][Math.floor(rnd() * 5)];
+      var lb = L.lessonBonus(Math.round(6 + skill * 6), Math.round(skill * 10), skill > 0.75 ? 4 : skill > 0.55 ? 1 : 0);
+      bots.push({ i: i, team: cfg.teamOf(i), skill: skill, strat: strat, coins: lb.coins, boost: lb.boost, right: 0, streak: 0, next: 30 + rnd() * 120, cd: {}, sent: 0 });
+    }
+    var goldBy = {}, lead = [], firstGrab = null, mows = 0, peak = 0;
+    function fx(e) { if (e.k === 'grab') { goldBy[e.u.owner] = (goldBy[e.u.owner] || 0) + e.gold; if (firstGrab == null) firstGrab = S.t; } if (e.k === 'mow') mows++; }
+    function choose(b) {
+      var lv = L.lvOf(b.right, b.boost);
+      function ok(t) { return L.UNITS[t].lv <= lv && (b.cd[t] || 0) <= S.t && b.coins >= L.UNITS[t].cost; }
+      function foeA(l) { return S.units.filter(function (u) { return u.team !== b.team && u.lane === l && L.UNITS[u.type].kind === 'a'; }).reduce(function (a, u) { return a + u.hp; }, 0) + S.pend.filter(function (u) { return u.team !== b.team && u.lane === l && L.UNITS[u.type].kind === 'a'; }).length * 60; }
+      function ourD(l) { return S.units.filter(function (u) { return u.team === b.team && u.lane === l && L.UNITS[u.type].kind === 'd'; }).length; }
+      function foeD(l) { return S.units.filter(function (u) { return u.team !== b.team && u.lane === l && L.UNITS[u.type].kind === 'd'; }).length; }
+      function lane3() { return Math.floor(rnd() * 3); }
+      if (b.strat === 'rush') return ok(0) ? { t: 0, l: lane3() } : null;
+      if (b.strat === 'random') { var c = [0, 1, 2, 3, 4, 5].filter(ok); return c.length ? { t: c[Math.floor(rnd() * c.length)], l: lane3() } : null; }
+      if (b.strat === 'turtle') { var tl = [0, 1, 2].sort(function (a, c2) { return ourD(a) - ourD(c2); })[0]; if (L.planted(S, b.team, tl) < L.TILES.length) { if (ok(5)) return { t: 5, l: tl }; if (ok(1)) return { t: 1, l: tl }; } return ok(2) ? { t: 2, l: lane3() } : ok(0) ? { t: 0, l: lane3() } : null; }
+      var dl = 0, worst = -1; for (var l = 0; l < 3; l++) { var th = foeA(l) - ourD(l) * 90; if (th > worst) { worst = th; dl = l; } }
+      var crowd = S.units.filter(function (u) { return u.team !== b.team && u.lane === dl && L.UNITS[u.type].kind === 'a'; }).length;
+      if (crowd >= 3 && ok(3)) return { t: 3, l: dl };
+      if (worst > 80 && L.planted(S, b.team, dl) < L.TILES.length) { if (ok(5)) return { t: 5, l: dl }; if (ok(1)) return { t: 1, l: dl }; }
+      var al = [0, 1, 2].sort(function (a, c3) { return foeD(a) - foeD(c3); })[0];
+      if (ok(4)) return { t: 4, l: al }; if (b.coins < 10 && L.lvOf(b.right, b.boost) >= 4 && rnd() < 0.5) return null; if (ok(2)) return { t: 2, l: al }; if (ok(0)) return { t: 0, l: al }; return null;
+    }
+    while (S.t < S.dur) {
+      bots.forEach(function (b) {
+        if (S.t < b.next) return;
+        var right = rnd() < b.skill, hard = rnd() < 0.3;
+        if (right) { b.right++; b.streak++; b.coins += L.coinsFor(true, hard, b.streak, false) + (L.comeback(S, b.team) ? 1 : 0); } else b.streak = 0;
+        b.next = S.t + (150 + rnd() * 300) * (1.4 - b.skill * 0.6) + (right ? 0 : 50);
+      });
+      if (S.t % 10 === 0) bots.forEach(function (b) { for (var k = 0; k < 3; k++) { var c = choose(b); if (!c) break; var U = L.UNITS[c.t]; b.coins -= U.cost; b.cd[c.t] = S.t + U.cd; b.sent++; L.place(S, { team: b.team, lane: c.l, type: c.t, lv: L.lvOf(b.right, b.boost), at: S.t + L.DEPLOY, owner: 'b' + b.i }); } });
+      L.step(S, fx); peak = Math.max(peak, S.units.length + S.pend.length); if (S.t % 50 === 0) lead.push(S.score[0] - S.score[1]);
+    }
+    function sg(v) { return Math.sign(v); }
+    var flips = lead.reduce(function (n, v, k) { return n + (k && v && lead[k - 1] && sg(v) !== sg(lead[k - 1]) ? 1 : 0); }, 0);
+    var late = lead.slice(-12).some(function (v, k, a) { return k && v && a[k - 1] && sg(v) !== sg(a[k - 1]); });
+    var by = {}; bots.forEach(function (b) { var k = b.skill; by[k] = by[k] || { g: 0, n: 0 }; by[k].g += goldBy['b' + b.i] || 0; by[k].n++; });
+    return { score: S.score, flips: flips, late: late, firstGrab: firstGrab / 10, mows: mows, peak: peak, by: by };
+  }
+  function run10(label, teamOf, extra) {
+    var w = 0, fl = 0, late = 0, margin = 0, close = 0, tot = 0, gs = {}, rows = [], pk = 0;
+    for (var m = 1; m <= 10; m++) {
+      var r = play(Object.assign({ seed: m * 7919, teamOf: teamOf }, extra || {}));
+      if (r.score[0] > r.score[1]) w++; fl += r.flips; if (r.late) late++; pk = Math.max(pk, r.peak);
+      var mg = Math.abs(r.score[0] - r.score[1]) / Math.max(1, r.score[0] + r.score[1]); margin += mg; if (mg < 0.2) close++; tot += r.score[0] + r.score[1];
+      Object.keys(r.by).forEach(function (k) { gs[k] = (gs[k] || 0) + r.by[k].g / r.by[k].n; });
+      rows.push(r.score.join('-') + (r.late ? '*' : ''));
+    }
+    return label + '\n  ' + rows.join('  ') + '\n  left team won ' + w + '/10 · lead changes ' + (fl / 10) + '/game · decided in the final wave ' + late + '/10 · close (<20%) ' + close + '/10 · average margin ' + Math.round(margin * 10) + '% · gold per game ' + Math.round(tot / 10) + ' · busiest board ' + pk + '\n  gold per student by ability: ' + Object.keys(gs).sort().reverse().map(function (k) { return k + ' → ' + Math.round(gs[k] / 10); }).join(', ');
+  }
+  window.CLASH_PLAYTEST = { play: play, run10: run10 };
+  document.getElementById('go').onclick = function () {
+    var fair = function (i) { return [0, 1, 1, 0][i % 4]; }, same = function (i) { return ['smart', 'rush', 'turtle', 'random', 'smart', 'rush'][Math.floor(i / 4) % 6]; };
+    var sk = Array.from({ length: 24 }, function (_, i) { return [0.92, 0.78, 0.62, 0.42][Math.floor(i / 2) % 4]; });
+    var out = [
+      run10('5 minutes, fair draft (A B B A)', fair),
+      run10('5 minutes, fair draft, sides swapped', function (i) { return 1 - fair(i); }),
+      run10('5 minutes, identical strategy mixes on both teams', function (i) { return i % 2; }, { strat: same, skills: sk }),
+      run10('3 minutes', fair, { dur: 1800 }),
+      run10('8 minutes', fair, { dur: 4800 }),
+      run10('a class of 32', fair, { n: 32 }),
+      run10('a class of 14', fair, { n: 14 })
+    ];
+    document.getElementById('out').textContent = out.join('\n\n');
+  };
+})();
+</script>
+</body></html>
