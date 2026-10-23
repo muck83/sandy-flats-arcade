@@ -296,3 +296,81 @@ body.clashing{overflow:hidden}
 .clash .streak{font-size:15px;color:#FFC94A;margin-left:6px}
 .clash .mvp{font-size:20px}
 @media (max-width:640px){.clash .cboom{top:18%;padding:10px 14px;gap:10px}.clash .cboom .be{font-size:40px}.clash .castle{font-size:40px}.clash .cmid b{font-size:32px}}
+
+/* ⚔️ Lane Clash */
+body.clashing{overflow:hidden}
+.lc{position:fixed;inset:0;z-index:90;background:radial-gradient(ellipse at 50% 130%,#2a3d1c,#12101a 65%);color:#F3EFE7;display:flex;flex-direction:column;gap:8px;padding:10px 12px;overflow:auto;font-family:"Bricolage Grotesque",system-ui,sans-serif}
+.lc.frenzy{background:radial-gradient(ellipse at 50% 130%,#5a1d0e,#14101a 65%)}
+.lctop{display:flex;align-items:stretch;gap:10px}
+.lcteam{flex:1 1 0;display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;align-items:center;gap:0 10px;padding:6px 14px;border-radius:16px;background:rgba(255,255,255,.06);border:2px solid transparent}
+.lcteam.t0{border-color:rgba(255,201,74,.45)}.lcteam.t1{border-color:rgba(92,200,255,.45);direction:rtl}.lcteam.t1>*{direction:ltr}
+.lcteam.mine{background:rgba(255,255,255,.12);box-shadow:0 0 0 3px rgba(255,255,255,.12)}
+.lcflag{grid-row:span 2;font-size:38px;line-height:1}
+.lcname{font-weight:800;font-size:15px}.lcyou{font-style:normal;margin-left:6px;font-size:11px;background:#fff;color:#1b1a22;border-radius:999px;padding:1px 7px;vertical-align:middle}
+.lcgold{grid-row:span 2;font:400 40px "Luckiest Guy",system-ui;letter-spacing:.02em}.lcteam.t0 .lcgold{color:#FFC94A}.lcteam.t1 .lcgold{color:#5CC8FF}
+.lcgold::after{content:" 🪙";font-size:24px}
+.lcteam.bump .lcgold{animation:lcbump .5s}
+@keyframes lcbump{30%{transform:scale(1.35) rotate(-4deg)}}
+.lccb{font-size:12px;font-weight:800;color:#fff;background:#E0463C;border-radius:999px;padding:1px 8px;justify-self:start;animation:wob .5s infinite alternate}
+.lcmid{flex:0 1 300px;display:flex;flex-direction:column;align-items:center;gap:3px;justify-content:center}
+.lcclock{font:400 34px "Luckiest Guy",system-ui;color:#FFC94A;line-height:1}
+.lcwave{position:relative;width:100%;height:12px;border-radius:7px;background:rgba(255,255,255,.12)}
+.lcwave .lcbar{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:linear-gradient(90deg,#3BFF8A,#FFC94A 60%,#E0463C)}
+.lcwave span{position:absolute;top:-9px;font-size:16px;transform:translateX(-50%)}.lcflag1{left:50%}.lcflag2{left:80%}.lchead{top:-12px!important;font-size:20px!important;transition:left 1s linear}
+.lcwavet{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.lc.frenzy .lcwavet{color:#FF8A5A;animation:wob .4s infinite alternate}
+.lcstage{position:relative;flex:0 0 auto}
+.lcboard{display:block;width:100%;height:min(46vh,430px);border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.5);cursor:crosshair}
+.lc.screen .lcboard{height:min(68vh,640px)}
+.lclow{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+.lcq{flex:1 1 360px;background:rgba(255,255,255,.06);border-radius:16px;padding:12px 16px;display:flex;flex-direction:column;gap:8px;min-height:120px}
+.lcq .q{margin:0;font-size:1.08em}.lcq .kick{margin:0}.lcq .cfig{max-width:340px}
+.lcside{flex:1 1 420px;display:flex;flex-direction:column;gap:8px}
+.lchero{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 12px;background:rgba(255,255,255,.06);border-radius:14px;padding:8px 12px}
+.lclv{display:flex;flex-direction:column;line-height:1}.lclv b{font:400 22px "Luckiest Guy",system-ui;color:#FFC94A}.lclv span{font-size:11px}
+.lcxp{height:10px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden}.lcxp i{display:block;height:100%;background:linear-gradient(90deg,#FFC94A,#FFE68A);transition:width .5s}
+.lccoins{font:400 26px "Luckiest Guy",system-ui;color:#FFC94A}
+.lcnext{grid-column:1/-1;margin:0;font-size:12px;opacity:.8}
+.lccards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.lccard{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 4px 5px;border-radius:12px;border:2px solid #8a6a2a;background:linear-gradient(#f7e6b5,#e6c97e);color:#2a1e08;font:inherit;cursor:pointer;overflow:hidden;transition:transform .12s}
+.lccard:hover{transform:translateY(-3px)}
+.lccard img{width:44px;height:44px;object-fit:contain}
+.lccard b{font-size:11px;line-height:1.1;text-align:center}.lccard small{font-size:10px;opacity:.75}
+.lccost{position:absolute;top:3px;right:4px;font-weight:800;font-size:12px}
+.lccard.sel{border-color:#fff;box-shadow:0 0 0 3px #FFC94A,0 0 18px #FFC94A;transform:translateY(-5px)}
+.lccard.poor{filter:grayscale(.7) brightness(.8)}
+.lccard.locked{filter:grayscale(1) brightness(.6)}
+.lclock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;background:rgba(0,0,0,.45)}
+.lccd{position:absolute;inset:0;background:conic-gradient(rgba(0,0,0,.6) calc(var(--p)*1%),transparent 0)}
+.lclanes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.lclane{display:flex;flex-direction:column;align-items:center;padding:6px;border-radius:12px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:inherit;font:inherit;cursor:pointer}
+.lclane small{font-size:11px;opacity:.85}
+.lclane.ready{border-color:#FFC94A;background:rgba(255,201,74,.15);animation:lcpulse 1s infinite}
+.lclane.danger{border-color:#E0463C}
+@keyframes lcpulse{50%{box-shadow:0 0 0 4px rgba(255,201,74,.25)}}
+.lclegend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;font-size:16px}.lclegend img{width:34px;height:34px;object-fit:contain;vertical-align:middle;margin-right:4px}
+.lcshout{position:fixed;left:50%;top:26%;transform:translate(-50%,-50%) scale(.6);z-index:96;display:flex;align-items:center;gap:14px;max-width:min(94vw,860px);padding:12px 22px 12px 14px;border-radius:22px;background:#FFC94A;color:#231800;box-shadow:0 0 0 5px rgba(255,201,74,.35),0 18px 50px rgba(0,0,0,.6);animation:boomIn .35s cubic-bezier(.2,1.6,.4,1) forwards;pointer-events:none}
+.lcshout.theirs{background:#5CC8FF;color:#06223a;box-shadow:0 0 0 5px rgba(92,200,255,.35),0 18px 50px rgba(0,0,0,.6)}
+.lcshout.wave{background:#E0463C;color:#fff}
+.lcshout.gold{background:linear-gradient(135deg,#FFE68A,#FFB800);color:#231800}
+.lcshout.small{top:auto;bottom:18%;padding:6px 14px}
+.lcshout img{width:64px;height:64px;object-fit:contain;animation:wob .5s infinite alternate}
+.lcshout span{font:600 clamp(16px,2.6vw,26px)/1.2 "Bricolage Grotesque",system-ui}.lcshout .who{font:400 clamp(20px,3.2vw,34px) "Luckiest Guy",system-ui}
+.lcshout.out{animation:boomOut .4s forwards}
+.lc.screen .lcshout{top:20%}.lc.screen .lcshout img{width:96px;height:96px}
+.lcintro{position:fixed;inset:0;z-index:97;display:flex;align-items:center;justify-content:center;background:rgba(10,8,16,.82);animation:lcfade .4s}
+.lcintro.out{animation:lcfadeout .6s forwards}
+.lcintro-in{text-align:center;max-width:820px;padding:20px;animation:boomIn .5s cubic-bezier(.2,1.6,.4,1) both;transform:translate(0,0)}
+.lcintro h1{font:400 clamp(44px,8vw,96px) "Luckiest Guy",system-ui;color:#FFC94A;margin:0;text-shadow:0 6px 0 #6a3d00}
+.lcvs{display:flex;align-items:center;justify-content:center;gap:18px;font:400 clamp(22px,3.4vw,38px) "Luckiest Guy",system-ui;margin:8px 0}.lcvs b{color:#E0463C;font-size:1.3em}
+.lcbonus{font-size:19px;background:rgba(255,201,74,.15);border:2px solid #FFC94A;border-radius:14px;padding:8px 14px}
+.lcintro-cast img{width:64px;height:64px;object-fit:contain;margin:0 6px;animation:wob .6s infinite alternate}
+.lcintro-cast img:nth-child(2n){animation-delay:.3s}
+.lcend{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:95;text-align:center;background:rgba(18,16,26,.92);border:3px solid #FFC94A;border-radius:24px;padding:22px 30px;max-width:min(92vw,760px)}
+.lcend h1{font:400 clamp(34px,6vw,64px) "Luckiest Guy",system-ui;color:#FFC94A;margin:0;animation:wob .7s infinite alternate}
+.lcfinal{font:400 28px "Luckiest Guy",system-ui;margin:6px 0}.lcmvp{font-size:19px}
+@keyframes lcfade{from{opacity:0}}@keyframes lcfadeout{to{opacity:0;visibility:hidden}}
+@media (max-width:760px){.lccards{grid-template-columns:repeat(3,minmax(0,1fr))}.lcflag{font-size:26px}.lcgold{font-size:28px}.lcclock{font-size:26px}.lcboard{height:min(40vh,300px)}.lcshout img{width:44px;height:44px}}
+@media (prefers-reduced-motion:reduce){.lcshout,.lcshout img,.lcintro-in,.lcend h1,.lccb,.lcintro-cast img,.lclane.ready{animation:none!important}}
+.lcintro-in{max-width:min(92vw,820px);box-sizing:border-box}.lcintro h1{font-size:clamp(36px,7vw,88px)}
+.lc .ftab td{animation:none}

@@ -710,333 +710,42 @@
   }
 
 
-  /* ---------------- ⚔️ Clash: a 5-minute team battle at the end of a live lesson ----------------
-     The teacher starts it from the console (offered on the exit ticket and end slides). Every student's page and the
-     class screen switch to the battle. Fair teams: the console ranks the class by participation (answers across all
-     lessons, plus this lesson counted extra, students here today first) and deals them out A B B A, so each team gets
-     the same number of really active students. Students answer the lesson's own questions for coins and spend them on
-     silly weapons. Each page sends one running total (an answer row, q "zclash"); the console adds them up by team,
-     scaled to team size, and sends the castles' health out with the live state (counts.zcl), and the teams, the
-     shout-outs and the MVPs in the spotlight slot (spot.q "zclash"). No new script operations. */
-  var CLASH_MS = 5 * 60000, FRENZY_MS = 60000, COOL_MS = 5000;
-  var WEAPONS = [
-    { id: 'sock', e: '🧦', name: 'Sock Slingshot', cost: 1, dmg: 10 },
-    { id: 'banana', e: '🍌', name: 'Banana Peel Barrage', cost: 2, dmg: 22 },
-    { id: 'chicken', e: '🐔', name: 'Rubber Chicken Catapult', cost: 3, dmg: 36 },
-    { id: 'pie', e: '🥧', name: 'Custard Pie Cannon', cost: 5, dmg: 65 },
-    { id: 'duck', e: '🦆', name: 'Duck Stampede', cost: 8, dmg: 110 },
-    { id: 'wrap', e: '🫧', name: 'Bubble Wrap Repair', cost: 4, heal: 45 }
-  ];
-  var TEAMS = [['Team Llama', '🦙', 'Team Toaster', '🍞'], ['The Wobbly Penguins', '🐧', 'The Angry Croissants', '🥐'], ['The Pickle Pirates', '🥒', 'Captain Noodle\'s Crew', '🍜'], ['The Disco Cats', '🐱', 'The Grumpy Clouds', '☁️']];
-  function clashOf(L) {
-    var c = L && L.counts; if (!c || L.lesson !== LID || !Array.isArray(c.zcl) || !Array.isArray(c.zcid)) return null;
-    return { state: c.zcl[0], hp: [c.zcl[1], c.zcl[2]], n: [c.zcl[3] || 0, c.zcl[4] || 0], id: decRun(c.zcid), end: decRun(c.zcle) };
+  /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
+  var CLASH_V = '20261023e', clashLoading = null, srvSkewV = null;
+  function clashAssets(cb) {
+    if (window.SFA_CLASH) return cb();
+    if (clashLoading) { clashLoading.push(cb); return; }
+    clashLoading = [cb];
+    var files = ['sfa-engine.js', 'sfa-sprites.js', 'sfa-lanes.js', 'sfa-clash.js'], k = 0;
+    (function next() {
+      if (k >= files.length) { var q = clashLoading; clashLoading = null; q.forEach(function (f) { try { f(); } catch (e) { console.warn(e); } }); return; }
+      var sc2 = document.createElement('script'); sc2.src = files[k++] + '?v=' + CLASH_V; sc2.onload = next;
+      sc2.onerror = function () { clashLoading = null; SFA.toast('The Clash couldn\'t load. Check the connection.', 4000); };
+      document.head.appendChild(sc2);
+    })();
   }
-  // the spotlight slot while a clash is on: "T:sid,sid…#E:seq~name~weapon~team;…#M:name~damage;name~damage"
-  function clashSpot(L) {
-    var o = { t0: null, ev: [], mvp: [] }, sp = L && L.spot && L.spot.q === 'zclash' ? String(L.spot.text || '') : '';
-    sp.split('#').forEach(function (part) {
-      var k = part.slice(0, 2), v = part.slice(2);
-      if (k === 'T:') { o.t0 = {}; v.split(',').forEach(function (x) { if (x) o.t0[x] = 1; }); }
-      else if (k === 'E:') o.ev = v.split(';').map(function (x) { var p = x.split('~'); return { seq: +p[0], name: p[1], w: p[2], t: +p[3] }; }).filter(function (e) { return e.seq && e.name; });
-      else if (k === 'M:') o.mvp = v.split(';').map(function (x) { var p = x.split('~'); return p[0] ? { name: p[0], d: +p[1] || 0 } : null; });
-    });
-    return o;
-  }
-  function hashTeam(sid, id) { var h = 5381, t = String(sid) + ':' + Math.round(id / 1000); for (var i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return h & 1; }
-  // the drafted teams when the console sent them, otherwise a hash (a student added to the roster mid-battle)
-  function teamOf(sid, id, t0) { return t0 ? (t0[sid] ? 0 : 1) : hashTeam(sid, id); }
-  function teamNames(id) { var t = TEAMS[Math.round(id / 1000) % TEAMS.length]; return [{ name: t[0], e: t[1] }, { name: t[2], e: t[3] }]; }
-  // a student laptop's clock can be minutes off: time the battle by the server's clock (live.at is server time when the
-  // console last updated, received a few seconds later at most). The console publishes the end in server time too.
-  var srvSkew = 0;
-  function sNow() { return MODE === 'teach' ? Date.now() : Date.now() + srvSkew; }
-  function frenzy(c) { var t = sNow(); return c.state === 1 && c.end - t <= FRENZY_MS && c.end > t; }
-  // the lesson's own questions: main slides are worth 3 coins, ★★ stretch extras 4
-  function clashPool() {
-    var out = [];
-    LES.slides.forEach(function (s) {
-      if (s.k === 'number' && s.ans != null) out.push({ k: 'number', q: s.q, ans: s.ans, tol: s.tol, fig: s.fig, why: s.why, pts: 3 });
-      if (s.k === 'poll' && s.ans != null && !s.warm) out.push({ k: 'poll', q: s.q, opts: s.opts, ans: s.ans, fig: s.fig, why: s.why, pts: 3 });
-      (s.more || []).forEach(function (m, i) { if ((m.k === 'number' || m.k === 'poll') && m.ans != null) out.push(Object.assign({}, m, { pts: i >= 1 ? 4 : 3, hard: i >= 1 })); });
-    });
-    return out;
-  }
-  var CL = null, clashEl = null, clashSeen = null, lastHp = null, wasFrenzy = false;
-  function clashMine(c) {
-    if (CL && CL.id === c.id) return CL;
-    var L = SFA.store.get('clash.' + LID, null);
-    if (L && L.id === c.id) return (CL = L);
-    var pool = clashPool(), order = pool.map(function (x, i) { return i; }), r = 0, key = (S.me ? S.me.sid : 'x') + ':' + Math.round(c.id / 1000);
-    for (var h = 0; h < key.length; h++) r = (r * 31 + key.charCodeAt(h)) % 2147483647;
-    for (var i = order.length - 1; i > 0; i--) { r = (r * 1103515245 + 12345) % 2147483648; var j = r % (i + 1), t = order[i]; order[i] = order[j]; order[j] = t; }
-    return (CL = { id: c.id, coins: 0, earned: 0, right: 0, dmg: 0, heal: 0, buys: {}, order: order, qi: 0, tries: 0, fb: null, streak: 0, cool: 0 });
-  }
-  function clashKeep() { SFA.store.set('clash.' + LID, CL); }
-  var saveT = null, saveAt = 0;
-  function clashSave() {
-    clashKeep();
-    var wait = 4000 - (Date.now() - saveAt);
-    if (wait > 0) { clearTimeout(saveT); saveT = setTimeout(clashSave, wait); return; }
-    saveAt = Date.now(); clearTimeout(saveT);
-    // one running total per student; the newest row is the one that counts
-    var w = Object.keys(CL.buys).map(function (k) { return k + CL.buys[k]; }).join('.');
-    record({ id: 'zclash', k: 'open' }, 'c1;id:' + Math.round(CL.id / 1000) + ';d:' + CL.dmg + ';h:' + CL.heal + ';k:' + CL.earned + ';r:' + CL.right + ';w:' + w, null);
-  }
-  function myTeam(c) { return MODE === 'student' && S.me ? teamOf(S.me.sid, c.id, clashSpot(live).t0) : -1; }
+  function hasClash(L) { return !!(L && L.lesson === LID && L.counts && Array.isArray(L.counts.zcs)); }
+  // the server's clock as seen from here: live.at is server time when the console last updated; the closest sample wins
+  function noteSkew() { if (MODE !== 'student' || !live || !live.at) return; var k = live.at - Date.now(); if (srvSkewV == null || k > srvSkewV || k < srvSkewV - 30000) srvSkewV = k; }
   function clashSync() {
     if (MODE === 'teach') return;
-    if (live && live.at) srvSkew = live.at - Date.now();
-    var c = isLive() || MODE === 'screen' ? clashOf(live) : null;
-    if (MODE === 'student' && saving && !S.me) c = null;   // sign in first: the battle would cover the sign-in box
-    if (!c) { if (clashEl) { clashEl.remove(); clashEl = null; document.body.classList.remove('clashing'); } clashSeen = null; shoutSeen = -1; shoutQ = []; return; }
-    if (c.id !== shoutId) { shoutId = c.id; shoutSeen = -1; shoutQ = []; wasFrenzy = false; }   // a new battle: start the shout-outs afresh
-    if (!clashEl) { clashEl = H('div', 'clash'); clashEl.setAttribute('role', 'dialog'); clashEl.setAttribute('aria-modal', 'true'); clashEl.setAttribute('aria-label', 'Clash: team battle'); document.body.appendChild(clashEl); document.body.classList.add('clashing'); clashSeen = null; lastHp = null; }
-    var me = myTeam(c);
-    if (me >= 0 && lastHp && c.hp[me] < lastHp[me]) incoming(me);
-    if (lastHp) [0, 1].forEach(function (t) { if (c.hp[t] < lastHp[t]) { var cs = clashEl.querySelector('.castle[data-t="' + t + '"]'); if (cs) { cs.classList.remove('hit'); void cs.offsetWidth; cs.classList.add('hit'); } } });
-    lastHp = c.hp.slice();
-    shoutOuts(c, me);
-    var sp = clashSpot(live), sig = c.state + '|' + c.id + '|' + me + '|' + (c.state === 2 ? sp.mvp.map(function (m) { return m ? m.name : ''; }).join(',') : '');
-    if (sig !== clashSeen) { clashSeen = sig; clashDraw(c, me); } else clashBars(c, me);
+    noteSkew();
+    if (window.SFA_CLASH) return SFA_CLASH.sync();
+    if ((isLive() || MODE === 'screen') && hasClash(live) && !(MODE === 'student' && saving && !S.me)) clashAssets(function () { SFA_CLASH.sync(); });
   }
-  function clashBars(c, me) {
-    if (!clashEl) return;
-    [0, 1].forEach(function (t) {
-      var b = clashEl.querySelector('.hpb[data-t="' + t + '"] i'), v = clashEl.querySelector('.hpv[data-t="' + t + '"]');
-      if (b) b.style.width = (c.hp[t] / 10) + '%'; if (v) v.textContent = Math.round(c.hp[t] / 10) + '%';
-    });
-    var tm = clashEl.querySelector('.ctime'), left = Math.max(0, c.end - sNow());
-    if (tm) tm.textContent = c.state === 2 || !left ? 'Time!' : Math.floor(left / 60000) + ':' + ('0' + Math.floor(left / 1000) % 60).slice(-2);
-    // the final minute: double damage
-    var fz = frenzy(c); clashEl.classList.toggle('frenzy', fz);
-    var fl = clashEl.querySelector('.cfz'); if (fl) fl.hidden = !fz;
-    if (fz && !wasFrenzy && MODE !== 'teach') shout({ e: '⚡', banner: 'FINAL MINUTE: <b>FRENZY!</b> Every weapon does double damage!', mine: true });
-    wasFrenzy = fz;
-  }
-  function clashDraw(c, me) {
-    var T = teamNames(c.id), over = c.state === 2;
-    clashEl.innerHTML = '';
-    var top = H('div', 'chead');
-    [0, 1].forEach(function (t) {
-      var side = H('div', 'cside' + (t === me ? ' mine' : ''));
-      side.appendChild(H('div', 'castle', '<span class="flag">' + T[t].e + '</span>🏰')); side.lastChild.setAttribute('data-t', t);
-      side.appendChild(H('b', '', esc(T[t].name) + (t === me ? ' (you)' : '')));
-      var hb = H('div', 'hpb'); hb.setAttribute('data-t', t); hb.appendChild(H('i')); side.appendChild(hb);
-      var hv = H('span', 'hpv'); hv.setAttribute('data-t', t); side.appendChild(hv);
-      if (MODE === 'screen') side.appendChild(H('small', '', c.n[t] + ' fighting'));
-      top.appendChild(side);
-      if (t === 0) { var mid = H('div', 'cmid', '<b class="ctime"></b><span>⚔️ CLASH</span>'); var fz = H('span', 'cfz', '⚡ FRENZY ×2'); fz.hidden = true; mid.appendChild(fz); top.appendChild(mid); }
-    });
-    clashEl.appendChild(top);
-    var arena = H('div', 'arena'); clashEl.appendChild(arena);
-    if (over) {
-      var win = c.hp[0] === c.hp[1] ? -1 : c.hp[0] > c.hp[1] ? 0 : 1, mvp = clashSpot(live).mvp;
-      var res = H('div', 'cres');
-      res.appendChild(H('h2', '', win < 0 ? 'It\'s a draw!' : T[win].e + ' ' + esc(T[win].name) + ' wins!'));
-      if (mvp.some(Boolean)) res.appendChild(H('p', 'mvp', '🏅 MVPs: ' + [0, 1].map(function (t) { var m = mvp[t]; return m ? T[t].e + ' <b>' + esc(m.name) + '</b> (' + m.d + ' damage)' : ''; }).filter(Boolean).join(' · ')));
-      if (MODE === 'student' && CL && CL.id === c.id) res.appendChild(H('p', '', 'You answered <b>' + CL.right + '</b> right, earned <b>' + CL.earned + '</b> coins and did <b>' + CL.dmg + '</b> damage' + (CL.heal ? ' and <b>' + CL.heal + '</b> repairs' : '') + '.'));
-      res.appendChild(H('p', 'sub', 'Back to the lesson when ' + TEACHER + ' says so.'));
-      arena.appendChild(res);
-    } else if (MODE === 'student') clashPlay(c, me, arena);
-    else arena.appendChild(H('div', 'cres', '<h2>Answer questions. Earn coins. Buy silly weapons.</h2><p class="sub">Right first try: 3 coins (★★ questions 4). Three in a row: a 🔥 bonus. The final minute is a ⚡ FRENZY: double damage.</p>'));
-    clashBars(c, me);
-  }
-  function clashPlay(c, me, arena) {
-    var M = clashMine(c), pool = clashPool(), T = teamNames(c.id);
-    var left = H('div', 'cq'), right = H('div', 'cshop'); arena.appendChild(left); arena.appendChild(right);
-    var coolT = null, bought = false;
-    function draw() {
-      clearTimeout(coolT); left.innerHTML = ''; right.innerHTML = '';
-      var fz = frenzy(c);
-      right.appendChild(H('div', 'coins', '🪙 <b>' + M.coins + '</b> coins' + (M.streak >= 2 ? ' <span class="streak">🔥 ' + M.streak + ' in a row</span>' : '')));
-      WEAPONS.forEach(function (w) {
-        var b = el('button', { type: 'button', 'class': 'wpn' }); b.disabled = M.coins < w.cost;
-        b.innerHTML = '<span class="we">' + w.e + '</span><span><b>' + esc(w.name) + '</b><small>' + (w.heal ? 'repairs your castle' : (fz ? '<b>×2</b> ' : '') + 'hits ' + esc(T[1 - me].name)) + '</small></span><span class="wc">' + w.cost + '🪙</span>';
-        b.onclick = function () {
-          if (M.coins < w.cost || sNow() > c.end) return;
-          var x = frenzy(c) ? 2 : 1;
-          M.coins -= w.cost; if (w.heal) M.heal += w.heal; else M.dmg += w.dmg * x; M.buys[w.id] = (M.buys[w.id] || 0) + 1;
-          fire(w, me, x); clashSave(); bought = true; draw();
-        };
-        right.appendChild(b);
-      });
-      right.appendChild(H('p', 'sub', 'Bigger weapons do more damage per coin. Save up or fire away!'));
-      if (!pool.length) { left.appendChild(H('p', 'q', 'No questions in this lesson for the Clash.')); return; }
-      var q = pool[M.order[M.qi % M.order.length]];
-      left.appendChild(H('p', 'kick', 'Question ' + (M.qi + 1) + ' · ' + (M.qi >= M.order.length ? 'bonus round: 1 coin each' : q.hard ? '★★ hard: 4 coins' : 'right first try = 3 coins')));
-      left.appendChild(H('p', 'q', fmt(q.q)));
-      if (q.fig) { var f = H('div', 'cfig'); f.appendChild(figure(q.fig)); left.appendChild(f); }
-      if (M.fb) {
-        left.appendChild(H('div', M.fb.ok ? 'fb good' : 'fb try', M.fb.html));
-        var wait = Math.max(0, M.cool - Date.now());
-        var nx = el('button', { type: 'button', 'class': 'btn primary', text: wait ? 'Think it through… ' + Math.ceil(wait / 1000) : 'Next question ▶' });
-        if (wait) { nx.disabled = true; coolT = setTimeout(draw, 1000); }
-        nx.onclick = function () { M.fb = null; M.qi++; M.tries = 0; clashKeep(); draw(); };
-        left.appendChild(nx); if (!wait) setTimeout(function () { nx.focus(); }, 30); return;
-      }
-      var right1 = function () {
-        var pts = M.tries || M.qi >= M.order.length ? 1 : q.pts, bonus = 0;
-        if (!M.tries) { M.streak++; if (M.streak % 3 === 0) bonus = 2; } else M.streak = 0;
-        M.coins += pts + bonus; M.earned += pts + bonus; M.right++; confetti();
-        M.fb = { ok: true, html: '<b>Yes! +' + pts + ' coin' + (pts === 1 ? '' : 's') + '.</b>' + (bonus ? ' 🔥 <b>Three in a row: +2 bonus!</b>' : '') };
-      };
-      var wrong = function (html) { M.streak = 0; M.cool = Date.now() + COOL_MS; M.fb = { ok: false, html: html }; };
-      if (q.k === 'number') {
-        var inp = el('input', { type: 'text', inputmode: q.ans < 0 ? 'text' : 'decimal', placeholder: 'Type a number', 'aria-label': 'Clash answer', autocomplete: 'off' });
-        var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' }), row = H('div', 'row'); row.appendChild(inp); row.appendChild(go); left.appendChild(row);
-        if (M.tries) left.appendChild(H('p', 'state', 'Not yet: one more try for 1 coin.'));
-        var check = function () {
-          var v = numOf(inp.value); if (!inp.value.trim()) return inp.focus(); if (isNaN(v)) { SFA.toast('Type a number, like 12 or -3.'); return; }
-          if (Math.abs(v - q.ans) <= (q.tol || 1e-9) + 1e-9) right1();
-          else if (!M.tries) M.tries = 1;
-          else wrong('<b>The answer is ' + esc(numTxt(q.ans)) + '.</b> ' + fmt(q.why || ''));
-          clashKeep(); if (M.fb && M.fb.ok) clashSave(); draw();
-        };
-        go.onclick = check; inp.onkeydown = function (e) { if (e.key === 'Enter') check(); };
-        if (!bought) setTimeout(function () { inp.focus(); }, 30); bought = false;
-      } else {
-        var list = H('div', 'opts'); left.appendChild(list);
-        q.opts.forEach(function (o, k) {
-          var b = el('button', { type: 'button', 'class': 'opt' }); b.appendChild(H('span', 'L', letter(k))); b.appendChild(H('span', 't', fmt(o)));
-          b.onclick = function () { if (k === q.ans) { right1(); clashSave(); } else wrong('<b>Not this one: it\'s ' + letter(q.ans) + '.</b> ' + fmt(q.why || '')); clashKeep(); draw(); };
-          list.appendChild(b);
-        });
-      }
-    }
-    draw();
-  }
-  var shoutSeen = -1, shoutQ = [], shoutBusy = false, shoutId = 0;
-  function shoutOuts(c, me) {
-    var sp = clashSpot(live), T = teamNames(c.id), myName = MODE === 'student' && S.me ? first(S.me.name) : '';
-    var top = sp.ev.length ? sp.ev[sp.ev.length - 1].seq : 0;
-    if (shoutSeen < 0) { shoutSeen = top; return; }   // joining mid-battle: don't replay old ones
-    sp.ev.forEach(function (e) {
-      if (e.seq <= shoutSeen) return;
-      if (MODE === 'student' && e.name === myName && e.t === me) return;   // their own shot was already celebrated on their screen
-      var w = WEAPONS.filter(function (x) { return x.id === e.w; })[0]; if (!w) return;
-      shoutQ.push({ e: w.e, who: e.name, w: w, t: e.t, them: T[1 - e.t], us: T[e.t], mine: me >= 0 && e.t === me });
-    });
-    shoutSeen = Math.max(shoutSeen, top); if (shoutQ.length > 4) shoutQ = shoutQ.slice(-4);
-    nextShout();
-  }
-  function shout(o) { shoutQ.push(o); nextShout(); }
-  function nextShout() {
-    if (shoutBusy || !shoutQ.length || !clashEl) return;
-    var o = shoutQ.shift(); shoutBusy = true;
-    var b = H('div', 'cboom' + (o.mine ? ' ours' : ' theirs'));
-    b.innerHTML = '<span class="be">' + o.e + '</span><span class="bt">' + (o.banner ? o.banner : '<b>' + esc(String(o.who).toUpperCase()) + '</b> ' + (o.w.heal ? 'patched up ' + esc(o.us.name) + '\'s castle with ' : 'unleashed ') + '<b>' + esc(o.w.heal ? 'BUBBLE WRAP' : o.w.name.toUpperCase()) + '</b>' + (o.w.heal ? '!' : ' on ' + esc(o.them.name) + '!' + (o.x === 2 ? ' <b>×2</b>' : ''))) + '</span>';
-    clashEl.appendChild(b);
-    if (o.w && !o.w.heal) { var p = H('span', 'proj ' + (o.t === 0 ? 'ltr' : 'rtl'), o.e); clashEl.appendChild(p); setTimeout(function () { p.remove(); }, 1300); }
-    setTimeout(function () { b.classList.add('out'); }, MODE === 'screen' ? 2600 : 2000);
-    setTimeout(function () { b.remove(); shoutBusy = false; nextShout(); }, MODE === 'screen' ? 3000 : 2400);
-  }
-  function fire(w, me, x) {
-    if (!clashEl) return;
-    var T = teamNames(CL ? CL.id : 0);
-    shout({ e: w.e, who: 'You', w: w, t: me, them: T[1 - me], us: T[me], mine: true, x: x });
-  }
-  function incoming(me) {
-    var e = WEAPONS[Math.floor(Math.random() * 5)].e, p = H('span', 'proj ' + (me === 0 ? 'rtl' : 'ltr'), e); clashEl.appendChild(p);
-    setTimeout(function () { p.remove(); }, 1300);
-  }
-  setInterval(function () { if (clashEl && live) { var c = clashOf(live); if (c) clashBars(c, myTeam(c)); } }, 1000);
-
-  // console: draft fair teams, add up the battle, end it
-  function draftTeams() {
-    var roster = rosterIn(), score = {}, here = {};
-    roster.forEach(function (r) { score[r.sid] = 0; });
-    ((console_.data && console_.data.answers) || []).forEach(function (a) { if (a.sid in score && !beforeRun(a) && a.q !== 'zflag' && a.q !== 'zclash') { here[a.sid] = 1; if (a.q !== 'here') score[a.sid] += 3; } });
-    return tpost('participation').then(function (j) { return j.cells || []; }, function () { return []; }).then(function (cells) {
-      cells.forEach(function (x) { if (x.sid in score) score[x.sid] += (x.answered || 0) + 0.5 * (x.correct || 0); });
-      // students here today first, then by participation; deal A B B A so each team gets the same mix
-      var order = roster.map(function (r) { return r.sid; }).sort(function (a, b) { return (here[b] ? 1 : 0) - (here[a] ? 1 : 0) || score[b] - score[a] || (Math.random() - 0.5); });
-      var team = {}; order.forEach(function (sid, i) { team[sid] = [0, 1, 1, 0][i % 4]; });
-      var hereN = [0, 0]; Object.keys(here).forEach(function (sid) { hereN[team[sid]]++; });
-      return { team: team, here: hereN };
-    });
-  }
-  function clashAgg() {
-    var C = console_.clash; if (!C) return;
-    if (C.frozen) return;   // the result is final: late rows can't flip it
-    var ids = {}; rosterIn().forEach(function (r) { ids[r.sid] = r; });
-    // picked back up after a console reload: rebuild the teams once the class list is in
-    if (!C.team && C.t0 && Object.keys(ids).length) { C.team = {}; Object.keys(ids).forEach(function (sid) { C.team[sid] = C.t0[sid] ? 0 : 1; }); }
-    var key = 'id:' + Math.round(C.id / 1000) + ';', dmg = [0, 0], heal = [0, 0], n = [0, 0], who = [];
-    var last = {};   // each student's newest running total only
-    ((console_.data && console_.data.answers) || []).forEach(function (a) { if (a.q === 'zclash' && ids[a.sid] && String(a.answer).indexOf(key) >= 0 && (!last[a.sid] || String(a.time) >= String(last[a.sid].time))) last[a.sid] = a; });
-    Object.keys(last).map(function (k) { return last[k]; }).forEach(function (a) {
-      var t = C.team && a.sid in C.team ? C.team[a.sid] : hashTeam(a.sid, C.id), get = function (k) { var m = String(a.answer).match(new RegExp(';' + k + ':(\\d+)')); return m ? Math.min(+m[1], 5000) : 0; };
-      // sanity limits a student's own totals can't pass: coins ≤ 6 per right answer, damage ≤ 28 per coin (a duck in a frenzy), repairs ≤ 12 per coin
-      var kk = Math.min(get('k'), 6 * get('r')), dd = Math.min(get('d'), 28 * kk), hh = Math.min(get('h'), 12 * kk);
-      n[t]++; dmg[t] += dd; heal[t] += hh; who.push({ name: nice(ids[a.sid].name), first: first(ids[a.sid].name), t: t, k: get('k'), d: get('d') });
-      // what this student has bought since last time: each new weapon becomes a shout-out on every screen
-      var wm = (String(a.answer).match(/;w:([a-z0-9.]*)/) || [, ''])[1], now = {};
-      wm.split('.').forEach(function (x) { var m2 = x.match(/^([a-z]+)(\d+)$/); if (m2 && WEAPONS.some(function (w) { return w.id === m2[1]; })) now[m2[1]] = Math.min(+m2[2], 60); });
-      var was = C.prev[a.sid] || {};
-      if (C.primed) Object.keys(now).forEach(function (w) { for (var i = was[w] || 0; i < now[w] && i < (was[w] || 0) + 3; i++) C.events.push({ seq: ++C.seq, name: first(ids[a.sid].name), w: w, t: t }); });
-      C.prev[a.sid] = now;
-    });
-    C.primed = true; if (C.events.length > 6) C.events = C.events.slice(-6);
-    // castles hold 250 damage per fighter on an average-sized team (a student does about 150-200 in 5 minutes), and
-    // each team's attacks are scaled to its size, so a smaller team isn't at a disadvantage
-    var sz = [Math.max(n[0], (C.here || [0, 0])[0]), Math.max(n[1], (C.here || [0, 0])[1])];
-    var avg = Math.max(3, (sz[0] + sz[1]) / 2), maxHp = 250 * avg, hp = [0, 1].map(function (t) {
-      var hit = dmg[1 - t] * avg / Math.max(1, sz[1 - t]), fix = heal[t] * avg / Math.max(1, sz[t]);
-      return Math.max(0, Math.min(1000, Math.round(1000 * (1 - Math.max(0, hit - Math.min(fix, hit / 2)) / maxHp))));
-    });
-    C.hp = hp; C.n = n; C.who = who;
-    if (C.state === 1 && !hp[0] !== !hp[1]) C.state = 2;   // a castle fell
-    if (C.state === 1 && Date.now() > C.end + 6000) C.state = 2;   // time, plus a few seconds for answers already on their way
-    if (C.state === 2) C.frozen = true;
-    // each team's most valuable player: most damage (repairs count too)
-    C.mvp = [0, 1].map(function (t) { return who.filter(function (w) { return w.t === t && w.d; }).sort(function (a, b) { return b.d - a.d; })[0] || null; });
-  }
-  function clashSpotText(K) {
-    var t0 = Object.keys(K.team || {}).filter(function (sid) { return K.team[sid] === 0 && /^[A-Za-z0-9_.@-]{1,30}$/.test(sid); }).join(',');
-    var ev = K.events.map(function (e) { return e.seq + '~' + String(e.name).replace(/[~;#,]/g, '').slice(0, 20) + '~' + e.w + '~' + e.t; }).join(';');
-    var mv = K.state === 2 ? (K.mvp || []).map(function (m) { return m ? String(m.first).replace(/[~;#,]/g, '').slice(0, 20) + '~' + m.d : ''; }).join(';') : '';
-    return ('T:' + t0 + '#E:' + ev + (mv ? '#M:' + mv : '')).slice(0, 595);
-  }
+  function clashAgg() { if (window.SFA_CLASH && console_ && console_.clash) SFA_CLASH.agg(); }
   function clashSection(p) {
-    var sec = H('div', 'sect'), C = console_.clash, sl = LES.slides[cur];
-    if (!C && !(sl && (sl.k === 'exit' || sl.k === 'end'))) return;   // an optional finale: it shows up at the end of the lesson
-    sec.appendChild(H('h3', '', '⚔️ Finish with a Clash? (optional, 5 minutes)'));
-    if (!C) {
-      sec.appendChild(H('p', 'muted', 'Two fair teams (dealt out by participation, so each has the same number of really active students) answer this lesson\'s questions for coins and buy silly weapons to knock down the other castle. Students\' screens switch to the battle; the class screen shows the castles and every shout-out.'));
-      var sb = el('button', { type: 'button', 'class': 'btn primary', text: '⚔️ Start a Clash' });
-      if (!console_.on) { sb.disabled = true; sec.appendChild(H('p', 'state', 'Go live first.')); }
-      sb.onclick = function () {
-        sb.disabled = true; sb.textContent = 'Picking fair teams…';
-        draftTeams().then(function (dr) {
-          var t = Math.round(Date.now() / 1000) * 1000;
-          // seq continues from any earlier battle, so pages still open don't skip the new shout-outs
-          console_.clash = { id: t, end: t + CLASH_MS, state: 1, hp: [1000, 1000], n: [0, 0], who: [], prev: {}, events: [], seq: Math.round(t / 1000) % 100000, primed: true, team: dr.team, here: dr.here, mvp: [] };
-          pushLive(); consolePanel(); SFA.toast('Clash on! Students\' screens switch within a few seconds.', 3500);
-        });
-      };
-      sec.appendChild(sb); p.appendChild(sec); return;
-    }
-    var T = teamNames(C.id), left = Math.max(0, C.end - Date.now()), size = [0, 0];
-    Object.keys(C.team || {}).forEach(function (sid) { size[C.team[sid]]++; });
-    sec.appendChild(H('p', '', (C.state === 2 ? '<b>Over.</b> ' : '<b id="clashLeft">' + Math.floor(left / 60000) + ':' + ('0' + Math.floor(left / 1000) % 60).slice(-2) + '</b> left' + (left <= FRENZY_MS && left ? ' · ⚡ FRENZY' : '') + '. ') + [0, 1].map(function (t) { return T[t].e + ' ' + esc(T[t].name) + ': castle ' + Math.round(C.hp[t] / 10) + '% · ' + C.n[t] + ' of ' + size[t] + ' fighting'; }).join(' · ')));
-    var top = (C.who || []).slice().sort(function (a, b) { return b.k - a.k; }).slice(0, 5);
-    if (top.length) sec.appendChild(H('p', 'muted', 'Top coin earners: ' + top.map(function (w) { return esc(w.name) + ' ' + T[w.t].e + ' ' + w.k; }).join(', ')));
-    if (C.team) { var d = el('details'); d.appendChild(el('summary', { text: 'The teams' })); [0, 1].forEach(function (t) { d.appendChild(H('p', 'muted', T[t].e + ' <b>' + esc(T[t].name) + ':</b> ' + rosterIn().filter(function (r) { return C.team[r.sid] === t; }).map(function (r) { return esc(nice(r.name)); }).join(', '))); }); sec.appendChild(d); }
-    var r = H('div', 'row');
-    if (C.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'End the battle now', onclick: function () { clashAgg(); C.state = 2; C.frozen = true; pushLive(); consolePanel(); } }));
-    r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: 'Back to the lesson', onclick: function () { console_.clash = null; pushLive(); consolePanel(); } }));
-    sec.appendChild(r); p.appendChild(sec);
+    if (window.SFA_CLASH && console_.clash) return SFA_CLASH.section(p);
+    var sl = LES.slides[cur];
+    if (!(sl && (sl.k === 'exit' || sl.k === 'end'))) return;   // an optional finale: it shows up at the end of the lesson
+    var sec = H('div', 'sect');
+    sec.appendChild(H('h3', '', '⚔️ Finish with a Lane Clash? (optional, 5 minutes)'));
+    sec.appendChild(H('p', 'muted', 'Plants vs Zombies, team against team, with the Sandy Flats characters. Fair teams (dealt out by participation). Students answer this lesson\'s questions for coins, send characters down 3 lanes and plant defenders, and grab the other team\'s gold. Good lesson participation starts them with more coins and a higher hero level. The class screen shows the whole battle.'));
+    var sb = el('button', { type: 'button', 'class': 'btn primary', text: '⚔️ Start a Lane Clash' });
+    if (!console_.on) { sb.disabled = true; sec.appendChild(H('p', 'state', 'Go live first.')); }
+    sb.onclick = function () { sb.disabled = true; sb.textContent = 'Loading the characters and picking fair teams…'; clashAssets(function () { SFA_CLASH.start().then(function () { SFA.toast('Lane Clash on! Students\' screens switch within a few seconds.', 3500); }); }); };
+    sec.appendChild(sb); p.appendChild(sec);
   }
-  var clashPanelSig = '';
-  setInterval(function () {
-    if (MODE !== 'teach' || !console_ || !console_.clash) return;
-    var K = console_.clash, was = K.state, ev = K.seq; clashAgg();
-    if (K.state !== was || K.seq !== ev) pushLive(); else pushCountsIfChanged();
-    var sig = K.state + '|' + K.hp + '|' + K.n + '|' + (K.who || []).map(function (w) { return w.k; }).join(',');
-    if (sig !== clashPanelSig) { clashPanelSig = sig; consolePanel(); }
-    else { var tl = document.getElementById('clashLeft'), left = Math.max(0, K.end - Date.now()); if (tl && K.state === 1) tl.textContent = Math.floor(left / 60000) + ':' + ('0' + Math.floor(left / 1000) % 60).slice(-2); }
-  }, 1000);
 
   /* ---------------- deck ---------------- */
   var deck, dots, counter, prevB, nextB;
@@ -1249,7 +958,7 @@
     }, 15000);
     if (!console_.offline) tpost('live').then(function (j) {
       console_.climb = j.climb || null;
-      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; var k0 = clashOf(j.live); if (console_.spot && console_.spot.q === 'zclash') console_.spot = null; if (k0) { var sp0 = clashSpot(j.live); console_.clash = { id: k0.id, end: k0.end - (console_.skew || 0), state: k0.state, frozen: k0.state === 2, hp: k0.hp, n: k0.n, who: [], prev: {}, events: [], seq: sp0.ev.reduce(function (mx, e) { return Math.max(mx, e.seq); }, 0), primed: false, team: null, t0: sp0.t0, mvp: [] }; } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
+      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && console_.spot.q === 'zclash') console_.spot = null; if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { SFA_CLASH.restore(jl); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
       // opened from the Climb dashboard ("End Climb → Lesson N"): go live straight away, so students' pages move into this lesson
       else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
       else consolePanel();
@@ -1335,10 +1044,7 @@
     if (console_.run) counts.zrun = encRun(console_.run);
     if (console_.lock) counts.zlock = [1];
     var spot = console_.spot;
-    if (console_.clash) {
-      var K = console_.clash; counts.zcl = [K.state, K.hp[0], K.hp[1], K.n[0], K.n[1]]; counts.zcid = encRun(K.id); counts.zcle = encRun(K.end + (console_.skew || 0));
-      spot = { q: 'zclash', text: clashSpotText(K) };   // the teams, who just fired what, and the MVPs
-    }
+    if (console_.clash && window.SFA_CLASH) { SFA_CLASH.counts(counts); spot = SFA_CLASH.spot(); }   // the battle board, the teams, shout-outs and MVPs
     return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: spot, timer: console_.timer, lock: console_.lock, auto: console_.auto };
   }
   var pushT = null, lastCounts = '', lastPush = 0;
@@ -1614,6 +1320,12 @@
     if (MODE === 'teach') { liveChip.hidden = !console_.on; liveChip.textContent = 'Live'; }
   }
 
+  window.SFA_LESSON_API = {
+    LID: LID, MODE: MODE, TEACHER: TEACHER, S: S, H: H, el: el, fmt: fmt, figure: figure, confetti: confetti, numOf: numOf, numTxt: numTxt, letter: letter, first: first, nice: nice, xid: xid,
+    decRun: decRun, encRun: encRun, record: record, beforeRun: beforeRun, tpost: tpost, pushLive: pushLive, consolePanel: consolePanel, rosterIn: rosterIn,
+    live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
+    srvSkew: function () { return MODE === 'screen' ? 0 : srvSkewV || 0; }, console_: function () { return console_; }, consoleAnswers: function () { return console_ && console_.data && console_.data.answers; }
+  };
   window.SFA_LESSON = function (L) { LES = L; };
   var sc = document.createElement('script');
   sc.src = 'lessons/' + LID + '.js';

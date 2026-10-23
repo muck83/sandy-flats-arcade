@@ -67,9 +67,9 @@ Every extra needs `steps`: a complete worked solution in 2-5 short lines, shown 
 (right or wrong), because the teacher won't have time to go over the extras with everyone. A `number` extra gives two
 tries, then shows the answer. Extras save as the slide id + `x1`, `x2` and the console counts them on that slide.
 
-## The Clash
+## The Lane Clash
 
-At the end of a lesson the console can start a 5-minute team battle. Its questions come from the lesson itself: every
+At the end of a lesson the console can start a 5-minute team battle (sfa-clash.js, rules in sfa-lanes.js). Its questions come from the lesson itself: every
 `number` slide, every `poll` slide with an `ans` (not warm-ups), and every `number`/`poll` extra in `more`. So a lesson
 with good extras has a good Clash.
 
