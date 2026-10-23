@@ -76,7 +76,7 @@ SFA_LESSON({
             hint: 'How many litres has it lost? Then divide by 40.', why: 'It has lost 480 litres, and 480 ÷ 40 = 12 minutes.',
             steps: ['Work backwards. It went from 600 down to 120: it lost 600 − 120 = 480 litres.', 'It loses 40 a minute: 480 ÷ 40 = *12* minutes.', 'Check: 600 − 40 × 12 = 600 − 480 = 120. ✓'] }
         ] },
-    { k: 'machine', min: 2, id: 'tower', name: 'The Water Tower', rule: '600-40x', q: 'This machine is the tower\'s rule. Feed it minutes and it gives the litres left. Stuck? Try 0 first, then 1. Then type its rule.',
+    { k: 'machine', min: 2, id: 'tower', name: 'The Second Tower', rule: '450-30x', q: 'Sandy Flats has a second water tower with a different rule. Feed it minutes and it gives the litres left. Stuck? Try 0 first, then 1. Then type its rule.',
       help: 'Feed it 0 first: that is the start. Then feed it 1. How much did it drop?',
         more: [
           { k: 'number', q: 'Another machine gives *0 → 50* and *1 → 44*. What does it give for *5*?', ans: 20,

@@ -201,7 +201,18 @@
   /* ---------------- answers (student) ---------------- */
   var queue = [], flushing = false, sendSeq = 0, backendOld = false, sendErr = '';
   function saveLocal() { SFA.store.set('les.' + LID, mine); }
+  // the phone pattern: on a question, the longest stretch with nothing typed, clicked, scrolled or moved, counted from
+  // the student's first touch of the slide (so listening to the teacher doesn't count), then a right answer within 8 s
+  var still = { slide: -1, act: 0, touched: false, max: 0, end: 0 };
+  function stillNote() {
+    if (MODE !== 'student' || document.visibilityState !== 'visible') return;
+    var nw = Date.now();
+    if (still.slide !== cur) { still = { slide: cur, act: nw, touched: true, max: 0, end: 0 }; return; }
+    var gap = nw - still.act; if (gap > still.max) { still.max = gap; still.end = nw; } still.act = nw;
+  }
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, stillNote, { passive: true, capture: true }); });
   function record(s, answer, correct) {
+    if (correct === true && still.slide === cur && !String(s.id).match(/x[1-3]$/)) { stillNote(); if (still.max >= 15000 && Date.now() - still.end < 8000) watchBump(6, 1); }
     mine[s.id] = { answer: String(answer), correct: correct, sent: false, kind: s.k, run: liveRun() };
     saveLocal(); flush(); refreshDots(); clearTimeout(watchT); watchT = setTimeout(watchSend, 15000 + Math.random() * 10000);
     setTimeout(function () { if (slideEl && slideEl.scrollHeight > slideEl.clientHeight + 4) slideEl.scrollTo({ top: slideEl.scrollHeight, behavior: 'smooth' }); }, 120);
@@ -266,7 +277,8 @@
   function watchFor(s) {
     if (MODE !== 'student' || !s || !s.id) return null;
     var run = liveRun(); if ((watch.run || 0) !== run) { watch = { run: run, q: {} }; watchSent = ''; }
-    return watch.q[s.id] || (watch.q[s.id] = [0, 0, 0, 0, 0, 0]);   // [left, seconds away, pastes, characters pasted, copies, screenshot keys]
+    var w = watch.q[s.id] || (watch.q[s.id] = [0, 0, 0, 0, 0, 0, 0]);   // [left, seconds away, pastes, characters pasted, copies, screenshot keys, right after a long still pause]
+    if (w.length < 7) w.push(0); return w;
   }
   function watchEnc() {
     var parts = [];
@@ -711,7 +723,7 @@
 
 
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261023f', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261024', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }
@@ -1024,7 +1036,7 @@
     var out = {}; String(v || '').split(';').slice(1).forEach(function (part) {
       var m = /^([a-z0-9]{1,16}):([0-9,]+)$/.exec(part); if (!m) return;
       var n = m[2].split(',').map(Number);
-      out[m[1]] = { left: n[0] || 0, secs: n[1] || 0, pastes: n[2] || 0, chars: n[3] || 0, copies: n[4] || 0, shots: n[5] || 0 };
+      out[m[1]] = { left: n[0] || 0, secs: n[1] || 0, pastes: n[2] || 0, chars: n[3] || 0, copies: n[4] || 0, shots: n[5] || 0, still: n[6] || 0 };
     });
     return out;
   }
@@ -1036,6 +1048,7 @@
     if (f.copies) t.push('copied the question' + (f.copies > 1 ? ' ' + f.copies + ' times' : ''));
     if (f.shots) t.push('pressed a screenshot key');
     if (f.left) t.push('left the page ' + (f.left > 1 ? f.left + ' times' : 'once') + ' (' + secsTxt(f.secs).trim() + ') before answering');
+    if (f.still) t.push('📱? answered right a few seconds after a long still pause');
     return t.join(', ');
   }
   function flagStrong(f) { return !!(f && (f.pastes || f.copies || f.shots)); }
@@ -1084,10 +1097,12 @@
     var slideNo = {}; LES.slides.forEach(function (s, i) { if (s.id) slideNo[s.id] = i + 1; });
     Object.keys(fl).forEach(function (sid) {
       if (!nameOf[sid]) return;
-      Object.keys(fl[sid]).forEach(function (q) { var f = fl[sid][q]; if (slideNo[q] && flagShown(f)) rows.push({ sid: sid, q: q, f: f, w: (flagStrong(f) ? 1e6 : 0) + f.secs }); });
+      // the phone pattern only counts when it keeps happening: 3 or more in the lesson
+      var stills = Object.keys(fl[sid]).reduce(function (n, q) { return n + (fl[sid][q].still || 0); }, 0);
+      Object.keys(fl[sid]).forEach(function (q) { var f = fl[sid][q]; if (slideNo[q] && (flagShown(f) || (f.still && stills >= 3))) rows.push({ sid: sid, q: q, f: f, w: (flagStrong(f) ? 1e6 : 0) + f.secs }); });
     });
     sec._n = rows.length; sec.appendChild(H('h3', '', 'Check these answers' + (rows.length ? ' (' + rows.length + ')' : '')));
-    if (!rows.length) { sec.appendChild(H('p', 'muted', 'No flags yet. A student is flagged when they paste into an answer, copy a question, press a screenshot key, or leave the lesson for 10 s or more before answering.')); return sec; }
+    if (!rows.length) { sec.appendChild(H('p', 'muted', 'No flags yet. A student is flagged when they paste into an answer, copy a question, press a screenshot key, leave the lesson for 10 s or more before answering, or (3 or more times) answer right a few seconds after a long still pause.')); return sec; }
     rows.sort(function (a, b) { return b.w - a.w; });
     var list = H('div', 'flags');
     var ans = {}; ((console_.data && console_.data.answers) || []).forEach(function (a) { ans[a.sid + '|' + a.q] = a.answer; });
@@ -1099,7 +1114,7 @@
       list.appendChild(d);
     });
     sec.appendChild(list);
-    sec.appendChild(H('p', 'muted', 'Orange: pasted, copied the question or pressed a screenshot key. Grey: left the page before answering, which can be innocent (looking at the Meet). Phone photos and most screenshot tools can\'t be seen.'));
+    sec.appendChild(H('p', 'muted', 'Orange: pasted, copied the question or pressed a screenshot key. Grey: left the page before answering, which can be innocent (looking at the Meet). 📱?: right a few seconds after a long still pause, listed when it happens 3 or more times in the lesson; thinking looks like this too, so ask them to explain one. Phone photos themselves can\'t be seen.'));
     return sec;
   }
 

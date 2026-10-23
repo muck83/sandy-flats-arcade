@@ -23,6 +23,7 @@
     awayAmber: 20,           // seconds away that flag amber
     fastSecs: 10,            // correct this fast on Level 4+ marks "needs check"
     idleSecs: 60,
+    stillSecs: 15,           // the phone pattern: a still stretch this long, then a right answer within 8 s (a hint after 3 of them)
     probeSessions: [1, 8, 15],
     online: true,            // students take it at home: the interactive-item rule below applies
     iaFrom: 4                // from this session on, every Secure streak includes the skill's interactive template
@@ -150,6 +151,24 @@
     if (r) { for (var k = +r[1]; k <= +r[2]; k++) out.push(k); return out; }
     return (f.match(/\d+/g) || []).map(Number);
   };
+  // a skill's hands-on templates (drag, slide, sort, arrows), quickest first: every check-in gets at least one, because
+  // a photo of the screen tells you what to do but you still have to do it
+  function handsOn(skill) {
+    return Object.keys(C.T).filter(function (t) { return C.T[t].skill === skill && C.T[t].ia; }).map(function (t) {
+      var it = null; try { it = C.make(t, 1); } catch (e) { }
+      return { t: t, w: it ? C.itemSecs(it) : 999 };
+    }).sort(function (a, b) { return a.w - b.w; }).map(function (x) { return x.t; });
+  }
+  function withHandsOn(tids, les) {
+    if (tids.some(function (t) { return C.T[t] && C.T[t].ia; })) return;
+    for (var i = tids.length - 1; i >= 0; i--) {
+      // the quickest hands-on question from any of this lesson's skills
+      var alt = [];
+      C.lessonSkills(les[i]).forEach(function (sk) { handsOn(sk).forEach(function (t) { if (tids.indexOf(t) < 0) { var it = null; try { it = C.make(t, 1); } catch (e) { } alt.push({ t: t, w: it ? C.itemSecs(it) : 999 }); } }); });
+      alt.sort(function (a, b) { return a.w - b.w; });
+      if (alt.length) { tids[i] = alt[0].t; return; }
+    }
+  }
   function quick(skill) {
     // a skill's templates, quickest and non-interactive first (the check-in is short)
     return Object.keys(C.T).filter(function (t) { return C.T[t].skill === skill; }).map(function (t) {
@@ -174,6 +193,7 @@
         lists.forEach(function (l) { if (l[k] && tids.length < C.QUIZ.perLesson && tids.indexOf(l[k]) < 0) { tids.push(l[k]); les.push(n); } if (l[k + 1]) more = true; });
         k++;
       }
+      withHandsOn(tids, les);
       return tids.length ? { tids: tids, les: les, name: 'Lesson ' + n + ' check-in' } : null;
     }
     var have = []; for (var L = 1; L <= n; L++) if (C.lessonSkills(L).length) have.push(L);
@@ -182,6 +202,7 @@
       var got = null; C.lessonSkills(L).some(function (sk) { got = quick(sk).filter(function (t) { return tids.indexOf(t) < 0; })[0]; return !!got; });
       if (got) { tids.push(got); les.push(L); }
     });
+    withHandsOn(tids, les);
     return tids.length ? { tids: tids, les: les, name: n === 1 ? 'Lesson 1 check-in' : 'Lessons 1–' + n + ' check-in' } : null;
   };
   // the menu on the dashboard
@@ -192,6 +213,12 @@
     return out;
   };
   C.quizSeed = function (q, i) { return (q.seed + (i + 1) * 7919) % 4294967296; };
+  // each student's own numbers: the same questions (templates) for everyone, so the class results still line up, but a
+  // classmate's answer (or a photo of their screen) is no use to anyone else
+  C.quizSeedFor = function (q, i, sid) {
+    var h = 0, k = String(sid || ''); for (var j = 0; j < k.length; j++) h = (h * 31 + k.charCodeAt(j)) % 1000003;
+    return (C.quizSeed(q, i) + h * 104729) % 4294967296;
+  };
 
   /* ---------- misconception tags ---------- */
   C.TAGS = {

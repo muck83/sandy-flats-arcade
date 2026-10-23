@@ -142,3 +142,13 @@ Press 👁 beside any name on the Climb dashboard. It shows that student's scree
   - Balance was tuned over 70 simulated battles with bot classes of different abilities and strategies: no side advantage, smart lane choices beat random spamming, and about 4 in 10 battles change leader in the final wave.
 - **Playtest the balance:** `climb/dev/clash-playtest.html` runs 70 bot battles with the real rules and reports fairness and intensity.
 - **Try it without the Sheet:** `lesson-practice.html?l=13&teach` (teacher key `test`) and `lesson-practice.html?l=13` (student codes `AAAAAA`, `BBBBBB`, `CCCCCC`) in two tabs.
+
+## Making phone and AI look-ups harder (and visible)
+
+No question that shows its information on screen can be made photo-proof (and the text must stay readable for Listen and screen readers), so the aim is to make looking things up slower, less rewarding and visible to you:
+
+- **Check-in: each student's own numbers.** Everyone gets the same questions, each with different numbers, so one student's answers (or a photo of their screen) are no use to anyone else. The results card groups wrong answers by the *mistake* behind them, and **Project** shows one version of the question.
+- **Every check-in has a hands-on question** (drag a point, slide, sort or draw arrows), apart from Lesson 2's (its skill has none yet). A phone can say what to do, but the student still has to do it.
+- **Machines don't give their rule away.** The five machines whose rule appeared on an earlier slide (Lessons 2, 11, 13, 14 and 15) are now "twins" with their own rule, so students have to probe them.
+- **📱? hint (the phone pattern).** A right answer a few seconds after a long still stretch (15 s with nothing typed, clicked, scrolled or moved; in lessons counted from the student's first touch of the slide, so listening to you doesn't count). Thinking looks like this too, so it only shows when it keeps happening: in **Climb**, a 📱? pill in the Flags column after 3 in a session (check-in cells show a small dot); in the **lesson console**, in "Check these answers" after 3 in a lesson. Ask the student to explain one.
+- **Effort counts more than being right** in the Lane Clash lesson bonus: answering, go-further extras and machines probed (2+ inputs) count in full; right answers count half.

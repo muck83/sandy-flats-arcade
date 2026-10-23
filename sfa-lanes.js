@@ -30,9 +30,12 @@
   L.frenzy = function (t, dur) { dur = dur || L.DUR; return t >= dur - L.FRENZY && t < dur; };   // the final wave: the last minute
   // hero level: every 3 right answers in the battle, plus a head start for a good lesson
   L.lvOf = function (right, boost) { return Math.min(5, 1 + (boost || 0) + Math.floor(right / 3)); };
-  // the lesson bonus: what a student did in today's lesson buys their starting coins and a head-start level
-  L.lessonBonus = function (answered, correct, extras) {
-    return { coins: Math.min(16, 2 + answered + correct + extras), boost: correct >= 8 ? 2 : correct >= 4 ? 1 : 0 };
+  // the lesson bonus: effort in today's lesson buys starting coins and a head-start level. Answering, trying the
+  // go-further extras and probing the machines count in full; being right counts half, so looking answers up pays
+  // less than doing the work
+  L.lessonBonus = function (answered, correct, extras, probed) {
+    var effort = answered + extras + (probed || 0);
+    return { coins: Math.min(16, 2 + effort + Math.floor(correct / 2)), boost: effort >= 12 ? 2 : effort >= 6 ? 1 : 0 };
   };
   // coins for one answer in the battle: 3 (a ★★ question 4), 1 on a second try or in the bonus round, +2 every third
   // in a row, +1 more on each answer while on a streak of 5 or more

@@ -67,6 +67,7 @@
     var t = T() || {}, fl = [];
     if ((t.leaves || 0) >= C.P.leavesNoSecure) fl.push('red'); else if (t.awayLong) fl.push('amber');
     (t.flags || []).forEach(function (f) { if (f.k === 'check') fl.push('check' + f.skill); if (f.k === 'stuck') fl.push('stuck' + f.skill + (f.tag ? '.' + f.tag : '')); });
+    if ((t.still || 0) >= 3) fl.unshift('phone' + t.still);
     return { scr: screenSnap(), ph: paused ? 'paused' : view, sk: it ? it.skill : (st ? E.frontier(st) || '' : ''), n: t.scored || 0, lv: t.leaves || 0, aw: t.away || 0, th: st ? st.theta : 0, fl: fl.slice(-6).join(','), sess: t.id || '', ok: t.right || 0, al: t.almost || 0, to: t.timeouts || 0 };
   }
   // what's on this student's screen, for the teacher's 👁 view: the question (template + seed rebuild it exactly) and what they've entered
@@ -164,7 +165,7 @@
       '<p style="margin:0;font-size:20px" class="sub">Hi, ' + esc(first(S.me.name)) + '. ' + (open ? 'You\'re in.' : '') + '</p>' +
       (counting ? '<h1 class="big1">Starting in <span style="color:var(--blue)" id="cd">0:10</span></h1>' : open ? '<h1 class="big1">Waiting for Mr. Crowell to start</h1>' : '<h1 class="big1">Climb isn\'t open right now</h1>') +
       '<p style="margin:0;font-size:20px;max-width:560px">' + (open ? 'Everyone starts together and stops together. Work on your own, and show what you really know: that\'s how the questions find your level.' : (sess && sess.state === 'ended' ? 'Today\'s session has ended. ' : '') + 'Mr. Crowell opens Climb at the start of class. Keep this page open and it starts by itself.') + '</p>' +
-      '<div class="tiles">' + (sess && sess.quiz ? '<div class="tile warm"><b>' + Math.round(sess.quiz.secs * mult / 60) + '-min check-in first</b><span>The same ' + sess.quiz.tids.length + ' questions for everyone, then your Climb</span></div>' : '') + '<div class="tile"><b>' + Math.round((sess && sess.len ? sess.len - (sess.quiz ? sess.quiz.secs * 1000 : 0) : C.P.session * 1000) * mult / 60000) + ' min</b><span>for ' + (sess && sess.quiz ? 'your Climb' : 'today\'s session') + '</span></div><div class="tile"><b>' + Math.round(60 * mult) + '–' + Math.round(150 * mult) + ' sec</b><span>for each question: longer ones get more time</span></div><div class="tile warm"><b>Stay on this page</b><span>Leaving it changes your question.</span></div></div>' +
+      '<div class="tiles">' + (sess && sess.quiz ? '<div class="tile warm"><b>' + Math.round(sess.quiz.secs * mult / 60) + '-min check-in first</b><span>' + sess.quiz.tids.length + ' questions with your own numbers, then your Climb</span></div>' : '') + '<div class="tile"><b>' + Math.round((sess && sess.len ? sess.len - (sess.quiz ? sess.quiz.secs * 1000 : 0) : C.P.session * 1000) * mult / 60000) + ' min</b><span>for ' + (sess && sess.quiz ? 'your Climb' : 'today\'s session') + '</span></div><div class="tile"><b>' + Math.round(60 * mult) + '–' + Math.round(150 * mult) + ' sec</b><span>for each question: longer ones get more time</span></div><div class="tile warm"><b>Stay on this page</b><span>Leaving it changes your question.</span></div></div>' +
       '</section><aside class="card side"><h2 style="margin:0;font-size:18px" class="sub">You\'re working on</h2>' +
       (fr ? '<div style="display:flex;flex-direction:column;gap:8px"><span class="chip" style="align-self:flex-start">' + 'Step ' + (C.SKILL[fr].i + 1) + ' of ' + C.SKILLS.length + ' · ' + esc(C.label(fr)) + '</span><span style="font:800 28px/1.15 var(--disp)">' + esc(C.SKILL[fr].name) + '</span></div>' : '<span style="font:800 24px var(--disp)">Every open skill is secure. Today is review.</span>') +
       rungs() + '<p style="margin:0" class="sub">' + secure + ' skill' + (secure === 1 ? '' : 's') + ' secure.' + (due ? ' ' + due + ' ' + (due === 1 ? 'is' : 'are') + ' due for a quick review at the start.' : '') + '</p>' +
@@ -199,12 +200,12 @@
     var q = sess.quiz, Z = quizState();
     while (Z.i < q.tids.length && !C.T[q.tids[Z.i]]) Z.i++;
     if (Z.i >= q.tids.length || now() >= qEnd()) return quizDone(Z.i < q.tids.length);
-    show({ tid: q.tids[Z.i], seed: C.quizSeed(q, Z.i), mode: 'quiz' }, {});
+    show({ tid: q.tids[Z.i], seed: C.quizSeedFor(q, Z.i, S.me ? S.me.sid : ''), mode: 'quiz' }, {});
     if (it && meta) { meta.deadline = qEnd(); meta.limit = q.secs * mult; }
   }
   function quizAnswer(r, timeout, skipped) {
     var Z = quizState(), secs = (now() - meta.start) / 1000;
-    logRow({ at: now(), sess: T().id, skill: it.skill, tid: it.tid, seed: it.seed, mode: 'quiz', ans: skipped ? '(skipped)' : r.shown, res: timeout ? 'time' : r.ok ? 'yes' : 'no', tag: r.ok || skipped ? '' : r.tag, secs: Math.round(secs), flags: [meta.afterLeave ? 'afterleave' : '', skipped ? 'skip' : ''].filter(Boolean).join(' ') });
+    logRow({ at: now(), sess: T().id, skill: it.skill, tid: it.tid, seed: it.seed, mode: 'quiz', ans: skipped ? '(skipped)' : r.shown, res: timeout ? 'time' : r.ok ? 'yes' : 'no', tag: r.ok || skipped ? '' : r.tag, secs: Math.round(secs), flags: [meta.afterLeave ? 'afterleave' : '', skipped ? 'skip' : '', (function () { notePause(); return r.ok && (meta.pauseMax || 0) >= C.P.stillSecs * 1000 && Date.now() - (meta.pauseEnd || 0) < 8000 ? 'still' : ''; })()].filter(Boolean).join(' ') });
     Z.i++; if (skipped) Z.skip = (Z.skip || 0) + 1; SFA.store.set('climb.quiz', Z);
     view = 'graded';
     if (timeout) return quizDone(true);
@@ -240,7 +241,7 @@
       if (pp.kind === 'arrows') return [];
       return pp.kind === 'multi' ? [] : pp.kind === 'choice' ? -1 : '';
     });
-    last.skill = it.skill; lastAct = Date.now();
+    last.skill = it.skill; lastAct = Date.now(); meta.shownAt = Date.now(); meta.pauseMax = 0;
     if (hand && hand.hold) { hand.hold = now(); if (!ctx.dev) meta.asked = true; }
     question();
   }
@@ -284,7 +285,7 @@
   }
   function question() {
     view = 'item'; orderParts(it);
-    var t = T(), quiz = meta.mode === 'quiz', qn = quiz ? quizState().i + 1 : (t ? t.items : 0) + 1, chip = quiz ? '<span class="chip warm">' + esc(sess.quiz.name || 'Check-in') + ' · same questions for everyone</span>' : meta.mode === 'review' ? '<span class="chip dark">Review · ' + esc(skName(it.skill)) + '</span>' : '<span class="chip">' + esc(skName(it.skill)) + '</span>';
+    var t = T(), quiz = meta.mode === 'quiz', qn = quiz ? quizState().i + 1 : (t ? t.items : 0) + 1, chip = quiz ? '<span class="chip warm">' + esc(sess.quiz.name || 'Check-in') + ' · your own numbers</span>' : meta.mode === 'review' ? '<span class="chip dark">Review · ' + esc(skName(it.skill)) + '</span>' : '<span class="chip">' + esc(skName(it.skill)) + '</span>';
     var body, wide = '';
     if (it.sentence) { var s = it.sentence; it.parts.forEach(function (p, i) { s = s.replace('{' + i + '}', inlineHtml(p, i)); }); body = '<div class="part sentence">' + s + '</div>'; }
     else {
@@ -457,8 +458,11 @@
     if (!timeout && !r.ok && !r.tag) r.tag = 'G';
     if (meta.mode === 'quiz') return quizAnswer(r, timeout, false);
     var secs = (now() - meta.start) / 1000, fast = r.ok && secs < C.P.fastSecs && it.level >= 4;
+    notePause();
+    var still = !timeout && r.ok && it.level >= 3 && (meta.pauseMax || 0) >= C.P.stillSecs * 1000 && Date.now() - (meta.pauseEnd || 0) < 8000;
+    if (still && T()) T().still = (T().still || 0) + 1;
     var out = E.record(st, it, r, { mode: meta.mode, secs: secs, limit: meta.limit, ext: meta.ext || meta.asked, fast: fast, afterLeave: meta.afterLeave, idle: meta.idle });
-    var fl = [meta.ext ? 'ext' : '', fast ? 'fast' : '', meta.afterLeave ? 'afterleave' : '', meta.idle ? 'idle' : '', T().noSecure ? 'nosecure' : '', meta.asked ? 'asked' : ''].filter(Boolean).join(' ');
+    var fl = [meta.ext ? 'ext' : '', fast ? 'fast' : '', meta.afterLeave ? 'afterleave' : '', meta.idle ? 'idle' : '', T().noSecure ? 'nosecure' : '', meta.asked ? 'asked' : '', still ? 'still' : ''].filter(Boolean).join(' ');
     logRow({ at: now(), sess: T().id, skill: it.skill, tid: it.tid, seed: it.seed, mode: meta.mode, ans: r.shown, res: timeout ? 'time' : r.ok ? 'yes' : 'no', tag: r.ok ? '' : r.tag, secs: Math.round(secs), flags: fl });
     view = 'graded';
     if (r.ok) return right(out);
@@ -595,7 +599,10 @@
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') leave('hidden'); else { back(); ping(); } });
   window.addEventListener('blur', function () { setTimeout(function () { if (!document.hasFocus()) leave('blur'); }, 1000); });
   window.addEventListener('focus', back);
-  ['pointerdown', 'keydown', 'pointermove', 'wheel'].forEach(function (ev) { document.addEventListener(ev, function () { lastAct = Date.now(); }, { passive: true }); });
+  ['pointerdown', 'keydown', 'pointermove', 'wheel', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, function () { notePause(); lastAct = Date.now(); }, { passive: true }); });
+  // the phone pattern: a long still stretch on a question (nothing typed, clicked, scrolled or moved), then a right answer
+  // a few seconds later. Thinking looks like this too, so it's only a hint, and only when it keeps happening.
+  function notePause() { if (view !== 'item' || !meta || paused) return; var gap = Date.now() - Math.max(lastAct, meta.shownAt || 0); if (gap > (meta.pauseMax || 0)) { meta.pauseMax = gap; meta.pauseEnd = Date.now(); } }
   app.addEventListener('paste', function (e) { if (view === 'item' || view === 'guided') { e.preventDefault(); if (T()) T().paste = (T().paste || 0) + 1; SFA.toast('Pasting is turned off in Climb. Type your answer.'); } });
   app.addEventListener('copy', function (e) { if (view === 'item') e.preventDefault(); });
   app.addEventListener('contextmenu', function (e) { if (view === 'item') e.preventDefault(); });

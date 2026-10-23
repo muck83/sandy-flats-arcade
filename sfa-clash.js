@@ -39,10 +39,16 @@
   }
   // what a student did in today's lesson: main questions answered and right, and go-further extras done
   function lessonStatsFrom(ans) {
-    var main = {}, extra = {}, n = 0, ok = 0, x = 0;
-    A.LES().slides.forEach(function (s) { if (s.id && !s.warm && s.k !== 'conf') main[s.id] = 1; (s.more || []).forEach(function (m, i) { extra[A.xid(s, i)] = 1; }); });
-    Object.keys(ans).forEach(function (q) { var a = ans[q]; if (!a) return; if (main[q] && a.answer) { n++; if (a.correct === true || a.correct === 'yes') ok++; } else if (extra[q] && a.answer) x++; });
-    return { answered: n, correct: ok, extras: x };
+    var main = {}, extra = {}, mach = {}, n = 0, ok = 0, x = 0, pr = 0;
+    A.LES().slides.forEach(function (s) { if (s.id && !s.warm && s.k !== 'conf') main[s.id] = 1; if (s.k === 'machine') mach[s.id] = 1; (s.more || []).forEach(function (m, i) { extra[A.xid(s, i)] = 1; }); });
+    Object.keys(ans).forEach(function (q) {
+      var a = ans[q]; if (!a) return;
+      if (main[q] && a.answer) { n++; if (a.correct === true || a.correct === 'yes') ok++; }
+      else if (extra[q] && a.answer) x++;
+      // a machine probed with at least two inputs (the answer saves them: "3x+4 (tried 0, 1, 5)")
+      var m = mach[q] && String(a.answer || '').match(/\(tried ([^)]*)\)/); if (m && m[1].split(',').length >= 2) pr++;
+    });
+    return { answered: n, correct: ok, extras: x, probed: pr };
   }
 
   /* =========================== student page and class screen =========================== */
@@ -118,7 +124,7 @@
   function initMine(c) {
     var key = 'clash.' + A.LID, Ls = SFA.store.get(key, null);
     if (Ls && Ls.id === c.id) { CL = Ls; CL.temps = CL.temps || []; return; }
-    var st = lessonStatsFrom(A.mine()), b = L.lessonBonus(st.answered, st.correct, st.extras);
+    var st = lessonStatsFrom(A.mine()), b = L.lessonBonus(st.answered, st.correct, st.extras, st.probed);
     var pool = pool_(), order = pool.map(function (x, i) { return i; }), r = 0, k = (A.S.me ? A.S.me.sid : 'x') + ':' + Math.round(c.id / 1000);
     for (var h = 0; h < k.length; h++) r = (r * 31 + k.charCodeAt(h)) % 2147483647;
     for (var i = order.length - 1; i > 0; i--) { r = (r * 1103515245 + 12345) % 2147483648; var j = r % (i + 1), tmp = order[i]; order[i] = order[j]; order[j] = tmp; }
@@ -524,7 +530,7 @@
   function intro(c, T) {
     if (CL && CL.intro) return;
     var b = H('div', 'lcintro');
-    var bonus = CL && A.MODE === 'student' ? '<p class="lcbonus">🎁 Lesson bonus: <b>' + CL.bonus + ' coins</b>' + (CL.boost ? ' and you start at <b>hero level ' + (1 + CL.boost) + '</b>' : '') + ', for today\'s lesson (' + CL.stats.answered + ' answered, ' + CL.stats.correct + ' right' + (CL.stats.extras ? ', ' + CL.stats.extras + ' go-further' : '') + ').</p>' : '';
+    var bonus = CL && A.MODE === 'student' ? '<p class="lcbonus">🎁 Lesson bonus: <b>' + CL.bonus + ' coins</b>' + (CL.boost ? ' and you start at <b>hero level ' + (1 + CL.boost) + '</b>' : '') + ', for today\'s lesson (' + CL.stats.answered + ' answered' + (CL.stats.extras ? ', ' + CL.stats.extras + ' go-further' : '') + (CL.stats.probed ? ', ' + CL.stats.probed + ' machine' + (CL.stats.probed === 1 ? '' : 's') + ' probed' : '') + ', ' + CL.stats.correct + ' right). Effort counts most!</p>' : '';
     b.innerHTML = '<div class="lcintro-in"><h1>⚔️ LANE CLASH</h1><div class="lcvs"><span style="color:' + TC[0] + '">' + T[0].e + ' ' + esc(T[0].name) + '</span><b>VS</b><span style="color:' + TC[1] + '">' + T[1].e + ' ' + esc(T[1].name) + '</span></div>' + bonus +
       '<p>Answer questions → earn coins → pick a character card → pick a lane.<br>Get to their vault and grab their gold. Mux guards each lane once.</p><div class="lcintro-cast">' + L.ORDER.map(function (t) { return '<img alt="" src="' + thumb(L.UNITS[t].who) + '">'; }).join('') + '</div></div>';
     root.appendChild(b);
@@ -610,7 +616,7 @@
     Object.keys(last).forEach(function (sid) {
       var s = String(last[sid].answer), get = function (k) { var m = s.match(new RegExp(';' + k + ':(\\d+)')); return m ? +m[1] : 0; };
       var team = K.team && sid in K.team ? K.team[sid] : hashTeam(sid, K.id), r = get('r');
-      var st = statsFor(sid), bonus = L.lessonBonus(st.answered, st.correct, st.extras);
+      var st = statsFor(sid), bonus = L.lessonBonus(st.answered, st.correct, st.extras, st.probed);
       var acc = K.acc[sid] || (K.acc[sid] = { n: K.primed === false ? -1 : 0, spent: 0, cd: {}, lvSeen: 0, ping: K.primed === false ? null : 0 });
       var budget = bonus.coins + 8 * r + 2, lvMax = L.lvOf(r, bonus.boost);
       var H0 = K.hero[sid] || (K.hero[sid] = { name: A.first(ids[sid].name), team: team, gold: 0, right: 0, best: 0, def: 0, lv: 1 }); H0.right = r; H0.best = Math.min(get('sk'), r); H0.lv = lvMax;

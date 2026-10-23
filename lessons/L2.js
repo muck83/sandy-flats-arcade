@@ -81,7 +81,7 @@ SFA_LESSON({
             hint: 'Work backwards: undo the take away 1 first, then undo the times 2.', why: '13 + 1 = 14, and 14 ÷ 2 = 7.',
             steps: ['You know the output, so work backwards.', 'Undo the take away 1: 13 + 1 = 14.', 'Undo the times 2: 14 ÷ 2 = *7*.', 'Check: 7 × 2 − 1 = 13. ✓'] }
         ] },
-    { k: 'machine', min: 2, id: 'fixed', name: 'The Glitch, fixed', rule: 'x+5', q: 'This is the Glitch *after* it got its rule. Feed it numbers. Does the same input always give the same output? Then type its rule.',
+    { k: 'machine', min: 2, id: 'fixed', name: 'The Glitch\'s twin, fixed', rule: 'x+8', q: 'This is the Glitch\'s twin, fixed with a rule of its own (not add 5!). Feed it numbers. Does the same input always give the same output? Then type its rule.',
       help: 'Feed it 0. Then feed it 0 again. Same answer? Now try 1.',
         more: [
           { k: 'number', q: 'Another fixed machine gives *0 → 8*, *1 → 9* and *2 → 10*. What does it give for *20*?', ans: 28,

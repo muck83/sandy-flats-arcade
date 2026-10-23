@@ -77,7 +77,7 @@ SFA_LESSON({
             model: 'No. At every input the vertical line touches it once, at 4. Lots of inputs share the output 4, but that is fine. It is a function.',
             steps: ['Stand Linesy at any input, say 2.', 'It touches the flat line once, at (2, 4).', 'Every input has exactly one output. Sharing an output is fine. *It does not break.*'] }
         ] },
-    { k: 'machine', min: 2, id: 'path', name: 'Gus\'s Path', rule: '2x+1', q: 'This machine makes the tiles on Gus\'s path. Feed it inputs, even 2.5. When you know its rule, type it in.',
+    { k: 'machine', min: 2, id: 'path', name: 'Gus\'s Path Back', rule: '2x+3', q: 'Gus\'s path back home is made by a different machine. Feed it inputs, even 2.5. When you know its rule, type it in.',
       help: 'Feed it 0, then 1. What comes out each time? How much did it climb?',
         more: [
           { k: 'number', q: 'A new path machine gives *0 → 3* and *1 → 7*. What does it give at input *2*?', ans: 11,

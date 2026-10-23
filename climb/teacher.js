@@ -225,6 +225,7 @@
         w.appendChild(el('button', { type: 'button', 'class': 'ck', text: '✗ back', onclick: function () { check(r, k.id, false); } }));
         ft.appendChild(w);
       });
+      fl.forEach(function (f) { var ph = f.match(/^phone(\d+)$/); if (ph) ft.appendChild(el('span', { 'class': 'pill amber', style: 'margin-right:4px', text: '📱? ' + ph[1], title: ph[1] + ' answers right a few seconds after a long still pause (nothing typed, clicked or moved). Thinking looks like this too; so can a phone. Ask them to explain one.' })); });
       fl.forEach(function (f) { var m = f.match(/^stuck([^.]+)\.?(.*)$/); if (m) ft.appendChild(el('span', { 'class': 'pill amber', style: 'margin-right:4px', text: 'Stuck ' + C.label(m[1]) + (m[2] ? ' · ' + m[2] : ''), title: m[2] && C.TAGS[m[2]] ? C.TAGS[m[2]].name : '' })); });
       var gf = growthFlag(row); if (gf) ft.appendChild(el('span', { 'class': 'pill blue', text: gf }));
       if (row && row.ov && row.ov.at && (row.ov.cleared || []).concat(row.ov.back || []).length) ft.appendChild(el('span', { 'class': 'muted small', text: ' (checks recorded)' }));
@@ -290,9 +291,9 @@
     }
     return c;
   }
-  function project(item, wa) {
+  function project(item, wa, ask) {
     var p = el('div', { 'class': 'proj', role: 'dialog', 'aria-label': 'Projected question' });
-    p.innerHTML = '<h1 class="stem">' + item.stem + '</h1>' + (item.fig ? '<div class="figw">' + item.fig + '</div>' : '') + '<p class="ask">A common answer was ' + esc(wa) + '. Is it right?</p><button type="button" class="btn">Close</button>';
+    p.innerHTML = '<h1 class="stem">' + item.stem + '</h1>' + (item.fig ? '<div class="figw">' + item.fig + '</div>' : '') + '<p class="ask">' + esc(ask || 'A common answer was ' + wa + '. Is it right?') + '</p><button type="button" class="btn">Close</button>';
     p.querySelector('button').onclick = function () { p.remove(); };
     document.body.appendChild(p);
   }
@@ -522,20 +523,21 @@
     var lesson = function (tid) { var i = q.tids.indexOf(tid), n = q.les && q.les[i]; return n ? 'Lesson ' + n : ''; };
     var took = Object.keys(got).length;
     c.appendChild(el('h2', { text: '📝 ' + (q.name || 'Check-in') + ': ' + took + ' of ' + roster().length + ' students so far' }));
-    c.appendChild(el('p', { 'class': 'muted small', style: 'margin:0', text: 'The same questions and numbers for everyone. Students don\'t see right or wrong, and these answers don\'t move anyone on the ladder. ✓ right · ✗ wrong · – skipped · ⏱ time ran out on it · blank: not reached.' }));
+    c.appendChild(el('p', { 'class': 'muted small', style: 'margin:0', text: 'The same questions for everyone, each student with their own numbers (so answers can\'t be passed around). Students don\'t see right or wrong, and these answers don\'t move anyone on the ladder. ✓ right · ✗ wrong · – skipped · ⏱ time ran out on it · blank: not reached.' }));
     // per question
     var qt = el('table', { 'class': 'dash' });
-    qt.appendChild(el('tr', {}, ['#', 'Lesson', 'Skill', '% right', 'Most common wrong answer', ''].map(function (h) { return el('th', { text: h }); })));
+    qt.appendChild(el('tr', {}, ['#', 'Lesson', 'Skill', '% right', 'Most common mistake', ''].map(function (h) { return el('th', { text: h }); })));
     q.tids.forEach(function (tid, i) {
       var a = Object.keys(got).map(function (sid) { return got[sid][i]; }).filter(function (r) { return r && r[8] !== 'time' && !/skip/.test(r[11]); });
       var ok = a.filter(function (r) { return r[8] === 'yes'; }).length, wrong = {};
-      a.forEach(function (r) { if (r[8] === 'no') wrong[r[7]] = (wrong[r[7]] || 0) + 1; });
+      // everyone has their own numbers, so group the wrong answers by the mistake behind them (the misconception tag)
+      a.forEach(function (r) { if (r[8] === 'no') { var k = r[9] && C.TAGS[r[9]] && r[9] !== 'G' ? C.TAGS[r[9]].name : 'Other slips'; wrong[k] = (wrong[k] || 0) + 1; } });
       var wa = Object.keys(wrong).sort(function (x, y) { return wrong[y] - wrong[x]; })[0], pct = a.length ? Math.round(100 * ok / a.length) : null;
       var item = null; try { item = C.make(tid, C.quizSeed(q, i)); } catch (e) { }
-      var pb = el('button', { type: 'button', 'class': 'ck', text: 'Project', onclick: function () { if (item) project(item, wa || '…'); } });
+      var pb = el('button', { type: 'button', 'class': 'ck', text: 'Project', title: 'Shows this question with one set of numbers (everyone had their own)', onclick: function () { if (item) project(item, null, wa ? 'A common mistake: ' + wa.toLowerCase() + '. How would you avoid it?' : 'How would you solve it?'); } });
       qt.appendChild(el('tr', {}, [el('td', { text: 'Q' + (i + 1) }), el('td', { text: lesson(tid) }), el('td', { text: C.T[tid] ? C.label(C.T[tid].skill) + ' · ' + C.SKILL[C.T[tid].skill].name : tid, style: 'white-space:normal' }),
         el('td', {}, [el('span', { 'class': 'pill ' + (pct == null ? '' : pct >= 80 ? 'on' : pct >= 50 ? 'amber' : 'red'), text: pct == null ? '·' : pct + '% of ' + a.length })]),
-        el('td', { text: wa ? '"' + wa + '" (' + wrong[wa] + ')' : '', style: 'white-space:normal;max-width:280px' }), el('td', {}, item ? [pb] : [])]));
+        el('td', { text: wa ? wa + ' (' + wrong[wa] + ')' : '', style: 'white-space:normal;max-width:280px' }), el('td', {}, item ? [pb] : [])]));
     });
     var w1 = el('div', { 'class': 'tw' }); w1.appendChild(qt); c.appendChild(w1);
     // per student
@@ -544,7 +546,7 @@
     st.appendChild(el('tr', {}, ['Student'].concat(q.tids.map(function (t, i) { return 'Q' + (i + 1); })).concat(['Score']).map(function (h) { return el('th', { text: h }); })));
     roster().slice().sort(function (a, b) { return a.name < b.name ? -1 : 1; }).forEach(function (r) {
       var g = got[r.sid] || {}, sc = 0;
-      var cells = q.tids.map(function (t, i) { var x = g[i]; if (!x) return el('td', { text: '' }); if (x[8] === 'yes') sc++; var sym = /skip/.test(x[11]) ? '–' : x[8] === 'yes' ? '✓' : x[8] === 'time' ? '⏱' : '✗'; return el('td', { text: sym, title: x[7] + (/afterleave/.test(x[11]) ? ' (after leaving the page)' : ''), style: 'color:' + (x[8] === 'yes' ? 'var(--green)' : 'var(--red)') }); });
+      var cells = q.tids.map(function (t, i) { var x = g[i]; if (!x) return el('td', { text: '' }); if (x[8] === 'yes') sc++; var sym = /skip/.test(x[11]) ? '–' : x[8] === 'yes' ? '✓' : x[8] === 'time' ? '⏱' : '✗'; return el('td', { text: sym + (/still/.test(x[11]) ? '·' : ''), title: x[7] + (/afterleave/.test(x[11]) ? ' (after leaving the page)' : '') + (/still/.test(x[11]) ? ' (right a few seconds after a long still pause)' : ''), style: 'color:' + (x[8] === 'yes' ? 'var(--green)' : 'var(--red)') }); });
       st.appendChild(el('tr', {}, [el('td', { text: nice(r.name), style: 'font-weight:700' })].concat(cells).concat([el('td', { text: got[r.sid] ? sc + ' / ' + q.tids.length : '' })])));
     });
     var w2 = el('div', { 'class': 'tw', style: 'margin-top:10px' }); w2.appendChild(st); d.appendChild(w2); c.appendChild(d);

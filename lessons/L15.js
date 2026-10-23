@@ -77,7 +77,7 @@ SFA_LESSON({
             hint: 'Take 9 away from 3. The answer is below zero. Then divide by 2.', why: '3 − 9 = −6, and −6 ÷ 2 = −3.',
             steps: ['Undo the + 9 first: 3 − 9 = −6.', 'Undo the × 2: −6 ÷ 2 = *−3*.', 'Check: 2 × (−3) + 9 = −6 + 9 = 3. ✓'] }
         ] },
-    { k: 'machine', min: 2, id: 'rusty', name: 'Mr. Dunmore\'s rusty machine', rule: '5x-7', q: 'This is the machine that grabbed the tie. Feed it numbers. Does 5 give 18? Then type its rule.',
+    { k: 'machine', min: 2, id: 'rusty', name: 'Mr. Dunmore\'s other rusty machine', rule: '4x-9', q: 'Mr. Dunmore has a second rusty machine with a different rule. Feed it numbers. Does it act like the first one? Then type its rule.',
       help: 'Feed it 0 first: what comes out? Then feed it 1. How much did it go up?',
         more: [
           { k: 'number', q: 'A machine\'s rule is *4x − 3*. *29* came out. What went *in*?', ans: 8,

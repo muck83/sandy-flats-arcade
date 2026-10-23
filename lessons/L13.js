@@ -87,7 +87,7 @@ SFA_LESSON({
             hint: 'The step is negative here. Start = output − step × input: watch the minus signs.', why: 'Step −3, so 4 − (−3) × 3 = 13.',
             steps: ['Step: y changes by −8 − 4 = −12 while x goes up 7 − 3 = 4. −12 ÷ 4 = −3.', 'Start = 4 − (−3) × 3 = 4 + 9 = *13*.', 'Rule: y = −3x + 13. Check x = 7: −21 + 13 = −8. ✓'] }
         ] },
-    { k: 'machine', min: 2, id: 'meter', name: 'The Parking Meter, fixed', rule: '2x+5', q: 'This is the Parking Meter with its zero row back. Feed it 3, 4, 5 and 6 to check the table. Then feed it 0. Type its rule.',
+    { k: 'machine', min: 2, id: 'meter', name: 'The Night Meter', rule: '3x+4', q: 'The Parking Meter has a night-time twin with a different rule. Feed it some hours (try one that isn\'t 0 first, then walk back). Type its rule.',
       help: 'Feed it 0 first: that is the start. Then feed it 1. How much did it go up?',
         more: [
           { k: 'number', q: 'Another machine gives *3 → 17* and *4 → 20*. What does it give for *0*?', ans: 8,
