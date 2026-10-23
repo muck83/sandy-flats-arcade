@@ -243,3 +243,56 @@ body.lesson .toast{bottom:auto;top:64px}
 .panel details.fold[open]{gap:8px}
 .panel details.fold>*+*{margin-top:8px}
 .alist .a b .flag{display:inline;margin:0 0 0 6px;cursor:help}
+/* differentiation: "Help me start" and the go-further ladder inside a slide */
+.helpb{align-self:flex-start;margin-top:6px}
+.state.help{background:rgba(255,201,74,.12);border-left:4px solid rgba(255,201,74,.8);border-radius:8px;padding:8px 12px;color:inherit}
+.more{margin-top:14px;padding-top:12px;border-top:2px dashed rgba(127,127,127,.35);display:flex;flex-direction:column;gap:8px}
+.more .kick{margin:0}
+.xq{border:2px solid rgba(255,190,60,.7);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:rgba(255,200,80,.08)}
+.xq .xl{margin:0;font-weight:800}
+.xq .xqq{margin:0;font-size:1.05em}
+.xcols{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}.xcols>div:first-child{flex:1 1 260px}.xfig{flex:0 1 300px;max-width:300px}
+.xq textarea{width:100%;min-height:70px}
+.xopts .opt{min-height:0;padding:8px 12px}
+.xdone p{margin:0}.xdone{display:flex;flex-direction:column;gap:6px}
+.worked{border-left:4px solid rgba(255,190,60,.8);padding:4px 0 4px 12px}.worked .kick{margin:0 0 4px}.worked ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
+/* ⚔️ Clash: the team battle over the slides */
+body.clashing{overflow:hidden}
+.clash{position:fixed;inset:0;z-index:90;background:radial-gradient(ellipse at 50% 120%,#3a2a12,#14111c 60%);color:#F3EFE7;display:flex;flex-direction:column;gap:12px;padding:16px;overflow:auto}
+.clash .chead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.clash .cside{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:8px;border-radius:16px}
+.clash .cside.mine{background:rgba(255,201,74,.12);outline:2px solid rgba(255,201,74,.6)}
+.clash .castle{font-size:56px;line-height:1;position:relative}.clash .castle .flag{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:26px}
+.clash .castle.hit{animation:cshake .5s}
+@keyframes cshake{20%{transform:translateX(-8px) rotate(-4deg)}40%{transform:translateX(8px) rotate(4deg)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.clash .hpb{width:100%;max-width:260px;height:14px;border-radius:8px;background:rgba(255,255,255,.12);overflow:hidden}.clash .hpb i{display:block;height:100%;background:linear-gradient(90deg,#E0463C,#FFC94A,#3BFF8A);transition:width .8s}
+.clash .hpv{font:600 14px var(--mono,monospace)}
+.clash .cmid{display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:14px}.clash .cmid b{font:400 44px "Luckiest Guy",system-ui;color:#FFC94A}.clash .cmid span{font-weight:800;letter-spacing:.2em;font-size:13px}
+.clash .arena{flex:1;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:center}
+.clash .cq{flex:1 1 380px;max-width:640px;background:rgba(255,255,255,.06);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.clash .cq .q{margin:0;font-size:1.15em}.clash .cfig{max-width:360px}
+.clash .cshop{flex:0 1 300px;display:flex;flex-direction:column;gap:8px}
+.clash .coins{font-size:22px;text-align:center}
+.clash .wpn{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 12px;border-radius:14px;border:2px solid rgba(255,201,74,.5);background:rgba(255,201,74,.08);color:inherit;font:inherit;cursor:pointer}
+.clash .wpn:disabled{opacity:.35;cursor:default}.clash .wpn:not(:disabled):hover{background:rgba(255,201,74,.2)}
+.clash .wpn .we{font-size:28px}.clash .wpn small{display:block;opacity:.75;font-size:12px}.clash .wpn .wc{margin-left:auto;font-weight:800}
+.clash .cres{text-align:center;max-width:640px;margin:20px auto}.clash .cres h2{font:400 46px "Luckiest Guy",system-ui;color:#FFC94A;margin:0 0 8px}
+.clash .proj{position:fixed;top:90px;font-size:42px;pointer-events:none;z-index:95}
+.clash .proj.ltr{left:12%;animation:flyR 1.2s ease-in forwards}.clash .proj.rtl{right:12%;animation:flyL 1.2s ease-in forwards}
+@keyframes flyR{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(35vw,-60px) rotate(360deg)}100%{transform:translate(70vw,0) rotate(720deg);opacity:.2}}
+@keyframes flyL{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(-35vw,-60px) rotate(-360deg)}100%{transform:translate(-70vw,0) rotate(-720deg);opacity:.2}}
+@media (prefers-reduced-motion:reduce){.clash .proj{display:none}.clash .castle.hit{animation:none}}
+.clash .cboom{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.6);z-index:96;display:flex;align-items:center;gap:18px;max-width:min(92vw,900px);padding:18px 28px;border-radius:24px;background:#FFC94A;color:#231800;box-shadow:0 0 0 6px rgba(255,201,74,.35),0 20px 60px rgba(0,0,0,.6);animation:boomIn .35s cubic-bezier(.2,1.6,.4,1) forwards;pointer-events:none}
+.clash .cboom.theirs{background:#E0463C;color:#fff;box-shadow:0 0 0 6px rgba(224,70,60,.35),0 20px 60px rgba(0,0,0,.6)}
+.clash .cboom .be{font-size:72px;line-height:1;animation:wob .6s infinite alternate}
+.clash .cboom .bt{font:600 clamp(18px,3vw,30px)/1.2 "Bricolage Grotesque",system-ui}.clash .cboom .bt b{font:400 clamp(22px,3.6vw,38px) "Luckiest Guy",system-ui;letter-spacing:.02em}
+.clash .cboom.out{animation:boomOut .4s forwards}
+@keyframes boomIn{to{transform:translate(-50%,-50%) scale(1)}}
+@keyframes boomOut{from{transform:translate(-50%,-50%) scale(1);opacity:1}to{transform:translate(-50%,-50%) scale(.8);opacity:0}}
+@keyframes wob{from{transform:rotate(-12deg) scale(1)}to{transform:rotate(12deg) scale(1.15)}}
+@media (prefers-reduced-motion:reduce){.clash .cboom,.clash .cboom .be,.clash .cboom.out{animation:none;transform:translate(-50%,-50%)}}
+.clash .cfz{margin-top:4px;font:400 18px "Luckiest Guy",system-ui;color:#fff;background:#E0463C;border-radius:999px;padding:2px 12px;animation:wob .5s infinite alternate}
+.clash.frenzy{background:radial-gradient(ellipse at 50% 120%,#5a1a12,#14111c 60%)}
+.clash .streak{font-size:15px;color:#FFC94A;margin-left:6px}
+.clash .mvp{font-size:20px}
+@media (max-width:640px){.clash .cboom{top:18%;padding:10px 14px;gap:10px}.clash .cboom .be{font-size:40px}.clash .castle{font-size:40px}.clash .cmid b{font-size:32px}}

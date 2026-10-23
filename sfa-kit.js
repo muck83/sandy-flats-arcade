@@ -1,7 +1,7 @@
 /* Sandy Flats Arcade: minimal kit for the lesson pages (storage, DOM helper, toast), same storage namespace as the games. */
 (function () {
   'use strict';
-  var SFA = window.SFA = window.SFA || {}, NS = 'sfa.', mem = {};
+  var SFA = window.SFA = window.SFA || {}, NS = window.SFA_NS || 'sfa.', mem = {};
   SFA.store = {
     get: function (k, d) { try { var v = localStorage.getItem(NS + k); if (v != null) return JSON.parse(v); } catch (e) { } return (k in mem) ? mem[k] : d; },
     set: function (k, v) { mem[k] = v; try { localStorage.setItem(NS + k, JSON.stringify(v)); return true; } catch (e) { return false; } },

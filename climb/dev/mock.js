@@ -5,6 +5,7 @@
   'use strict';
   var EP = 'https://mock.invalid/exec', K = 'climbmock', LEN = 12 * 60 * 1000;
   window.SFA_CONFIG = { endpoint: EP, auth: 'code' };
+  window.SFA_NS = 'sfamock.';   // practice sign-ins, answers and keys never mix with the real site's in this browser
   window.CLIMB_ROOT = localStorage.getItem('climbmock.root') || '../../';   // the practice pages live two folders down: links to lessons go back up
   var ROSTER = [{ sid: 's1', name: 'Doe, Jane', cls: 'A', code: 'AAAAAA' }, { sid: 's2', name: 'Khan, Omar', cls: 'A', code: 'BBBBBB' }, { sid: 's3', name: 'Lee, Maya', cls: 'B', code: 'CCCCCC' }];
   function db() { try { return JSON.parse(localStorage.getItem(K)) || {}; } catch (e) { return {}; } }

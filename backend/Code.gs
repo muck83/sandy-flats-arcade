@@ -320,7 +320,7 @@ function answersFor(req) {
 function participation() {
   var by = {};
   latest(responseRows()).forEach(function (r) {
-    if (r.q === 'here' || r.q === 'zflag') return;   // "joined the lesson" marker and focus-watch summary from the slides, not answers
+    if (r.q === 'here' || r.q === 'zflag' || r.q === 'zclash' || /^[a-z0-9]{1,14}x[1-3]$/.test(r.q)) return;   // "joined" marker, focus-watch summary, Clash totals and go-further extras: not the slides' own answers
     var k = r.sid + '|' + r.lesson, o = by[k] || (by[k] = { sid: r.sid, lesson: r.lesson, answered: 0, correct: 0, checked: 0, last: '' });
     o.answered++;
     if (r.correct) { o.checked++; if (r.correct === 'yes') o.correct++; }
@@ -591,7 +591,7 @@ function studentDay(req) {
   });
   // lesson answers (and the "joined" and focus-watch markers)
   var lessons = [];
-  responseRows().forEach(function (r) { if (r.sid !== sid) return; if (r.q !== 'here' && r.q !== 'zflag') count(r.time, 'lesson'); if (dkey(r.time) === day) lessons.push(r); });
+  responseRows().forEach(function (r) { if (r.sid !== sid || r.q === 'zclash') return; if (r.q !== 'here' && r.q !== 'zflag') count(r.time, 'lesson'); if (dkey(r.time) === day) lessons.push(r); });
   // arcade: levels and certificates
   var events = [], es = SpreadsheetApp.getActive().getSheetByName('Events'), m = es.getLastRow();
   if (m > 1) es.getRange(2, 1, m - 1, 5).getValues().forEach(function (r) {

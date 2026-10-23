@@ -44,6 +44,35 @@ Write for a Grade 8 student who doesn't want to do the math: short sentences, on
 
 `id`s are lower-case letters and digits, unique in the lesson, at most 16 characters.
 
+## Differentiation inside a slide: `help` and `more`
+
+Any `poll`, `number`, `open` or `machine` slide (not `warm`, `conf` or `exit`) can carry:
+
+- `help`: one first step for a student who is stuck, shown when they press **🪜 Help me start** before answering.
+  `number` and `open` slides use their `hint` for this when there's no `help`.
+- `more`: up to 3 extra questions, worked down one at a time by students who have already answered the slide's
+  question, while the teacher keeps the class on the slide. `more[0]` is **★ Another one** (the same idea, new
+  numbers or a new context), `more[1]` is **★★ Stretch** (one step deeper: backwards, a twist, explain or generalise).
+
+```js
+more: [
+  { k: 'number', q: '...', ans: 7, hint: 'shown after a wrong try', why: 'one line when right',
+    steps: ['Worked solution, step 1', 'step 2', '...'] , fig: {...} },
+  { k: 'poll', q: '...', opts: ['...', '...', '...'], ans: 1, why: '...', steps: [...] },
+  { k: 'open', q: '...', ph: 'placeholder', model: 'one good answer', steps: [...] }
+]
+```
+
+Every extra needs `steps`: a complete worked solution in 2-5 short lines, shown to the student as soon as they answer
+(right or wrong), because the teacher won't have time to go over the extras with everyone. A `number` extra gives two
+tries, then shows the answer. Extras save as the slide id + `x1`, `x2` and the console counts them on that slide.
+
+## The Clash
+
+At the end of a lesson the console can start a 5-minute team battle. Its questions come from the lesson itself: every
+`number` slide, every `poll` slide with an `ans` (not warm-ups), and every `number`/`poll` extra in `more`. So a lesson
+with good extras has a good Clash.
+
 ## Figures (`fig`)
 
 ```js
