@@ -111,12 +111,14 @@ All of this needs the current `backend/Code.gs` deployed as a new version.
 - **You:** questions appear at the top of the Climb dashboard, oldest first, numbered in the order they were sent (#1, #2, …), with a chime and the count in the tab title. Each shows the question rebuilt exactly as the student sees it, with what they'd entered or dragged so far, plus the answer and working. Send a quick reply (*I'm coming over*, …) or type one; **✓ Done** takes it off the queue and lowers their hand. **All questions today, in order** lists every question with who sent it, when, their note, the status (Waiting, Done, Hand lowered), your reply and how long it took; **Screen** reopens any of them.
 - Every question is also saved in the **ClimbAsk** tab of the Sheet (created by itself). Needs the current `backend/Code.gs` deployed as a new version.
 
-## 📝 The check-in before Climb (Lessons 1–8)
+## 📝 The check-in before Climb, and the Climb's length
 
-- **Turn it on:** on the Climb dashboard, tick **Start with the 5-min check-in (Lessons 1–8)** before **Open the waiting room**, then press **Start: check-in, then Climb**.
-- **Students:** everyone gets the same 8 questions with the same numbers, one per lesson (Lessons 1–8 = Films 1–8): evaluate a rule, how two quantities change, function or not, reading a graph, f(x), qualitative graphs, rate of change, equation from a table. There's a 5-minute clock (1.5×/2× time applies), **Save and go on** and **Skip this one**, and no right or wrong shown. The answer choices are in a different order for each student. Leaving the page doesn't swap the question here; it's noted. The Ask button is off during the check-in. When they finish (or the 5 minutes run out) they go straight into their Climb; finishing early means more Climb time. The session is 5 + 12 minutes.
-- **You:** the **check-in** card at the top of the dashboard shows each question's lesson, skill, % right, the most common wrong answer and **Project** (shows it to the class with no names), and **By student** shows ✓ ✗ – ⏱ per question with a score. Check-in answers don't move anyone on the ladder, are logged in ClimbLog with mode *quiz*, and show on Student day.
-- **Changing the questions:** they're listed in `C.QUIZ` in `climb/core.js` (template IDs from `climb/test.html`).
+- **Pick a check-in** from the menu on the Climb dashboard before **Open the waiting room**:
+  - **Check-in: Lesson N only:** 4-5 questions on that lesson's skills (Lessons 1-14 and 16; Lessons 15 and 17 have no Climb questions of their own).
+  - **Check-in: Lessons 1-N mixed:** one question from each lesson up to N. Past 8 lessons it takes 8 lessons spread across them (always including the latest), so it still fits 5 minutes.
+- **Climb length:** the **Climb: N min** menu (5-30 minutes, 12 by default) sets how long the Climb runs. The check-in's 5 minutes come on top. Both menus remember your last choice.
+- **Students:** everyone gets the same questions with the same numbers (answer choices shuffled per student), a 5-minute clock (1.5×/2× time applies), **Save and go on** and **Skip this one**, and no right or wrong shown. Leaving the page doesn't swap the question here; it's noted. The Ask button is off during the check-in. When they finish, or time runs out, they go straight into their Climb.
+- **You:** the check-in card at the top of the dashboard shows each question's lesson, skill, % right, the most common wrong answer and **Project**; **By student** shows ✓ ✗ – ⏱ per question with a score. Check-in answers don't move anyone on the ladder, are logged in ClimbLog with mode *quiz*, and show on Student day.
 - Needs the current `backend/Code.gs` deployed as a new version.
 
 ## 👁 See a student's screen during Climb

@@ -355,7 +355,7 @@ function climbAccom() { try { return JSON.parse(prop('CLIMB_ACCOM') || '{}'); } 
 function climbFor(s) {
   var cs = climbSession();
   if (!cs || (cs.cls && cs.cls !== s.cls)) return null;
-  return { id: cs.id, state: cs.state, start: cs.start || 0, pausedAt: cs.pausedAt || 0, pausedMs: cs.pausedMs || 0, len: CLIMB_LEN + (cs.quiz ? cs.quiz.secs * 1000 : 0), focus: cs.focus || '', focusAll: !!cs.focusAll, endedAt: cs.endedAt || 0, next: cs.next || 0, quiz: cs.quiz || null };
+  return { id: cs.id, state: cs.state, start: cs.start || 0, pausedAt: cs.pausedAt || 0, pausedMs: cs.pausedMs || 0, len: (cs.mins ? cs.mins * 60000 : CLIMB_LEN) + (cs.quiz ? cs.quiz.secs * 1000 : 0), focus: cs.focus || '', focusAll: !!cs.focusAll, endedAt: cs.endedAt || 0, next: cs.next || 0, quiz: cs.quiz || null };
 }
 // the lesson the teacher is running live (Climb hands students over to it), or null
 function liveLesson() {
@@ -479,8 +479,11 @@ function climbQuiz(q) {
   var tids = q.tids.slice(0, 12).map(String).filter(function (t) { return CLIMB_TPL.test(t); });
   if (!tids.length) return null;
   var secs = Math.round(Number(q.secs) || 300); secs = Math.max(60, Math.min(900, secs));
-  return { tids: tids, seed: Math.floor(Math.abs(Number(q.seed) || 1)) % 4294967296, secs: secs, name: safe(q.name, 60) };
+  var les = (Array.isArray(q.les) ? q.les : []).slice(0, tids.length).map(function (n) { n = Math.round(Number(n) || 0); return n >= 1 && n <= 30 ? n : 0; });
+  return { tids: tids, les: les, seed: Math.floor(Math.abs(Number(q.seed) || 1)) % 4294967296, secs: secs, name: safe(q.name, 60) };
 }
+// the climb's length in minutes (the teacher's timer setting), 3-40, 12 by default
+function climbMins(m) { m = Math.round(Number(m) || 12); return Math.max(3, Math.min(40, m)); }
 // teacher: open (waiting room), start (10 s countdown), pause, resume, end, focus, accommodations
 function climbControl(req) {
   var a = String(req.action || ''), now = Date.now();
@@ -496,7 +499,7 @@ function climbControl(req) {
       return { ok: true, session: cs, accom: acc };
     }
     var nx = Math.round(Number(req.next) || 0); nx = nx >= 1 && nx <= 30 ? nx : 0;   // the lesson (file number) students go on to afterwards
-    if (a === 'open') cs = { id: 'S' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyMMdd-HHmm'), cls: safe(req.cls, 20), state: 'open', openAt: now, start: 0, pausedAt: 0, pausedMs: 0, focus: CLIMB_SKILL.test(String(req.focus || '')) ? String(req.focus) : '', focusAll: !!req.focusAll, next: nx, quiz: climbQuiz(req.quiz) };
+    if (a === 'open') cs = { id: 'S' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyMMdd-HHmm'), cls: safe(req.cls, 20), state: 'open', openAt: now, start: 0, pausedAt: 0, pausedMs: 0, focus: CLIMB_SKILL.test(String(req.focus || '')) ? String(req.focus) : '', focusAll: !!req.focusAll, next: nx, quiz: climbQuiz(req.quiz), mins: climbMins(req.mins) };
     else if (a === 'next' && cs) cs.next = nx;
     else if (!cs) throw new Error('no session');
     else if (a === 'start') { if (cs.state !== 'open') throw new Error('already started'); cs.state = 'running'; cs.start = now + 10000; }

@@ -26,11 +26,11 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
    (If it says "questions today: undefined", the old code is still in Code.gs.)
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
-   Description "Climb check-in and screen view" > Deploy. Do NOT use "New deployment" (that changes the URL).
+   Description "Climb check-in menu and timer" > Deploy. Do NOT use "New deployment" (that changes the URL).
 
 5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
 
-Latest change: the teacher can see a student's current Climb screen (climbPing stores it; climbClass accepts watch). Also: Climb can start with a 5-minute check-in (the same questions for everyone); climbControl open accepts a quiz, and ClimbLog accepts mode "quiz".
+Latest change: the teacher picks a check-in (one lesson, or mixed) and the Climb length in minutes (climbControl open accepts quiz.les and mins). Also: the teacher can see a student's current Climb screen (climbPing stores it; climbClass accepts watch). Also: Climb can start with a 5-minute check-in (the same questions for everyone); climbControl open accepts a quiz, and ClimbLog accepts mode "quiz".
 Before that: the lesson console reads only the current lesson's rows of the Responses tab, and saving an answer no longer waits for the script lock (appendRow is atomic). Nothing to set up.
 Before that: students can press "Ask Mr. Crowell" in Climb; new operations climbAsk and climbReply, and a "ClimbAsk" tab that creates itself.
 Before that: Climb skills 22-25 (function notation, domain and range, graphing from an equation, systems). Earlier operations in this version: climbHello, climbPing, climbSave, climbControl, climbClass, climbCheck, climbStudent,

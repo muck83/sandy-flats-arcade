@@ -133,14 +133,27 @@
     nxt.onchange = function () { SFA.store.set('teacher.climb.next', +nxt.value); if (running) control('next', { next: +nxt.value }); else draw(); };
     row.appendChild(nxt);
     var B = function (t, cl, f) { var b = el('button', { type: 'button', 'class': 'btn ' + (cl || ''), text: t }); b.onclick = function () { b.disabled = true; f(); }; row.appendChild(b); };
-    // the check-in: the same questions for everyone before Climb (C.QUIZ), one seed per session
-    var qz = el('input', { type: 'checkbox', id: 'qz' }); qz.checked = s && s.state !== 'ended' ? !!s.quiz : !!SFA.store.get('teacher.climb.quiz', false);
-    qz.onchange = function () { SFA.store.set('teacher.climb.quiz', qz.checked); };
-    if (running) qz.disabled = true;
-    row.appendChild(el('label', { 'for': 'qz', style: 'display:flex;gap:6px;align-items:center;font-size:15px', title: C.QUIZ.items.length + ' questions, one per lesson, the same numbers for everyone. Then each student goes straight into their Climb.' }, [qz, 'Start with the ' + Math.round(C.QUIZ.secs / 60) + '-min check-in (' + C.QUIZ.name.replace(/ check-in$/, '') + ')']));
-    function quizSpec() { return qz.checked ? { tids: C.QUIZ.items.map(function (x) { return x.tid; }), seed: Math.floor(Math.random() * 4294967296), secs: C.QUIZ.secs, name: C.QUIZ.name } : null; }
-    if (!s || s.state === 'ended') B('Open the waiting room', 'primary', function () { control('open', { cls: cls, focus: foc.value, focusAll: all.checked, next: +nxt.value, quiz: quizSpec() }); });
-    if (s && s.state === 'open') B(s.quiz ? 'Start: check-in, then Climb' : 'Start: 12 minutes for everyone', 'primary', function () { control('start'); });
+    // the check-in: a 5-minute quiz before Climb, the same questions for everyone, on one lesson or mixed up to a lesson
+    var qz = el('select', { 'aria-label': 'Check-in before Climb', title: 'A ' + Math.round(C.QUIZ.secs / 60) + '-minute quiz before Climb: the same questions and numbers for everyone. Then each student goes straight into their Climb.' });
+    qz.appendChild(el('option', { value: '', text: 'No check-in' }));
+    var qv = s && s.state !== 'ended' ? '' : SFA.store.get('teacher.climb.quizv', '');
+    C.quizChoices().forEach(function (o) { var op = el('option', { value: o.v, text: o.t }); if (o.v === qv) op.selected = true; qz.appendChild(op); });
+    if (running) { qz.innerHTML = ''; qz.appendChild(el('option', { text: s.quiz ? 'Check-in: ' + (s.quiz.name || '').replace(/ check-in$/, '') : 'No check-in' })); qz.disabled = true; }
+    qz.onchange = function () { SFA.store.set('teacher.climb.quizv', qz.value); };
+    row.appendChild(qz);
+    // the climb's own length (the check-in comes on top)
+    var mins = el('select', { 'aria-label': 'Climb length', title: 'How long the Climb runs (after the check-in, if there is one)' }), mv = running ? (s.mins || 12) : SFA.store.get('teacher.climb.mins', 12);
+    [5, 8, 10, 12, 15, 20, 25, 30].forEach(function (m) { var op = el('option', { value: String(m), text: 'Climb: ' + m + ' min' }); if (m === mv) op.selected = true; mins.appendChild(op); });
+    mins.onchange = function () { SFA.store.set('teacher.climb.mins', +mins.value); };
+    if (running) mins.disabled = true;
+    row.appendChild(mins);
+    function quizSpec() {
+      var m = String(qz.value || '').match(/^(one|upto):(\d+)$/); if (!m) return null;
+      var q = C.quizBuild(m[1], +m[2]); if (!q) return null;
+      return { tids: q.tids, les: q.les, seed: Math.floor(Math.random() * 4294967296), secs: C.QUIZ.secs, name: q.name };
+    }
+    if (!s || s.state === 'ended') B('Open the waiting room', 'primary', function () { control('open', { cls: cls, focus: foc.value, focusAll: all.checked, next: +nxt.value, quiz: quizSpec(), mins: +mins.value }); });
+    if (s && s.state === 'open') B('Start: ' + (s.quiz ? 'check-in, then ' : '') + (s.mins || 12) + '-min Climb', 'primary', function () { control('start'); });
     if (s && s.state === 'running') B('Pause all', 'warm', function () { control('pause'); });
     if (s && s.state === 'paused') B('Resume', 'primary', function () { control('resume'); });
     if (running) B('End now', '', function () { if (window.confirm('End the session for everyone now?')) control('end'); else draw(); });
@@ -160,8 +173,8 @@
   function tick() {
     var s = data && data.session, ck = document.getElementById('clock'); if (!ck || !s) { if (ck) ck.textContent = ''; return; }
     if (s.state === 'running' && now() < s.start) ck.textContent = 'Starts in ' + mmss(s.start - now());
-    else if (s.state === 'running') ck.textContent = (s.quiz && now() < s.start + (s.pausedMs || 0) + s.quiz.secs * 1000 ? 'Check-in ' + mmss(s.start + (s.pausedMs || 0) + s.quiz.secs * 1000 - now()) + ' · ' : '') + mmss(s.start + (s.pausedMs || 0) + 720000 + qms(s) - now()) + ' left';
-    else if (s.state === 'paused') ck.textContent = mmss(s.start + (s.pausedMs || 0) + 720000 + qms(s) - s.pausedAt) + ' left (paused)';
+    else if (s.state === 'running') ck.textContent = (s.quiz && now() < s.start + (s.pausedMs || 0) + s.quiz.secs * 1000 ? 'Check-in ' + mmss(s.start + (s.pausedMs || 0) + s.quiz.secs * 1000 - now()) + ' · ' : '') + mmss(s.start + (s.pausedMs || 0) + (s.mins || 12) * 60000 + qms(s) - now()) + ' left';
+    else if (s.state === 'paused') ck.textContent = mmss(s.start + (s.pausedMs || 0) + (s.mins || 12) * 60000 + qms(s) - s.pausedAt) + ' left (paused)';
     else ck.textContent = '';
   }
   setInterval(tick, 500);
@@ -506,7 +519,7 @@
     roster().forEach(function (r) { ids[r.sid] = r; });
     var rows = data.log.filter(function (r) { return r[2] === s.id && r[6] === 'quiz' && ids[r[1]]; });
     var got = {}; rows.forEach(function (r) { var i = q.tids.indexOf(r[4]); if (i >= 0) (got[r[1]] = got[r[1]] || {})[i] = r; });
-    var lesson = function (tid) { var x = C.QUIZ.items.filter(function (y) { return y.tid === tid; })[0]; return x ? 'Lesson ' + x.lesson : C.label(C.T[tid] ? C.T[tid].skill : ''); };
+    var lesson = function (tid) { var i = q.tids.indexOf(tid), n = q.les && q.les[i]; return n ? 'Lesson ' + n : ''; };
     var took = Object.keys(got).length;
     c.appendChild(el('h2', { text: '📝 ' + (q.name || 'Check-in') + ': ' + took + ' of ' + roster().length + ' students so far' }));
     c.appendChild(el('p', { 'class': 'muted small', style: 'margin:0', text: 'The same questions and numbers for everyone. Students don\'t see right or wrong, and these answers don\'t move anyone on the ladder. ✓ right · ✗ wrong · – skipped · ⏱ time ran out on it · blank: not reached.' }));

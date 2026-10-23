@@ -143,18 +143,53 @@
   /* ---------- the check-in: a short formative quiz before Climb, the same questions (and numbers) for everyone ---------- */
   // One quick question per lesson, Lessons 1-8 (the films). The teacher's dashboard picks one seed per session, so every
   // student gets the same numbers; answer options are still shuffled per student. Answers don't change anyone's ladder.
-  C.QUIZ = {
-    name: 'Lessons 1–8 check-in', secs: 300,
-    items: [
-      { tid: 'FN-1a', lesson: 1 },   // evaluate a rule
-      { tid: 'CV-2b', lesson: 2 },   // how two quantities change together
-      { tid: 'FN-2a', lesson: 3 },   // function or not: pairs
-      { tid: 'QG-1a', lesson: 4 },   // read values from a graph
-      { tid: 'FX-1a', lesson: 5 },   // function notation
-      { tid: 'QG-2a', lesson: 6 },   // qualitative graphs
-      { tid: 'RC-1a', lesson: 7 },   // rate of change
-      { tid: 'EQ-4b', lesson: 8 }    // equation from a table
-    ]
+  C.QUIZ = { secs: 300, perLesson: 5, mixedMax: 8 };
+  // the lessons (= films) a skill is taught in, read from C.FILM ("Film 7", "Films 1-2", "Films 7 and 10")
+  C.filmsOf = function (id) {
+    var f = C.FILM[id] || '', r = f.match(/Films? (\d+)-(\d+)/), out = [];
+    if (r) { for (var k = +r[1]; k <= +r[2]; k++) out.push(k); return out; }
+    return (f.match(/\d+/g) || []).map(Number);
+  };
+  function quick(skill) {
+    // a skill's templates, quickest and non-interactive first (the check-in is short)
+    return Object.keys(C.T).filter(function (t) { return C.T[t].skill === skill; }).map(function (t) {
+      var it = null; try { it = C.make(t, 1); } catch (e) { }
+      return { t: t, w: (C.T[t].ia ? 1000 : 0) + (it ? C.itemSecs(it) : 999) };
+    }).sort(function (a, b) { return a.w - b.w; }).map(function (x) { return x.t; });
+  }
+  C.lessonSkills = function (n) {
+    // skills first taught in this lesson come first
+    return C.SKILLS.filter(function (s) { return C.filmsOf(s.id).indexOf(n) >= 0; })
+      .sort(function (a, b) { return key(a.id) - key(b.id); }).map(function (s) { return s.id; });
+    // taught first here beats taught later here; taught only here beats shared with another lesson
+    function key(id) { var f = C.filmsOf(id); return (f[0] === n ? 0 : 2) + (f.length > 1 ? 1 : 0); }
+  };
+  // kind 'one': 5 questions on lesson n. kind 'upto': one question from each lesson 1..n (at most 8, spread out, always the latest)
+  C.quizBuild = function (kind, n) {
+    var tids = [], les = [];
+    if (kind === 'one') {
+      var lists = C.lessonSkills(n).map(quick), k = 0, more = true;
+      while (tids.length < C.QUIZ.perLesson && more) {
+        more = false;
+        lists.forEach(function (l) { if (l[k] && tids.length < C.QUIZ.perLesson && tids.indexOf(l[k]) < 0) { tids.push(l[k]); les.push(n); } if (l[k + 1]) more = true; });
+        k++;
+      }
+      return tids.length ? { tids: tids, les: les, name: 'Lesson ' + n + ' check-in' } : null;
+    }
+    var have = []; for (var L = 1; L <= n; L++) if (C.lessonSkills(L).length) have.push(L);
+    if (have.length > C.QUIZ.mixedMax) { var pick = []; for (var j = 0; j < C.QUIZ.mixedMax; j++) pick.push(have[Math.round(j * (have.length - 1) / (C.QUIZ.mixedMax - 1))]); have = pick; }
+    have.forEach(function (L) {
+      var got = null; C.lessonSkills(L).some(function (sk) { got = quick(sk).filter(function (t) { return tids.indexOf(t) < 0; })[0]; return !!got; });
+      if (got) { tids.push(got); les.push(L); }
+    });
+    return tids.length ? { tids: tids, les: les, name: n === 1 ? 'Lesson 1 check-in' : 'Lessons 1–' + n + ' check-in' } : null;
+  };
+  // the menu on the dashboard
+  C.quizChoices = function () {
+    var out = [];
+    for (var n = 1; n <= 17; n++) if (C.lessonSkills(n).length) out.push({ v: 'one:' + n, t: 'Check-in: Lesson ' + n + ' only' });
+    for (var m = 2; m <= 17; m++) { var nl = 0; for (var k = 1; k <= m; k++) if (C.lessonSkills(k).length) nl++; out.push({ v: 'upto:' + m, t: 'Check-in: Lessons 1–' + m + ' mixed' + (nl > C.QUIZ.mixedMax ? ' (' + C.QUIZ.mixedMax + ' lessons spread across them)' : ' (one per lesson)') }); }
+    return out;
   };
   C.quizSeed = function (q, i) { return (q.seed + (i + 1) * 7919) % 4294967296; };
 
