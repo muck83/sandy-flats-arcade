@@ -12,17 +12,17 @@
 (function () {
   'use strict';
   var L = window.SFA_LANES = {};
-  L.LEN = 1000; L.LANES = 3; L.DUR = 3000; L.DEPLOY = 80; L.FRENZY = 600; L.RANGE = 45; L.MOW = 40; L.MOWBACK = 900;   // Mux parks again 90 s after charging
+  L.LEN = 1000; L.LANES = 3; L.DUR = 3000; L.DEPLOY = 60; L.FRENZY = 600; L.RANGE = 45; L.MOW = 40; L.MOWBACK = 900;   // Mux parks again 90 s after charging
   L.TILES = [380, 200];   // your planted defenders' two spots per lane, front and back (team 1 mirrors them)
   // kind: a = attacker (marches), d = defender (planted), s = special (instant). cost in coins; hp; damage per second;
   // speed in lane units per second; gold grabbed at the vault; reach for shooters; hero level needed; cooldown in ticks
   L.UNITS = [
-    { id: 'gus', kind: 'a', who: 'gus', name: 'Gus', role: 'Sneaky runner', cost: 2, hp: 45, dps: 9, spd: 95, gold: 6, lv: 1, cd: 40, say: 'Fast and cheap. Slips through empty lanes.' },
-    { id: 'sam', kind: 'd', who: 'sam', name: 'Squaring Sam', role: 'Wall', cost: 5, hp: 190, dps: 7, lv: 1, cd: 100, say: 'Plants himself in your half and blocks the lane.' },
-    { id: 'one', kind: 'a', who: 'one', name: 'One', role: 'Superhero', cost: 6, hp: 150, dps: 24, spd: 60, gold: 10, lv: 2, cd: 80, breaker: 2, say: 'Smashes walls and pigeons: double damage to defenders.' },
+    { id: 'gus', kind: 'a', who: 'gus', name: 'Gus', role: 'Sneaky runner', cost: 2, hp: 45, dps: 11, spd: 135, gold: 6, lv: 1, cd: 40, say: 'Fast and cheap. Slips through empty lanes.' },
+    { id: 'sam', kind: 'd', who: 'sam', name: 'Squaring Sam', role: 'Wall', cost: 5, hp: 190, dps: 9, lv: 1, cd: 100, say: 'Plants himself in your half and blocks the lane.' },
+    { id: 'one', kind: 'a', who: 'one', name: 'One', role: 'Superhero', cost: 6, hp: 150, dps: 30, spd: 85, gold: 10, lv: 2, cd: 80, breaker: 2, say: 'Smashes walls and pigeons: double damage to defenders.' },
     { id: 'zero', kind: 's', who: 'zero', name: 'Zero', role: 'Eraser', cost: 5, pie: 70, lv: 3, cd: 200, say: 'Rolls down a lane and erases every enemy in it.' },
-    { id: 'max', kind: 'a', who: 'max', name: 'Maximus Million', role: 'Giant', cost: 10, hp: 420, dps: 30, spd: 38, gold: 24, lv: 4, cd: 250, say: 'Huge and slow. Grabs loads of gold.' },
-    { id: 'pigeon', kind: 'd', who: 'pigeon', name: 'Pea Pigeon', role: 'Shooter', cost: 4, hp: 45, dps: 6, reach: 300, lv: 1, cd: 60, say: 'Perches in your half and pelts attackers from afar.' }
+    { id: 'max', kind: 'a', who: 'max', name: 'Maximus Million', role: 'Giant', cost: 10, hp: 420, dps: 38, spd: 55, gold: 24, lv: 4, cd: 250, say: 'Huge and slow. Grabs loads of gold.' },
+    { id: 'pigeon', kind: 'd', who: 'pigeon', name: 'Pea Pigeon', role: 'Shooter', cost: 4, hp: 45, dps: 8, reach: 300, lv: 1, cd: 60, say: 'Perches in your half and pelts attackers from afar.' }
   ];
   L.ORDER = [0, 5, 1, 2, 3, 4];   // seed-packet order on screen
   L.unit = function (t) { return L.UNITS[t]; };

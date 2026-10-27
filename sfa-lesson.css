@@ -401,3 +401,8 @@ body.clashing{overflow:hidden}
 .lcend{max-height:92vh;overflow:auto}
 @media (max-height:700px){.lcboard{height:clamp(180px,36vh,320px)}.lcteam{padding:4px 10px}.lcflag{font-size:28px}.lcgold{font-size:30px}.lcclock{font-size:26px}}
 @media (prefers-reduced-motion:reduce){.lcaward{animation:none}}
+/* Lane Clash, round 3: a bigger board, the teacher's way back */
+.lcboard{height:clamp(220px,48vh,480px)}
+.lc.screen .lcboard,.lc.watch .lcboard{height:clamp(300px,66vh,680px)}
+.lcback{align-self:center;white-space:nowrap}
+.lcback{position:fixed;top:8px;right:8px;z-index:98;min-height:36px;padding:6px 12px;font-size:14px}

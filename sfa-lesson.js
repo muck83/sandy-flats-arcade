@@ -34,6 +34,17 @@
   /* ---------------- helpers ---------------- */
   function fmt(s) { return esc(s).replace(/\*([^*]+)\*/g, '<b>$1</b>').replace(/_([^_]+)_/g, '<i>$1</i>'); }
   function H(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  // Browsers slow down timers in hidden tabs, to once a minute after five minutes, and the console is usually hidden
+  // behind the class screen while you teach. A tiny background worker isn't slowed down, so the console's checks and the
+  // Clash referee run on its beat instead. every(fn, ms): call fn about every ms milliseconds, hidden or not.
+  var every = (function () {
+    var subs = [];
+    try {
+      var w = new Worker(URL.createObjectURL(new Blob(['setInterval(function () { postMessage(0); }, 250);'], { type: 'text/javascript' })));
+      w.onmessage = function () { var n = Date.now(); subs.forEach(function (s) { if (n - s.last >= s.ms) { s.last = n; try { s.fn(); } catch (e) { console.warn(e); } } }); };
+      return function (fn, ms) { subs.push({ fn: fn, ms: ms, last: Date.now() }); };
+    } catch (e) { return function (fn, ms) { setInterval(fn, ms); }; }
+  })();
   function plain(s) { return String(s || '').replace(/[*_]/g, ''); }
   function interactive(s) { return !!s.id; }
   function questions() { return LES.slides.filter(interactive); }
@@ -723,7 +734,7 @@
 
 
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261024', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261027', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }
@@ -737,13 +748,19 @@
     })();
   }
   function hasClash(L) { return !!(L && L.lesson === LID && L.counts && Array.isArray(L.counts.zcs)); }
+  // a battle over 3 minutes past its end is stale (a console that never cleared it): pages ignore it
+  function freshClash(L) {
+    if (!hasClash(L)) return false;
+    var st = MODE === 'screen' ? decRun(L.counts.zcid) : decRun(L.counts.zcst) || decRun(L.counts.zcid), dur = L.counts.zcs[5] || 3000;
+    return MODE === 'teach' || (Date.now() + (MODE === 'screen' ? 0 : srvSkewV || 0)) - st <= dur * 100 + 180000;
+  }
   // the server's clock as seen from here: live.at is server time when the console last updated; the closest sample wins
   function noteSkew() { if (MODE !== 'student' || !live || !live.at) return; var k = live.at - Date.now(); if (srvSkewV == null || k > srvSkewV || k < srvSkewV - 30000) srvSkewV = k; }
   function clashSync() {
     if (MODE === 'teach') return;
     noteSkew();
     if (window.SFA_CLASH) return SFA_CLASH.sync();
-    if ((isLive() || MODE === 'screen') && hasClash(live) && !(MODE === 'student' && saving && !S.me)) clashAssets(function () { SFA_CLASH.sync(); });
+    if ((isLive() || MODE === 'screen') && freshClash(live) && !(MODE === 'student' && saving && !S.me)) clashAssets(function () { SFA_CLASH.sync(); });
   }
   function clashAgg() { if (window.SFA_CLASH && console_ && console_.clash) SFA_CLASH.agg(); }
   function clashSection(p) {
@@ -964,22 +981,22 @@
     document.querySelector('.lmain').appendChild(panel);
     if (bc) bc.onmessage = function (e) { var m = e.data || {}; if (m.t === 'hello') broadcast(); if (m.t === 'nav') go(m.to, true); };
     if (!console_.offline) fetchAnswers();
-    setInterval(function () { if (!console_.offline) fetchAnswers(); }, 2500);
-    setInterval(function () { if (console_.on) pushLive(); }, 120000);
+    every(function () { if (!console_.offline) fetchAnswers(); }, 2500);
+    every(function () { if (console_.on) pushLive(); }, 120000);
     // a console left open in another tab or device must not keep the class live after you end it elsewhere
-    setInterval(function () {
+    every(function () {
       if (!console_.on || console_.offline || Date.now() - lastPush < 20000) return;
       tpost('live').then(function (j) { if (console_.on && ended(j.live) && j.live.lesson === LID && Date.now() - lastPush > 20000) { console_.on = false; clearTimeout(pushT); consolePanel(); liveChip.hidden = true; SFA.toast('The live lesson was ended from another window.', 4000); } }, function () { });
     }, 15000);
     if (!console_.offline) tpost('live').then(function (j) {
       console_.climb = j.climb || null;
-      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && console_.spot.q === 'zclash') console_.spot = null; if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { SFA_CLASH.restore(jl); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
+      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && console_.spot.q === 'zclash') console_.spot = null; if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
       // opened from the Climb dashboard ("End Climb → Lesson N"): go live straight away, so students' pages move into this lesson
       else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
       else consolePanel();
     }, function () { });
     // keep the Climb status line current
-    setInterval(function () { if (!console_.offline && Date.now() - lastPush > 20000) tpost('live').then(function (j) { var was = JSON.stringify(console_.climb || null); console_.climb = j.climb || null; if (JSON.stringify(console_.climb) !== was) consolePanel(); }, function () { }); }, 30000);
+    every(function () { if (!console_.offline && Date.now() - lastPush > 20000) tpost('live').then(function (j) { var was = JSON.stringify(console_.climb || null); console_.climb = j.climb || null; if (JSON.stringify(console_.climb) !== was) consolePanel(); }, function () { }); }, 30000);
     return true;
   }
   // one request at a time: the Sheet can take longer than the 2.5 s between checks, and an older reply landing after a
@@ -1339,7 +1356,7 @@
   }
 
   window.SFA_LESSON_API = {
-    LID: LID, MODE: MODE, TEACHER: TEACHER, S: S, H: H, el: el, fmt: fmt, figure: figure, confetti: confetti, numOf: numOf, numTxt: numTxt, letter: letter, first: first, nice: nice, xid: xid,
+    LID: LID, MODE: MODE, TEACHER: TEACHER, S: S, every: every, pushNow: function () { clearTimeout(pushT); var L = liveObj(); live = L; broadcast(); if (!console_.on || console_.offline) return; lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) console_.skew = j.live.at - Math.round((t0 + Date.now()) / 2); }).catch(function () { }); }, H: H, el: el, fmt: fmt, figure: figure, confetti: confetti, numOf: numOf, numTxt: numTxt, letter: letter, first: first, nice: nice, xid: xid,
     decRun: decRun, encRun: encRun, record: record, beforeRun: beforeRun, tpost: tpost, pushLive: pushLive, consolePanel: consolePanel, rosterIn: rosterIn,
     live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
     srvSkew: function () { return MODE === 'screen' ? 0 : srvSkewV || 0; }, console_: function () { return console_; }, consoleAnswers: function () { return console_ && console_.data && console_.data.answers; }

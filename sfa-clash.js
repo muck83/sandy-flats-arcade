@@ -22,6 +22,8 @@
   // the battle in the live state: id (also names the teams), start in server time, and the board
   function clashOf(Lv) {
     var c = Lv && Lv.counts; if (!c || Lv.lesson !== A.LID || !Array.isArray(c.zcs) || !Array.isArray(c.zcid)) return null;
+    var st = A.MODE === 'screen' ? decRun(c.zcid) : decRun(c.zcst) || decRun(c.zcid), dur = c.zcs[5] || L.DUR;
+    if (A.MODE !== 'teach' && sNow() - st > dur * 100 + 180000) return null;   // over 3 minutes past its end: stale
     return { id: decRun(c.zcid), start: A.MODE === 'screen' ? decRun(c.zcid) : decRun(c.zcst) || decRun(c.zcid), state: c.zcs[3], t: c.zcs[0], score: [c.zcs[1], c.zcs[2]], dur: c.zcs[5] || L.DUR };
   }
   // the spotlight slot: "T:sid,…#E:seq~kind~name~team~lane~type~n;…#M:name~gold~right;…"
@@ -54,7 +56,13 @@
   /* =========================== student page and class screen =========================== */
   var root = null, cvs = null, ctx = null, hud = {}, V = null, CL = null, raf = 0, seen = null, me = -1, shoutSeen = -1, shoutQ = [], shoutBusy = false;
   function sNow() { return Date.now() + (A.srvSkew() || 0); }
-  function nowT(c) { return Math.max(0, Math.min(c.dur || L.DUR, (sNow() - c.start) / 100)); }
+  // the battle clock on this screen: the newest snapshot's tick plus the time since it arrived (at most 6 s ahead, so a
+  // stalled console can't run the board off on its own). Device clocks don't matter. The teacher's board uses the real one.
+  function nowT(c) {
+    if (A.MODE === 'teach') return C() ? cNow(C()) : 0;
+    if (V && V.base) return Math.max(0, Math.min(c.dur || L.DUR, V.base.t + Math.min(60, (performance.now() - V.base.at) / 100)));
+    return Math.max(0, Math.min(c.dur || L.DUR, (sNow() - c.start) / 100));
+  }
 
   function sync() {
     var Lv = A.live(), c = A.isLive() || A.MODE === 'screen' ? clashOf(Lv) : null;
@@ -66,7 +74,7 @@
     // the newest snapshot of the board: play it forward from its own time to now
     var snap = L.decode(Lv.counts);
     if (snap && (!V.snapT || snap.t !== V.snapT || V.c.state !== c.state)) {
-      V.snapT = snap.t; claimMine(snap);
+      V.snapT = snap.t; V.base = { t: snap.t, at: performance.now() }; claimMine(snap);
       L.advance(snap, nowT(c), onFx);
       if (V.S) { var keepIds = {}; snap.units.forEach(function (u) { keepIds[u.id] = 1; }); V.S.units.forEach(function (u) { if (!keepIds[u.id] && !V.fxKeys['die:' + u.id] && !V.fxKeys['grab:' + u.id]) { V.fxKeys['die:' + u.id] = 1; die(u, false); } }); }
       V.S = snap;
@@ -75,6 +83,14 @@
     shoutsFromSpot(sp, c);
     if (c.state === 2 && !V.over && (sp.mvp.length || sp.awards.length || Date.now() - (V.endSeen || (V.endSeen = Date.now())) > 4000)) showEnd(c, sp);
     hudTick();
+  }
+  // the teacher's own view of the battle: the real board, straight from the referee
+  function watch() {
+    var K = C(); if (!K) return;
+    open({ id: K.id, start: K.id, state: K.state, t: K.S.t, score: K.S.score, dur: K.S.dur });
+    V.watch = true; V.S = K.S; root.classList.add('watch');
+    var x = el('button', { type: 'button', 'class': 'btn lcback', text: '✕ Back to the console' }); x.onclick = function () { close(); };
+    root.querySelector('.lctop').appendChild(x);
   }
   function close() {
     if (!root) return;
@@ -355,8 +371,15 @@
     if (!root) return;
     raf = requestAnimationFrame(frame);
     var dt = Math.min(0.05, (ts - (lastF || ts)) / 1000); lastF = ts;
+    if (V.watch) {
+      var K = C(); if (!K) { close(); return; }
+      V.c = { id: K.id, start: K.id, state: K.state, t: K.S.t, score: K.S.score, dur: K.S.dur }; V.S = K.S;
+      if (!K.frozen) L.advance(K.S, Math.floor(cNow(K)), refFx);
+      V.sp = clashSpot({ spot: spot(), lesson: A.LID });
+      if (K.state === 2 && !V.over && (V.sp.mvp.length || V.sp.awards.length)) showEnd(V.c, V.sp);
+    }
     var c = V.c, T0 = nowT(c);
-    if (V.S && c.state === 1) L.advance(V.S, Math.floor(T0), onFx);
+    if (V.S && c.state === 1 && !V.watch) L.advance(V.S, Math.floor(T0), onFx);
     draw(dt, T0);
     if (Math.floor(ts / 500) !== V.tick) { V.tick = Math.floor(ts / 500); hudTick(); if (CL && A.MODE === 'student') drawCards(); }
   }
@@ -525,6 +548,7 @@
     if (wave > V.wave && c.state === 1) { V.wave = wave; sfx('wave'); shout({ e: wave === 2 ? 'max' : 'one', who: wave === 2 ? 'THE FINAL WAVE!' : 'A WAVE IS COMING!', text: wave === 2 ? 'Everyone moves faster. <b>Double gold</b> (triple for the team behind)!' : 'Halfway! Defend your lanes.', team: -1, mine: true, gold: true }); }
     if (S && me >= 0 && c.state === 1) { var cb = L.comeback(S, me); if (cb && !V.cb) shout({ e: 'one', who: '⚡ COMEBACK!', text: 'Your team is behind: <b>+1 coin</b> on every right answer and tougher characters!', team: me, mine: true }); V.cb = cb; }
     if (A.MODE === 'student') laneButtons();
+    if (V.watch && V.sp) shoutsFromSpot(V.sp, V.c);
     if (hud.heroes && V.sp) hud.heroes.innerHTML = V.sp.heroes.length ? '<b>Top heroes</b>' + V.sp.heroes.map(function (h, i) { return '<span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + ' ' + T[h.team].e + ' ' + esc(h.name) + ' <small>Lv ' + h.lv + ' · ' + h.gold + ' gold · ' + h.right + ' right</small></span>'; }).join('') : '';
   }
   function intro(c, T) {
@@ -642,21 +666,25 @@
     K.primed = true;
   }
   // every half second: run the battle to now, send the board out about once a second
+  function refFx(e) {
+    var K = C(); if (!K) return;
+    if (e.k === 'grab') { var h = K.hero[e.u.sid]; if (h) h.gold += e.gold; if (e.gold >= 8) ev(K, 'g', e.u.owner, e.u.team, e.u.lane, e.u.type, e.gold); }
+    if (root && V && V.watch) onFx(e);   // the teacher is watching: animate it too
+  }
   function tick() {
     var K = C(); if (!K) return;
     if (!K.frozen) {
-      L.advance(K.S, Math.floor(cNow(K)), function (e) {
-        if (e.k === 'grab') { var h = K.hero[e.u.sid]; if (h) h.gold += e.gold; if (e.gold >= 8) ev(K, 'g', e.u.owner, e.u.team, e.u.lane, e.u.type, e.gold); }
-      });
+      L.advance(K.S, Math.floor(cNow(K)), refFx);
       if (K.S.t >= K.S.dur) end();
     }
-    if (Date.now() - K.lastPush >= PUSH_MS) { K.lastPush = Date.now(); A.pushLive(); }
+    if (K.frozen && K.endedAt && Date.now() - K.endedAt > 120000) { A.console_().clash = null; if (root && V && V.watch) close(); (A.pushNow || A.pushLive)(); A.consolePanel(); SFA.toast('The battle results closed. Everyone is back on the slides.', 4000); return; }
+    if (Date.now() - K.lastPush >= PUSH_MS) { K.lastPush = Date.now(); (A.pushNow || A.pushLive)(); }
     var sig = K.state + '|' + K.S.score + '|' + Math.floor(K.S.t / 50);
     if (sig !== K.panelSig) { K.panelSig = sig; var tp = document.getElementById('tpanel'); if (tp && !tp.contains(document.activeElement)) A.consolePanel(); }
   }
   function end() {
     var K = C(); if (!K || K.frozen) return;
-    agg(); K.state = 2; K.frozen = true;
+    agg(); K.state = 2; K.frozen = true; K.endedAt = Date.now();
     // awards, so more than two students hear their name at the end
     var hs = Object.keys(K.hero).map(function (s) { return K.hero[s]; });
     // each award goes to a different student where possible (the best one not already named), so five students hear their name
@@ -686,9 +714,12 @@
     return { q: 'zclash', text: ('T:' + t0).slice(0, 595 - txt.length) + txt };
   }
   function restore(Lv) {
-    var c = clashOf(Lv); if (!c) return;
+    var c = clashOf(Lv); if (!c) return false;
+    // a battle that's over, or whose time ran out more than a minute ago (the console was closed), isn't brought back
+    if (c.state === 2 || Date.now() - c.id > (c.dur || L.DUR) * 100 + 60000) { A.console_().clash = null; return false; }
     var sp = clashSpot(Lv), S = L.decode(Lv.counts);
     A.console_().clash = { id: c.id, state: c.state, S: S, team: null, t0: sp.t0, acc: {}, hero: {}, events: [], seq: sp.ev.reduce(function (m, e) { return Math.max(m, e.seq); }, 0), mvp: [], frozen: c.state === 2, lastPush: 0, primed: false };
+    return true;
   }
   function section(p) {
     var sec = H('div', 'sect'), K = C(), T = teamNames(K.id), left = Math.max(0, (K.S.dur - K.S.t) / 10);
@@ -700,12 +731,13 @@
     if (heroes.length) sec.appendChild(H('p', 'muted', 'Top heroes: ' + heroes.map(function (h) { return esc(h.name) + ' ' + T[h.team].e + ' ' + h.gold + 'g/' + h.right + '✓'; }).join(', ')));
     if (K.team) { var d = el('details'); d.appendChild(el('summary', { text: 'The teams' })); [0, 1].forEach(function (t) { d.appendChild(H('p', 'muted', T[t].e + ' <b>' + esc(T[t].name) + ':</b> ' + A.rosterIn().filter(function (r) { return K.team[r.sid] === t; }).map(function (r) { return esc(A.nice(r.name)); }).join(', '))); }); sec.appendChild(d); }
     var r = H('div', 'row');
+    r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: '👁 Watch the battle', title: 'The whole board, live, on this screen', onclick: function () { watch(); } }));
     if (K.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: '⏰ +1 minute', title: 'Add a minute to the battle (the final wave moves with it)', onclick: function () { K.S.dur = Math.min(9999, K.S.dur + 600); ev(K, 't', '', 0, 0, 0, 1); A.pushLive(); A.consolePanel(); } }));
     if (K.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'End the battle now', onclick: function () { end(); } }));
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: 'Back to the lesson', onclick: function () { A.console_().clash = null; A.pushLive(); A.consolePanel(); } }));
     sec.appendChild(r); p.appendChild(sec);
   }
-  setInterval(function () { if (A.MODE === 'teach' && A.console_() && C()) tick(); }, 500);
+  (A.every || function (f, ms) { setInterval(f, ms); })(function () { if (A.MODE === 'teach' && A.console_() && C()) tick(); }, 500);
 
   window.SFA_CLASH = { sync: sync, agg: agg, section: section, start: start, counts: counts, spot: spot, restore: restore, clashOf: clashOf };
 })();
