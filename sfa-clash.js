@@ -203,7 +203,11 @@
     CL.temps = CL.temps.filter(function (x) {
       var hit = all.filter(function (u) { return u.team === me && u.lane === x.l && u.type === x.t && !CL.mineIds[u.id] && (u.at == null || Math.abs(u.at - x.at) < 150); })[0];
       if (hit) { CL.mineIds[hit.id] = 1; return false; }
-      return Date.now() - x.made < 20000;   // the console never took it (out of coins, too late): forget it
+      if (Date.now() - x.made < 25000) return true;
+      // it never reached the board: give the coins back and say so (the teacher's console shows why)
+      var U = L.UNITS[x.t]; CL.coins += U.cost; CL.cd[x.t] = 0; keep();
+      SFA.toast('Your ' + U.name + ' did not reach the board, so you got your ' + U.cost + ' coins back. Try again.', 5000);
+      return false;
     });
   }
 
@@ -642,7 +646,12 @@
       var team = K.team && sid in K.team ? K.team[sid] : hashTeam(sid, K.id), r = get('r');
       var st = statsFor(sid), bonus = L.lessonBonus(st.answered, st.correct, st.extras, st.probed);
       var acc = K.acc[sid] || (K.acc[sid] = { n: K.primed === false ? -1 : 0, spent: 0, cd: {}, lvSeen: 0, ping: K.primed === false ? null : 0 });
-      var budget = bonus.coins + 8 * r + 2, lvMax = L.lvOf(r, bonus.boost);
+      // the student's page counted its own lesson bonus (b) and level boost (v); the console's count can differ (Start fresh,
+      // a class filter, answers still on their way), so take the larger, capped at the most a lesson can give
+      var myB = Math.min(16, Math.max(bonus.coins, get('b'))), myV = Math.min(2, Math.max(bonus.boost, get('v')));
+      var budget = myB + 9 * r + 4, lvMax = L.lvOf(r, myV);
+      var D = K.diag || (K.diag = { students: {}, placed: 0, turned: {}, last: 0 }); D.students[sid] = 1; D.last = Math.max(D.last, Date.parse(last[sid].time) || 0);
+      var turn = function (why) { D.turned[why] = (D.turned[why] || 0) + 1; };
       var H0 = K.hero[sid] || (K.hero[sid] = { name: A.first(ids[sid].name), team: team, gold: 0, right: 0, best: 0, def: 0, lv: 1 }); H0.right = r; H0.best = Math.min(get('sk'), r); H0.lv = lvMax;
       // a call for help: "g:lane.tick", newest only
       var g = (s.match(/;g:(\d)\.(\d+)/) || null);
@@ -653,9 +662,13 @@
       if (acc.n < 0) { acc.n = list.length; return; }   // console reloaded mid-battle: those are already on the board
       for (var i = acc.n; i < list.length; i++) {
         var p = list[i].split('.').map(Number), l = p[0], t = p[1], d = p[2], v = p[3], U = L.UNITS[t];
-        if (!U || !(l >= 0 && l < 3) || U.lv > lvMax || acc.spent + U.cost > budget || (acc.cd[t] || -1e9) > d + 20) continue;
-        if (K.S.units.concat(K.S.pend).filter(function (u) { return u.team === team; }).length >= BOARD_CAP) continue;
-        if (U.kind === 'd' && L.planted(K.S, team, l) >= L.TILES.length) continue;
+        if (!U || !(l >= 0 && l < 3)) { turn('garbled'); continue; }
+        if (U.lv > lvMax) { turn('level too low'); continue; }
+        if (acc.spent + U.cost > budget) { turn('not enough coins'); continue; }
+        if ((acc.cd[t] || -1e9) > d + 20) { turn('still recharging'); continue; }
+        if (K.S.units.concat(K.S.pend).filter(function (u) { return u.team === team; }).length >= BOARD_CAP) { turn('board full'); continue; }
+        if (U.kind === 'd' && L.planted(K.S, team, l) >= L.TILES.length) { turn('both spots taken'); continue; }
+        D.placed++;
         acc.spent += U.cost; acc.cd[t] = d + U.cd; if (U.kind === 'd') H0.def++;
         var at = Math.max(Math.ceil(T0) + 5, Math.min(d + L.DEPLOY, Math.ceil(T0) + L.DEPLOY + 20));
         L.place(K.S, { team: team, lane: l, type: t, lv: Math.min(v || 1, lvMax), at: at, owner: H0.name, sid: sid });
@@ -727,6 +740,9 @@
     var on = [0, 1].map(function (t) { return K.S.units.concat(K.S.pend).filter(function (u) { return u.team === t; }).length; });
     var size = [0, 0]; Object.keys(K.team || {}).forEach(function (s) { size[K.team[s]]++; });
     sec.appendChild(H('p', '', (K.state === 2 ? '<b>Over.</b> ' : '<b>' + Math.floor(left / 60) + ':' + ('0' + Math.floor(left % 60)).slice(-2) + '</b> left' + (L.frenzy(K.S.t, K.S.dur) ? ' · 🔥 final wave' : '') + '. ') + [0, 1].map(function (t) { return T[t].e + ' ' + esc(T[t].name) + ': <b>' + K.S.score[t] + ' gold</b> · ' + on[t] + ' on the board' + (size[t] ? ' · team of ' + size[t] : ''); }).join(' · ')));
+    // diagnostics: are students' placements arriving, and are any being turned away?
+    var D = K.diag || { students: {}, placed: 0, turned: {}, last: 0 }, nStu = Object.keys(D.students).length, turned = Object.keys(D.turned).map(function (k) { return D.turned[k] + ' ' + k; }).join(', ');
+    sec.appendChild(H('p', 'state' + (K.S.t > 300 && !D.placed ? ' bad' : ''), '📡 ' + (nStu ? nStu + ' student' + (nStu === 1 ? '' : 's') + ' sending · ' + D.placed + ' character' + (D.placed === 1 ? '' : 's') + ' placed' + (turned ? ' · turned away: ' + esc(turned) : '') + (D.last ? ' · newest ' + Math.max(0, Math.round((Date.now() - D.last) / 1000)) + ' s ago' : '') : K.S.t > 200 ? 'No placements have arrived from students yet. Their answers reach this console every few seconds; if this stays empty, check they\'re signed in and on this lesson.' : 'Waiting for the first placements…') + ' · battle clock ' + Math.floor(K.S.t / 10) + ' s'));
     var heroes = Object.keys(K.hero).map(function (s) { return K.hero[s]; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); }).slice(0, 6);
     if (heroes.length) sec.appendChild(H('p', 'muted', 'Top heroes: ' + heroes.map(function (h) { return esc(h.name) + ' ' + T[h.team].e + ' ' + h.gold + 'g/' + h.right + '✓'; }).join(', ')));
     if (K.team) { var d = el('details'); d.appendChild(el('summary', { text: 'The teams' })); [0, 1].forEach(function (t) { d.appendChild(H('p', 'muted', T[t].e + ' <b>' + esc(T[t].name) + ':</b> ' + A.rosterIn().filter(function (r) { return K.team[r.sid] === t; }).map(function (r) { return esc(A.nice(r.name)); }).join(', '))); }); sec.appendChild(d); }
