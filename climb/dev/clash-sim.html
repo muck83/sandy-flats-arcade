@@ -19,7 +19,7 @@
   localStorage.setItem('climbmock.bots', CFG.bots); localStorage.setItem('climbmock.lag', CFG.lag);
 </script>
 <script src="mock.js"></script>
-<script src="../../sfa-lanes.js"></script>
+<script>document.write('<script src="../../sfa-lanes.js?t=' + Date.now() + '"><\/script>');   // always the newest rules (a dev page)</script>
 </head><body>
 <h1>⚔️ Lane Clash simulator</h1>
 <p id="cfg"></p>

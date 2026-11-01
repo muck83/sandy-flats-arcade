@@ -14,7 +14,7 @@ button{font:inherit;padding:8px 14px;border-radius:10px;border:1px solid var(--l
 <p>Plays simulated 5-minute battles with bot classes (strong to struggling students; smart, rush, turtle and random strategies) using the real rules in sfa-lanes.js, and reports fairness and intensity. For tuning only: students never see this page.</p>
 <p><button id="go">Run the battles</button></p>
 <pre id="out">…</pre>
-<script src="../../sfa-lanes.js"></script>
+<script>document.write('<script src="../../sfa-lanes.js?t=' + Date.now() + '"><\/script>');   // always the newest rules (a dev page)</script>
 <script>
 (function () {
   'use strict';
@@ -52,7 +52,7 @@ button{font:inherit;padding:8px 14px;border-radius:10px;border:1px solid var(--l
       bots.forEach(function (b) {
         if (S.t < b.next) return;
         var right = rnd() < b.skill, hard = rnd() < 0.3;
-        if (right) { b.right++; b.streak++; b.coins += L.coinsFor(true, hard, b.streak, false) + (L.comeback(S, b.team) ? 1 : 0); } else b.streak = 0;
+        if (right) { b.right++; b.streak++; b.coins += L.coinsFor(true, hard, b.streak, false) + L.behind(S, b.team); } else b.streak = 0;
         b.next = S.t + (150 + rnd() * 300) * (1.4 - b.skill * 0.6) + (right ? 0 : 50);
       });
       if (S.t % 10 === 0) bots.forEach(function (b) { for (var k = 0; k < 3; k++) { var c = choose(b); if (!c) break; var U = L.UNITS[c.t]; b.coins -= U.cost; b.cd[c.t] = S.t + U.cd; b.sent++; L.place(S, { team: b.team, lane: c.l, type: c.t, lv: L.lvOf(b.right, b.boost), at: S.t + L.DEPLOY, owner: 'b' + b.i }); } });
@@ -86,7 +86,10 @@ button{font:inherit;padding:8px 14px;border-radius:10px;border:1px solid var(--l
       run10('3 minutes', fair, { dur: 1800 }),
       run10('8 minutes', fair, { dur: 4800 }),
       run10('a class of 32', fair, { n: 32 }),
-      run10('a class of 14', fair, { n: 14 })
+      run10('a class of 14', fair, { n: 14 }),
+      // lopsided classes: how far behind does the weaker team end up? (the catch-up rules should keep it in the game)
+      run10('uneven: the stronger students all on the left', function (i) { return i % 2; }, { skills: Array.from({ length: 24 }, function (_, i) { return i % 2 ? [0.62, 0.42][(i >> 1) % 2] : [0.92, 0.78][(i >> 1) % 2]; }) }),
+      run10('uneven: four on the right do nothing', fair, { skills: Array.from({ length: 24 }, function (_, i) { return fair(i) === 1 && i < 8 ? 0.02 : [0.92, 0.78, 0.62, 0.42][i % 4]; }) })
     ];
     document.getElementById('out').textContent = out.join('\n\n');
   };

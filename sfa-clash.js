@@ -11,7 +11,7 @@
   var A = window.SFA_LESSON_API, L = window.SFA_LANES, SP = window.SFA_SPRITES, SFA = window.SFA, esc = SFA.esc;
   if (!A || !L || !SP) return;
   var H = A.H, el = A.el, fmt = A.fmt;
-  var COOL_MS = 5000, BOARD_CAP = 70, PUSH_MS = 1000;
+  var COOL_MS = 5000, BOARD_CAP = 70, PUSH_MS = 1000, BRIEF = 30;   // BRIEF: seconds of rules on every screen before the battle clock starts
   var TEAMS = [['Team Llama', '🦙', '#FFC94A'], ['Team Toaster', '🍞', '#5CC8FF'], ['The Wobbly Penguins', '🐧', '#FFC94A'], ['The Angry Croissants', '🥐', '#5CC8FF'], ['The Pickle Pirates', '🥒', '#FFC94A'], ['Captain Noodle\'s Crew', '🍜', '#5CC8FF'], ['The Disco Cats', '🐱', '#FFC94A'], ['The Grumpy Clouds', '☁️', '#5CC8FF']];
   var TC = ['#FFC94A', '#5CC8FF'];   // team colours: gold on the left, sky on the right
   function teamNames(id) { var k = Math.round(id / 1000) % 4; return [{ name: TEAMS[k * 2][0], e: TEAMS[k * 2][1] }, { name: TEAMS[k * 2 + 1][0], e: TEAMS[k * 2 + 1][1] }]; }
@@ -29,7 +29,7 @@
     var c = Lv && Lv.counts; if (!c || Lv.lesson !== A.LID || !Array.isArray(c.zcs) || !Array.isArray(c.zcid)) return null;
     var st = A.MODE === 'screen' ? decRun(c.zcid) : decRun(c.zcst) || decRun(c.zcid), dur = c.zcs[5] || L.DUR;
     if (A.MODE !== 'teach' && sNow() - st > dur * 100 + 180000) return null;   // over 3 minutes past its end: stale
-    return { id: decRun(c.zcid), start: A.MODE === 'screen' ? decRun(c.zcid) : decRun(c.zcst) || decRun(c.zcid), state: c.zcs[3], t: c.zcs[0], score: [c.zcs[1], c.zcs[2]], dur: c.zcs[5] || L.DUR };
+    return { id: decRun(c.zcid), start: A.MODE === 'screen' ? decRun(c.zcid) : decRun(c.zcst) || decRun(c.zcid), state: c.zcs[3], t: c.zcs[0], score: [c.zcs[1], c.zcs[2]], dur: c.zcs[5] || L.DUR, brief: c.zcs[6] || 0 };
   }
   // the spotlight slot: "U:fingerprint,…#E:seq~kind~name~team~lane~type~n;…#R:placement id~why;…#M:name~gold~right;…"
   // (U: is team 0 as sh3 fingerprints of the student ids; T: is the same list as plain ids, from before)
@@ -67,6 +67,7 @@
   // the battle clock on this screen: the newest snapshot's tick plus the time since it arrived (at most 6 s ahead, so a
   // stalled console can't run the board off on its own). Device clocks don't matter. The teacher's board uses the real one.
   function nowT(c) {
+    if (c.state === 3) return 0;   // the rules are on screen: the battle clock hasn't started
     if (A.MODE === 'teach') return C() ? cNow(C()) : 0;
     if (V && V.base) return Math.max(0, Math.min(c.dur || L.DUR, V.base.t + Math.min(60, (performance.now() - V.base.at) / 100)));
     return Math.max(0, Math.min(c.dur || L.DUR, (sNow() - c.start) / 100));
@@ -77,6 +78,7 @@
     if (A.MODE === 'student' && A.saving() && !A.S.me) c = null;   // sign in first: the battle would cover the sign-in box
     if (!c) { close(); return; }
     if (!root || seen !== c.id) open(c);
+    if (c.state === 3 && (!V.c || V.c.brief !== c.brief || V.c.state !== 3)) V.briefEnd = performance.now() + c.brief * 1000;
     var sp = clashSpot(Lv);
     me = A.MODE === 'student' && A.S.me ? teamOf(A.S.me.sid, c.id, sp.t0) : -1;
     // the newest snapshot of the board: play it forward from its own time to now
@@ -96,7 +98,7 @@
   // the teacher's own view of the battle: the real board, straight from the referee
   function watch() {
     var K = C(); if (!K) return;
-    open({ id: K.id, start: K.id, state: K.state, t: K.S.t, score: K.S.score, dur: K.S.dur });
+    open({ id: K.id, start: K.id, state: K.state, t: K.S.t, score: K.S.score, dur: K.S.dur, brief: briefLeft(K) }); V.briefEnd = performance.now() + briefLeft(K) * 1000;
     V.watch = true; V.S = K.S; root.classList.add('watch');
     var x = el('button', { type: 'button', 'class': 'btn lcback', text: '✕ Back to the console' }); x.onclick = function () { close(); };
     root.querySelector('.lctop').appendChild(x);
@@ -142,7 +144,7 @@
       var leg = H('div', 'lclegend'); L.ORDER.forEach(function (t) { var U = L.UNITS[t]; leg.appendChild(H('span', '', '<img alt="" src="' + thumb(U.who) + '"><b>' + esc(U.name) + '</b> ' + esc(U.role))); }); root.appendChild(leg);
     }
     document.body.appendChild(root);
-    intro(c, T);
+    if (c.state === 3) { V.briefEnd = performance.now() + (c.brief || 0) * 1000; brief(c, T); } else intro(c, T);
     raf = requestAnimationFrame(frame);
   }
 
@@ -178,12 +180,13 @@
   }
   function canPlace(t, l) {
     var U = L.UNITS[t], c = V.c, T0 = nowT(c);
+    if (CL && c.state === 3) return 'The battle starts in a few seconds.';
     if (!CL || c.state !== 1 || T0 >= c.dur - 5) return 'The battle is over.';
     if (T0 >= c.dur - 70) return 'Too late to send more: the battle ends in a few seconds.';
     if (U.lv > lv()) return 'Unlocks at hero level ' + U.lv + '.';
     if (CL.coins < U.cost) return 'Not enough coins: answer questions to earn more.';
     if ((CL.cd[t] || 0) > T0) return U.name + ' is recharging.';
-    if (l != null && U.kind === 'd' && V.S && L.planted(V.S, me, l) + CL.temps.filter(function (x) { return x.l === l && L.UNITS[x.t].kind === 'd'; }).length >= L.TILES.length) return 'Both planting spots in lane ' + (l + 1) + ' are taken.';
+    if (l != null && U.kind === 'd' && V.S && L.planted(V.S, me, l) + CL.temps.filter(function (x) { return x.l === l && L.UNITS[x.t].kind === 'd'; }).length >= L.TILES.length) return 'All the planting spots in lane ' + (l + 1) + ' are taken.';
     if (V.S && V.S.units.concat(V.S.pend).filter(function (u) { return u.team === me; }).length >= BOARD_CAP) return 'Your team\'s lanes are packed. Wait a moment.';
     return '';
   }
@@ -232,6 +235,7 @@
     var box = hud.q; if (!box || !CL) return;
     box.innerHTML = '';
     var pool = pool_(), c = V.c;
+    if (c.state === 3) { box.appendChild(H('p', 'q', 'Read the rules: the questions start with the battle.')); return; }
     if (c.state !== 1) { box.appendChild(H('p', 'q', 'The battle is over.')); return; }
     if (!pool.length) { box.appendChild(H('p', 'q', 'No questions in this lesson for the Clash.')); return; }
     var bonusRound = CL.qi >= CL.order.length, q = pool[CL.order[CL.qi % CL.order.length]];
@@ -248,9 +252,9 @@
     }
     function right() {
       var first = !CL.tries; CL.streak = first ? CL.streak + 1 : 0; CL.best = Math.max(CL.best || 0, CL.streak);
-      var got = L.coinsFor(first, q.hard, CL.streak, bonusRound) + (V.S && L.comeback(V.S, me) ? 1 : 0), before = lv();
+      var cb = V.S ? L.behind(V.S, me) : 0, got = L.coinsFor(first, q.hard, CL.streak, bonusRound) + cb, before = lv();
       CL.coins += got; CL.earned += got; CL.right++; A.confetti();
-      CL.fb = { ok: true, html: '<b>Yes! +' + got + ' coin' + (got === 1 ? '' : 's') + '.</b>' + (first && CL.streak % 3 === 0 ? ' 🔥 Three in a row!' : '') + (V.S && L.comeback(V.S, me) ? ' ⚡ comeback coin' : '') };
+      CL.fb = { ok: true, html: '<b>Yes! +' + got + ' coin' + (got === 1 ? '' : 's') + '.</b>' + (first && CL.streak % 3 === 0 ? ' 🔥 Three in a row!' : '') + (cb ? ' ⚡ comeback coin' + (cb > 1 ? 's' : '') : '') };
       if (lv() > before) levelUp(lv());
       sendSoon(); drawCards();
     }
@@ -394,7 +398,7 @@
     var dt = Math.min(0.05, (ts - (lastF || ts)) / 1000); lastF = ts;
     if (V.watch) {
       var K = C(); if (!K) { close(); return; }
-      V.c = { id: K.id, start: K.id, state: K.state, t: K.S.t, score: K.S.score, dur: K.S.dur }; V.S = K.S;
+      V.c = { id: K.id, start: K.id, state: K.state, t: K.S.t, score: K.S.score, dur: K.S.dur, brief: briefLeft(K) }; V.S = K.S;
       if (!K.frozen) L.advance(K.S, Math.floor(cNow(K)), refFx);
       V.sp = clashSpot({ spot: spot(), lesson: A.LID });
       if (K.state === 2 && !V.over && (V.sp.mvp.length || V.sp.awards.length)) showEnd(V.c, V.sp);
@@ -493,7 +497,7 @@
     c.textBaseline = 'alphabetic';
     // where the picked card would go: a ghost in the lane under the mouse
     if (A.MODE === 'student' && V.sel >= 0 && V.hover >= 0 && me >= 0) {
-      var GU = L.UNITS[V.sel], gsp = SP.get(GU.who), gx0 = GU.kind === 'd' ? G.X(me ? L.LEN - L.TILES[GU.id === 'sam' ? 0 : 1] : L.TILES[GU.id === 'sam' ? 0 : 1]) : me ? w - G.vw - 30 : G.vw + 30;
+      var GU = L.UNITS[V.sel], gsp = SP.get(GU.who), gx0 = GU.kind === 'd' ? G.X(me ? L.LEN - L.TILES[GU.id === 'sam' ? 0 : L.TILES.length - 1] : L.TILES[GU.id === 'sam' ? 0 : L.TILES.length - 1]) : me ? w - G.vw - 30 : G.vw + 30;
       c.fillStyle = 'rgba(255,201,74,.16)'; c.fillRect(G.vw, G.top + V.hover * G.lh, w - 2 * G.vw, G.lh);
       if (gsp) { c.save(); c.globalAlpha = 0.5 + 0.15 * Math.sin(now / 120); drawSprite(gsp, gx0, laneY(G, V.hover), sizeOf(GU.who, G), me, 0); c.restore(); }
     }
@@ -601,16 +605,58 @@
       b.querySelector('.lccb').hidden = !(S && L.comeback(S, t) && c.state === 1);
     });
     var left = Math.max(0, (c.dur - T0) / 10), m = hud.mid;
+    if (V.lastState === 3 && c.state === 1) started();
+    V.lastState = c.state;
     m.querySelector('.lcclock').textContent = c.state === 2 ? 'Time!' : Math.floor(left / 60) + ':' + ('0' + Math.floor(left % 60)).slice(-2);
     var u = T0 / c.dur; m.querySelector('.lcbar').style.width = (u * 100) + '%'; m.querySelector('.lchead').style.left = (u * 100) + '%';
     var fz = L.frenzy(T0, c.dur), wave = fz ? 2 : u >= 0.5 ? 1 : 0;
-    m.querySelector('.lcwavet').textContent = c.state === 2 ? 'Battle over' : fz ? '🔥 FINAL WAVE: faster, double gold!' : wave ? '⚑ Wave 2' : 'Battle!';
+    m.querySelector('.lcwavet').textContent = c.state === 3 ? 'Starts in ' + Math.max(0, Math.ceil(((V.briefEnd || 0) - performance.now()) / 1000)) + ' s' : c.state === 2 ? 'Battle over' : fz ? '🔥 FINAL WAVE: faster, double gold!' : wave ? '⚑ Wave 2' : 'Battle!';
     root.classList.toggle('frenzy', fz);
     if (wave > V.wave && c.state === 1) { V.wave = wave; sfx('wave'); shout({ e: wave === 2 ? 'max' : 'one', who: wave === 2 ? 'THE FINAL WAVE!' : 'A WAVE IS COMING!', text: wave === 2 ? 'Everyone moves faster. <b>Double gold</b> (triple for the team behind)!' : 'Halfway! Defend your lanes.', team: -1, mine: true, gold: true }); }
-    if (S && me >= 0 && c.state === 1) { var cb = L.comeback(S, me); if (cb && !V.cb) shout({ e: 'one', who: '⚡ COMEBACK!', text: 'Your team is behind: <b>+1 coin</b> on every right answer and tougher characters!', team: me, mine: true }); V.cb = cb; }
+    if (S && me >= 0 && c.state === 1) { var cb = L.comeback(S, me); if (cb && !V.cb) shout({ e: 'one', who: '⚡ COMEBACK!', text: 'Your team is behind: <b>bonus coins</b> on every right answer, tougher characters and a faster Mux!', team: me, mine: true }); V.cb = cb; }
     if (A.MODE === 'student') laneButtons();
     if (V.watch && V.sp) shoutsFromSpot(V.sp, V.c);
     if (hud.heroes && V.sp) hud.heroes.innerHTML = V.sp.heroes.length ? '<b>Top heroes</b>' + V.sp.heroes.map(function (h, i) { return '<span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + ' ' + T[h.team].e + ' ' + esc(h.name) + ' <small>Lv ' + h.lv + ' · ' + h.gold + ' gold · ' + h.right + ' right</small></span>'; }).join('') : '';
+  }
+  /* the rules: about 30 seconds of banners on every screen before the battle clock starts. Each banner gets time for its
+     words; joining late skips the first ones; the last counts down to GO */
+  function brief(c, T) {
+    if (A.MODE === 'student' && A.S.me) me = teamOf(A.S.me.sid, c.id, clashSpot(A.live()).t0);
+    var vs = '<p class="lcvs2"><span style="color:' + TC[0] + '">' + T[0].e + ' ' + esc(T[0].name) + '</span> <b>VS</b> <span style="color:' + TC[1] + '">' + T[1].e + ' ' + esc(T[1].name) + '</span></p>';
+    var pics = function (ws) { return '<div class="lcpics">' + ws.map(function (w) { return '<img alt="" src="' + thumb(w) + '">'; }).join('') + '</div>'; };
+    var bans = ['<span class="lcbig">⚔️</span><h2>Lane Clash</h2>' + vs + (me >= 0 ? '<p>You\'re on <b style="color:' + TC[me] + '">' + T[me].e + ' ' + esc(T[me].name) + '</b>!</p>' : '')];
+    if (CL && A.MODE === 'student') bans.push('<span class="lcbig">🎁</span><b class="lckick">Your lesson bonus</b><p class="lcyours">You start with <b>' + CL.bonus + ' coins</b>' + (CL.boost ? ' at <b>hero level ' + (1 + CL.boost) + '</b>' : '') + ' for your work in today\'s lesson. Effort counts most!</p>');
+    bans.push('<span class="lcbig">🧠</span><b class="lckick">Answer to earn coins</b><p class="lcyours">A right first try earns <b>3 coins</b>. Three in a row earns a bonus. Every 3 right levels up your hero and unlocks new characters.</p>');
+    bans.push(pics(['gus', 'one', 'max']) + '<b class="lckick">Send attackers</b><p class="lcyours">Pick a card, then a lane. <b>Gus</b>, <b>One</b> and <b>Maximus</b> march to the other fort and grab its gold.</p>');
+    bans.push(pics(['sam', 'pigeon', 'zero']) + '<b class="lckick">Defend your lanes</b><p class="lcyours">Each lane has 3 planting spots. <b>Squaring Sam</b> blocks, <b>Pea Pigeon</b> shoots, and <b>Zero</b> erases every enemy in a lane.</p>');
+    bans.push('<span class="lcbig">🏰</span><b class="lckick">Watch your fort</b><p class="lcyours">A red <b>!</b> at a gate means enemies are close. <b>Mux</b> charges the first one to reach a gate. 📣 Call your team for help.</p>');
+    bans.push('<span class="lcbig">🔥</span><b class="lckick">Never give up</b><p class="lcyours">The last minute is the <b>final wave</b>: double gold. A team that falls behind gets bonus coins and tougher characters.</p>');
+    var words = bans.map(function (h) { return h.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length; });
+    var b = H('div', 'lcend lcbrief'), box = H('div', 'lcban'), dots = H('div', 'lcdots'), tmr = 0, cdT = 0;
+    b.appendChild(box); b.appendChild(dots); root.appendChild(b);
+    var left = function () { return Math.max(0, ((V && V.briefEnd) || 0) - performance.now()); };
+    // fit the banners into the time left (4 s kept for the countdown): drop the first ones if each would be too quick
+    var from = 0, room = function () { return left() - 4000; };
+    while (from < bans.length - 1 && room() / words.slice(from).reduce(function (a, n) { return a + n; }, 0) * Math.min.apply(null, words.slice(from)) < 3000) from++;
+    var list = bans.slice(from), wl = words.slice(from); list.push('<b class="lckick">Get ready…</b><h2 class="lccount">3</h2>' + vs);
+    list.forEach(function () { dots.appendChild(H('i')); });
+    function show(i) {
+      clearTimeout(tmr); clearInterval(cdT); if (!b.isConnected) return;
+      box.innerHTML = list[i]; box.classList.remove('in'); void box.offsetWidth; box.classList.add('in');
+      [].forEach.call(dots.children, function (d, k) { d.className = k === i ? 'on' : k < i ? 'done' : ''; });
+      if (i === list.length - 1) { var n = box.querySelector('.lccount'); cdT = setInterval(function () { var s0 = Math.ceil(left() / 1000); n.textContent = s0 > 0 ? String(Math.min(s0, 9)) : 'GO!'; }, 200); return; }
+      var tot = wl.slice(i).reduce(function (a, x) { return a + x; }, 0), ms = Math.max(2500, room() * wl[i] / Math.max(1, tot));
+      tmr = setTimeout(function () { show(i + 1); }, ms);
+    }
+    b.onclick = function () { var on = [].indexOf.call(dots.children, dots.querySelector('.on')); if (on >= 0 && on < list.length - 1) show(on + 1); };
+    V.briefEl = b; show(0);
+    if (CL) { CL.intro = true; keep(); }
+  }
+  // the rules are over: everyone's board comes alive at once
+  function started() {
+    if (V.briefEl) { V.briefEl.remove(); V.briefEl = null; }
+    sfx('wave'); shout({ e: 'max', who: 'GO!', text: 'The battle is on. <b>Answer, earn, send!</b>', team: -1, mine: true, gold: true });
+    if (A.MODE === 'student') { drawQ(); drawCards(); }
   }
   function intro(c, T) {
     if (CL && CL.intro) return;
@@ -686,25 +732,44 @@
 
   /* =========================== the teacher console: referee =========================== */
   function C() { return A.console_().clash; }
+  // fair teams from today's live lesson only: each student's strength is what they did in it (answered, go-further
+  // extras and machines probed, plus half for being right: the lesson bonus's measure), with a bump for anyone still
+  // answering in the last 10 minutes. The students here today are split evenly in number, then swapped in pairs until
+  // the two teams' strength is as close as it gets; the ones with nothing today are split evenly after them
+  function strengthOf(sid, now) {
+    var st = statsFor(sid), lastAt = 0;
+    (A.consoleAnswers() || []).forEach(function (a) { if (a.sid === sid && !A.beforeRun(a) && a.q !== 'zflag' && a.q !== 'zclash') lastAt = Math.max(lastAt, Date.parse(a.time) || 0); });
+    return { here: !!lastAt, s: st.answered + st.extras + st.probed + 0.5 * st.correct + (now - lastAt < 600000 ? 3 : 0) };
+  }
   function draftTeams() {
-    var roster = A.rosterIn(), score = {}, here = {};
-    roster.forEach(function (r) { score[r.sid] = 0; });
-    (A.consoleAnswers() || []).forEach(function (a) { if (a.sid in score && !A.beforeRun(a) && a.q !== 'zflag' && a.q !== 'zclash') { here[a.sid] = 1; if (a.q !== 'here') score[a.sid] += 3; } });
-    return A.tpost('participation').then(function (j) { return j.cells || []; }, function () { return []; }).then(function (cells) {
-      cells.forEach(function (x) { if (x.sid in score) score[x.sid] += (x.answered || 0) + 0.5 * (x.correct || 0); });
-      var order = roster.map(function (r) { return r.sid; }).sort(function (a, b) { return (here[b] ? 1 : 0) - (here[a] ? 1 : 0) || score[b] - score[a] || (Math.random() - 0.5); });
-      var team = {}; order.forEach(function (sid, i) { team[sid] = [0, 1, 1, 0][i % 4]; });
-      return team;
-    });
+    var now = Date.now() + (A.console_().skew || 0), str = {}, here = [], away = [];
+    A.rosterIn().forEach(function (r) { var x = str[r.sid] = strengthOf(r.sid, now); (x.here ? here : away).push(r.sid); });
+    var shuffle = function (a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+    // a snake draft (A B B A) down the strength order, ties in random order
+    var order = shuffle(here).sort(function (a, b) { return str[b].s - str[a].s; }), side = [[], []];
+    order.forEach(function (sid, i) { side[[0, 1, 1, 0][i % 4]].push(sid); });
+    // then the swap that most closes the gap, again and again (sizes stay the same)
+    var sum = function (t) { return side[t].reduce(function (n, sid) { return n + str[sid].s; }, 0); };
+    for (var it = 0; it < 60; it++) {
+      var gap = sum(0) - sum(1), best = null, bestGap = Math.abs(gap);
+      side[0].forEach(function (a, i) { side[1].forEach(function (b, j) { var g = Math.abs(gap - 2 * (str[a].s - str[b].s)); if (g < bestGap - 0.01) { bestGap = g; best = [i, j]; } }); });
+      if (!best) break;
+      var x = side[0][best[0]]; side[0][best[0]] = side[1][best[1]]; side[1][best[1]] = x;
+    }
+    // the ones not here today: alternate, starting with the smaller team
+    var team = {}; side.forEach(function (l, t) { l.forEach(function (sid) { team[sid] = t; }); });
+    shuffle(away).forEach(function (sid) { var n0 = side[0].length, n1 = side[1].length, t = n0 < n1 ? 0 : n1 < n0 ? 1 : (Math.random() < 0.5 ? 0 : 1); side[t].push(sid); team[sid] = t; });
+    return Promise.resolve({ team: team, power: [sum(0), sum(1)].map(Math.round), here: [0, 1].map(function (t) { return side[t].filter(function (sid) { return str[sid].here; }).length; }) });
   }
   function start(mins) {
-    return draftTeams().then(function (team) {
+    return draftTeams().then(function (d) {
       var t = Math.round(Date.now() / 1000) * 1000;
-      A.console_().clash = { id: t, state: 1, S: L.newState(Math.round((mins || 5) * 600)), team: team, acc: {}, hero: {}, events: [], seq: Math.round(t / 1000) % 100000, mvp: [], frozen: false, lastPush: 0 };
+      A.console_().clash = { id: t, go: t + BRIEF * 1000, state: 3, S: L.newState(Math.round((mins || 5) * 600)), team: d.team, power: d.power, hereN: d.here, acc: {}, hero: {}, events: [], seq: Math.round(t / 1000) % 100000, mvp: [], frozen: false, lastPush: 0 };
       A.pushLive(); A.consolePanel();
     });
   }
-  function cNow(K) { return Math.max(0, Math.min(K.S.dur, (Date.now() - K.id) / 100)); }
+  function cNow(K) { return Math.max(0, Math.min(K.S.dur, (Date.now() - (K.go || K.id)) / 100)); }
+  function briefLeft(K) { return K.state === 3 ? Math.max(0, Math.ceil(((K.go || K.id) - Date.now()) / 1000)) : 0; }
   // the lesson numbers for one student, from the console's copy of the answers (the same rule the student page uses)
   function statsFor(sid) { var last = {}; (A.consoleAnswers() || []).forEach(function (a) { if (a.sid === sid && !A.beforeRun(a)) last[a.q] = a; }); return lessonStatsFrom(last); }
   function ev(K, k, name, team, lane, type, n) { K.events.push({ seq: ++K.seq, k: k, name: String(name || '').replace(/[~;#,]/g, '').slice(0, 16), team: team, lane: lane || 0, type: type || 0, n: n || 0 }); if (K.events.length > 6) K.events = K.events.slice(-6); }
@@ -744,7 +809,7 @@
         if (acc.spent + U.cost > budget) { turn('not enough coins', k, 'c'); continue; }
         if ((acc.cd[t] || -1e9) > d + 20) { turn('still recharging', k, 'r'); continue; }
         if (K.S.units.concat(K.S.pend).filter(function (u) { return u.team === team; }).length >= BOARD_CAP) { turn('board full', k, 'f'); continue; }
-        if (U.kind === 'd' && L.planted(K.S, team, l) >= L.TILES.length) { turn('both spots taken', k, 's'); continue; }
+        if (U.kind === 'd' && L.planted(K.S, team, l) >= L.TILES.length) { turn('spots taken', k, 's'); continue; }
         D.placed++;
         acc.spent += U.cost; acc.cd[t] = d + U.cd; if (U.kind === 'd') H0.def++;
         var at = Math.max(Math.ceil(T0) + 5, Math.min(d + L.DEPLOY, Math.ceil(T0) + L.DEPLOY + 20)), id = 0;
@@ -765,13 +830,14 @@
   }
   function tick() {
     var K = C(); if (!K) return;
-    if (!K.frozen) {
+    if (K.state === 3 && Date.now() >= (K.go || K.id)) { K.state = 1; A.pushLive(); A.consolePanel(); }
+    if (!K.frozen && K.state === 1) {
       L.advance(K.S, Math.floor(cNow(K)), refFx);
       if (K.S.t >= K.S.dur) end();
     }
     if (K.frozen && K.endedAt && Date.now() - K.endedAt > 120000) { A.console_().clash = null; if (root && V && V.watch) close(); (A.pushNow || A.pushLive)(); A.consolePanel(); SFA.toast('The battle results closed. Everyone is back on the slides.', 4000); return; }
     if (Date.now() - K.lastPush >= PUSH_MS) { K.lastPush = Date.now(); (A.pushNow || A.pushLive)(); }
-    var sig = K.state + '|' + K.S.score + '|' + Math.floor(K.S.t / 50);
+    var sig = K.state + '|' + K.S.score + '|' + Math.floor(K.S.t / 50) + '|' + Math.ceil(briefLeft(K) / 5);
     if (sig !== K.panelSig) { K.panelSig = sig; var tp = document.getElementById('tpanel'); if (tp && !tp.contains(document.activeElement)) A.consolePanel(); }
   }
   function end() {
@@ -794,6 +860,7 @@
     var K = C(); if (!K) return;
     out.zcid = A.encRun(K.id); out.zcst = A.encRun(K.id + (A.console_().skew || 0));
     Object.assign(out, L.encode(K.S, K.state, 48));
+    out.zcs.push(briefLeft(K));   // zcs[6]: seconds of rules left
   }
   function spot() {
     // team 0 as short fingerprints of the student ids (U:), so the list fits whatever ids the roster uses
@@ -810,9 +877,9 @@
   function restore(Lv) {
     var c = clashOf(Lv); if (!c) return false;
     // a battle that's over, or whose time ran out more than a minute ago (the console was closed), isn't brought back
-    if (c.state === 2 || Date.now() - c.id > (c.dur || L.DUR) * 100 + 60000) { A.console_().clash = null; return false; }
+    if (c.state === 2 || Date.now() - c.id > (c.dur || L.DUR) * 100 + BRIEF * 1000 + 60000) { A.console_().clash = null; return false; }
     var sp = clashSpot(Lv), S = L.decode(Lv.counts);
-    A.console_().clash = { id: c.id, state: c.state, S: S, team: null, t0: sp.t0, acc: {}, hero: {}, events: [], seq: sp.ev.reduce(function (m, e) { return Math.max(m, e.seq); }, 0), mvp: [], frozen: c.state === 2, lastPush: 0, primed: false };
+    A.console_().clash = { id: c.id, go: c.state === 3 ? Date.now() + c.brief * 1000 : Date.now() - S.t * 100, state: c.state, S: S, team: null, t0: sp.t0, acc: {}, hero: {}, events: [], seq: sp.ev.reduce(function (m, e) { return Math.max(m, e.seq); }, 0), mvp: [], frozen: c.state === 2, lastPush: 0, primed: false };
     return true;
   }
   function section(p) {
@@ -820,14 +887,16 @@
     sec.appendChild(H('h3', '', '⚔️ Lane Clash'));
     var on = [0, 1].map(function (t) { return K.S.units.concat(K.S.pend).filter(function (u) { return u.team === t; }).length; });
     var size = [0, 0]; Object.keys(K.team || {}).forEach(function (s) { size[K.team[s]]++; });
-    sec.appendChild(H('p', '', (K.state === 2 ? '<b>Over.</b> ' : '<b>' + Math.floor(left / 60) + ':' + ('0' + Math.floor(left % 60)).slice(-2) + '</b> left' + (L.frenzy(K.S.t, K.S.dur) ? ' · 🔥 final wave' : '') + '. ') + [0, 1].map(function (t) { return T[t].e + ' ' + esc(T[t].name) + ': <b>' + K.S.score[t] + ' gold</b> · ' + on[t] + ' on the board' + (size[t] ? ' · team of ' + size[t] : ''); }).join(' · ')));
+    sec.appendChild(H('p', '', (K.state === 3 ? '<b>Rules on screen:</b> the battle starts in ' + briefLeft(K) + ' s. ' : K.state === 2 ? '<b>Over.</b> ' : '<b>' + Math.floor(left / 60) + ':' + ('0' + Math.floor(left % 60)).slice(-2) + '</b> left' + (L.frenzy(K.S.t, K.S.dur) ? ' · 🔥 final wave' : '') + '. ') + [0, 1].map(function (t) { return T[t].e + ' ' + esc(T[t].name) + ': <b>' + K.S.score[t] + ' gold</b> · ' + on[t] + ' on the board' + (size[t] ? ' · team of ' + size[t] : ''); }).join(' · ')));
     // diagnostics: are students' placements arriving, and are any being turned away?
     var D = K.diag || { students: {}, placed: 0, turned: {}, last: 0 }, nStu = Object.keys(D.students).length, turned = Object.keys(D.turned).map(function (k) { return D.turned[k] + ' ' + k; }).join(', ');
     sec.appendChild(H('p', 'state' + (K.S.t > 300 && !D.placed ? ' bad' : ''), '📡 ' + (nStu ? nStu + ' student' + (nStu === 1 ? '' : 's') + ' sending · ' + D.placed + ' character' + (D.placed === 1 ? '' : 's') + ' placed' + (turned ? ' · turned away: ' + esc(turned) : '') + (D.last ? ' · newest ' + Math.max(0, Math.round((Date.now() - D.last) / 1000)) + ' s ago' : '') : K.S.t > 200 ? 'No placements have arrived from students yet. Their answers reach this console every few seconds; if this stays empty, check they\'re signed in and on this lesson.' : 'Waiting for the first placements…') + ' · battle clock ' + Math.floor(K.S.t / 10) + ' s'));
     var heroes = Object.keys(K.hero).map(function (s) { return K.hero[s]; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); }).slice(0, 6);
     if (heroes.length) sec.appendChild(H('p', 'muted', 'Top heroes: ' + heroes.map(function (h) { return esc(h.name) + ' ' + T[h.team].e + ' ' + h.gold + 'g/' + h.right + '✓'; }).join(', ')));
+    if (K.power) sec.appendChild(H('p', 'muted', '⚖️ Teams balanced on today\'s lesson: ' + [0, 1].map(function (t) { return T[t].e + ' ' + K.hereN[t] + ' taking part, strength ' + K.power[t]; }).join(' · ') + '.'));
     if (K.team) { var d = el('details'); d.appendChild(el('summary', { text: 'The teams' })); [0, 1].forEach(function (t) { d.appendChild(H('p', 'muted', T[t].e + ' <b>' + esc(T[t].name) + ':</b> ' + A.rosterIn().filter(function (r) { return K.team[r.sid] === t; }).map(function (r) { return esc(A.nice(r.name)); }).join(', '))); }); sec.appendChild(d); }
     var r = H('div', 'row');
+    if (K.state === 3) r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: '⏭ Skip the rules', title: 'Start the battle now', onclick: function () { K.go = Date.now(); tick(); } }));
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: '👁 Watch the battle', title: 'The whole board, live, on this screen', onclick: function () { watch(); } }));
     if (K.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: '⏰ +1 minute', title: 'Add a minute to the battle (the final wave moves with it)', onclick: function () { K.S.dur = Math.min(9999, K.S.dur + 600); ev(K, 't', '', 0, 0, 0, 1); A.pushLive(); A.consolePanel(); } }));
     if (K.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'End the battle now', onclick: function () { end(); } }));

@@ -13,7 +13,7 @@
   'use strict';
   var L = window.SFA_LANES = {};
   L.LEN = 1000; L.LANES = 5; L.DUR = 3000; L.DEPLOY = 60; L.FRENZY = 600; L.RANGE = 45; L.MOW = 40; L.MOWBACK = 900;   // Mux parks again 90 s after charging
-  L.TILES = [380, 200];   // your planted defenders' two spots per lane, front and back (team 1 mirrors them)
+  L.TILES = [400, 280, 160];   // your planted defenders' spots in each lane, front to back (team 1 mirrors them)
   // kind: a = attacker (marches), d = defender (planted), s = special (instant). cost in coins; hp; damage per second;
   // speed in lane units per second; gold grabbed at the vault; reach for shooters; hero level needed; cooldown in ticks
   L.UNITS = [
@@ -43,8 +43,11 @@
     if (!firstTry || bonusRound) return 1;
     return (hard ? 4 : 3) + (streak % 3 === 0 ? 2 : 0) + (streak >= 5 ? 1 : 0);
   };
-  // a team more than 25 gold and 20% behind is in comeback mode: a bonus coin on every right answer, 25% tougher units
-  L.comeback = function (S, team) { var me = S.score[team], them = S.score[1 - team]; return them - me > 25 && me < them * 0.8; };
+  // catch-up for the team that's behind, in two steps. Behind (25 gold and 20%): a bonus coin on every right answer,
+  // 25% tougher characters, and Mux parks again twice as fast. Far behind (60 gold and 40%): two bonus coins, 50% tougher,
+  // Mux three times as fast. So a weaker team stays in the game and the final wave can still turn it
+  L.behind = function (S, team) { var me = S.score[team], them = S.score[1 - team]; return them - me > 60 && me < them * 0.6 ? 2 : them - me > 25 && me < them * 0.8 ? 1 : 0; };
+  L.comeback = function (S, team) { return L.behind(S, team) > 0; };
   function row(v) { var a = []; for (var i = 0; i < L.LANES; i++) a.push(v); return a; }   // one value per lane
   L.newState = function (dur) { return { dur: dur || L.DUR, t: 0, units: [], pend: [], score: [0, 0], next: 1, mow: [row(1), row(1)], mowAt: [row(0), row(0)] }; };
   function vaultX(team) { return team ? L.LEN : 0; }
@@ -86,14 +89,15 @@
         }
         var x = vaultX(p.team);
         if (U.kind === 'd') {
-          // a defender takes the first free tile: walls at the front, shooters at the back
-          var taken = {};
+          // a defender takes the first free tile: walls from the front, shooters from the back
+          var taken = {}, order = [];
           S.units.forEach(function (u) { if (u.team === p.team && u.lane === p.lane && u.tile != null) taken[u.tile] = 1; });
-          var order = U.id === 'sam' ? [0, 1] : [1, 0], tile = order.filter(function (k) { return !taken[k]; })[0];
+          for (var k0 = 0; k0 < L.TILES.length; k0++) order.push(U.id === 'sam' ? k0 : L.TILES.length - 1 - k0);
+          var tile = order.filter(function (k) { return !taken[k]; })[0];
           if (tile == null) tile = order[0];
           x = tileX(p.team, tile);
         }
-        var u = { id: p.id, team: p.team, lane: p.lane, type: p.type, lv: p.lv, x: x, hp: U.hp * L.mul(p.lv) * (L.comeback(S, p.team) ? 1.25 : 1), owner: p.owner, sid: p.sid, tile: U.kind === 'd' ? tile : null };
+        var u = { id: p.id, team: p.team, lane: p.lane, type: p.type, lv: p.lv, x: x, hp: U.hp * L.mul(p.lv) * (1 + 0.25 * L.behind(S, p.team)), owner: p.owner, sid: p.sid, tile: U.kind === 'd' ? tile : null };
         u.max = u.hp; S.units.push(u);
         if (fx) fx({ k: 'spawn', u: u });
       }
@@ -127,7 +131,7 @@
     for (i = 0; i < S.units.length; i++) {
       var a = S.units[i], foe = 1 - a.team;
       if (L.UNITS[a.type].kind !== 'a' || Math.abs(a.x - vaultX(foe)) > L.MOW) { keep.push(a); continue; }
-      if (S.mow[foe][a.lane]) { S.mow[foe][a.lane] = 0; S.mowAt[foe][a.lane] = S.t + L.MOWBACK; mowed[foe + ':' + a.lane] = 1; if (fx) fx({ k: 'mow', team: foe, lane: a.lane, by: a }); }
+      if (S.mow[foe][a.lane]) { S.mow[foe][a.lane] = 0; S.mowAt[foe][a.lane] = S.t + Math.round(L.MOWBACK / (1 + L.behind(S, foe))); mowed[foe + ':' + a.lane] = 1; if (fx) fx({ k: 'mow', team: foe, lane: a.lane, by: a }); }
       if (mowed[foe + ':' + a.lane]) continue;
       if ((a.team === 0 && a.x >= L.LEN) || (a.team === 1 && a.x <= 0)) {
         var g = Math.round(L.UNITS[a.type].gold * L.mul(a.lv) * (fz ? (S.score[a.team] < S.score[1 - a.team] ? 3 : 2) : 1));   // the final wave: double gold, triple for the team behind

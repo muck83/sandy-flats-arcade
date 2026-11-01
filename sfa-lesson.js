@@ -734,7 +734,7 @@
 
 
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261101d', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261101g', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }
@@ -769,7 +769,7 @@
     if (!(sl && (sl.k === 'exit' || sl.k === 'end'))) return;   // an optional finale: it shows up at the end of the lesson
     var sec = H('div', 'sect');
     sec.appendChild(H('h3', '', '⚔️ Finish with a Lane Clash? (optional, 5 minutes)'));
-    sec.appendChild(H('p', 'muted', 'Plants vs Zombies, team against team, with the Sandy Flats characters. Fair teams (dealt out by participation). Students answer this lesson\'s questions for coins, send characters down 5 lanes and plant defenders, and grab the other team\'s gold. Good lesson participation starts them with more coins and a higher hero level. The class screen shows the whole battle.'));
+    sec.appendChild(H('p', 'muted', 'Plants vs Zombies, team against team, with the Sandy Flats characters. Fair teams (balanced on what each student did in today\'s lesson), then 30 seconds of rules on every screen. Students answer this lesson\'s questions for coins, send characters down 5 lanes and plant defenders, and grab the other team\'s gold. Good lesson participation starts them with more coins and a higher hero level. The class screen shows the whole battle.'));
     var len = el('select', { 'aria-label': 'Battle length' }), lv0 = SFA.store.get('teacher.clash.mins', 5);
     [3, 5, 8].forEach(function (m) { var o = el('option', { value: String(m), text: m + ' minutes' }); if (m === lv0) o.selected = true; len.appendChild(o); });
     len.onchange = function () { SFA.store.set('teacher.clash.mins', +len.value); };

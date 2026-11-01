@@ -422,3 +422,7 @@ body.clashing{overflow:hidden}
 .lcdots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.22)}
 .lcdots i.done{background:rgba(255,201,74,.55)}.lcdots i.on{background:#FFC94A;transform:scale(1.3)}
 @media (prefers-reduced-motion:reduce){.lcban.in{animation:none}}
+/* the Lane Clash rules, before the battle */
+.lcban .lcvs2{font:400 clamp(18px,3vw,26px) "Luckiest Guy",system-ui}.lcban .lcvs2 b{color:#fff;margin:0 6px}
+.lcban .lcpics{display:flex;gap:10px;justify-content:center}.lcban .lcpics img{width:clamp(48px,9vw,76px);height:clamp(48px,9vw,76px)}
+.lcban .lccount{font-size:clamp(64px,12vw,120px);color:#FFC94A;line-height:1}
