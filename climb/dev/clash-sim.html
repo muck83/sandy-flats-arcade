@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clash simulator · Sandy Flats</title>
+<style>
+  body { font: 14px/1.4 system-ui, sans-serif; margin: 12px; background: #14161c; color: #e8e8ea; }
+  h1 { font-size: 18px; margin: 0 0 6px; }
+  pre { background: #0c0d11; padding: 8px; border-radius: 6px; white-space: pre-wrap; max-height: 340px; overflow: auto; font-size: 12px; }
+  #frames { display: flex; flex-wrap: wrap; gap: 6px; }
+  iframe { border: 1px solid #333; background: #fff; }
+  .t { width: 900px; height: 640px; } .s { width: 640px; height: 520px; }
+</style>
+<script>
+  // a whole class in one browser: the real teacher console and a few real student pages (each in a frame with its own
+  // sign-in), plus pretend classmates who send the same running rows a student's page would. The practice backend
+  // (mock.js) keeps the real results script's limits and a pretend Sheet delay. Settings ride in the address:
+  // ?bots=20&lag=1500&mins=5&l=5&real=3&fix=1 (fix: bots send the windowed placement list, see sfa-clash.js send())
+  var P = new URLSearchParams(location.search), CFG = { bots: +(P.get('bots') || 20), lag: +(P.get('lag') || 1500), mins: +(P.get('mins') || 5), l: +(P.get('l') || 5), real: Math.min(3, +(P.get('real') || 3)), fix: +(P.get('fix') || 0) };
+  Object.keys(localStorage).forEach(function (k) { if (/^sfamock\.|^climbmock/.test(k)) localStorage.removeItem(k); });
+  localStorage.setItem('climbmock.bots', CFG.bots); localStorage.setItem('climbmock.lag', CFG.lag);
+</script>
+<script src="mock.js"></script>
+<script src="../../sfa-lanes.js"></script>
+</head><body>
+<h1>⚔️ Lane Clash simulator</h1>
+<p id="cfg"></p>
+<pre id="log"></pre>
+<pre id="report"></pre>
+<div id="frames"></div>
+<script>
+(function () {
+  'use strict';
+  var L = window.SFA_LANES, EP = 'https://mock.invalid/exec', LES = null, log = document.getElementById('log');
+  document.getElementById('cfg').textContent = JSON.stringify(CFG);
+  function say(s) { log.textContent += new Date().toISOString().slice(11, 19) + ' ' + s + '\n'; log.scrollTop = 1e9; }
+  function post(b) { return fetch(EP, { method: 'POST', body: JSON.stringify(b) }).then(function (r) { return r.json(); }); }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function until(f, ms) { var t0 = Date.now(); return new Promise(function (res, rej) { (function go() { var v; try { v = f(); } catch (e) { } if (v) return res(v); if (Date.now() - t0 > (ms || 20000)) return rej(new Error('timed out')); setTimeout(go, 200); })(); }); }
+  function decRun(a) { return Array.isArray(a) && a.length === 3 ? ((a[0] * 1e4 + a[1]) * 1e4 + a[2]) * 1000 : 0; }
+  // a ticker that keeps going when this tab is in the background (timers in hidden tabs are slowed to once a minute)
+  function every(f, ms) { try { var w = new Worker(URL.createObjectURL(new Blob(['setInterval(function(){postMessage(0)},' + ms + ')']))); w.onmessage = f; return; } catch (e) { } setInterval(f, ms); }
+
+  var R = { setLive: { n: 0, maxKeys: 0, dropped: {}, maxSpot: 0, maxBytes: 0 }, placed: [], samples: [], students: {}, rowMax: 0, rowCut: 0 };
+  window.SIM_RESULT = R;
+  window.SIM_HOOK = function (k, o) {
+    if (k !== 'setLive') return;
+    var s = R.setLive; s.n++; s.maxKeys = Math.max(s.maxKeys, o.keys); s.maxSpot = Math.max(s.maxSpot, o.spot); s.maxBytes = Math.max(s.maxBytes, o.bytes);
+    o.dropped.forEach(function (k) { s.dropped[k] = (s.dropped[k] || 0) + 1; });
+  };
+
+  function roster() { return post({ op: 'roster', teacherKey: 'test' }).then(function (j) { return j.roster; }); }
+  function slidesQ() { return LES.slides.filter(function (s) { return s.id && !s.warm && /^(poll|number|open|machine)$/.test(s.k); }); }
+  function xid(s, i) { return String(s.id).slice(0, 14) + 'x' + (i + 1); }
+  // today's lesson before the battle: effort from 0 (did nothing) to 1 (every slide and the extras)
+  function seedLesson(st, effort, skill) {
+    var jobs = [post({ op: 'answer', code: st.code, lesson: LES.id, q: 'here', kind: 'open', answer: 'joined' })];
+    slidesQ().forEach(function (s) {
+      if (Math.random() > effort) return;
+      var ok = Math.random() < skill, a = s.k === 'poll' ? String(ok ? s.ans : (s.ans + 1) % (s.opts || [1, 2]).length) : s.k === 'number' ? String(ok ? s.ans : 999) : s.k === 'machine' ? 'x+1 (tried 0, 1, 5)' : 'I think it is because…';
+      jobs.push(post({ op: 'answer', code: st.code, lesson: LES.id, q: s.id, kind: s.k, answer: a, correct: s.ans == null ? null : ok }));
+      (s.more || []).forEach(function (m, i) { if (Math.random() < effort * 0.6) jobs.push(post({ op: 'answer', code: st.code, lesson: LES.id, q: xid(s, i), kind: m.k === 'poll' ? 'poll' : 'number', answer: String(m.ans), correct: true })); });
+    });
+    return Promise.all(jobs);
+  }
+  function statsOf(effort) { var n = slidesQ().length; return { answered: Math.round(n * effort), correct: Math.round(n * effort * 0.7), extras: Math.round(n * effort * 0.6), probed: 0 }; }
+
+  /* ---------- pretend classmates ---------- */
+  var STYLES = ['balanced', 'attacker', 'defender', 'balanced', 'attacker', 'spammer', 'balanced', 'idle'];
+  function Bot(st, i) {
+    var style = STYLES[i % STYLES.length], effort = style === 'idle' ? 0.1 : 0.3 + Math.random() * 0.7, skill = style === 'spammer' ? 0.95 : 0.45 + Math.random() * 0.5;
+    var b = { st: st, style: style, effort: effort, skill: skill, mean: style === 'spammer' ? 6 : style === 'idle' ? 60 : 9 + Math.random() * 14, coins: 0, bonus: 0, boost: 0, right: 0, earned: 0, streak: 0, best: 0, cool: 0, next: 0, places: [], total: 0, cd: {}, sendAt: 0, busy: false, dirty: false, ping: null };
+    var lb = L.lessonBonus.apply(null, (function (s) { return [s.answered, s.correct, s.extras, s.probed]; })(statsOf(effort)));
+    b.coins = b.bonus = lb.coins; b.boost = lb.boost;
+    return b;
+  }
+  function row(b, id) {
+    var list = b.places.map(function (x) { return x.l + '.' + x.t + '.' + x.d + '.' + x.v; }).join(',');
+    // the fixed format sends the newest placements and how many came before them (n:); the old one sends up to 60
+    return 'c3;id:' + Math.round(id / 1000) + ';r:' + b.right + ';e:' + b.earned + ';b:' + b.bonus + ';v:' + b.boost + ';sk:' + b.best + (b.ping ? ';g:' + b.ping.l + '.' + b.ping.t : '') + (CFG.fix ? ';n:' + (b.total - b.places.length) : '') + ';p:' + list;
+  }
+  function send(b) {
+    if (b.busy) { b.dirty = true; return; }
+    b.busy = true; b.dirty = false;
+    var txt = row(b, B.id); R.rowMax = Math.max(R.rowMax, txt.length); if (txt.length > 600) R.rowCut++;
+    post({ op: 'answer', code: b.st.code, lesson: LES.id, q: 'zclash', kind: 'open', answer: txt }).then(function () { b.busy = false; if (b.dirty) send(b); });
+  }
+  var B = { id: 0, snap: null, at: 0, state: 0, dur: 0 };   // the battle as the bots see it (polling like a student page)
+  function bT() { return B.snap ? Math.min(B.dur, B.snap.t + Math.min(60, (performance.now() - B.at) / 100)) : 0; }
+  function botStep(b) {
+    if (!B.snap || B.state !== 1) return;
+    var now = Date.now(), T = bT(), me = B.team(b.st.sid);
+    if (now >= b.next && now >= b.cool) {
+      if (Math.random() < b.skill) { b.streak++; b.best = Math.max(b.best, b.streak); var got = L.coinsFor(true, Math.random() < 0.25, b.streak, false); b.coins += got; b.earned += got; b.right++; b.sendAt = b.sendAt || now + 4000; }
+      else if (Math.random() < 0.5) { b.streak = 0; b.coins += 1; b.earned += 1; b.right++; b.sendAt = b.sendAt || now + 4000; }
+      else { b.streak = 0; b.cool = now + 5000; }
+      b.next = now + b.mean * 1000 * (0.5 + Math.random());
+    }
+    if (b.sendAt && now >= b.sendAt) { b.sendAt = 0; send(b); }
+    if (T >= B.dur - 5) return;
+    var lv = L.lvOf(b.right, b.boost), S = B.snap, want = [];
+    if (b.style === 'spammer') want = [0];
+    else if (b.style === 'defender') want = [1, 5, 3, 0];
+    else if (b.style === 'attacker') want = [4, 2, 0, 3];
+    else want = [2, 5, 0, 1, 3, 4].sort(function () { return Math.random() - 0.5; });
+    for (var k = 0; k < want.length; k++) {
+      var t = want[k], U = L.UNITS[t]; if (U.lv > lv || b.coins < U.cost || (b.cd[t] || 0) > T) continue;
+      // defenders go where enemies are coming; attackers where the enemy has the fewest defenders
+      var lanes = [0, 1, 2].map(function (l) {
+        var foes = S.units.filter(function (u) { return u.team !== me && u.lane === l; }), dfn = foes.filter(function (u) { return L.UNITS[u.type].kind === 'd'; }).length, atk = foes.length - dfn;
+        return { l: l, s: U.kind === 'a' ? -dfn + Math.random() : atk + Math.random(), full: U.kind === 'd' && L.planted(S, me, l) >= L.TILES.length };
+      }).filter(function (x) { return !x.full; }).sort(function (x, y) { return y.s - x.s; });
+      if (!lanes.length) continue;
+      b.coins -= U.cost; b.cd[t] = Math.floor(T) + U.cd; b.total++;
+      b.places.push({ l: lanes[0].l, t: t, d: Math.floor(T), v: lv, sent: Date.now() });
+      if (b.places.length > (CFG.fix ? 30 : 60)) b.places = b.places.slice(CFG.fix ? -30 : -60);
+      send(b); break;
+    }
+  }
+
+  /* ---------- the real pages ---------- */
+  function frame(src, cls) { var f = document.createElement('iframe'); f.className = cls; f.src = src; document.getElementById('frames').appendChild(f); return f; }
+  function norm(s) { return String(s || '').replace(/<[^>]*>/g, '').replace(/[^a-z0-9]/gi, '').toLowerCase(); }
+  // a real student page: answer the battle's question (right most of the time), then spend the coins
+  function driveStudent(f, skill) {
+    var w = f.contentWindow, d = w.document, A = w.SFA_LESSON_API; if (!A || !d.querySelector('.lc')) return;
+    var nx = [].filter.call(d.querySelectorAll('.lcq button'), function (x) { return /Next question/.test(x.textContent) && !x.disabled; })[0];
+    if (nx) { nx.click(); return; }
+    var qe = d.querySelector('.lcq p.q'); if (!qe) return;
+    var pool = []; A.LES().slides.forEach(function (s) { if ((s.k === 'number' || s.k === 'poll') && s.ans != null) pool.push(s); (s.more || []).forEach(function (m) { if ((m.k === 'number' || m.k === 'poll') && m.ans != null) pool.push(m); }); });
+    var q = pool.filter(function (x) { return norm(x.q) === norm(qe.innerHTML); })[0];
+    var ok = q && Math.random() < skill;
+    var inp = d.querySelector('.lcq input');
+    if (inp) { inp.value = ok ? String(q.ans) : '999'; d.querySelector('.lcq .row button').click(); }
+    else { var opts = d.querySelectorAll('.lcq .opt'); if (opts.length) opts[ok ? q.ans : (q ? (q.ans + 1) % opts.length : 0)].click(); }
+    // spend: the dearest card this page can afford, in a random lane
+    var cards = [].filter.call(d.querySelectorAll('.lccard'), function (c) { return !/locked|poor/.test(c.className) && !c.querySelector('.lccd'); });
+    if (cards.length && Math.random() < 0.7) { cards[cards.length - 1 - Math.floor(Math.random() * Math.min(2, cards.length))].click(); var lanes = d.querySelectorAll('.lclane'); if (lanes.length) lanes[Math.floor(Math.random() * 3)].click(); }
+  }
+
+  /* ---------- watching ---------- */
+  function sample(tf, sf) {
+    var A = tf.contentWindow.SFA_LESSON_API, K = A && A.console_() && A.console_().clash; if (!K) return;
+    var ref = {}; K.S.units.forEach(function (u) { ref[u.id] = u; });
+    var s = { at: Date.now(), t: K.S.t, state: K.state, score: K.S.score.slice(), units: [0, 1].map(function (t) { return K.S.units.filter(function (u) { return u.team === t; }).length; }), pend: K.S.pend.length, diag: K.diag ? { students: Object.keys(K.diag.students).length, placed: K.diag.placed, turned: Object.assign({}, K.diag.turned) } : null, pages: [] };
+    sf.forEach(function (f) {
+      var C = f.contentWindow.SFA_CLASH, p = C && C.peek && C.peek(); if (!p) { s.pages.push(null); return; }
+      var dx = [], missing = 0, seen = {};
+      p.units.forEach(function (u) { seen[u[0]] = 1; var r = ref[u[0]]; if (r) dx.push(Math.abs(r.x - u[1])); });
+      K.S.units.forEach(function (u) { if (!seen[u.id]) missing++; });
+      s.pages.push({ lagT: Math.round(K.S.t - p.t), units: p.units.length, missing: missing, dx: dx.length ? Math.round(dx.reduce(function (a, b) { return a + b; }, 0) / dx.length) : 0, coins: p.coins, sent: p.sent, mine: p.mine, waiting: p.waiting, refunds: p.refunds, over: p.over });
+    });
+    R.samples.push(s);
+  }
+
+  function report(bots) {
+    var S = R.samples, last = S[S.length - 1] || {}, out = [];
+    var pages = S.map(function (s) { return s.pages; }).filter(Boolean);
+    function avg(a) { return a.length ? Math.round(10 * a.reduce(function (x, y) { return x + y; }, 0) / a.length) / 10 : 0; }
+    var lag = [], dx = [], miss = [];
+    S.forEach(function (s) { if (s.state !== 1) return; s.pages.forEach(function (p) { if (p) { lag.push(p.lagT); dx.push(p.dx); miss.push(p.missing); } }); });
+    var del = R.placed.map(function (p) { return p.T0 - p.d; }), late = R.placed.filter(function (p) { return p.at > p.d + L.DEPLOY + 1; }).length;
+    var sentByBots = bots.reduce(function (a, b) { return a + b.total; }, 0), botAcc = R.placed.filter(function (p) { return /^b/.test(p.sid); }).length;
+    out.push('RESULT  ' + (last.state === 2 ? 'battle ended' : 'battle NOT ended') + ' · score ' + (last.score || []).join(' : ') + ' · clock ' + Math.round((last.t || 0) / 10) + ' s');
+    out.push('BOARD   most units at once: ' + Math.max.apply(null, S.map(function (s) { return s.units[0] + s.units[1]; }).concat(0)) + ' · referee placed ' + R.placed.length + ' (bots sent ' + sentByBots + ', accepted ' + botAcc + ')');
+    out.push('TURNED  ' + JSON.stringify(last.diag ? last.diag.turned : {}));
+    out.push('DELAY   click → console: avg ' + avg(del) / 10 + ' s, max ' + Math.max.apply(null, del.concat(0)) / 10 + ' s · left the gate later than 6 s after the click: ' + late + ' of ' + R.placed.length);
+    out.push('SCREENS student boards behind the referee: avg ' + avg(lag) / 10 + ' s, max ' + Math.max.apply(null, lag.concat(0)) / 10 + ' s · position error avg ' + avg(dx) + ' (lane is 1000) · units missing avg ' + avg(miss));
+    out.push('PAGES   ' + (last.pages || []).map(function (p, i) { var acc = R.placed.filter(function (x) { return x.sid === 's' + (i + 1); }).length; return p ? 's' + (i + 1) + ': sent ' + p.sent + ', console took ' + acc + ', claimed ' + p.mine + ', refunds ' + p.refunds + (p.refunds > p.sent - acc ? ' (FALSE REFUNDS)' : '') + ', end screen ' + p.over : 's' + (i + 1) + ': no battle'; }).join(' | '));
+    out.push('LIVE    pushes ' + R.setLive.n + ' · most keys ' + R.setLive.maxKeys + ' (limit 60) · dropped ' + JSON.stringify(R.setLive.dropped) + ' · spot ' + R.setLive.maxSpot + '/600 · ' + R.setLive.maxBytes + ' bytes');
+    out.push('ROWS    longest running row ' + R.rowMax + ' chars (cut at 600) · rows over 600: ' + R.rowCut);
+    out.push('BOTS    ' + bots.map(function (b) { var acc = R.placed.filter(function (p) { return p.sid === b.st.sid; }).length; return b.st.name.split(', ')[1] + '(' + b.style[0] + ') ' + acc + '/' + b.total; }).join(' '));
+    out.push('');
+    out.push('  t(s)  score      units  pend  placed  turned   page lag(s)/err/missing');
+    S.filter(function (s, i) { return i % 10 === 0 || s === last; }).forEach(function (s) {
+      out.push(('     ' + Math.round(s.t / 10)).slice(-6) + '  ' + (s.score[0] + ':' + s.score[1] + '        ').slice(0, 9) + '  ' + (s.units[0] + '+' + s.units[1] + '    ').slice(0, 6) + ' ' + ('  ' + s.pend).slice(-4) + '  ' + ('     ' + (s.diag ? s.diag.placed : 0)).slice(-6) + '  ' + (JSON.stringify(s.diag ? s.diag.turned : {}) + '         ').slice(0, 30) + ' ' + s.pages.map(function (p) { return p ? p.lagT / 10 + '/' + p.dx + '/' + p.missing : '-'; }).join('  '));
+    });
+    document.getElementById('report').textContent = out.join('\n');
+    R.text = out.join('\n');
+  }
+
+  /* ---------- the run ---------- */
+  window.SFA_LESSON = function (x) { LES = x; };
+  var sc = document.createElement('script'); sc.src = '../../lessons/L' + CFG.l + '.js'; document.head.appendChild(sc);
+  until(function () { return LES; }).then(function () { return roster(); }).then(function (ros) {
+    say('Lesson ' + LES.id + ' · ' + ros.length + ' students · Sheet delay ~' + CFG.lag + ' ms');
+    var real = ros.filter(function (r) { return /^s/.test(r.sid); }).slice(0, CFG.real), bots = ros.filter(function (r) { return /^b/.test(r.sid); }).map(function (r, i) { return Bot(r, i); });
+    window.SIM_BOTS = bots;
+    return Promise.all(bots.map(function (b) { return seedLesson(b.st, b.effort, b.skill); }).concat(real.map(function (r, i) { return seedLesson(r, [0.9, 0.5, 0.2][i], 0.8); }))).then(function () {
+      say('lesson answers seeded');
+      localStorage.setItem('sfamock.t.classkey', JSON.stringify({ k: 'test', until: Date.now() + 864e5 }));
+      localStorage.setItem('sfamock.t.teacher.clash.mins', String(CFG.mins));
+      var tf = frame('../../lesson-practice.html?l=' + CFG.l + '&teach&as=t', 't');
+      return until(function () { var d = tf.contentWindow.document; return [].filter.call(d.querySelectorAll('button'), function (b) { return b.textContent === 'Go live'; })[0]; }).then(function (go) {
+        go.click(); say('console: Go live');
+        var sf = real.map(function (r) {
+          localStorage.setItem('sfamock.' + r.sid + '.sync.cred', JSON.stringify({ kind: 'code', code: r.code }));
+          localStorage.setItem('sfamock.' + r.sid + '.sync.me', JSON.stringify({ sid: r.sid, name: r.name, cls: r.cls }));
+          return frame('../../lesson-practice.html?l=' + CFG.l + '&as=' + r.sid, 's');
+        });
+        return wait(6000).then(function () {
+          // the console's own finale button, on the last slide
+          var tw = tf.contentWindow; tw.document.dispatchEvent(new tw.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+          return until(function () { return [].filter.call(tw.document.querySelectorAll('button'), function (b) { return /Start a Lane Clash/.test(b.textContent); })[0]; }, 15000).catch(function () {
+            var A = tw.SFA_LESSON_API; for (var i = 0; i < 80; i++) tw.document.dispatchEvent(new tw.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+            return until(function () { return [].filter.call(tw.document.querySelectorAll('button'), function (b) { return /Start a Lane Clash/.test(b.textContent); })[0]; }, 15000);
+          });
+        }).then(function (sb) {
+          // the referee's placements, as they happen: who, what, the tick they clicked, the tick the console saw it
+          var tw = tf.contentWindow;
+          sb.click(); say('console: Start a Lane Clash (' + CFG.mins + ' min)');
+          return until(function () { return tw.SFA_LANES && tw.SFA_LESSON_API.console_().clash; }).then(function () { return [tf, sf, tw]; });
+        }).then(function (x) {
+          var tf = x[0], sf = x[1], tw = x[2], TL = tw.SFA_LANES, place0 = TL.place;
+          TL.place = function (S, p) { var K = tw.SFA_LESSON_API.console_().clash; R.placed.push({ sid: p.sid, type: p.type, at: p.at, T0: K ? Math.floor((Date.now() - K.id) / 100) : 0, d: p.d }); return place0.apply(this, arguments); };
+          var team = {};
+          B.team = function (sid) { if (!(sid in team)) { var K = tw.SFA_LESSON_API.console_().clash; team[sid] = K && K.team && sid in K.team ? K.team[sid] : 0; } return team[sid]; };
+          every(function () { bots.forEach(botStep); }, 500);
+          every(function () { sample(tf, sf); }, 1000);
+          var sk = [0.9, 0.7, 0.5]; every(function () { sf.forEach(function (f, i) { try { driveStudent(f, sk[i]); } catch (e) { } }); }, 2500);
+          every(function () { report(bots); }, 5000);
+          // the bots poll the live state like a student page
+          (function poll() {
+            post({ op: 'live' }).then(function (j) {
+              var c = j.live && j.live.counts; if (c && c.zcs) { var id = decRun(c.zcid); if (id && id !== B.id) { B.id = id; say('battle ' + id + ' seen by the bots'); } var sn = L.decode(c); if (sn && (!B.snap || sn.t !== B.snap.t)) { B.snap = sn; B.at = performance.now(); } B.state = c.zcs[3]; B.dur = c.zcs[5] || L.DUR; }
+              setTimeout(poll, 3000 + Math.random() * 1000);
+            });
+          })();
+          every(function () {
+            var K = tw.SFA_LESSON_API.console_().clash; if (!K) return;
+            if (K.state === 2 && !R.done) { R.done = Date.now(); say('battle over'); setTimeout(function () { sample(tf, sf); report(bots); say('report ready'); R.final = true; }, 12000); }
+          }, 1000);
+        });
+      });
+    });
+  }).catch(function (e) { say('stopped: ' + e.message); });
+})();
+</script>
+</body></html>

@@ -734,7 +734,7 @@
 
 
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261027b', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261030d', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }
@@ -1072,12 +1072,12 @@
   function flagShown(f) { return !!(f && (flagStrong(f) || f.secs >= 10)); }
   function broadcast() { if (bc) bc.postMessage({ t: 'state', slide: cur, live: liveObj(), feed: feed }); }
   function liveObj() {
-    var counts = {};
-    Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length) counts[q] = feed.per[q].counts; });
+    // the results script keeps the first 60 counts keys: the run, the lock and the battle go first, the slides' tallies last
+    var counts = {}, spot = console_.spot;
     if (console_.run) counts.zrun = encRun(console_.run);
     if (console_.lock) counts.zlock = [1];
-    var spot = console_.spot;
     if (console_.clash && window.SFA_CLASH) { SFA_CLASH.counts(counts); spot = SFA_CLASH.spot(); }   // the battle board, the teams, shout-outs and MVPs
+    Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length && Object.keys(counts).length < 60) counts[q] = feed.per[q].counts; });
     return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: spot, timer: console_.timer, lock: console_.lock, auto: console_.auto };
   }
   var pushT = null, lastCounts = '', lastPush = 0;

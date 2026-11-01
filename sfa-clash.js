@@ -16,8 +16,13 @@
   var TC = ['#FFC94A', '#5CC8FF'];   // team colours: gold on the left, sky on the right
   function teamNames(id) { var k = Math.round(id / 1000) % 4; return [{ name: TEAMS[k * 2][0], e: TEAMS[k * 2][1] }, { name: TEAMS[k * 2 + 1][0], e: TEAMS[k * 2 + 1][1] }]; }
   function hashTeam(sid, id) { var h = 5381, t = String(sid) + ':' + Math.round(id / 1000); for (var i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return h & 1; }
-  function teamOf(sid, id, t0) { return t0 ? (t0[sid] ? 0 : 1) : hashTeam(sid, id); }
+  function sh3(sid) { var h = 5381, t = String(sid); for (var i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return (h % 46656).toString(36); }
+  function teamOf(sid, id, t0) { return t0 ? (t0[sid] || t0['#' + sh3(sid)] ? 0 : 1) : hashTeam(sid, id); }
   function decRun(a) { return A.decRun(a); }
+  // the id of a student's k-th placement on the board (j: the next try if that id is busy). The console gives it and the
+  // student's page works it out too, so a page knows exactly which characters are its own, and which were turned away
+  function pid(sid, id, k, j) { var h = 5381, t = String(sid) + ':' + Math.round(id / 1000) + ':' + k + ':' + (j || 0); for (var i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return 1 + h % 9998; }
+  var WHY = { g: 'it got scrambled on the way', l: 'your hero level hadn\'t reached the console yet', c: 'the console counted fewer coins for you', r: 'it was still recharging', f: 'your team\'s lanes were packed', s: 'a teammate took the last planting spot in that lane first' };
 
   // the battle in the live state: id (also names the teams), start in server time, and the board
   function clashOf(Lv) {
@@ -26,15 +31,18 @@
     if (A.MODE !== 'teach' && sNow() - st > dur * 100 + 180000) return null;   // over 3 minutes past its end: stale
     return { id: decRun(c.zcid), start: A.MODE === 'screen' ? decRun(c.zcid) : decRun(c.zcst) || decRun(c.zcid), state: c.zcs[3], t: c.zcs[0], score: [c.zcs[1], c.zcs[2]], dur: c.zcs[5] || L.DUR };
   }
-  // the spotlight slot: "T:sid,…#E:seq~kind~name~team~lane~type~n;…#M:name~gold~right;…"
+  // the spotlight slot: "U:fingerprint,…#E:seq~kind~name~team~lane~type~n;…#R:placement id~why;…#M:name~gold~right;…"
+  // (U: is team 0 as sh3 fingerprints of the student ids; T: is the same list as plain ids, from before)
   function clashSpot(Lv) {
-    var o = { t0: null, ev: [], mvp: [], awards: [], heroes: [] }, sp = Lv && Lv.spot && Lv.spot.q === 'zclash' ? String(Lv.spot.text || '') : '';
+    var o = { t0: null, ev: [], mvp: [], awards: [], heroes: [], rej: {} }, sp = Lv && Lv.spot && Lv.spot.q === 'zclash' ? String(Lv.spot.text || '') : '';
     sp.split('#').forEach(function (part) {
       var k = part.slice(0, 2), v = part.slice(2);
       if (k === 'T:') { o.t0 = {}; v.split(',').forEach(function (x) { if (x) o.t0[x] = 1; }); }
+      else if (k === 'U:') { o.t0 = {}; v.split(',').forEach(function (x) { if (x) o.t0['#' + x] = 1; }); }
       else if (k === 'E:') o.ev = v.split(';').map(function (x) { var p = x.split('~'); return { seq: +p[0], k: p[1], name: p[2], team: +p[3], lane: +p[4], type: +p[5], n: +p[6] }; }).filter(function (e) { return e.seq && e.k; });
       else if (k === 'M:') o.mvp = v.split(';').map(function (x) { var p = x.split('~'); return p[0] ? { name: p[0], gold: +p[1] || 0, right: +p[2] || 0 } : null; });
       else if (k === 'A:') o.awards = v.split(';').map(function (x) { var p = x.split('~'); return { k: p[0], name: p[1], team: +p[2], n: +p[3] }; }).filter(function (a) { return a.name; });
+      else if (k === 'R:') v.split(';').forEach(function (x) { var p = x.split('~'); if (+p[0]) o.rej[+p[0]] = p[1] || 'g'; });
       else if (k === 'H:') o.heroes = v.split(';').map(function (x) { var p = x.split('~'); return { name: p[0], team: +p[1], gold: +p[2], right: +p[3], lv: +p[4] || 1 }; }).filter(function (a) { return a.name; });
     });
     return o;
@@ -74,12 +82,13 @@
     // the newest snapshot of the board: play it forward from its own time to now
     var snap = L.decode(Lv.counts);
     if (snap && (!V.snapT || snap.t !== V.snapT || V.c.state !== c.state)) {
-      V.snapT = snap.t; V.base = { t: snap.t, at: performance.now() }; claimMine(snap);
+      V.snapT = snap.t; V.base = { t: snap.t, at: performance.now() }; claimMine(snap, sp.rej);
       L.advance(snap, nowT(c), onFx);
       if (V.S) { var keepIds = {}; snap.units.forEach(function (u) { keepIds[u.id] = 1; }); V.S.units.forEach(function (u) { if (!keepIds[u.id] && !V.fxKeys['die:' + u.id] && !V.fxKeys['grab:' + u.id]) { V.fxKeys['die:' + u.id] = 1; die(u, false); } }); }
       V.S = snap;
     }
     V.c = c; V.sp = sp;
+    if (V.S) claimMine(V.S, sp.rej);
     shoutsFromSpot(sp, c);
     if (c.state === 2 && !V.over && (sp.mvp.length || sp.awards.length || Date.now() - (V.endSeen || (V.endSeen = Date.now())) > 4000)) showEnd(c, sp);
     hudTick();
@@ -139,12 +148,12 @@
   /* ---------- the student's own battle: coins, hero level, cooldowns, placements ---------- */
   function initMine(c) {
     var key = 'clash.' + A.LID, Ls = SFA.store.get(key, null);
-    if (Ls && Ls.id === c.id) { CL = Ls; CL.temps = CL.temps || []; return; }
+    if (Ls && Ls.id === c.id) { CL = Ls; CL.temps = CL.temps || []; CL.total = CL.total || CL.places.length; return; }
     var st = lessonStatsFrom(A.mine()), b = L.lessonBonus(st.answered, st.correct, st.extras, st.probed);
     var pool = pool_(), order = pool.map(function (x, i) { return i; }), r = 0, k = (A.S.me ? A.S.me.sid : 'x') + ':' + Math.round(c.id / 1000);
     for (var h = 0; h < k.length; h++) r = (r * 31 + k.charCodeAt(h)) % 2147483647;
     for (var i = order.length - 1; i > 0; i--) { r = (r * 1103515245 + 12345) % 2147483648; var j = r % (i + 1), tmp = order[i]; order[i] = order[j]; order[j] = tmp; }
-    CL = { id: c.id, coins: b.coins, bonus: b.coins, boost: b.boost, stats: st, earned: 0, right: 0, streak: 0, cool: 0, fb: null, qi: 0, tries: 0, order: order, cd: {}, places: [], temps: [], mineIds: {}, sent: 0, gold: 0, intro: false };
+    CL = { id: c.id, total: 0, coins: b.coins, bonus: b.coins, boost: b.boost, stats: st, earned: 0, right: 0, streak: 0, cool: 0, fb: null, qi: 0, tries: 0, order: order, cd: {}, places: [], temps: [], mineIds: {}, sent: 0, gold: 0, intro: false };
     keep();
   }
   function keep() { SFA.store.set('clash.' + A.LID, CL); }
@@ -152,8 +161,9 @@
   var saveT = null;
   function send() {
     keep(); clearTimeout(saveT);
+    // the newest placements and how many came before them (n): the results script keeps 600 characters of an answer
     var p = CL.places.map(function (x) { return x.l + '.' + x.t + '.' + x.d + '.' + x.v; }).join(',');
-    A.record({ id: 'zclash', k: 'open' }, 'c3;id:' + Math.round(CL.id / 1000) + ';r:' + CL.right + ';e:' + CL.earned + ';b:' + CL.bonus + ';v:' + CL.boost + ';sk:' + (CL.best || 0) + (CL.ping ? ';g:' + CL.ping.l + '.' + CL.ping.t : '') + ';p:' + p, null);
+    A.record({ id: 'zclash', k: 'open' }, 'c3;id:' + Math.round(CL.id / 1000) + ';r:' + CL.right + ';e:' + CL.earned + ';b:' + CL.bonus + ';v:' + CL.boost + ';sk:' + (CL.best || 0) + (CL.ping ? ';g:' + CL.ping.l + '.' + CL.ping.t : '') + ';n:' + (CL.total - CL.places.length) + ';p:' + p, null);
   }
   function sendSoon() { clearTimeout(saveT); saveT = setTimeout(send, 4000); }
   function pool_() {
@@ -168,6 +178,7 @@
   function canPlace(t, l) {
     var U = L.UNITS[t], c = V.c, T0 = nowT(c);
     if (!CL || c.state !== 1 || T0 >= c.dur - 5) return 'The battle is over.';
+    if (T0 >= c.dur - 70) return 'Too late to send more: the battle ends in a few seconds.';
     if (U.lv > lv()) return 'Unlocks at hero level ' + U.lv + '.';
     if (CL.coins < U.cost) return 'Not enough coins: answer questions to earn more.';
     if ((CL.cd[t] || 0) > T0) return U.name + ' is recharging.';
@@ -182,8 +193,8 @@
     var U = L.UNITS[t], T0 = Math.floor(nowT(V.c));
     CL.coins -= U.cost; CL.cd[t] = T0 + U.cd; CL.sent++;
     var p = { l: l, t: t, d: T0, v: lv() };
-    sfx('pop'); CL.places.push(p); CL.temps.push({ l: l, t: t, at: T0 + L.DEPLOY, made: Date.now() });
-    if (CL.places.length > 60) CL.places = CL.places.slice(-60);
+    sfx('pop'); CL.places.push(p); CL.temps.push({ k: CL.total, l: l, t: t, at: T0 + L.DEPLOY, made: Date.now() }); CL.total++;
+    if (CL.places.length > 30) CL.places = CL.places.slice(-30);
     send();
     V.sel = -1; drawCards();
     var T = teamNames(V.c.id);
@@ -196,18 +207,22 @@
     CL.ping = { l: l, t: T0 }; send(); sfx('ping');
     shout({ e: 'gus', who: '📣 YOU:', text: '<b>Help in lane ' + (l + 1) + '!</b>', team: me, mine: true, small: true });
   }
-  // a snapshot that now holds one of my placements: claim it (its glow and "You" tag), drop the gate placeholder
-  function claimMine(S) {
-    if (!CL || me < 0) return;
-    var all = S.pend.concat(S.units);
+  // a snapshot that now holds one of my placements: claim it (its glow and "You" tag), drop the gate placeholder. One the
+  // console turned away (it says so in the spotlight) gets its coins back. One neither seen nor turned away went on the
+  // board and was gone before a snapshot caught it (Zero is never on the board for long), so it just stops waiting.
+  function claimMine(S, rej) {
+    if (!CL || me < 0 || !A.S.me) return;
+    var ids = {}; S.pend.concat(S.units).forEach(function (u) { if (u.team === me) ids[u.id] = 1; });
     CL.temps = CL.temps.filter(function (x) {
-      var hit = all.filter(function (u) { return u.team === me && u.lane === x.l && u.type === x.t && !CL.mineIds[u.id] && (u.at == null || Math.abs(u.at - x.at) < 150); })[0];
-      if (hit) { CL.mineIds[hit.id] = 1; return false; }
-      if (Date.now() - x.made < 25000) return true;
-      // it never reached the board: give the coins back and say so (the teacher's console shows why)
-      var U = L.UNITS[x.t]; CL.coins += U.cost; CL.cd[x.t] = 0; keep();
-      SFA.toast('Your ' + U.name + ' did not reach the board, so you got your ' + U.cost + ' coins back. Try again.', 5000);
-      return false;
+      if (x.k == null) return Date.now() - x.made < 30000;   // placed before this page updated
+      for (var j = 0; j < 6; j++) { var id = pid(A.S.me.sid, CL.id, x.k, j); if (ids[id]) { CL.mineIds[id] = 1; return false; } }
+      var why = rej && rej[pid(A.S.me.sid, CL.id, x.k, 0)];
+      if (why) {
+        var U = L.UNITS[x.t]; CL.coins += U.cost; CL.cd[x.t] = 0; CL.refunds = (CL.refunds || 0) + 1; keep(); drawCards();
+        SFA.toast('Your ' + U.name + ' was turned away (' + (WHY[why] || WHY.g) + '), so you got your ' + U.cost + ' coins back.', 5000);
+        return false;
+      }
+      return Date.now() - x.made < 30000;
     });
   }
 
@@ -457,7 +472,7 @@
         c.font = 'bold ' + Math.round(G.lh * 0.28) + 'px sans-serif'; c.textAlign = 'center'; c.fillStyle = '#ff5a4a'; c.fillText('⚠', gx, gy + Math.sin(now / 120) * 3);
       }
     });
-    if (CL) CL.temps.forEach(function (x) { var gx = me ? w - G.vw - 18 : G.vw + 18, left = Math.max(0, (x.at - T0) / 10); c.save(); c.globalAlpha = 0.45; var sp3 = SP.get(L.UNITS[x.t].who); if (sp3) drawSprite(sp3, gx, laneY(G, x.l), sizeOf(L.UNITS[x.t].who, G) * 0.7, me, 0); c.restore(); ring(c, gx, laneY(G, x.l) - G.lh * 0.62, 11, 1 - left / (L.DEPLOY / 10), TC[me], Math.ceil(left)); });
+    if (CL) CL.temps.forEach(function (x) { if (T0 > x.at + 40) return; var gx = me ? w - G.vw - 18 : G.vw + 18, left = Math.max(0, (x.at - T0) / 10); c.save(); c.globalAlpha = 0.45; var sp3 = SP.get(L.UNITS[x.t].who); if (sp3) drawSprite(sp3, gx, laneY(G, x.l), sizeOf(L.UNITS[x.t].who, G) * 0.7, me, 0); c.restore(); ring(c, gx, laneY(G, x.l) - G.lh * 0.62, 11, 1 - left / (L.DEPLOY / 10), TC[me], Math.ceil(left)); });
     // the units: march bob, lunge when fighting, flash when hit, a health bar, level stars, a "You" tag
     var alive = {};
     S.units.slice().sort(function (a, b) { return a.lane - b.lane; }).forEach(function (u) {
@@ -637,7 +652,7 @@
   function agg() {
     var K = C(); if (!K || K.frozen) return;
     var ids = {}; A.rosterIn().forEach(function (r) { ids[r.sid] = r; });
-    if (!K.team && K.t0 && Object.keys(ids).length) { K.team = {}; Object.keys(ids).forEach(function (sid) { K.team[sid] = K.t0[sid] ? 0 : 1; }); }
+    if (!K.team && K.t0 && Object.keys(ids).length) { K.team = {}; Object.keys(ids).forEach(function (sid) { K.team[sid] = teamOf(sid, K.id, K.t0); }); }
     var key = 'id:' + Math.round(K.id / 1000) + ';', last = {};
     (A.consoleAnswers() || []).forEach(function (a) { if (a.q === 'zclash' && ids[a.sid] && String(a.answer).indexOf(key) >= 0 && (!last[a.sid] || String(a.time) >= String(last[a.sid].time))) last[a.sid] = a; });
     var T0 = cNow(K);
@@ -651,30 +666,35 @@
       var myB = Math.min(16, Math.max(bonus.coins, get('b'))), myV = Math.min(2, Math.max(bonus.boost, get('v')));
       var budget = myB + 9 * r + 4, lvMax = L.lvOf(r, myV);
       var D = K.diag || (K.diag = { students: {}, placed: 0, turned: {}, last: 0 }); D.students[sid] = 1; D.last = Math.max(D.last, Date.parse(last[sid].time) || 0);
-      var turn = function (why) { D.turned[why] = (D.turned[why] || 0) + 1; };
+      // turned away: counted for the console, and announced (by the placement's id) so that student gets the coins back
+      var turn = function (why, k, code) { D.turned[why] = (D.turned[why] || 0) + 1; K.rej = (K.rej || []).concat([[pid(sid, K.id, k, 0), code]]).slice(-12); };
       var H0 = K.hero[sid] || (K.hero[sid] = { name: A.first(ids[sid].name), team: team, gold: 0, right: 0, best: 0, def: 0, lv: 1 }); H0.right = r; H0.best = Math.min(get('sk'), r); H0.lv = lvMax;
       // a call for help: "g:lane.tick", newest only
       var g = (s.match(/;g:(\d)\.(\d+)/) || null);
       if (g && (acc.ping == null || +g[2] > acc.ping)) { if (acc.ping != null) ev(K, 'p', H0.name, team, +g[1], 0, 0); acc.ping = +g[2]; } else if (acc.ping == null) acc.ping = 0;   // after a console reload, an old call isn't replayed
       if (lvMax >= 4 && lvMax > acc.lvSeen && acc.lvSeen) ev(K, 'h', H0.name, team, 0, 0, lvMax);
       acc.lvSeen = lvMax;
-      var list = ((s.match(/;p:([0-9.,]*)/) || [, ''])[1]).split(',').filter(Boolean);
-      if (acc.n < 0) { acc.n = list.length; return; }   // console reloaded mid-battle: those are already on the board
-      for (var i = acc.n; i < list.length; i++) {
-        var p = list[i].split('.').map(Number), l = p[0], t = p[1], d = p[2], v = p[3], U = L.UNITS[t];
-        if (!U || !(l >= 0 && l < 3)) { turn('garbled'); continue; }
-        if (U.lv > lvMax) { turn('level too low'); continue; }
-        if (acc.spent + U.cost > budget) { turn('not enough coins'); continue; }
-        if ((acc.cd[t] || -1e9) > d + 20) { turn('still recharging'); continue; }
-        if (K.S.units.concat(K.S.pend).filter(function (u) { return u.team === team; }).length >= BOARD_CAP) { turn('board full'); continue; }
-        if (U.kind === 'd' && L.planted(K.S, team, l) >= L.TILES.length) { turn('both spots taken'); continue; }
+      // the row holds the newest placements; n: says how many came before them (rows from before n: start at 0)
+      var list = ((s.match(/;p:([0-9.,]*)/) || [, ''])[1]).split(',').filter(Boolean), n0 = get('n');
+      if (acc.n < 0) { acc.n = n0 + list.length; return; }   // console reloaded mid-battle: those are already on the board
+      var busy = {}; K.S.units.concat(K.S.pend).forEach(function (u) { busy[u.id] = 1; });
+      for (var i = Math.max(0, acc.n - n0); i < list.length; i++) {
+        var k = n0 + i, p = list[i].split('.').map(Number), l = p[0], t = p[1], d = p[2], v = p[3], U = L.UNITS[t];
+        if (!U || !(l >= 0 && l < 3) || p.length < 4) { turn('garbled', k, 'g'); continue; }
+        if (U.lv > lvMax) { turn('level too low', k, 'l'); continue; }
+        if (acc.spent + U.cost > budget) { turn('not enough coins', k, 'c'); continue; }
+        if ((acc.cd[t] || -1e9) > d + 20) { turn('still recharging', k, 'r'); continue; }
+        if (K.S.units.concat(K.S.pend).filter(function (u) { return u.team === team; }).length >= BOARD_CAP) { turn('board full', k, 'f'); continue; }
+        if (U.kind === 'd' && L.planted(K.S, team, l) >= L.TILES.length) { turn('both spots taken', k, 's'); continue; }
         D.placed++;
         acc.spent += U.cost; acc.cd[t] = d + U.cd; if (U.kind === 'd') H0.def++;
-        var at = Math.max(Math.ceil(T0) + 5, Math.min(d + L.DEPLOY, Math.ceil(T0) + L.DEPLOY + 20));
-        L.place(K.S, { team: team, lane: l, type: t, lv: Math.min(v || 1, lvMax), at: at, owner: H0.name, sid: sid });
+        var at = Math.max(Math.ceil(T0) + 5, Math.min(d + L.DEPLOY, Math.ceil(T0) + L.DEPLOY + 20)), id = 0;
+        for (var j = 0; j < 6 && !id; j++) { var c0 = pid(sid, K.id, k, j); if (!busy[c0]) id = c0; }
+        if (id) busy[id] = 1;
+        L.place(K.S, { id: id || undefined, team: team, lane: l, type: t, lv: Math.min(v || 1, lvMax), at: at, owner: H0.name, sid: sid, d: d });
         if (U.cost >= 5) ev(K, 's', H0.name, team, l, t, 0);
       }
-      acc.n = list.length;
+      acc.n = Math.max(acc.n, n0 + list.length);
     });
     K.primed = true;
   }
@@ -713,18 +733,20 @@
   }
   function counts(out) {
     var K = C(); if (!K) return;
-    Object.assign(out, L.encode(K.S, K.state, 48));
     out.zcid = A.encRun(K.id); out.zcst = A.encRun(K.id + (A.console_().skew || 0));
+    Object.assign(out, L.encode(K.S, K.state, 48));
   }
   function spot() {
-    var K = C(), t0 = Object.keys(K.team || {}).filter(function (sid) { return K.team[sid] === 0 && /^[A-Za-z0-9_.@-]{1,30}$/.test(sid); }).join(',');
+    // team 0 as short fingerprints of the student ids (U:), so the list fits whatever ids the roster uses
+    var K = C(), t0 = Object.keys(K.team || {}).filter(function (sid) { return K.team[sid] === 0; }).map(sh3).join(',');
     var E = K.events.map(function (e) { return [e.seq, e.k, e.name, e.team, e.lane, e.type, e.n].join('~'); }).join(';');
     var M = K.state === 2 ? K.mvp.map(function (m) { return m ? [m.name, m.gold, m.right].join('~') : ''; }).join(';') : '';
     var AW = K.state === 2 ? (K.awards || []).map(function (a) { return [a.k, a.name, a.team, a.n].join('~'); }).join(';') : '';
     // during the battle: the top five heroes, for the class screen
     var HS = K.state === 1 ? Object.keys(K.hero).map(function (s) { return K.hero[s]; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); }).slice(0, 5).map(function (h) { return [h.name, h.team, h.gold, h.right, h.lv].join('~'); }).join(';') : '';
-    var txt = '#E:' + E + (M ? '#M:' + M : '') + (AW ? '#A:' + AW : '') + (HS ? '#H:' + HS : '');
-    return { q: 'zclash', text: ('T:' + t0).slice(0, 595 - txt.length) + txt };
+    var RJ = (K.rej || []).map(function (r) { return r[0] + '~' + r[1]; }).join(';');
+    var txt = '#E:' + E + (RJ ? '#R:' + RJ : '') + (M ? '#M:' + M : '') + (AW ? '#A:' + AW : '') + (HS ? '#H:' + HS : '');
+    return { q: 'zclash', text: ('U:' + t0).slice(0, 595 - txt.length) + txt };
   }
   function restore(Lv) {
     var c = clashOf(Lv); if (!c) return false;
@@ -755,5 +777,11 @@
   }
   (A.every || function (f, ms) { setInterval(f, ms); })(function () { if (A.MODE === 'teach' && A.console_() && C()) tick(); }, 500);
 
-  window.SFA_CLASH = { sync: sync, agg: agg, section: section, start: start, counts: counts, spot: spot, restore: restore, clashOf: clashOf };
+  // what this screen's board shows right now (read only; the practice simulator in climb/dev compares it with the referee)
+  function peek() {
+    if (!V || !V.c) return null;
+    return { t: nowT(V.c), state: V.c.state, snapT: V.snapT, over: V.over, units: V.S ? V.S.units.map(function (u) { return [u.id, Math.round(u.x), u.team]; }) : [], score: V.S ? V.S.score.slice() : [0, 0],
+      me: me, coins: CL ? CL.coins : 0, right: CL ? CL.right : 0, sent: CL ? CL.sent : 0, mine: CL ? Object.keys(CL.mineIds).length : 0, waiting: CL ? CL.temps.length : 0, refunds: CL ? CL.refunds || 0 : 0 };
+  }
+  window.SFA_CLASH = { sync: sync, agg: agg, section: section, start: start, counts: counts, spot: spot, restore: restore, clashOf: clashOf, peek: peek };
 })();
