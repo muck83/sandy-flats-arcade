@@ -1,7 +1,7 @@
 /* Lane Clash: the battle rules. Shared by the teacher console (which runs the real battle), every student page and the
    class screen (which play it forward between the console's snapshots), and the playtest page. No DOM in here.
 
-   Plants vs Zombies, but both teams attack and defend. Three lanes. Team 0's vault is on the left (x = 0), team 1's on
+   Plants vs Zombies, but both teams attack and defend. Five lanes. Team 0's vault is on the left (x = 0), team 1's on
    the right (x = LEN). Attackers march at the enemy vault and grab gold if they get through. Defenders are planted on
    tiles in your own half and never move: Squaring Sam is a wall, Priya's Pea Pigeon shoots down the lane. Zero rolls
    down a lane erasing every enemy. Each vault has a Mux the Machine in every lane: the first enemy to reach it sets
@@ -12,17 +12,17 @@
 (function () {
   'use strict';
   var L = window.SFA_LANES = {};
-  L.LEN = 1000; L.LANES = 3; L.DUR = 3000; L.DEPLOY = 60; L.FRENZY = 600; L.RANGE = 45; L.MOW = 40; L.MOWBACK = 900;   // Mux parks again 90 s after charging
+  L.LEN = 1000; L.LANES = 5; L.DUR = 3000; L.DEPLOY = 60; L.FRENZY = 600; L.RANGE = 45; L.MOW = 40; L.MOWBACK = 900;   // Mux parks again 90 s after charging
   L.TILES = [380, 200];   // your planted defenders' two spots per lane, front and back (team 1 mirrors them)
   // kind: a = attacker (marches), d = defender (planted), s = special (instant). cost in coins; hp; damage per second;
   // speed in lane units per second; gold grabbed at the vault; reach for shooters; hero level needed; cooldown in ticks
   L.UNITS = [
-    { id: 'gus', kind: 'a', who: 'gus', name: 'Gus', role: 'Sneaky runner', cost: 2, hp: 45, dps: 11, spd: 135, gold: 6, lv: 1, cd: 40, say: 'Fast and cheap. Slips through empty lanes.' },
-    { id: 'sam', kind: 'd', who: 'sam', name: 'Squaring Sam', role: 'Wall', cost: 5, hp: 190, dps: 9, lv: 1, cd: 100, say: 'Plants himself in your half and blocks the lane.' },
-    { id: 'one', kind: 'a', who: 'one', name: 'One', role: 'Superhero', cost: 6, hp: 150, dps: 30, spd: 85, gold: 10, lv: 2, cd: 80, breaker: 2, say: 'Smashes walls and pigeons: double damage to defenders.' },
-    { id: 'zero', kind: 's', who: 'zero', name: 'Zero', role: 'Eraser', cost: 5, pie: 70, lv: 3, cd: 200, say: 'Rolls down a lane and erases every enemy in it.' },
-    { id: 'max', kind: 'a', who: 'max', name: 'Maximus Million', role: 'Giant', cost: 10, hp: 420, dps: 38, spd: 55, gold: 24, lv: 4, cd: 250, say: 'Huge and slow. Grabs loads of gold.' },
-    { id: 'pigeon', kind: 'd', who: 'pigeon', name: 'Pea Pigeon', role: 'Shooter', cost: 4, hp: 45, dps: 8, reach: 300, lv: 1, cd: 60, say: 'Perches in your half and pelts attackers from afar.' }
+    { id: 'gus', kind: 'a', who: 'gus', name: 'Gus', role: 'Sneaky runner', cost: 3, hp: 45, dps: 11, spd: 135, gold: 6, lv: 1, cd: 40, say: 'Fast and cheap. Slips through empty lanes.' },
+    { id: 'sam', kind: 'd', who: 'sam', name: 'Squaring Sam', role: 'Wall', cost: 7, hp: 190, dps: 9, lv: 1, cd: 100, say: 'Plants himself in your half and blocks the lane.' },
+    { id: 'one', kind: 'a', who: 'one', name: 'One', role: 'Superhero', cost: 9, hp: 150, dps: 30, spd: 85, gold: 10, lv: 2, cd: 80, breaker: 2, say: 'Smashes walls and pigeons: double damage to defenders.' },
+    { id: 'zero', kind: 's', who: 'zero', name: 'Zero', role: 'Eraser', cost: 8, pie: 70, lv: 3, cd: 200, say: 'Rolls down a lane and erases every enemy in it.' },
+    { id: 'max', kind: 'a', who: 'max', name: 'Maximus Million', role: 'Giant', cost: 16, hp: 420, dps: 38, spd: 55, gold: 24, lv: 4, cd: 250, say: 'Huge and slow. Grabs loads of gold.' },
+    { id: 'pigeon', kind: 'd', who: 'pigeon', name: 'Pea Pigeon', role: 'Shooter', cost: 6, hp: 45, dps: 8, reach: 300, lv: 1, cd: 60, say: 'Perches in your half and pelts attackers from afar.' }
   ];
   L.ORDER = [0, 5, 1, 2, 3, 4];   // seed-packet order on screen
   L.unit = function (t) { return L.UNITS[t]; };
@@ -35,7 +35,7 @@
   // less than doing the work
   L.lessonBonus = function (answered, correct, extras, probed) {
     var effort = answered + extras + (probed || 0);
-    return { coins: Math.min(16, 2 + effort + Math.floor(correct / 2)), boost: effort >= 12 ? 2 : effort >= 6 ? 1 : 0 };
+    return { coins: Math.min(10, 2 + Math.ceil(effort * 0.6) + Math.floor(correct / 3)), boost: effort >= 12 ? 2 : effort >= 6 ? 1 : 0 };
   };
   // coins for one answer in the battle: 3 (a ★★ question 4), 1 on a second try or in the bonus round, +2 every third
   // in a row, +1 more on each answer while on a streak of 5 or more
@@ -45,7 +45,8 @@
   };
   // a team more than 25 gold and 20% behind is in comeback mode: a bonus coin on every right answer, 25% tougher units
   L.comeback = function (S, team) { var me = S.score[team], them = S.score[1 - team]; return them - me > 25 && me < them * 0.8; };
-  L.newState = function (dur) { return { dur: dur || L.DUR, t: 0, units: [], pend: [], score: [0, 0], next: 1, mow: [[1, 1, 1], [1, 1, 1]], mowAt: [[0, 0, 0], [0, 0, 0]] }; };
+  function row(v) { var a = []; for (var i = 0; i < L.LANES; i++) a.push(v); return a; }   // one value per lane
+  L.newState = function (dur) { return { dur: dur || L.DUR, t: 0, units: [], pend: [], score: [0, 0], next: 1, mow: [row(1), row(1)], mowAt: [row(0), row(0)] }; };
   function vaultX(team) { return team ? L.LEN : 0; }
   function tileX(team, k) { return team ? L.LEN - L.TILES[k] : L.TILES[k]; }
 
@@ -67,8 +68,8 @@
   L.step = function (S, fx) {
     S.t++;
     var fz = L.frenzy(S.t, S.dur), i, j;
-    if (!S.mowAt) S.mowAt = [[0, 0, 0], [0, 0, 0]];
-    for (var mt = 0; mt < 2; mt++) for (var ml = 0; ml < 3; ml++) if (!S.mow[mt][ml] && S.mowAt[mt][ml] && S.t >= S.mowAt[mt][ml]) { S.mow[mt][ml] = 1; S.mowAt[mt][ml] = 0; if (fx) fx({ k: 'mowback', team: mt, lane: ml }); }
+    if (!S.mowAt) S.mowAt = [row(0), row(0)];
+    for (var mt = 0; mt < 2; mt++) for (var ml = 0; ml < L.LANES; ml++) if (!S.mow[mt][ml] && S.mowAt[mt][ml] && S.t >= S.mowAt[mt][ml]) { S.mow[mt][ml] = 1; S.mowAt[mt][ml] = 0; if (fx) fx({ k: 'mowback', team: mt, lane: ml }); }
     // leave the gate
     if (S.pend.length) {
       var still = [];
@@ -148,11 +149,13 @@
   L.advance = function (S, toT, fx) { var n = 0; toT = Math.min(toT, S.dur || L.DUR); while (S.t < toT && n++ < 4000) L.step(S, fx); return S; };
 
   // the snapshot the console sends out with the live state: 4 numbers a unit (id, x or leave-tick, code, hp; hp 0 = in
-  // the gate), 3 units per counts key (zu0, zu1, …), plus zcs = [tick, gold 0, gold 1, state, Mux bits, length in ticks]. Every number 0..9999.
+  // the gate), 3 units per counts key (zu0, zu1, …), plus zcs = [tick, gold 0, gold 1, state, Mux bits, length in ticks]
+  // and zcm = the tick each charged Mux parks again (team 0's lanes, then team 1's). Every number 0..9999.
   function code(u) { return u.lane * 1000 + u.type * 100 + u.lv * 10 + u.team; }
   L.encode = function (S, state, maxKeys) {
-    var bits = 0; for (var tm = 0; tm < 2; tm++) for (var ln = 0; ln < 3; ln++) if (S.mow[tm][ln]) bits |= 1 << (tm * 3 + ln);
+    var bits = 0; for (var tm = 0; tm < 2; tm++) for (var ln = 0; ln < L.LANES; ln++) if (S.mow[tm][ln]) bits |= 1 << (tm * L.LANES + ln);
     var out = { zcs: [S.t, Math.min(9999, S.score[0]), Math.min(9999, S.score[1]), state || 1, bits, Math.min(9999, S.dur || L.DUR)] }, nums = [];
+    if (S.mowAt) out.zcm = S.mowAt[0].concat(S.mowAt[1]).map(function (v) { return Math.max(0, Math.min(9999, v || 0)); });
     S.pend.forEach(function (p) { nums.push(p.id % 10000, Math.max(0, Math.min(9999, p.at)), code(p), 0); });
     S.units.forEach(function (u) { nums.push(u.id % 10000, Math.round(Math.max(0, Math.min(L.LEN, u.x))), code(u), Math.max(1, Math.min(9999, Math.round(u.hp)))); });
     for (var k = 0; k * 12 < nums.length && k < (maxKeys || 48); k++) out['zu' + k] = nums.slice(k * 12, k * 12 + 12);
@@ -160,8 +163,9 @@
   };
   L.decode = function (counts) {
     if (!counts || !Array.isArray(counts.zcs)) return null;
-    var z = counts.zcs, bits = z[4] == null ? 63 : z[4];
-    var S = { dur: z[5] || L.DUR, t: z[0], units: [], pend: [], score: [z[1], z[2]], next: 1, state: z[3], mow: [[0, 1, 2].map(function (l) { return bits >> l & 1; }), [0, 1, 2].map(function (l) { return bits >> (3 + l) & 1; })] };
+    var z = counts.zcs, bits = z[4] == null ? (1 << 2 * L.LANES) - 1 : z[4], m = counts.zcm || [];
+    var S = { dur: z[5] || L.DUR, t: z[0], units: [], pend: [], score: [z[1], z[2]], next: 1, state: z[3], mow: [[], []], mowAt: [[], []] };
+    for (var tm = 0; tm < 2; tm++) for (var ln = 0; ln < L.LANES; ln++) { S.mow[tm].push(bits >> (tm * L.LANES + ln) & 1); S.mowAt[tm].push(m[tm * L.LANES + ln] || 0); }
     for (var k = 0; Array.isArray(counts['zu' + k]); k++) {
       var a = counts['zu' + k];
       for (var i = 0; i + 3 < a.length; i += 4) {

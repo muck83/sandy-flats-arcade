@@ -104,7 +104,7 @@
     for (var k = 0; k < want.length; k++) {
       var t = want[k], U = L.UNITS[t]; if (U.lv > lv || b.coins < U.cost || (b.cd[t] || 0) > T) continue;
       // defenders go where enemies are coming; attackers where the enemy has the fewest defenders
-      var lanes = [0, 1, 2].map(function (l) {
+      var lanes = Array.apply(null, Array(L.LANES)).map(function (x, l) {
         var foes = S.units.filter(function (u) { return u.team !== me && u.lane === l; }), dfn = foes.filter(function (u) { return L.UNITS[u.type].kind === 'd'; }).length, atk = foes.length - dfn;
         return { l: l, s: U.kind === 'a' ? -dfn + Math.random() : atk + Math.random(), full: U.kind === 'd' && L.planted(S, me, l) >= L.TILES.length };
       }).filter(function (x) { return !x.full; }).sort(function (x, y) { return y.s - x.s; });
@@ -133,7 +133,7 @@
     else { var opts = d.querySelectorAll('.lcq .opt'); if (opts.length) opts[ok ? q.ans : (q ? (q.ans + 1) % opts.length : 0)].click(); }
     // spend: the dearest card this page can afford, in a random lane
     var cards = [].filter.call(d.querySelectorAll('.lccard'), function (c) { return !/locked|poor/.test(c.className) && !c.querySelector('.lccd'); });
-    if (cards.length && Math.random() < 0.7) { cards[cards.length - 1 - Math.floor(Math.random() * Math.min(2, cards.length))].click(); var lanes = d.querySelectorAll('.lclane'); if (lanes.length) lanes[Math.floor(Math.random() * 3)].click(); }
+    if (cards.length && Math.random() < 0.7) { cards[cards.length - 1 - Math.floor(Math.random() * Math.min(2, cards.length))].click(); var lanes = d.querySelectorAll('.lclane'); if (lanes.length) lanes[Math.floor(Math.random() * lanes.length)].click(); }
   }
 
   /* ---------- watching ---------- */

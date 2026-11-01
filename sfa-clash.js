@@ -123,9 +123,10 @@
     hud.mid.querySelector('.lcsound').onclick = function () { SFA.store.set('clash.sound', !soundOn()); this.textContent = soundOn() ? '🔊' : '🔇'; sfx('pop'); };
     var stage = H('div', 'lcstage'); cvs = document.createElement('canvas'); cvs.className = 'lcboard'; stage.appendChild(cvs); root.appendChild(stage);
     ctx = cvs.getContext('2d');
-    cvs.addEventListener('mousemove', function (e) { var r = cvs.getBoundingClientRect(); V.hover = Math.max(0, Math.min(2, Math.floor((e.clientY - r.top) / (r.height / 3)))); });
+    function laneAt(e) { var r = cvs.getBoundingClientRect(), G = geo(); return Math.max(0, Math.min(L.LANES - 1, Math.floor((e.clientY - r.top - G.top) / G.lh))); }
+    cvs.addEventListener('mousemove', function (e) { V.hover = laneAt(e); });
     cvs.addEventListener('mouseleave', function () { V.hover = -1; });
-    cvs.addEventListener('click', function (e) { if (A.MODE !== 'student' || V.sel < 0) return; var r = cvs.getBoundingClientRect(), y = e.clientY - r.top, lh = r.height / 3; pickLane(Math.max(0, Math.min(2, Math.floor(y / lh)))); });
+    cvs.addEventListener('click', function (e) { if (A.MODE !== 'student' || V.sel < 0) return; pickLane(laneAt(e)); });
     if (A.MODE === 'student') {
       var low = H('div', 'lclow'); root.appendChild(low);
       hud.q = H('div', 'lcq'); low.appendChild(hud.q);
@@ -133,7 +134,7 @@
       hud.hero = H('div', 'lchero'); side.appendChild(hud.hero);
       hud.cards = H('div', 'lccards'); side.appendChild(hud.cards);
       hud.lanes = H('div', 'lclanes'); side.appendChild(hud.lanes);
-      [0, 1, 2].forEach(function (l) { var b = el('button', { type: 'button', 'class': 'lclane' }); b.onclick = function (e) { if (e.target.closest('.lcping')) return callHelp(l); pickLane(l); }; hud.lanes.appendChild(b); });
+      for (var l0 = 0; l0 < L.LANES; l0++) (function (l) { var b = el('button', { type: 'button', 'class': 'lclane' }); b.onclick = function (e) { if (e.target.closest('.lcping')) return callHelp(l); pickLane(l); }; hud.lanes.appendChild(b); })(l0);
       initMine(c);
       drawCards(); drawQ();
     } else {
@@ -355,11 +356,12 @@
     if (e.k === 'mow') { V.mowers.push({ lane: e.lane, team: e.team, t0: performance.now() }); V.shake = Math.max(V.shake, 10); sfx('mow'); var T = teamNames(V.c.id); shout({ e: 'mux', who: 'MUX', text: 'charged down lane ' + (e.lane + 1) + ' for <b>' + esc(T[e.team].name.toUpperCase()) + '</b>!', team: e.team, mine: e.team === me }); return; }
   }
   function geo() {
-    var w = cvs.clientWidth, h = cvs.clientHeight, vw = Math.max(46, w * 0.075), top = 0;
-    return { w: w, h: h, vw: vw, lh: (h - top) / 3, top: top, X: function (x) { return vw + (x / L.LEN) * (w - 2 * vw); } };
+    // the forts take a strip at each end, and a band across the top holds their banners
+    var w = cvs.clientWidth, h = cvs.clientHeight, vw = Math.max(58, w * 0.09), top = Math.max(22, h * 0.07);
+    return { w: w, h: h, vw: vw, lh: (h - top) / L.LANES, top: top, X: function (x) { return vw + (x / L.LEN) * (w - 2 * vw); } };
   }
   function laneY(G, l) { return G.top + G.lh * (l + 0.82); }
-  function sizeOf(who, G) { var k = { gus: 0.62, one: 0.74, sam: 0.66, pigeon: 0.34, max: 0.98, zero: 0.42, mux: 0.6 }[who] || 0.6; return G.lh * k; }
+  function sizeOf(who, G) { var k = { gus: 0.62, one: 0.74, sam: 0.66, pigeon: 0.34, max: 0.98, zero: 0.42, mux: 0.6 }[who] || 0.6; return G.lh * k * (L.LANES > 3 ? 1.3 : 1); }
   function dust(u) { var G = geo(); for (var i = 0; i < 8; i++) V.parts.push({ k: 'dust', x: G.X(u.x) + (Math.random() - 0.5) * 30, y: laneY(G, u.lane), vx: (Math.random() - 0.5) * 60, vy: -Math.random() * 40, life: 0.6, t: 0 }); }
   function die(u, mowed) {
     var G = geo(), R = V.units[u.id] || {};
@@ -402,6 +404,68 @@
     draw(dt, T0);
     if (Math.floor(ts / 500) !== V.tick) { V.tick = Math.floor(ts / 500); hudTick(); if (CL && A.MODE === 'student') drawCards(); }
   }
+  /* a team's fort, drawn as a status board: the banner (gold grabbed, a crown for the leader), and for each lane a gate
+     that shows Mux (parked, or a ring counting down while he recharges), red alarm lights when enemy attackers are close,
+     and two pips for this team's planting spots. Cracks and smoke grow with the gold the other team has taken. */
+  function fort(c, G, t, S, TN, now, fz) {
+    var w = G.w, h = G.h, x0 = t ? w - G.vw : 0, vw = G.vw, inner = t ? x0 : x0 + vw, dir = t ? -1 : 1, px = x0 + vw / 2;
+    var g = c.createLinearGradient(x0, 0, x0 + vw, 0);
+    if (t) { g.addColorStop(0, '#3a4f72'); g.addColorStop(1, '#22304a'); } else { g.addColorStop(0, '#6b4a1a'); g.addColorStop(1, '#8a6224'); }
+    c.fillStyle = g; c.fillRect(x0, 0, vw, h);
+    // stone courses
+    c.strokeStyle = 'rgba(0,0,0,.2)'; c.lineWidth = 1;
+    for (var row = 0; row < h; row += 14) { c.beginPath(); c.moveTo(x0, row); c.lineTo(x0 + vw, row); c.stroke(); for (var col = (row / 14) % 2 ? 0 : 10; col < vw; col += 20) { c.beginPath(); c.moveTo(x0 + col, row); c.lineTo(x0 + col, row + 14); c.stroke(); } }
+    // battlements along the field side, in the team colour
+    var mw = 7; c.fillStyle = TC[t];
+    c.fillRect(t ? inner : inner - 4, 0, 4, h);
+    for (var my = G.top; my < h; my += 18) c.fillRect(t ? inner - mw : inner, my, mw, 10);
+    // cracks: one for every 60 gold the other team has grabbed (at most 8), always in the same places
+    var foe = S ? S.score[1 - t] : 0, mine = S ? S.score[t] : 0, cracks = Math.min(8, Math.floor(foe / 60));
+    c.strokeStyle = 'rgba(0,0,0,.55)'; c.lineWidth = 2;
+    for (var k = 0; k < cracks; k++) { var cx = x0 + vw * (0.2 + 0.6 * ((k * 37 % 10) / 10)), cy = G.top + (h - G.top) * ((k * 53 % 10) / 10 + 0.05); c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + 6, cy + 9); c.lineTo(cx - 2, cy + 16); c.lineTo(cx + 5, cy + 24); c.stroke(); }
+    // well behind: smoke rises from the fort
+    if (S && foe > 50 && foe > mine * 1.3) for (var sm = 0; sm < 3; sm++) { var ph = (now / 1400 + sm / 3) % 1; c.fillStyle = 'rgba(90,90,96,' + (0.5 * (1 - ph)) + ')'; c.beginPath(); c.arc(px + Math.sin(ph * 6 + sm) * 8, G.top + 10 - ph * 40, 6 + ph * 12, 0, 7); c.fill(); }
+    // the gates
+    for (var ln = 0; ln < L.LANES; ln++) {
+      var gy = laneY(G, ln), gh = G.lh * 0.62, gw = Math.min(vw * 0.62, gh * 0.8), gx = px + dir * vw * 0.08;
+      var near = S ? S.units.filter(function (u) { return u.team !== t && u.lane === ln && L.UNITS[u.type].kind === 'a' && Math.abs(u.x - (t ? L.LEN : 0)) < 320; }).length : 0;
+      var arch = function () { c.beginPath(); c.moveTo(gx - gw / 2, gy); c.lineTo(gx - gw / 2, gy - gh + gw / 2); c.arc(gx, gy - gh + gw / 2, gw / 2, Math.PI, 0); c.lineTo(gx + gw / 2, gy); c.closePath(); };
+      c.fillStyle = '#15171d'; c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = 2; arch(); c.fill(); c.stroke();
+      // the portcullis
+      c.strokeStyle = 'rgba(160,160,170,.45)'; c.lineWidth = 1.5;
+      for (var bx = -1; bx <= 1; bx++) { c.beginPath(); c.moveTo(gx + bx * gw / 4, gy - gh + 4); c.lineTo(gx + bx * gw / 4, gy); c.stroke(); }
+      c.beginPath(); c.moveTo(gx - gw / 2, gy - gh * 0.45); c.lineTo(gx + gw / 2, gy - gh * 0.45); c.stroke();
+      // enemies close: the gate flashes red, with how many
+      if (near) {
+        c.fillStyle = 'rgba(255,60,50,' + (0.35 + 0.35 * Math.max(0, Math.sin(now / 110))) + ')'; arch(); c.fill();
+        c.font = 'bold ' + Math.round(Math.max(11, G.lh * 0.24)) + 'px sans-serif'; c.textAlign = 'center'; c.fillStyle = '#fff'; c.fillText('!' + (near > 1 ? near : ''), gx, gy - gh * 0.25);
+      }
+      // Mux: a green light while he's parked, or a ring counting down to when he's back
+      var ready = !S || S.mow[t][ln], charging = V.mowers.some(function (m) { return m.team === t && m.lane === ln && now - m.t0 < 900; });
+      var lx = gx, ly = gy - gh - Math.max(7, G.lh * 0.1);
+      if (ready) { c.fillStyle = '#3BFF8A'; c.shadowColor = '#3BFF8A'; c.shadowBlur = 8; c.beginPath(); c.arc(lx, ly, Math.max(4, G.lh * 0.06), 0, 7); c.fill(); c.shadowBlur = 0; }
+      else {
+        var back = S && S.mowAt && S.mowAt[t] ? S.mowAt[t][ln] : 0, left = back ? Math.max(0, (back - S.t) / 10) : 0, frac = back ? 1 - left / (L.MOWBACK / 10) : 0, r0 = Math.max(6, G.lh * 0.1);
+        c.strokeStyle = 'rgba(255,255,255,.2)'; c.lineWidth = 3; c.beginPath(); c.arc(lx, ly, r0, 0, 7); c.stroke();
+        c.strokeStyle = '#FFC94A'; c.beginPath(); c.arc(lx, ly, r0, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2); c.stroke();
+        if (left) { c.font = 'bold ' + Math.round(Math.max(9, G.lh * 0.15)) + 'px sans-serif'; c.textAlign = 'center'; c.fillStyle = '#FFC94A'; c.fillText(String(Math.ceil(left)), lx + dir * (r0 + 12), ly + 4); }
+      }
+      var sp = SP.get('mux'), sz = sizeOf('mux', G) * 0.55, mx = t ? w - vw - sz * 0.45 : vw + sz * 0.45;
+      if (sp && !charging) { c.save(); c.globalAlpha = ready ? 1 : 0.25; drawSprite(sp, mx, gy, sz, t, 0); c.restore(); }
+      // this team's planting spots in the lane
+      if (S) { var pl = L.planted(S, t, ln); for (var q = 0; q < L.TILES.length; q++) { c.fillStyle = q < pl ? '#7CFF6B' : 'rgba(255,255,255,.18)'; c.fillRect(gx - 9 + q * 11, gy + 2, 8, 4); } }
+    }
+    // the banner: flag, gold grabbed, a crown on the leader; torches in the final wave
+    var bw = vw + 18, bx0 = t ? w - bw : 0;
+    c.fillStyle = 'rgba(0,0,0,.55)'; c.fillRect(bx0, 0, bw, G.top);
+    c.fillStyle = TC[t]; c.fillRect(bx0, G.top - 3, bw, 3);
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = Math.round(G.top * 0.6) + 'px serif'; c.fillText(TN.e, bx0 + (t ? bw - G.top * 0.5 : G.top * 0.5), G.top / 2);
+    c.font = '400 ' + Math.round(G.top * 0.62) + 'px "Luckiest Guy", system-ui'; c.fillStyle = '#FFE14D'; c.fillText(String(mine), bx0 + bw / 2 + dir * 6, G.top / 2 + 1);
+    if (S && mine > foe) { c.font = Math.round(G.top * 0.55) + 'px serif'; c.fillText('👑', bx0 + (t ? G.top * 0.45 : bw - G.top * 0.45), G.top / 2); }
+    c.textBaseline = 'alphabetic';
+    if (fz) for (var tc = 0; tc < 2; tc++) { var ty = G.top + (h - G.top) * (tc ? 0.66 : 0.33), tx = inner - dir * 6; c.fillStyle = '#FFB02E'; c.beginPath(); c.ellipse(tx, ty - 6 + Math.sin(now / 60 + tc) * 1.5, 4, 8, 0, 0, 7); c.fill(); c.fillStyle = '#FFF3B0'; c.beginPath(); c.ellipse(tx, ty - 4, 2, 4, 0, 0, 7); c.fill(); }
+  }
   function draw(dt, T0) {
     var dpr = Math.min(2, window.devicePixelRatio || 1), w = cvs.clientWidth, h = cvs.clientHeight;
     if (cvs.width !== Math.round(w * dpr) || cvs.height !== Math.round(h * dpr)) { cvs.width = Math.round(w * dpr); cvs.height = Math.round(h * dpr); }
@@ -410,7 +474,8 @@
     V.shake *= Math.pow(0.02, dt);
     if (V.shake > 0.3) c.translate((Math.random() - 0.5) * V.shake, (Math.random() - 0.5) * V.shake);
     // the lawn: checker stripes, warmer in the final wave
-    for (var l = 0; l < 3; l++) {
+    c.fillStyle = '#2a2f3a'; c.fillRect(0, 0, w, G.top);
+    for (var l = 0; l < L.LANES; l++) {
       var y0 = G.top + l * G.lh, cols = 12;
       for (var k = 0; k < cols; k++) {
         var x0 = G.vw + k * (w - 2 * G.vw) / cols, odd = (k + l) % 2;
@@ -424,7 +489,7 @@
     }
     // lane numbers, faint
     c.font = '400 ' + Math.round(G.lh * 0.5) + 'px "Luckiest Guy", system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = 'rgba(255,255,255,.07)';
-    for (var ln0 = 0; ln0 < 3; ln0++) c.fillText(String(ln0 + 1), w / 2, G.top + G.lh * (ln0 + 0.5));
+    for (var ln0 = 0; ln0 < L.LANES; ln0++) c.fillText(String(ln0 + 1), w / 2, G.top + G.lh * (ln0 + 0.5));
     c.textBaseline = 'alphabetic';
     // where the picked card would go: a ghost in the lane under the mouse
     if (A.MODE === 'student' && V.sel >= 0 && V.hover >= 0 && me >= 0) {
@@ -434,32 +499,9 @@
     }
     // halfway line
     c.strokeStyle = 'rgba(255,255,255,.18)'; c.setLineDash([6, 8]); c.beginPath(); c.moveTo(w / 2, 0); c.lineTo(w / 2, h); c.stroke(); c.setLineDash([]);
-    // the vaults: walls, a treasure pile that grows with the gold your team has grabbed, Mux parked in each lane
+    // the forts: one gate per lane with its Mux, and the battle's state on them
     var S = V.S, T0n = teamNames(V.c.id);
-    [0, 1].forEach(function (t) {
-      var x0 = t ? w - G.vw : 0;
-      var g = c.createLinearGradient(x0, 0, x0 + G.vw, 0); g.addColorStop(0, t ? '#2b3a55' : '#5a3d12'); g.addColorStop(1, t ? '#1d2a42' : '#3e2a0c');
-      c.fillStyle = g; c.fillRect(x0, 0, G.vw, h);
-      // the fort: stone courses, a team-coloured trim and the team's flag on a pole
-      c.strokeStyle = 'rgba(0,0,0,.18)'; c.lineWidth = 1;
-      for (var row = 0; row < h; row += 16) { c.beginPath(); c.moveTo(x0, row); c.lineTo(x0 + G.vw, row); c.stroke(); for (var col = (row / 16) % 2 ? 0 : 12; col < G.vw; col += 24) { c.beginPath(); c.moveTo(x0 + col, row); c.lineTo(x0 + col, row + 16); c.stroke(); } }
-      c.fillStyle = TC[t]; c.fillRect(t ? x0 : x0 + G.vw - 5, 0, 5, h);
-      var px = x0 + G.vw / 2, wave = Math.sin(now / 300 + t) * 4;
-      c.strokeStyle = '#ddd'; c.lineWidth = 2; c.beginPath(); c.moveTo(px, 6); c.lineTo(px, 40); c.stroke();
-      c.fillStyle = TC[t]; c.beginPath(); c.moveTo(px, 7); c.quadraticCurveTo(px + (t ? -14 : 14), 10 + wave, px + (t ? -26 : 26), 14); c.lineTo(px, 22); c.fill();
-      c.font = '13px serif'; c.textAlign = 'center'; c.fillText(T0n[t].e, px + (t ? -12 : 12), 19);
-      // the treasure: a pile of coins that grows with the gold this team has grabbed
-      var pile = S ? Math.min(1, S.score[t] / 400) : 0, base = h - 10, cw = G.vw * 0.26;
-      c.font = Math.round(G.vw * 0.5) + 'px serif'; c.textBaseline = 'middle'; c.fillText('💰', px, base - 14 - pile * G.vw * 0.5);
-      for (var p = 0; p < Math.round(pile * 18); p++) { var row2 = Math.floor(p / 4), colx = (p % 4) - 1.5 + (row2 % 2) * 0.5; c.fillStyle = '#E8B730'; c.strokeStyle = '#8a6a10'; c.beginPath(); c.ellipse(px + colx * cw * 0.5, base - row2 * 5, cw * 0.32, cw * 0.14, 0, 0, 7); c.fill(); c.stroke(); }
-      c.textBaseline = 'alphabetic';
-      for (var ln = 0; ln < 3; ln++) {
-        var ready = !S || S.mow[t][ln], sp = SP.get('mux'), sz = sizeOf('mux', G) * 0.62, mx = t ? w - G.vw - sz * 0.45 : G.vw + sz * 0.45;
-        if (sp && !V.mowers.some(function (m) { return m.team === t && m.lane === ln && now - m.t0 < 900; })) {
-          c.save(); c.globalAlpha = ready ? 1 : 0.28; drawSprite(sp, mx, laneY(G, ln), sz, t, 0); c.restore();
-        }
-      }
-    });
+    [0, 1].forEach(function (t) { fort(c, G, t, S, T0n[t], now, fz); });
     if (!S) return;
     // the gates: my team's pending placements as ghosts with a countdown; the enemy's as ⚠
     var T = teamNames(V.c.id);
@@ -585,13 +627,29 @@
   function showEnd(c, sp) {
     V.over = true; sfx('win');
     var T = teamNames(c.id), S = V.S || { score: c.score }, win = S.score[0] === S.score[1] ? -1 : S.score[0] > S.score[1] ? 0 : 1;
-    var b = H('div', 'lcend');
-    b.innerHTML = '<h1>' + (win < 0 ? 'It\'s a draw!' : T[win].e + ' ' + esc(T[win].name) + ' wins!') + '</h1><p class="lcfinal"><span style="color:' + TC[0] + '">' + S.score[0] + '</span> gold to <span style="color:' + TC[1] + '">' + S.score[1] + '</span> gold</p>' +
-      (sp.mvp.some(Boolean) ? '<p class="lcmvp">🏅 MVPs: ' + [0, 1].map(function (t) { var m = sp.mvp[t]; return m ? T[t].e + ' <b>' + esc(m.name) + '</b> (' + m.gold + ' gold, ' + m.right + ' right)' : ''; }).filter(Boolean).join(' · ') + '</p>' : '') +
-      (sp.awards && sp.awards.length ? '<div class="lcawards">' + sp.awards.map(function (a) { var t = AWARD[a.k] || ['🏅', a.k, '']; return '<div class="lcaward"><span class="i">' + t[0] + '</span><b>' + esc(t[1]) + '</b><span>' + T[a.team].e + ' ' + esc(a.name) + '</span><small>' + (a.k === 'lv' ? 'hero level ' + a.n : a.n + ' ' + t[2]) + '</small></div>'; }).join('') + '</div>' : '') +
-      (CL && A.MODE === 'student' ? '<p>You answered <b>' + CL.right + '</b> right, reached <b>hero level ' + lv() + '</b>, sent <b>' + CL.sent + '</b> characters and grabbed <b>' + CL.gold + '</b> gold.</p>' : '') +
-      '<p class="sub">Back to the lesson when ' + A.TEACHER + ' says so.</p>';
-    root.appendChild(b);
+    // the results as banners, one at a time (no scrolling): the winner, each MVP, each award, your own battle, then a
+    // summary that stays. Each stays up as long as it takes to read; a tap moves on
+    var head = win < 0 ? 'It\'s a draw!' : T[win].e + ' ' + esc(T[win].name) + ' wins!', score = '<p class="lcfinal"><span style="color:' + TC[0] + '">' + S.score[0] + '</span> gold to <span style="color:' + TC[1] + '">' + S.score[1] + '</span> gold</p>';
+    var bans = ['<h1>' + head + '</h1>' + score];
+    [0, 1].forEach(function (t) { var m = sp.mvp[t]; if (m) bans.push('<span class="lcbig">🏅</span><b class="lckick" style="color:' + TC[t] + '">' + T[t].e + ' ' + esc(T[t].name) + ' MVP</b><h2>' + esc(m.name) + '</h2><p>' + m.gold + ' gold grabbed · ' + m.right + ' right</p>'); });
+    (sp.awards || []).forEach(function (a) { var t = AWARD[a.k] || ['🏅', a.k, '']; bans.push('<span class="lcbig">' + t[0] + '</span><b class="lckick">' + esc(t[1]) + '</b><h2>' + esc(a.name) + '</h2><p>' + T[a.team].e + ' ' + esc(T[a.team].name) + ' · ' + (a.k === 'lv' ? 'hero level ' + a.n : a.n + ' ' + (a.n === 1 ? t[2].replace(/s$/, '') : t[2])) + '</p>'); });
+    if (CL && A.MODE === 'student') bans.push('<b class="lckick">Your battle</b><p class="lcyours">You answered <b>' + CL.right + '</b> right, reached <b>hero level ' + lv() + '</b>, sent <b>' + CL.sent + '</b> characters and grabbed <b>' + CL.gold + '</b> gold.</p>');
+    bans.push('<h1 class="still">' + head + '</h1>' + score + '<p class="sub">Back to the lesson when ' + A.TEACHER + ' says so.</p><button type="button" class="btn lcagain">↻ See the results again</button>');
+    shoutQ = []; [].forEach.call(root.querySelectorAll('.lcshout'), function (x) { x.remove(); });
+    var b = H('div', 'lcend'), box = H('div', 'lcban'), dots = H('div', 'lcdots'), at = 0, tmr = 0;
+    b.appendChild(box); b.appendChild(dots); root.appendChild(b);
+    bans.forEach(function () { dots.appendChild(H('i')); });
+    function readMs(html) { var words = html.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length; return Math.max(3000, Math.min(9000, 1600 + words * 380)); }
+    function show(i) {
+      clearTimeout(tmr); at = i; if (!root || !b.isConnected) return;
+      box.innerHTML = bans[i]; box.classList.remove('in'); void box.offsetWidth; box.classList.add('in');
+      [].forEach.call(dots.children, function (d, k) { d.className = k === i ? 'on' : k < i ? 'done' : ''; });
+      var again = box.querySelector('.lcagain'); if (again) again.onclick = function (e) { e.stopPropagation(); show(0); };
+      if (i > 0 && i < bans.length - 1) sfx('pop');
+      if (i < bans.length - 1) tmr = setTimeout(function () { show(i + 1); }, readMs(bans[i]));
+    }
+    b.onclick = function () { if (at < bans.length - 1) show(at + 1); };
+    show(0);
     if (hud.q) hud.q.innerHTML = '';
     var G = geo(); for (var i = 0; i < 140; i++) V.parts.push({ k: 'confetti', x: Math.random() * G.w, y: -Math.random() * 200, vx: (Math.random() - 0.5) * 80, vy: 80 + Math.random() * 120, life: 3 + Math.random() * 2, t: 0, g: 30, col: ['#FFC94A', '#5CC8FF', '#E0463C', '#3BFF8A', '#fff'][i % 5] });
     if (CL && A.MODE === 'student') send();
@@ -615,6 +673,7 @@
   }
   function shout(o) { shoutQ.push(o); nextShout(); }
   function nextShout() {
+    if (V && V.over) { shoutQ = []; return; }   // the results banners have the stage now
     if (shoutBusy || !shoutQ.length || !root) return;
     var o = shoutQ.shift(); shoutBusy = true;
     var b = H('div', 'lcshout' + (o.team === -1 ? ' wave' : o.mine ? ' ours' : ' theirs') + (o.gold ? ' gold' : '') + (o.small ? ' small' : ''));
@@ -663,7 +722,7 @@
       var acc = K.acc[sid] || (K.acc[sid] = { n: K.primed === false ? -1 : 0, spent: 0, cd: {}, lvSeen: 0, ping: K.primed === false ? null : 0 });
       // the student's page counted its own lesson bonus (b) and level boost (v); the console's count can differ (Start fresh,
       // a class filter, answers still on their way), so take the larger, capped at the most a lesson can give
-      var myB = Math.min(16, Math.max(bonus.coins, get('b'))), myV = Math.min(2, Math.max(bonus.boost, get('v')));
+      var myB = Math.min(10, Math.max(bonus.coins, get('b'))), myV = Math.min(2, Math.max(bonus.boost, get('v')));
       var budget = myB + 9 * r + 4, lvMax = L.lvOf(r, myV);
       var D = K.diag || (K.diag = { students: {}, placed: 0, turned: {}, last: 0 }); D.students[sid] = 1; D.last = Math.max(D.last, Date.parse(last[sid].time) || 0);
       // turned away: counted for the console, and announced (by the placement's id) so that student gets the coins back
@@ -680,7 +739,7 @@
       var busy = {}; K.S.units.concat(K.S.pend).forEach(function (u) { busy[u.id] = 1; });
       for (var i = Math.max(0, acc.n - n0); i < list.length; i++) {
         var k = n0 + i, p = list[i].split('.').map(Number), l = p[0], t = p[1], d = p[2], v = p[3], U = L.UNITS[t];
-        if (!U || !(l >= 0 && l < 3) || p.length < 4) { turn('garbled', k, 'g'); continue; }
+        if (!U || !(l >= 0 && l < L.LANES) || p.length < 4) { turn('garbled', k, 'g'); continue; }
         if (U.lv > lvMax) { turn('level too low', k, 'l'); continue; }
         if (acc.spent + U.cost > budget) { turn('not enough coins', k, 'c'); continue; }
         if ((acc.cd[t] || -1e9) > d + 20) { turn('still recharging', k, 'r'); continue; }
