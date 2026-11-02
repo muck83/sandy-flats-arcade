@@ -486,12 +486,12 @@ a.btn{text-decoration:none;display:inline-block}
   window.SFA_LESSON = function (L) { LESSONS.push(L); };
   function loadLessonFiles() {
     if (loadLessonFiles.p) return loadLessonFiles.p;
-    var ids = []; for (var i = 1; i <= 19; i++) ids.push('L' + i);
+    var ids = []; for (var i = 1; i <= 20; i++) ids.push('L' + i);
     return (loadLessonFiles.p = Promise.all(ids.map(function (id) { return new Promise(function (res) { var sc = document.createElement('script'); sc.src = 'lessons/' + id + '.js'; sc.onload = sc.onerror = res; document.head.appendChild(sc); }); })));
   }
   function loadAnswers() {
     if (les.busy) return; les.busy = true; les.err = '';
-    var ids = []; for (var i = 1; i <= 19; i++) ids.push('L' + i);
+    var ids = []; for (var i = 1; i <= 20; i++) ids.push('L' + i);
     var by = {}, k = 0;
     function next() {   // three at a time, so the results sheet isn't swamped
       if (k >= ids.length) return Promise.resolve();

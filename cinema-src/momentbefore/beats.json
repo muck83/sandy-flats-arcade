@@ -1,0 +1,758 @@
+[
+ {
+  "scene": "class",
+  "set": {
+   "day": 24,
+   "machine": true,
+   "machineX": 600,
+   "dial": "x = ?",
+   "frost": "3x + 4 = 25"
+  },
+  "cast": {
+   "zero": [
+    300,
+    1
+   ],
+   "gusF": [
+    800,
+    -1
+   ],
+   "doug": [
+    802,
+    -1,
+    {
+     "dy": -168
+    }
+   ]
+  },
+  "d": 2.2
+ },
+ {
+  "s": "zero",
+  "t": "Day twenty-four. The frost on the window still says three x plus four is twenty-five."
+ },
+ {
+  "cast": {
+   "priya": [
+    390,
+    1
+   ]
+  },
+  "enter": {
+   "priya": -120
+  },
+  "s": "priya",
+  "t": "It's the time of the freeze. If we solve for x, the Rewinder lands at the exact second."
+ },
+ {
+  "cast": {
+   "effie": [
+    480,
+    1
+   ]
+  },
+  "enter": {
+   "effie": -120
+  },
+  "s": "effie",
+  "t": "The moment before is behind five locks. Every lock is an equation. Solve it, and it opens."
+ },
+ {
+  "cast": {
+   "marcus": [
+    160,
+    1
+   ]
+  },
+  "enter": {
+   "marcus": -90
+  },
+  "s": "marcus",
+  "t": "Five locks? I solved a jar of pickles once. Took me a week.",
+  "comic": true
+ },
+ {
+  "cast": {
+   "dunmore": [
+    930,
+    -1
+   ]
+  },
+  "enter": {
+   "dunmore": 1100
+  },
+  "s": "dunmore",
+  "t": "Go. Bring him back. Or at least bring back his sentence."
+ },
+ {
+  "title": "THE MOMENT BEFORE",
+  "sub": "The Undefined Saga · Rewind 3",
+  "d": 3.2
+ },
+ {
+  "scene": "lock",
+  "set": {
+   "eq": "3x + 4 = 25",
+   "lockTag": "LOCK 1",
+   "chain": {
+    "ops": [
+     "× 3",
+     "+ 4"
+    ],
+    "inv": [
+     "÷ 3",
+     "− 4"
+    ],
+    "out": 25,
+    "mid": 21,
+    "ans": 7
+   }
+  },
+  "cast": {
+   "marcus": [
+    80,
+    1
+   ],
+   "priya": [
+    905,
+    -1
+   ]
+  },
+  "s": "priya",
+  "t": "Lock one. Read it as a machine. x went in. It was times three. Then plus four. Out came twenty-five.",
+  "math": true
+ },
+ {
+  "set": {
+   "wrong": true,
+   "wrongVal": "8⅓"
+  },
+  "s": "marcus",
+  "t": "So we go backwards! Divide by three first! Twenty-five divided by three is eight and a third. Lever!",
+  "math": true
+ },
+ {
+  "cast": {
+   "marcus": null,
+   "priya": null
+  },
+  "fx": [
+   {
+    "n": "vhs",
+    "at": 0,
+    "dur": 1.6
+   }
+  ],
+  "d": 1.8
+ },
+ {
+  "scene": "lunch",
+  "set": {
+   "past": "dunmore",
+   "when": "EIGHT YEARS AGO · 8:20 PM"
+  },
+  "cast": {
+   "marcus": [
+    220,
+    1
+   ],
+   "zero": [
+    120,
+    1
+   ]
+  },
+  "s": "marcus",
+  "t": "Why is it dark? Why is Mr. Dunmore singing to a mop?",
+  "comic": true
+ },
+ {
+  "s": "zero",
+  "t": "Eight and a third. Eight twenty at night. You undid the times before the plus."
+ },
+ {
+  "s": "marcus",
+  "t": "I'm going to pretend I never saw this. He's really good, though.",
+  "comic": true
+ },
+ {
+  "scene": "lock",
+  "set": {
+   "eq": "3x + 4 = 25",
+   "lockTag": "LOCK 1",
+   "chain": {
+    "ops": [
+     "× 3",
+     "+ 4"
+    ],
+    "inv": [
+     "÷ 3",
+     "− 4"
+    ],
+    "out": 25,
+    "mid": 21,
+    "ans": 7
+   }
+  },
+  "cast": {
+   "priya": [
+    905,
+    -1
+   ],
+   "marcus": [
+    80,
+    1
+   ]
+  },
+  "s": "priya",
+  "t": "Last thing done, first thing undone. The last thing was plus four. So we undo that first.",
+  "math": true
+ },
+ {
+  "set": {
+   "back": 1
+  },
+  "fx": [
+   {
+    "n": "back",
+    "at": 0
+   }
+  ],
+  "s": "priya",
+  "t": "Undo plus four: take four. Twenty-five take four is twenty-one.",
+  "math": true
+ },
+ {
+  "set": {
+   "back": 2,
+   "backFrom": 1
+  },
+  "fx": [
+   {
+    "n": "back",
+    "at": 0
+   }
+  ],
+  "s": "priya",
+  "t": "Undo times three: divide by three. Twenty-one divided by three is seven.",
+  "math": true
+ },
+ {
+  "set": {
+   "back": 3,
+   "backFrom": 2
+  },
+  "fx": [
+   {
+    "n": "back",
+    "at": 0
+   }
+  ],
+  "s": "marcus",
+  "t": "x is seven!",
+  "math": true
+ },
+ {
+  "set": {
+   "xval": 7,
+   "panel": [
+    "check:",
+    "3 × 7 + 4",
+    "= 21 + 4 = 25 ✓"
+   ]
+  },
+  "s": "effie",
+  "t": "Check it. Put seven back in. Three times seven is twenty-one. Plus four is twenty-five. It fits.",
+  "math": true,
+  "hold": 0.6
+ },
+ {
+  "set": {
+   "solved": true,
+   "panel": null
+  },
+  "s": "zero",
+  "t": "(softly) Seven. His favourite."
+ },
+ {
+  "scene": "lock",
+  "set": {
+   "eq": "5x − 6 = 19",
+   "lockTag": "LOCK 2",
+   "chain": {
+    "ops": [
+     "× 5",
+     "− 6"
+    ],
+    "inv": [
+     "÷ 5",
+     "+ 6"
+    ],
+    "out": 19,
+    "mid": 25,
+    "ans": 5
+   }
+  },
+  "cast": {
+   "zero": [
+    905,
+    -1
+   ],
+   "effie": [
+    80,
+    1
+   ]
+  },
+  "s": "effie",
+  "t": "Lock two. Five x minus six is nineteen.",
+  "math": true
+ },
+ {
+  "s": "zero",
+  "t": "The last thing it did was take away six. So the first thing I do is give six back.",
+  "math": true
+ },
+ {
+  "set": {
+   "back": 2
+  },
+  "fx": [
+   {
+    "n": "back",
+    "at": 0
+   }
+  ],
+  "s": "zero",
+  "t": "Nineteen plus six is twenty-five. Undo times five: twenty-five divided by five. Five.",
+  "math": true,
+  "d": 5.6
+ },
+ {
+  "set": {
+   "back": 3,
+   "backFrom": 2,
+   "xval": 5,
+   "solved": true
+  },
+  "fx": [
+   {
+    "n": "back",
+    "at": 0
+   }
+  ],
+  "s": "effie",
+  "t": "Five times five is twenty-five, take six, nineteen. Open.",
+  "math": true
+ },
+ {
+  "scene": "lock",
+  "set": {
+   "eq": "x ÷ 2 + 3 = 10",
+   "lockTag": "LOCK 3",
+   "chain": {
+    "ops": [
+     "÷ 2",
+     "+ 3"
+    ],
+    "inv": [
+     "× 2",
+     "− 3"
+    ],
+    "out": 10,
+    "mid": 7,
+    "ans": 14
+   }
+  },
+  "cast": {
+   "marcus": [
+    80,
+    1
+   ],
+   "priya": [
+    905,
+    -1
+   ]
+  },
+  "s": "priya",
+  "t": "Lock three. x divided by two, plus three, is ten.",
+  "math": true
+ },
+ {
+  "s": "marcus",
+  "t": "My turn. Last thing: plus three. Undo it: ten take three. Seven.",
+  "math": true
+ },
+ {
+  "set": {
+   "back": 1
+  },
+  "fx": [
+   {
+    "n": "back",
+    "at": 0
+   }
+  ],
+  "s": "marcus",
+  "t": "Then undo the divide by two. The opposite of dividing is... timesing! Seven times two. Fourteen!",
+  "math": true
+ },
+ {
+  "set": {
+   "back": 3,
+   "backFrom": 1,
+   "xval": 14,
+   "solved": true
+  },
+  "fx": [
+   {
+    "n": "back",
+    "at": 0
+   }
+  ],
+  "s": "priya",
+  "t": "Fourteen divided by two is seven, plus three is ten. Marcus, that was perfect.",
+  "math": true
+ },
+ {
+  "s": "marcus",
+  "t": "Write that down. Somewhere official.",
+  "comic": true
+ },
+ {
+  "scene": "news",
+  "cast": {
+   "anchor": [
+    480,
+    1
+   ]
+  },
+  "set": {
+   "inset": "rain",
+   "ticker": "DAY 24 OF THE RAIN"
+  },
+  "s": "anchor",
+  "t": "Good evening. Day twenty-four of the rain. A frost message has appeared on the school window."
+ },
+ {
+  "set": {
+   "inset": "rain",
+   "ticker": "DAY 24 OF THE RAIN",
+   "caller": true
+  },
+  "s": "anchor",
+  "t": "We have a caller."
+ },
+ {
+  "s": "marcus",
+  "t": "(on the phone) Chip! It's Marcus. I solved a lock. On purpose. Can that be the headline?"
+ },
+ {
+  "s": "anchor",
+  "t": "Caller, the headline is the rain. It is always the rain.",
+  "comic": true
+ },
+ {
+  "scene": "lock",
+  "set": {
+   "eq": "2x + 9 = 3",
+   "lockTag": "LOCK 4",
+   "chain": {
+    "ops": [
+     "× 2",
+     "+ 9"
+    ],
+    "inv": [
+     "÷ 2",
+     "− 9"
+    ],
+    "out": 3,
+    "mid": "−6",
+    "ans": "−3"
+   }
+  },
+  "cast": {
+   "zero": [
+    905,
+    -1
+   ],
+   "priya": [
+    80,
+    1
+   ]
+  },
+  "s": "priya",
+  "t": "Lock four. Two x plus nine is three. That's a strange one. The answer is smaller than the plus.",
+  "math": true
+ },
+ {
+  "set": {
+   "back": 1
+  },
+  "fx": [
+   {
+    "n": "back",
+    "at": 0
+   }
+  ],
+  "s": "zero",
+  "t": "Undo plus nine. Three take nine. That goes below zero. Minus six.",
+  "math": true
+ },
+ {
+  "set": {
+   "back": 3,
+   "backFrom": 1,
+   "xval": "−3",
+   "solved": true
+  },
+  "fx": [
+   {
+    "n": "back",
+    "at": 0
+   }
+  ],
+  "s": "zero",
+  "t": "Undo times two. Minus six divided by two is minus three.",
+  "math": true
+ },
+ {
+  "s": "effie",
+  "t": "Minus three. Three seconds before. That's where we have to stand.",
+  "math": true
+ },
+ {
+  "scene": "lock",
+  "set": {
+   "eq": "2x + 11 = 25",
+   "lockTag": "LAST LOCK",
+   "chain": {
+    "ops": [
+     "× 2",
+     "+ 11"
+    ],
+    "inv": [
+     "÷ 2",
+     "− 11"
+    ],
+    "out": 25,
+    "mid": 14,
+    "ans": 7
+   }
+  },
+  "cast": {
+   "effie": [
+    80,
+    1
+   ],
+   "zero": [
+    905,
+    -1
+   ]
+  },
+  "s": "effie",
+  "t": "The last lock has no equation. Just words. The freeze came at second x. Double it, add eleven, and you get twenty-five.",
+  "math": true
+ },
+ {
+  "s": "zero",
+  "t": "Double it, then add eleven. That's two x plus eleven equals twenty-five.",
+  "math": true
+ },
+ {
+  "set": {
+   "back": 3
+  },
+  "fx": [
+   {
+    "n": "back",
+    "at": 0
+   }
+  ],
+  "s": "zero",
+  "t": "Undo the eleven: fourteen. Undo the double: seven.",
+  "math": true,
+  "d": 4.6
+ },
+ {
+  "set": {
+   "xval": 7,
+   "solved": true
+  },
+  "s": "zero",
+  "t": "Seven again. It was always going to be seven."
+ },
+ {
+  "fx": [
+   {
+    "n": "vhs",
+    "at": 0.3,
+    "dur": 1.6
+   }
+  ],
+  "d": 2.2
+ },
+ {
+  "scene": "night",
+  "cast": {
+   "zero": [
+    160,
+    1
+   ],
+   "priya": [
+    260,
+    1
+   ],
+   "marcus": [
+    360,
+    1
+   ],
+   "effie": [
+    440,
+    1
+   ],
+   "gusR": [
+    650,
+    -1
+   ]
+  },
+  "d": 2.2
+ },
+ {
+  "s": "zero",
+  "t": "(whispering) Gus. Three seconds before."
+ },
+ {
+  "s": "effie",
+  "t": "He can't see us. This moment is already written."
+ },
+ {
+  "cast": {
+   "gusR": [
+    650,
+    1
+   ]
+  },
+  "s": "gus",
+  "t": "(whispering) I can, though. I see things backwards. You came from the other end."
+ },
+ {
+  "s": "marcus",
+  "t": "He can SEE us?!"
+ },
+ {
+  "s": "gus",
+  "t": "(whispering) It's going to rain. It won't stop until someone works it backwards."
+ },
+ {
+  "s": "zero",
+  "t": "Gus, move! It's coming!"
+ },
+ {
+  "s": "gus",
+  "t": "(whispering) I know. You can't change it. But you can finish it. Every time you undo something, look for me."
+ },
+ {
+  "cast": {
+   "gusR": null,
+   "gusF": [
+    650,
+    -1
+   ]
+  },
+  "set": {
+   "bubble": "IT'S GOING TO RAIN"
+  },
+  "fx": [
+   {
+    "n": "vhs",
+    "at": 0,
+    "dur": 0.6
+   }
+  ],
+  "d": 2.6
+ },
+ {
+  "s": "priya",
+  "t": "(quietly) The whole sentence. It's going to rain."
+ },
+ {
+  "scene": "class",
+  "set": {
+   "day": 24,
+   "machine": true,
+   "machineX": 600,
+   "dial": "x = 7",
+   "frost": null,
+   "crack": true
+  },
+  "cast": {
+   "marcus": [
+    150,
+    1
+   ],
+   "zero": [
+    560,
+    1
+   ],
+   "priya": [
+    370,
+    1
+   ],
+   "effie": [
+    470,
+    1
+   ],
+   "gusF": [
+    800,
+    -1
+   ],
+   "doug": [
+    802,
+    -1,
+    {
+     "dy": -168
+    }
+   ]
+  },
+  "fx": [
+   {
+    "n": "crack",
+    "at": 0.4
+   }
+  ],
+  "d": 2.6
+ },
+ {
+  "s": "zero",
+  "t": "Look. The frost. There's a crack in it."
+ },
+ {
+  "s": "effie",
+  "t": "It cracked when we worked it backwards. Every time we undo something, it opens a little more."
+ },
+ {
+  "s": "priya",
+  "t": "Then we keep undoing things. As many as it takes."
+ },
+ {
+  "s": "pigeon",
+  "t": "Coo."
+ },
+ {
+  "s": "zero",
+  "t": "(to frozen Gus) We heard you, buddy. All of it. We're coming."
+ },
+ {
+  "s": "marcus",
+  "t": "So. I opened a lock. I saw the past. I heard the sentence. Am I a sidekick NOW?"
+ },
+ {
+  "s": "zero",
+  "t": "(smiling) ...Ask me when he's back."
+ },
+ {
+  "title": "THE END OF THE REWIND",
+  "sub": "NEXT: FILM 7, DOORS AND WALLS",
+  "d": 3.6,
+  "end": true
+ }
+]

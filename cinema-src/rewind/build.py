@@ -14,6 +14,7 @@ VOICES = {
     'anchor':  ('en-US-BrianNeural', '+5%', '+0Hz'),
     'one':     ('en-US-AndrewNeural', '+1%', '+8Hz'),
     'sam':     ('en-US-RogerNeural', '+1%', '-7Hz'),
+    'gus':     ('en-US-BrianNeural', '-15%', '+25Hz'),   # the nearest match to Gus's whisper
 }
 FPS = 12
 BPS = 48000 / 8

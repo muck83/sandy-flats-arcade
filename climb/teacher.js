@@ -54,7 +54,7 @@
   // the lessons' titles (for the "Then: Lesson" menu)
   var LES = {};
   (function () { var left = 17, prev = window.SFA_LESSON; window.SFA_LESSON = function (L) { LES[String(L.id).slice(1)] = L; };
-    for (var i = 1; i <= 19; i++) { var sc = document.createElement('script'); sc.src = (window.CLIMB_ROOT || '') + 'lessons/L' + i + '.js'; sc.onload = sc.onerror = function () { if (--left === 0) { window.SFA_LESSON = prev; if (data) draw(); } }; document.head.appendChild(sc); } })();
+    for (var i = 1; i <= 20; i++) { var sc = document.createElement('script'); sc.src = (window.CLIMB_ROOT || '') + 'lessons/L' + i + '.js'; sc.onload = sc.onerror = function () { if (--left === 0) { window.SFA_LESSON = prev; if (data) draw(); } }; document.head.appendChild(sc); } })();
   function nextL(s) { return s && s.state !== 'ended' ? (s.next || 0) : s && s.state === 'ended' && s.next ? s.next : SFA.store.get('teacher.climb.next', 0); }
 
   /* ---------- derived data ---------- */

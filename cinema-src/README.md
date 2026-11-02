@@ -19,3 +19,4 @@ Audio is cached in `DIR/audio/`, so a rebuild only re-voices changed lines.
 
 - `rewind/`: Rewind 1, *Rewind* (slope), before Lesson 12. Its `build.py` builds every film here.
 - `linehome/`: Rewind 2, *The Line Home* (graphing lines from start and step). Build it with `../rewind/build.py`.
+- `momentbefore/`: Rewind 3, *The Moment Before* (solving two-step equations). Build it with `../rewind/build.py`.
