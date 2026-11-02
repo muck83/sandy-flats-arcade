@@ -20,6 +20,7 @@
     { l: 5, n: 10, game: 'g5-scorch-marks.html' },
     { l: 15, n: 11, game: 'g14-three-roads.html' },
     { l: 18, n: 11.5, label: 'Rewind 1', game: 'g5-scorch-marks.html' },   // the Rewind arc: a catch-up before Lesson 12
+    { l: 19, n: 11.6, label: 'Rewind 2', game: 'g13-half-a-rule.html' },
     { l: 16, n: 12, game: 'g15-outer-machines.html' },
     { l: 6, n: 13, game: 'g6-linear-or-liar.html' },
     { l: 7, n: 14, game: 'g7-faster-than.html' },

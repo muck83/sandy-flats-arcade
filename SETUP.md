@@ -130,7 +130,8 @@ Press 👁 beside any name on the Climb dashboard. It shows that student's scree
 Lesson 12 leans on slope, graphing lines and solving. The Rewind arc revisits them inside the story: Gus is frozen mid-word after *The Undoer*, and the team rides Effie's Rewinder back through time to hear the rest of his sentence. Each Rewind is a full lesson with its own film, listed between Lesson 11 and Lesson 12.
 
 - **Rewind 1: Rewind** (`lesson.html?l=18`, film *Rewind* in the Cinema): slope as rise over run from any two points, walking a line backwards, falling lines and negative slope, slope from coordinates and tables (same order, top and bottom). Game: *Scorch Marks*.
-- Rewind 2 (*The Line Home*: graphing lines from start and step) and Rewind 3 (*The Moment Before*: solving two-step equations) are planned.
+- **Rewind 2: The Line Home** (`lesson.html?l=19`, film *The Line Home*): graphing y = mx + b from start (where x is 0) and step, negative and fraction steps, where a line meets the floor, testing whether a point is on a line, and writing the rule from two points. Game: *Half a Rule*.
+- Rewind 3 (*The Moment Before*: solving two-step equations) is planned.
 - Film sources are in `cinema-src/` (see its README).
 
 ## Lessons: going further on each slide, and the Clash

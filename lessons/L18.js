@@ -1,6 +1,6 @@
 SFA_LESSON({
   id: 'L18', n: 11.5, label: 'Rewind 1', title: 'Rewind',
-  film: { n: 'Rewind 1', title: 'Rewind', len: '5:53' },
+  film: { n: 'Rewind 1', title: 'Rewind', len: '6:17' },
   game: { title: 'Scorch Marks', file: 'g5-scorch-marks.html' },
   big: 'Slope is rise over run, from any two points on the line. Going back down a line is still the same slope; a line that falls has a negative slope. Subtract in the same order, top and bottom.',
   slides: [

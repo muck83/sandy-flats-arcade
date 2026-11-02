@@ -9,7 +9,7 @@ VOICES = {
     'zero':    ('en-US-AnaNeural', '+25%', '+0Hz'),
     'priya':   ('en-US-EmmaNeural', '+3%', '+0Hz'),
     'effie':   ('en-GB-SoniaNeural', '-1%', '+2Hz'),
-    'marcus':  ('en-US-AvaMultilingualNeural', '+25%', '+0Hz'),
+    'marcus':  ('en-US-GuyNeural', '+12%', '+35Hz'),   # picked by ear: his original voice isn't an Edge voice
     'dunmore': ('en-US-ChristopherNeural', '+8%', '-2Hz'),
     'anchor':  ('en-US-BrianNeural', '+5%', '+0Hz'),
     'one':     ('en-US-AndrewNeural', '+1%', '+8Hz'),
