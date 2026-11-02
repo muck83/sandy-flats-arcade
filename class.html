@@ -486,12 +486,12 @@ a.btn{text-decoration:none;display:inline-block}
   window.SFA_LESSON = function (L) { LESSONS.push(L); };
   function loadLessonFiles() {
     if (loadLessonFiles.p) return loadLessonFiles.p;
-    var ids = []; for (var i = 1; i <= 17; i++) ids.push('L' + i);
+    var ids = []; for (var i = 1; i <= 18; i++) ids.push('L' + i);
     return (loadLessonFiles.p = Promise.all(ids.map(function (id) { return new Promise(function (res) { var sc = document.createElement('script'); sc.src = 'lessons/' + id + '.js'; sc.onload = sc.onerror = res; document.head.appendChild(sc); }); })));
   }
   function loadAnswers() {
     if (les.busy) return; les.busy = true; les.err = '';
-    var ids = []; for (var i = 1; i <= 17; i++) ids.push('L' + i);
+    var ids = []; for (var i = 1; i <= 18; i++) ids.push('L' + i);
     var by = {}, k = 0;
     function next() {   // three at a time, so the results sheet isn't swamped
       if (k >= ids.length) return Promise.resolve();
@@ -541,7 +541,7 @@ a.btn{text-decoration:none;display:inline-block}
   function activityRows(sids) {
     var out = [], names = {}; data.roster.forEach(function (s) { names[s.sid] = s; });
     if (les.by) answerRows(sids).forEach(function (x) {
-      out.push({ s: x.s, film: x.L.n, kind: 'Lesson answer', where: 'Lesson ' + x.L.n + ': ' + x.L.title + ' (slide ' + x.slide + ')', item: plain(x.sl.q || x.sl.name || ''), detail: x.a.answer, result: x.a.correct === 'yes' ? 'right' : x.a.correct === 'no' ? 'wrong' : '', expected: x.right, time: x.a.time, flag: x.flag, order: x.slide });
+      out.push({ s: x.s, film: x.L.n, kind: 'Lesson answer', where: (x.L.label || 'Lesson ' + x.L.n) + ': ' + x.L.title + ' (slide ' + x.slide + ')', item: plain(x.sl.q || x.sl.name || ''), detail: x.a.answer, result: x.a.correct === 'yes' ? 'right' : x.a.correct === 'no' ? 'wrong' : '', expected: x.right, time: x.a.time, flag: x.flag, order: x.slide });
     });
     data.progress.forEach(function (p) {
       if (!sids[p.sid]) return; var s = names[p.sid], G = SFA.GAMES.filter(function (g) { return g.id === p.game; })[0]; if (!s || !G) return;

@@ -126,13 +126,13 @@
   function loadNext(n, cb) {
     if (nextInfo && nextInfo.n === n) return cb(nextInfo);
     var prev = window.SFA_LESSON;
-    window.SFA_LESSON = function (L) { nextInfo = { n: n, title: L.title, film: (window.SFA_LESSON_NUM || {})[n] || L.n }; window.SFA_LESSON = prev; cb(nextInfo); };
+    window.SFA_LESSON = function (L) { nextInfo = { n: n, title: L.title, film: (window.SFA_LESSON_NUM || {})[n] || L.n, label: L.label || ((window.SFA_LESSON_LABEL || {})[n]) || 'Lesson ' + ((window.SFA_LESSON_NUM || {})[n] || L.n) }; window.SFA_LESSON = prev; cb(nextInfo); };
     var s = document.createElement('script'); s.src = ROOT + 'lessons/L' + n + '.js'; s.onerror = function () { window.SFA_LESSON = prev; }; document.head.appendChild(s);
   }
   function nextCard() {
     var n = nextLesson(); if (!n) return '';
     var href = ROOT + 'lesson.html?l=' + n;
-    setTimeout(function () { loadNext(n, function (I) { var h = document.getElementById('nextTitle'); if (h) h.textContent = 'Next: Lesson ' + I.film + ' · ' + I.title; }); }, 0);
+    setTimeout(function () { loadNext(n, function (I) { var h = document.getElementById('nextTitle'); if (h) h.textContent = 'Next: ' + I.label + ' · ' + I.title; }); }, 0);
     return '<section class="card" id="nextBox" style="flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;border:2px solid var(--blue)"><div style="display:flex;flex-direction:column;gap:4px"><b id="nextTitle" style="font:800 24px var(--disp)">Next: the lesson</b><span class="sub">It opens by itself when Mr. Crowell starts it. Stay on this page.</span></div><a class="btn" href="' + href + '">Open it now</a></section>';
   }
 

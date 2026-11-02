@@ -125,6 +125,14 @@ All of this needs the current `backend/Code.gs` deployed as a new version.
 
 Press 👁 beside any name on the Climb dashboard. It shows that student's screen: which screen they're on (waiting, check-in, question, explanation, guided try, summary), the question rebuilt exactly, what they've typed, picked or dragged so far, the time left on their clock and how often they've left the page. While it's open their page reports every 3 seconds (normally every 8), so it stays about 3 seconds behind. Close it to stop. Students don't see anything change. Needs the current `backend/Code.gs` deployed as a new version.
 
+## ⏪ The Rewind arc (catch-up before Lesson 12)
+
+Lesson 12 leans on slope, graphing lines and solving. The Rewind arc revisits them inside the story: Gus is frozen mid-word after *The Undoer*, and the team rides Effie's Rewinder back through time to hear the rest of his sentence. Each Rewind is a full lesson with its own film, listed between Lesson 11 and Lesson 12.
+
+- **Rewind 1: Rewind** (`lesson.html?l=18`, film *Rewind* in the Cinema): slope as rise over run from any two points, walking a line backwards, falling lines and negative slope, slope from coordinates and tables (same order, top and bottom). Game: *Scorch Marks*.
+- Rewind 2 (*The Line Home*: graphing lines from start and step) and Rewind 3 (*The Moment Before*: solving two-step equations) are planned.
+- Film sources are in `cinema-src/` (see its README).
+
 ## Lessons: going further on each slide, and the Clash
 
 - **🪜 Help me start / ⭐ Go further:** every question slide after the opening hook has a first step for students who are stuck (**🪜 Help me start**, before they answer) and two extra questions for students who finish early: **★ Another one** (the same idea, new numbers) and **★★ Stretch** (one step deeper). Students work down them while you stay on the slide; your slide lock still keeps the class together and nothing moves the deck. Every extra shows a full worked solution as soon as it's answered, right or wrong, so no one waits for you. Number extras give two tries. In the console, each slide shows **⭐ Going further: ★ n tried, n right · ★★ …** (with names when only a few). Extras save to the Sheet as the slide id + x1/x2. 230 extras across the 17 lessons; to change them, edit `more` on a slide (format in `lessons/README.md`).

@@ -12,7 +12,8 @@ and the class answers polls and typed questions as they go.
 ```js
 SFA_LESSON({
   id: 'L1',                       // must match the file name
-  n: 1,                           // lesson number shown to students
+  n: 1,                           // lesson number shown to students (and the order lessons are listed in)
+  label: 'Rewind 1',              // optional: shown instead of "Lesson n" (the Rewind arc uses n: 11.5)
   title: 'Crack the Fair',        // the game this lesson launches
   film: { n: 2, title: 'Zero 2: Sidekick', len: '5:41' },     // film number in the Sandy Flats Cinema
   game: { title: 'Crack the Fair', file: 'g1-crack-the-fair.html' },

@@ -861,7 +861,7 @@
       liveChip.setAttribute('aria-pressed', follow ? 'true' : 'false');
       var other = live && live.lesson !== LID && !ended(live) && Date.now() - live.at < LIVE_FRESH;
       banner.hidden = !other;
-      if (other) { banner.innerHTML = ''; banner.appendChild(H('span', '', '<b>' + TEACHER + ' is teaching Lesson ' + esc(shownNum(live.lesson)) + ' right now.</b>')); var a = H('a', 'btn primary small', 'Join it'); a.href = 'lesson.html?l=' + live.lesson.slice(1); banner.appendChild(a); }
+      if (other) { banner.innerHTML = ''; banner.appendChild(H('span', '', '<b>' + TEACHER + ' is teaching ' + esc(((window.SFA_LESSON_LABEL || {})[String(live.lesson).slice(1)]) || 'Lesson ' + shownNum(live.lesson)) + ' right now.</b>')); var a = H('a', 'btn primary small', 'Join it'); a.href = 'lesson.html?l=' + live.lesson.slice(1); banner.appendChild(a); }
     }
   }
   // A sign-in bar under the top bar on every slide, so students can sign in even while the teacher has locked the slides
@@ -1309,7 +1309,7 @@
   function boot() {
     var top = H('header', 'ltop');
     var brand = H('a', 'brand', 'Sandy Flats'); brand.href = MODE === 'teach' ? 'lessons.html?teach' : 'lessons.html'; top.appendChild(brand);
-    top.appendChild(H('h1', 'gtitle', 'Lesson ' + LES.n + ': ' + esc(LES.title) + (MODE === 'teach' ? ' · Teacher console' : '')));
+    top.appendChild(H('h1', 'gtitle', (LES.label || 'Lesson ' + LES.n) + ': ' + esc(LES.title) + (MODE === 'teach' ? ' · Teacher console' : '')));
     counter = H('span', 'count'); top.appendChild(counter);
     topChips = H('div', 'chips'); top.appendChild(topChips);
     liveChip = el('button', { type: 'button', 'class': 'chip live', hidden: '' });
@@ -1364,7 +1364,7 @@
   window.SFA_LESSON = function (L) { LES = L; };
   var sc = document.createElement('script');
   sc.src = 'lessons/' + LID + '.js';
-  sc.onload = function () { if (!LES) return fail(); document.title = 'Lesson ' + LES.n + ': ' + LES.title + ' · Sandy Flats'; boot(); };
+  sc.onload = function () { if (!LES) return fail(); document.title = (LES.label || 'Lesson ' + LES.n) + ': ' + LES.title + ' · Sandy Flats'; boot(); };
   sc.onerror = fail;
   function fail() { document.querySelector('.lmain').innerHTML = '<div class="card keybox"><h2>That lesson isn\'t here</h2><p class="muted">Go back to <a href="lessons.html">all lessons</a>.</p></div>'; }
   document.head.appendChild(sc);

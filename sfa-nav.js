@@ -19,6 +19,7 @@
     { l: 14, n: 9, game: 'g13-half-a-rule.html' },
     { l: 5, n: 10, game: 'g5-scorch-marks.html' },
     { l: 15, n: 11, game: 'g14-three-roads.html' },
+    { l: 18, n: 11.5, label: 'Rewind 1', game: 'g5-scorch-marks.html' },   // the Rewind arc: a catch-up before Lesson 12
     { l: 16, n: 12, game: 'g15-outer-machines.html' },
     { l: 6, n: 13, game: 'g6-linear-or-liar.html' },
     { l: 7, n: 14, game: 'g7-faster-than.html' },
@@ -26,9 +27,9 @@
     { l: 8, n: 16, game: 'g8-dougs-steps.html' },
     { l: 9, n: 17, game: 'g17-hold-the-chain.html' }
   ];
-  var LESSON_OF = {}, NUM = {};   // game file -> lesson file number; lesson file number -> number shown
-  PLAN.forEach(function (p) { if (!LESSON_OF[p.game]) LESSON_OF[p.game] = p.l; NUM[p.l] = p.n; });
-  window.SFA_LESSON_OF = LESSON_OF; window.SFA_LESSON_NUM = NUM; window.SFA_PLAN = PLAN;
+  var LESSON_OF = {}, NUM = {}, LABEL = {};   // game file -> lesson file number; lesson file number -> number shown; -> its name ("Lesson 12", "Rewind 1")
+  PLAN.forEach(function (p) { if (!LESSON_OF[p.game]) LESSON_OF[p.game] = p.l; NUM[p.l] = p.n; LABEL[p.l] = p.label || 'Lesson ' + p.n; });
+  window.SFA_LESSON_OF = LESSON_OF; window.SFA_LESSON_NUM = NUM; window.SFA_LESSON_LABEL = LABEL; window.SFA_PLAN = PLAN;
   // remember the last game a student opened (or the game of the last lesson they opened), so the front page's "Next up" follows the class
   if (!teach) {
     var lastG = LESSON_OF[page] ? page : '';

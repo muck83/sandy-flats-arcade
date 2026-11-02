@@ -54,7 +54,7 @@
   // the lessons' titles (for the "Then: Lesson" menu)
   var LES = {};
   (function () { var left = 17, prev = window.SFA_LESSON; window.SFA_LESSON = function (L) { LES[String(L.id).slice(1)] = L; };
-    for (var i = 1; i <= 17; i++) { var sc = document.createElement('script'); sc.src = (window.CLIMB_ROOT || '') + 'lessons/L' + i + '.js'; sc.onload = sc.onerror = function () { if (--left === 0) { window.SFA_LESSON = prev; if (data) draw(); } }; document.head.appendChild(sc); } })();
+    for (var i = 1; i <= 18; i++) { var sc = document.createElement('script'); sc.src = (window.CLIMB_ROOT || '') + 'lessons/L' + i + '.js'; sc.onload = sc.onerror = function () { if (--left === 0) { window.SFA_LESSON = prev; if (data) draw(); } }; document.head.appendChild(sc); } })();
   function nextL(s) { return s && s.state !== 'ended' ? (s.next || 0) : s && s.state === 'ended' && s.next ? s.next : SFA.store.get('teacher.climb.next', 0); }
 
   /* ---------- derived data ---------- */
@@ -129,7 +129,7 @@
     // the lesson that follows: students who finish Climb wait on their summary and move into it when you go live
     var nxt = el('select', { 'aria-label': 'Lesson after Climb', title: 'Students move into this lesson by themselves when you go live on it' });
     nxt.appendChild(el('option', { value: '0', text: 'Then: no lesson' }));
-    (window.SFA_PLAN || []).slice().sort(function (a, b) { return a.n - b.n; }).forEach(function (p) { var L = LES[p.l], o = el('option', { value: String(p.l), text: 'Then: Lesson ' + p.n + (L ? ' · ' + L.title : '') }); if (String(p.l) === String(nextL(s))) o.selected = true; nxt.appendChild(o); });
+    (window.SFA_PLAN || []).slice().sort(function (a, b) { return a.n - b.n; }).forEach(function (p) { var L = LES[p.l], o = el('option', { value: String(p.l), text: 'Then: ' + (p.label || 'Lesson ' + p.n) + (L ? ' · ' + L.title : '') }); if (String(p.l) === String(nextL(s))) o.selected = true; nxt.appendChild(o); });
     nxt.onchange = function () { SFA.store.set('teacher.climb.next', +nxt.value); if (running) control('next', { next: +nxt.value }); else draw(); };
     row.appendChild(nxt);
     var B = function (t, cl, f) { var b = el('button', { type: 'button', 'class': 'btn ' + (cl || ''), text: t }); b.onclick = function () { b.disabled = true; f(); }; row.appendChild(b); };
