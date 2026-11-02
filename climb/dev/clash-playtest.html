@@ -38,15 +38,19 @@ button{font:inherit;padding:8px 14px;border-radius:10px;border:1px solid var(--l
       function ourD(l) { return S.units.filter(function (u) { return u.team === b.team && u.lane === l && L.UNITS[u.type].kind === 'd'; }).length; }
       function foeD(l) { return S.units.filter(function (u) { return u.team !== b.team && u.lane === l && L.UNITS[u.type].kind === 'd'; }).length; }
       function lane3() { return Math.floor(rnd() * L.LANES); }
-      if (b.strat === 'rush') return ok(0) ? { t: 0, l: lane3() } : null;
-      if (b.strat === 'random') { var c = [0, 1, 2, 3, 4, 5].filter(ok); return c.length ? { t: c[Math.floor(rnd() * c.length)], l: lane3() } : null; }
-      if (b.strat === 'turtle') { var tl = LN.slice().sort(function (a, c2) { return ourD(a) - ourD(c2); })[0]; if (L.planted(S, b.team, tl) < L.TILES.length) { if (ok(5)) return { t: 5, l: tl }; if (ok(1)) return { t: 1, l: tl }; } return ok(2) ? { t: 2, l: lane3() } : ok(0) ? { t: 0, l: lane3() } : null; }
+      var ATK = [9, 4, 2, 6, 0], DEF = [8, 7, 1, 5];
+      function best(list) { for (var q = 0; q < list.length; q++) if (ok(list[q])) return list[q]; return null; }
+      // the best unlocked attacker isn't affordable yet: often worth saving for
+      function saving() { var top = ATK.filter(function (t) { return L.UNITS[t].lv <= lv; })[0]; return top != null && b.coins < L.UNITS[top].cost && rnd() < 0.6; }
+      if (b.strat === 'rush') { var rt = ok(6) ? 6 : ok(0) ? 0 : null; return rt == null ? null : { t: rt, l: lane3() }; }
+      if (b.strat === 'random') { var c = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(ok); return c.length ? { t: c[Math.floor(rnd() * c.length)], l: lane3() } : null; }
+      if (b.strat === 'turtle') { var tl = LN.slice().sort(function (a, c2) { return ourD(a) - ourD(c2); })[0]; if (L.planted(S, b.team, tl) < L.TILES.length) { var dt0 = best(DEF); if (dt0 != null) return { t: dt0, l: tl }; } var at0 = best([2, 6, 0]); return at0 == null ? null : { t: at0, l: lane3() }; }
       var dl = 0, worst = -1; for (var l = 0; l < L.LANES; l++) { var th = foeA(l) - ourD(l) * 90; if (th > worst) { worst = th; dl = l; } }
       var crowd = S.units.filter(function (u) { return u.team !== b.team && u.lane === dl && L.UNITS[u.type].kind === 'a'; }).length;
       if (crowd >= 3 && ok(3)) return { t: 3, l: dl };
-      if (worst > 80 && L.planted(S, b.team, dl) < L.TILES.length) { if (ok(5)) return { t: 5, l: dl }; if (ok(1)) return { t: 1, l: dl }; }
+      if (worst > 80 && L.planted(S, b.team, dl) < L.TILES.length) { var dt1 = best(DEF); if (dt1 != null) return { t: dt1, l: dl }; }
       var al = LN.slice().sort(function (a, c3) { return foeD(a) - foeD(c3); })[0];
-      if (ok(4)) return { t: 4, l: al }; if (b.coins < 10 && L.lvOf(b.right, b.boost) >= 4 && rnd() < 0.5) return null; if (ok(2)) return { t: 2, l: al }; if (ok(0)) return { t: 0, l: al }; return null;
+      if (saving()) return null; var at1 = best(ATK); return at1 == null ? null : { t: at1, l: al };
     }
     while (S.t < S.dur) {
       bots.forEach(function (b) {

@@ -283,8 +283,8 @@
   }
   function levelUp(n) {
     sfx('level');
-    var un = L.UNITS.filter(function (U) { return U.lv === n; })[0];
-    shout({ e: un ? un.who : 'one', who: 'LEVEL ' + n + '!', text: un ? '<b>' + esc(un.name.toUpperCase()) + '</b> unlocked. Your characters are stronger.' : 'Your characters are stronger.', team: me, mine: true, gold: true });
+    var un = L.UNITS.filter(function (U) { return U.lv === n; });
+    shout({ e: un.length ? un[0].who : 'one', who: 'LEVEL ' + n + '!', text: un.length ? un.map(function (U) { return '<b>' + esc(U.name.toUpperCase()) + '</b>'; }).join(' and ') + ' unlocked. Your characters are stronger.' : 'Your characters are stronger.', team: me, mine: true, gold: true });
   }
 
   /* ---------- the hero panel and the seed-packet cards ---------- */
@@ -354,7 +354,7 @@
     if (e.k === 'zero') {
       V.rollers.push({ lane: e.p.lane, team: e.p.team, t0: performance.now() }); if (e.hits.length) V.shake = Math.max(V.shake, 6); sfx('zero');
       // damage numbers on everyone Zero erased
-      var G0 = geo(); e.hits.forEach(function (id) { var u = V.S && V.S.units.filter(function (x) { return x.id === id; })[0]; if (u) V.parts.push({ k: 'text', s: '-' + Math.round(L.UNITS[3].pie * L.mul(e.p.lv)), col: '#FF8A5A', x: G0.X(u.x), y: laneY(G0, u.lane) - sizeOf(L.UNITS[u.type].who, G0) - 6, vy: -60, life: 0.9, t: 0 }); });
+      var G0 = geo(); e.hits.forEach(function (id) { var u = V.S && V.S.units.filter(function (x) { return x.id === id; })[0]; if (u) V.parts.push({ k: 'text', s: '-' + Math.round(L.UNITS[e.p.type].pie * L.mul(e.p.lv)), col: '#FF8A5A', x: G0.X(u.x), y: laneY(G0, u.lane) - sizeOf(L.UNITS[u.type].who, G0) - 6, vy: -60, life: 0.9, t: 0 }); });
       return;
     }
     if (e.k === 'mow') { V.mowers.push({ lane: e.lane, team: e.team, t0: performance.now() }); V.shake = Math.max(V.shake, 10); sfx('mow'); var T = teamNames(V.c.id); shout({ e: 'mux', who: 'MUX', text: 'charged down lane ' + (e.lane + 1) + ' for <b>' + esc(T[e.team].name.toUpperCase()) + '</b>!', team: e.team, mine: e.team === me }); return; }
@@ -365,7 +365,7 @@
     return { w: w, h: h, vw: vw, lh: (h - top) / L.LANES, top: top, X: function (x) { return vw + (x / L.LEN) * (w - 2 * vw); } };
   }
   function laneY(G, l) { return G.top + G.lh * (l + 0.82); }
-  function sizeOf(who, G) { var k = { gus: 0.62, one: 0.74, sam: 0.66, pigeon: 0.34, max: 0.98, zero: 0.42, mux: 0.6 }[who] || 0.6; return G.lh * k * (L.LANES > 3 ? 1.3 : 1); }
+  function sizeOf(who, G) { var k = { gus: 0.62, one: 0.74, sam: 0.66, pigeon: 0.34, max: 0.98, zero: 0.42, mux: 0.6, rita: 0.66, priya: 0.62, dunmore: 0.84, undef: 1.12 }[who] || 0.6; return G.lh * k * (L.LANES > 3 ? 1.3 : 1); }
   function dust(u) { var G = geo(); for (var i = 0; i < 8; i++) V.parts.push({ k: 'dust', x: G.X(u.x) + (Math.random() - 0.5) * 30, y: laneY(G, u.lane), vx: (Math.random() - 0.5) * 60, vy: -Math.random() * 40, life: 0.6, t: 0 }); }
   function die(u, mowed) {
     var G = geo(), R = V.units[u.id] || {};
@@ -497,7 +497,7 @@
     c.textBaseline = 'alphabetic';
     // where the picked card would go: a ghost in the lane under the mouse
     if (A.MODE === 'student' && V.sel >= 0 && V.hover >= 0 && me >= 0) {
-      var GU = L.UNITS[V.sel], gsp = SP.get(GU.who), gx0 = GU.kind === 'd' ? G.X(me ? L.LEN - L.TILES[GU.id === 'sam' ? 0 : L.TILES.length - 1] : L.TILES[GU.id === 'sam' ? 0 : L.TILES.length - 1]) : me ? w - G.vw - 30 : G.vw + 30;
+      var GU = L.UNITS[V.sel], gsp = SP.get(GU.who), gx0 = GU.kind === 'd' ? G.X(me ? L.LEN - L.TILES[GU.wall ? 0 : L.TILES.length - 1] : L.TILES[GU.wall ? 0 : L.TILES.length - 1]) : me ? w - G.vw - 30 : G.vw + 30;
       c.fillStyle = 'rgba(255,201,74,.16)'; c.fillRect(G.vw, G.top + V.hover * G.lh, w - 2 * G.vw, G.lh);
       if (gsp) { c.save(); c.globalAlpha = 0.5 + 0.15 * Math.sin(now / 120); drawSprite(gsp, gx0, laneY(G, V.hover), sizeOf(GU.who, G), me, 0); c.restore(); }
     }
@@ -627,8 +627,8 @@
     var bans = ['<span class="lcbig">⚔️</span><h2>Lane Clash</h2>' + vs + (me >= 0 ? '<p>You\'re on <b style="color:' + TC[me] + '">' + T[me].e + ' ' + esc(T[me].name) + '</b>!</p>' : '')];
     if (CL && A.MODE === 'student') bans.push('<span class="lcbig">🎁</span><b class="lckick">Your lesson bonus</b><p class="lcyours">You start with <b>' + CL.bonus + ' coins</b>' + (CL.boost ? ' at <b>hero level ' + (1 + CL.boost) + '</b>' : '') + ' for your work in today\'s lesson. Effort counts most!</p>');
     bans.push('<span class="lcbig">🧠</span><b class="lckick">Answer to earn coins</b><p class="lcyours">A right first try earns <b>3 coins</b>. Three in a row earns a bonus. Every 3 right levels up your hero and unlocks new characters.</p>');
-    bans.push(pics(['gus', 'one', 'max']) + '<b class="lckick">Send attackers</b><p class="lcyours">Pick a card, then a lane. <b>Gus</b>, <b>One</b> and <b>Maximus</b> march to the other fort and grab its gold.</p>');
-    bans.push(pics(['sam', 'pigeon', 'zero']) + '<b class="lckick">Defend your lanes</b><p class="lcyours">Each lane has 3 planting spots. <b>Squaring Sam</b> blocks, <b>Pea Pigeon</b> shoots, and <b>Zero</b> erases every enemy in a lane.</p>');
+    bans.push(pics(['gus', 'rita', 'one', 'max', 'undef']) + '<b class="lckick">Send attackers</b><p class="lcyours">Pick a card, then a lane. Attackers march to the other fort and grab its gold. The bigger ones cost more but grab far more: worth saving up for!</p>');
+    bans.push(pics(['sam', 'dunmore', 'pigeon', 'priya', 'zero']) + '<b class="lckick">Defend your lanes</b><p class="lcyours">Each lane has 3 planting spots. <b>Sam</b> and <b>Mr. Dunmore</b> block, <b>Pea Pigeon</b> and <b>Priya</b> shoot, and <b>Zero</b> erases every enemy in a lane.</p>');
     bans.push('<span class="lcbig">🏰</span><b class="lckick">Watch your fort</b><p class="lcyours">A red <b>!</b> at a gate means enemies are close. <b>Mux</b> charges the first one to reach a gate. 📣 Call your team for help.</p>');
     bans.push('<span class="lcbig">🔥</span><b class="lckick">Never give up</b><p class="lcyours">The last minute is the <b>final wave</b>: double gold. A team that falls behind gets bonus coins and tougher characters.</p>');
     var words = bans.map(function (h) { return h.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length; });

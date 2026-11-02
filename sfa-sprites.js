@@ -20,7 +20,10 @@
     max: function (E, T) { E.maxim(480, T, false, {}); },
     mux: function (E, T) { E.mux3(480, T, false, {}); },
     priya: function (E, T) { E.kid('priya', 480, 470, 1, false, null, false, T, {}); },
-    marcus: function (E, T) { E.kid('marcus', 480, 470, 1, false, null, false, T, {}); }
+    marcus: function (E, T) { E.kid('marcus', 480, 470, 1, false, null, false, T, {}); },
+    dunmore: function (E, T) { E.kid('dunmore', 480, 470, 1, false, null, false, T, {}); },
+    rita: function (E, T) { E.rita(480, 470, 1, T, false, {}); },
+    undef: function (E, T) { E.undef(480, T, false, {}); }
   };
   function bounds(c, w, h) {
     var d = c.getImageData(0, 0, w, h).data, x0 = w, y0 = h, x1 = -1, y1 = -1;

@@ -331,7 +331,7 @@ body.clashing{overflow:hidden}
 .lcxp{height:10px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden}.lcxp i{display:block;height:100%;background:linear-gradient(90deg,#FFC94A,#FFE68A);transition:width .5s}
 .lccoins{font:400 26px "Luckiest Guy",system-ui;color:#FFC94A}
 .lcnext{grid-column:1/-1;margin:0;font-size:12px;opacity:.8}
-.lccards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.lccards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .lccard{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 4px 5px;border-radius:12px;border:2px solid #8a6a2a;background:linear-gradient(#f7e6b5,#e6c97e);color:#2a1e08;font:inherit;cursor:pointer;overflow:hidden;transition:transform .12s}
 .lccard:hover{transform:translateY(-3px)}
 .lccard img{width:44px;height:44px;object-fit:contain}
@@ -370,7 +370,7 @@ body.clashing{overflow:hidden}
 .lcend h1{font:400 clamp(34px,6vw,64px) "Luckiest Guy",system-ui;color:#FFC94A;margin:0;animation:wob .7s infinite alternate}
 .lcfinal{font:400 28px "Luckiest Guy",system-ui;margin:6px 0}.lcmvp{font-size:19px}
 @keyframes lcfade{from{opacity:0}}@keyframes lcfadeout{to{opacity:0;visibility:hidden}}
-@media (max-width:760px){.lccards{grid-template-columns:repeat(3,minmax(0,1fr))}.lcflag{font-size:26px}.lcgold{font-size:28px}.lcclock{font-size:26px}.lcboard{height:min(40vh,300px)}.lcshout img{width:44px;height:44px}}
+@media (max-width:760px){.lccards{grid-template-columns:repeat(5,minmax(0,1fr))}.lcflag{font-size:26px}.lcgold{font-size:28px}.lcclock{font-size:26px}.lcboard{height:min(40vh,300px)}.lcshout img{width:44px;height:44px}}
 @media (prefers-reduced-motion:reduce){.lcshout,.lcshout img,.lcintro-in,.lcend h1,.lccb,.lcintro-cast img,.lclane.ready{animation:none!important}}
 .lcintro-in{max-width:min(92vw,820px);box-sizing:border-box}.lcintro h1{font-size:clamp(36px,7vw,88px)}
 .lc .ftab td{animation:none}

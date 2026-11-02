@@ -12,19 +12,24 @@
 (function () {
   'use strict';
   var L = window.SFA_LANES = {};
-  L.LEN = 1000; L.LANES = 5; L.DUR = 3000; L.DEPLOY = 60; L.FRENZY = 600; L.RANGE = 45; L.MOW = 40; L.MOWBACK = 900;   // Mux parks again 90 s after charging
+  L.LEN = 1000; L.LANES = 5; L.DUR = 3000; L.DEPLOY = 60; L.FRENZY = 600; L.RANGE = 45; L.MOW = 40; L.MOWBACK = 900; L.MOWHIT = 400; L.MOWPUSH = 220; L.GRABCAP = 160; L.CATCHGOLD = 0.5;   // Mux parks again 90 s after charging; his charge hits for 400 and knocks back; one grab is at most 160 gold
   L.TILES = [400, 280, 160];   // your planted defenders' spots in each lane, front to back (team 1 mirrors them)
   // kind: a = attacker (marches), d = defender (planted), s = special (instant). cost in coins; hp; damage per second;
   // speed in lane units per second; gold grabbed at the vault; reach for shooters; hero level needed; cooldown in ticks
+  // Better characters cost more and grab more gold for every coin spent, so saving up pays. A right answer earns 3 coins.
   L.UNITS = [
-    { id: 'gus', kind: 'a', who: 'gus', name: 'Gus', role: 'Sneaky runner', cost: 3, hp: 45, dps: 11, spd: 135, gold: 6, lv: 1, cd: 40, say: 'Fast and cheap. Slips through empty lanes.' },
-    { id: 'sam', kind: 'd', who: 'sam', name: 'Squaring Sam', role: 'Wall', cost: 7, hp: 190, dps: 9, lv: 1, cd: 100, say: 'Plants himself in your half and blocks the lane.' },
-    { id: 'one', kind: 'a', who: 'one', name: 'One', role: 'Superhero', cost: 9, hp: 150, dps: 30, spd: 85, gold: 10, lv: 2, cd: 80, breaker: 2, say: 'Smashes walls and pigeons: double damage to defenders.' },
-    { id: 'zero', kind: 's', who: 'zero', name: 'Zero', role: 'Eraser', cost: 8, pie: 70, lv: 3, cd: 200, say: 'Rolls down a lane and erases every enemy in it.' },
-    { id: 'max', kind: 'a', who: 'max', name: 'Maximus Million', role: 'Giant', cost: 16, hp: 420, dps: 38, spd: 55, gold: 24, lv: 4, cd: 250, say: 'Huge and slow. Grabs loads of gold.' },
-    { id: 'pigeon', kind: 'd', who: 'pigeon', name: 'Pea Pigeon', role: 'Shooter', cost: 6, hp: 45, dps: 8, reach: 300, lv: 1, cd: 60, say: 'Perches in your half and pelts attackers from afar.' }
+    { id: 'gus', kind: 'a', who: 'gus', name: 'Gus', role: 'Sneaky runner', cost: 3, hp: 45, dps: 11, spd: 135, gold: 8, lv: 1, cd: 40, say: 'Fast and cheap. Slips through empty lanes.' },
+    { id: 'sam', kind: 'd', who: 'sam', name: 'Squaring Sam', role: 'Wall', wall: true, cost: 6, hp: 160, dps: 9, lv: 1, cd: 100, say: 'Plants himself in your half and blocks the lane.' },
+    { id: 'one', kind: 'a', who: 'one', name: 'One', role: 'Superhero', cost: 9, hp: 170, dps: 30, spd: 85, gold: 24, lv: 3, cd: 80, breaker: 2, say: 'Smashes walls and shooters: double damage to defenders.' },
+    { id: 'zero', kind: 's', who: 'zero', name: 'Zero', role: 'Eraser', cost: 9, pie: 90, lv: 3, cd: 200, say: 'Rolls down a lane and erases every enemy in it.' },
+    { id: 'max', kind: 'a', who: 'max', name: 'Maximus Million', role: 'Giant', cost: 16, hp: 480, dps: 38, spd: 55, gold: 50, lv: 4, cd: 250, say: 'Huge and slow. Grabs loads of gold.' },
+    { id: 'pigeon', kind: 'd', who: 'pigeon', name: 'Pea Pigeon', role: 'Shooter', cost: 5, hp: 40, dps: 8, reach: 300, lv: 1, cd: 60, say: 'Perches in your half and pelts attackers from afar.' },
+    { id: 'rita', kind: 'a', who: 'rita', name: 'Rental Rita', role: 'Speedy courier', cost: 5, hp: 80, dps: 9, spd: 175, gold: 16, lv: 2, cd: 60, say: 'Zooms down the lane on her scooter. Fragile, but she carries a big bag.' },
+    { id: 'priya', kind: 'd', who: 'priya', name: 'Priya', role: 'Sharpshooter', cost: 11, hp: 60, dps: 13, reach: 420, lv: 2, cd: 120, say: 'Hits attackers from almost halfway down the lane.' },
+    { id: 'dunmore', kind: 'd', who: 'dunmore', name: 'Mr. Dunmore', role: 'Fortress', wall: true, cost: 14, hp: 320, dps: 13, lv: 4, cd: 200, say: 'Stands in the lane like a closed door. Very hard to get past.' },
+    { id: 'undef', kind: 'a', who: 'undef', name: 'The Undefined', role: 'Boss', cost: 24, hp: 820, dps: 50, spd: 40, gold: 90, lv: 5, cd: 400, breaker: 1.5, say: 'The biggest thing on the Grid. Slow, terrifying, and worth a fortune.' }
   ];
-  L.ORDER = [0, 5, 1, 2, 3, 4];   // seed-packet order on screen
+  L.ORDER = [0, 5, 1, 6, 7, 2, 3, 4, 8, 9];   // seed-packet order on screen: by hero level
   L.unit = function (t) { return L.UNITS[t]; };
   L.mul = function (lv) { return 1 + 0.12 * (lv - 1); };                           // each hero level: 12% stronger
   L.frenzy = function (t, dur) { dur = dur || L.DUR; return t >= dur - L.FRENZY && t < dur; };   // the final wave: the last minute
@@ -44,8 +49,8 @@
     return (hard ? 4 : 3) + (streak % 3 === 0 ? 2 : 0) + (streak >= 5 ? 1 : 0);
   };
   // catch-up for the team that's behind, in two steps. Behind (25 gold and 20%): a bonus coin on every right answer,
-  // 25% tougher characters, and Mux parks again twice as fast. Far behind (60 gold and 40%): two bonus coins, 50% tougher,
-  // Mux three times as fast. So a weaker team stays in the game and the final wave can still turn it
+  // 25% tougher characters, half as much gold again on every grab (L.CATCHGOLD), and Mux parks again twice as fast. Far
+  // behind (60 gold and 40%): two bonus coins, 50% tougher, double gold on every grab, Mux three times as fast. So a weaker team stays in the game and the final wave can still turn it
   L.behind = function (S, team) { var me = S.score[team], them = S.score[1 - team]; return them - me > 60 && me < them * 0.6 ? 2 : them - me > 25 && me < them * 0.8 ? 1 : 0; };
   L.comeback = function (S, team) { return L.behind(S, team) > 0; };
   function row(v) { var a = []; for (var i = 0; i < L.LANES; i++) a.push(v); return a; }   // one value per lane
@@ -92,7 +97,7 @@
           // a defender takes the first free tile: walls from the front, shooters from the back
           var taken = {}, order = [];
           S.units.forEach(function (u) { if (u.team === p.team && u.lane === p.lane && u.tile != null) taken[u.tile] = 1; });
-          for (var k0 = 0; k0 < L.TILES.length; k0++) order.push(U.id === 'sam' ? k0 : L.TILES.length - 1 - k0);
+          for (var k0 = 0; k0 < L.TILES.length; k0++) order.push(U.wall ? k0 : L.TILES.length - 1 - k0);
           var tile = order.filter(function (k) { return !taken[k]; })[0];
           if (tile == null) tile = order[0];
           x = tileX(p.team, tile);
@@ -132,21 +137,25 @@
       var a = S.units[i], foe = 1 - a.team;
       if (L.UNITS[a.type].kind !== 'a' || Math.abs(a.x - vaultX(foe)) > L.MOW) { keep.push(a); continue; }
       if (S.mow[foe][a.lane]) { S.mow[foe][a.lane] = 0; S.mowAt[foe][a.lane] = S.t + Math.round(L.MOWBACK / (1 + L.behind(S, foe))); mowed[foe + ':' + a.lane] = 1; if (fx) fx({ k: 'mow', team: foe, lane: a.lane, by: a }); }
-      if (mowed[foe + ':' + a.lane]) continue;
+      if (mowed[foe + ':' + a.lane]) { keep.push(a); continue; }   // Mux deals with it below
       if ((a.team === 0 && a.x >= L.LEN) || (a.team === 1 && a.x <= 0)) {
-        var g = Math.round(L.UNITS[a.type].gold * L.mul(a.lv) * (fz ? (S.score[a.team] < S.score[1 - a.team] ? 3 : 2) : 1));   // the final wave: double gold, triple for the team behind
+        // the final wave: double gold, triple for the team behind; a team behind also grabs more (catch-up), one grab at most GRABCAP
+        var g = Math.min(L.GRABCAP, Math.round(L.UNITS[a.type].gold * L.mul(a.lv) * (fz ? (S.score[a.team] < S.score[1 - a.team] ? 3 : 2) : 1) * (1 + L.CATCHGOLD * L.behind(S, a.team))));
         S.score[a.team] += g;
         if (fx) fx({ k: 'grab', u: a, gold: g });
         continue;
       }
       keep.push(a);
     }
-    // Mux flattens every attacker of that team in the lane
+    // Mux charges through your own half of the lane: every attacker there takes a big hit and is knocked back. Small ones
+    // are flattened; a giant or the Undefined survives, battered (so send something small first to set Mux off)
     if (Object.keys(mowed).length) keep = keep.filter(function (a) {
-      // Mux charges through your own half of the lane
       var hit = L.UNITS[a.type].kind === 'a' && mowed[(1 - a.team) + ':' + a.lane] && Math.abs(a.x - vaultX(1 - a.team)) <= L.LEN / 2;
-      if (hit && fx) fx({ k: 'die', u: a, mowed: true });
-      return !hit;
+      if (!hit) return true;
+      a.hp -= L.MOWHIT; a.x -= (a.team ? -1 : 1) * L.MOWPUSH;
+      if (a.hp <= 0) { if (fx) fx({ k: 'die', u: a, mowed: true }); return false; }
+      if (fx) fx({ k: 'hit', u: a });
+      return true;
     });
     S.units = keep;
   };
