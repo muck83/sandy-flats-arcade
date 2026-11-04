@@ -168,8 +168,12 @@
     V.b = b; V.B = build(b.theme, b.seed, b.n);
     if (A.MODE === 'student') {
       var wi = myIdx(b);
-      if (wi < 0 && b.state === 1 && Date.now() - (V.joinAt || 0) > 15000) { V.joinAt = Date.now(); send(-1); }
-      if (ST.w !== wi) { ST.w = wi; ST.guessed = {}; ST.gifted = {}; ST.solved = false; ST.misses = 0; ST.giftSeen = 0; keep(); }
+      if (wi < 0 && b.state === 1 && leftOf(b) >= 60 && Date.now() - (V.joinAt || 0) > 15000) { V.joinAt = Date.now(); ST.askedLate = true; keep(); send(-1); }
+      if (ST.w !== wi) {
+        ST.w = wi; ST.guessed = {}; ST.gifted = {}; ST.solved = false; ST.misses = 0; ST.giftSeen = 0;
+        if (wi >= 0 && ST.askedLate) { ST.askedLate = false; ST.credits += 3; SFA.toast('🎒 You joined late, so you start with 3 bonus letter guesses. Go!', 4500); }
+        keep();
+      }
       receiveGifts(b);
     }
     // what's new since the last update: a banner for every word solved and every gift letter sent
@@ -178,7 +182,7 @@
       b.gifts.forEach(function (g, i) { if (g > (V.prev.gifts[i] || 0) && b.owners[i] && b.owners[i].length && !b.solved[i]) banner('🎁 <b>' + esc(b.names[i] || 'A classmate') + '</b> got a gift letter!', 'gift'); });
     }
     V.prev = { solved: Object.assign({}, b.solved), gifts: b.gifts.slice() };
-    var sig = [b.state, b.all, Object.keys(b.solved).join('.'), b.owners.map(function (o) { return o.join('+'); }).join(','), ST.w, A.MODE === 'student' ? ST.giftSeen : ''].join('|');
+    var sig = [b.state, b.all, Object.keys(b.solved).join('.'), b.owners.map(function (o) { return o.join('+'); }).join(','), ST.w, A.MODE === 'student' ? ST.giftSeen : '', b.state === 1 && leftOf(b) < 60].join('|');
     if (sig !== V.sig) { V.sig = sig; draw(); }
   }
   function open(b) {
@@ -320,6 +324,12 @@
     if (A.MODE !== 'student') return drawClass();
     var body = H('div', 'bbbody'); root.appendChild(body);
     var it = B.words[ST.w];
+    if (!it && b.state === 1 && leftOf(b) < 60) {
+      var hl = H('div', 'bbleft'), hbx = H('div', 'bbmine'); body.appendChild(hl); hl.appendChild(hbx);
+      hbx.appendChild(H('p', 'bbclue', '<b>You made it for the last minute!</b> There\'s no time for a new word, so you\'re a helper: every right answer earns a gift letter for a classmate who is still looking.'));
+      helper(hbx);
+      var qh = H('div', 'bbq'); body.appendChild(qh); drawQ(qh); return;
+    }
     if (!it) { body.appendChild(H('div', 'bbwait', b.state === 1 ? '<b>Getting your word…</b><p>Mr. Crowell\'s console hands out words every few seconds.</p>' : '<b>The Big Board is over.</b>')); return; }
     var left = H('div', 'bbleft'); body.appendChild(left);
     // my word: tiles, the clue, my letters and misses
@@ -359,7 +369,7 @@
   // helper mode: send a gift letter to a classmate who is still looking (words that cross mine first)
   function helper(box) {
     var b = V.b, B = V.B, me = B.words[ST.w], crossing = {};
-    cellsOf(me).forEach(function (rc) { var g = B.cells[rc[0] + ',' + rc[1]], o = me.d === 'A' ? g.D : g.A; if (o != null) crossing[o] = 1; });
+    if (me) cellsOf(me).forEach(function (rc) { var g = B.cells[rc[0] + ',' + rc[1]], o = me.d === 'A' ? g.D : g.A; if (o != null) crossing[o] = 1; });
     var open = B.words.map(function (w, i) { return i; }).filter(function (i) { return i !== ST.w && b.owners[i] && b.owners[i].length && !b.solved[i]; })
       .sort(function (x, y) { return (crossing[y] ? 1 : 0) - (crossing[x] ? 1 : 0) || (b.gifts[x] || 0) - (b.gifts[y] || 0); });
     var hb = H('div', 'bbhelp'); box.appendChild(hb);
@@ -391,7 +401,7 @@
     }
     function right() {
       var first = !ST.tries; ST.streak = first ? ST.streak + 1 : 0; ST.right++;
-      var got = 1 + (first && ST.streak % 3 === 0 ? 1 : 0), helping = ST.solved || V.b.solved[ST.w];
+      var got = 1 + (first && ST.streak % 3 === 0 ? 1 : 0), helping = ST.solved || V.b.solved[ST.w] || ST.w < 0;
       if (helping) ST.giftCred = (ST.giftCred || 0) + got; else ST.credits += got;
       ST.fb = { ok: true, html: '<b>Yes! +' + got + (helping ? ' gift letter' + (got > 1 ? 's' : '') + ' to send' : ' letter guess' + (got > 1 ? 'es' : '')) + '.</b>' + (got > 1 ? ' 🔥 Three in a row!' : '') };
       sendSoon(); keep(); draw();
@@ -491,6 +501,7 @@
   function nameOf(sid) { var r = A.rosterIn().filter(function (x) { return x.sid === sid; })[0]; return r ? A.first(r.name).replace(/[^A-Za-zÀ-ÿ' -]/g, '').slice(0, 10) : ''; }
   function agg() {
     var K = C(); if (!K || K.state !== 1) return;
+    if (!resolveOwners(K)) return;   // not before the roster is in: everyone would look new
     var key2 = 'id:' + Math.round(K.id / 1000) + ';', last = {}, changed = false;
     (A.consoleAnswers() || []).forEach(function (a) { if (a.q === QID && String(a.answer).indexOf(key2) >= 0 && (!last[a.sid] || String(a.time) >= String(last[a.sid].time))) last[a.sid] = a; });
     K.prog = K.prog || {};
@@ -498,13 +509,15 @@
     Object.keys(last).forEach(function (sid) {
       var s = String(last[sid].answer), get = function (k) { var m = s.match(new RegExp(';' + k + ':(-?\\d+)')); return m ? +m[1] : 0; };
       var w = get('w'), mineAt = -1; K.owners.forEach(function (o, i) { if (o.indexOf(sid) >= 0) mineAt = i; });
-      if (mineAt < 0) {   // someone new: a spare word, or share an unsolved one
+      // gift letters count from everyone, helpers without a word too
+      ((s.match(/;gv:([0-9.]*)/) || [, ''])[1]).split('.').filter(Boolean).forEach(function (t) { var ti = +t; if (ti >= 0 && ti < K.n) gifts[ti] = (gifts[ti] || 0) + 1; });
+      if (mineAt < 0) {   // someone new: a spare word, or share an unsolved one; in the last minute, no new words (they help instead)
+        if (K.id + K.dur * 1000 - Date.now() < 60000) return;
         var spare = K.owners.findIndex(function (o) { return !o.length; });
         if (spare < 0) { var open = K.owners.map(function (o, i) { return i; }).filter(function (i) { return !K.solved[i]; }); spare = open.length ? open[Math.floor(Math.random() * open.length)] : 0; }
         K.owners[spare].push(sid); changed = true; return;
       }
       K.prog[sid] = { w: mineAt, k: get('k'), r: get('r'), m: get('m') };
-      ((s.match(/;gv:([0-9.]*)/) || [, ''])[1]).split('.').filter(Boolean).forEach(function (t) { var ti = +t; if (ti >= 0 && ti < K.n) gifts[ti] = (gifts[ti] || 0) + 1; });
       if (w === mineAt && get('s') === 1 && !K.solved[mineAt]) { K.solved[mineAt] = 1; changed = true; }
     });
     for (var gi = 0; gi < K.n; gi++) if ((gifts[gi] || 0) > ((K.gifts || [])[gi] || 0)) { K.gifts = K.gifts || []; K.gifts[gi] = gifts[gi]; changed = true; }
@@ -527,16 +540,25 @@
     for (var k = 0; k * 13 * 12 < K.n; k++) { var arr = []; for (var j = 0; j < 12; j++) { var v = 0; for (var b = 0; b < 13; b++) if (K.solved[k * 156 + j * 13 + b]) v |= 1 << b; arr.push(v); if (k * 156 + (j + 1) * 13 >= K.n) break; } out['zbw' + k] = arr; }
   }
   function spot() {
-    var K = C(), A2 = K.owners.map(function (o) { return o.map(sh3).join('+'); }).join(','), N = K.owners.map(function (o) { return o.length ? nameOf(o[0]) : ''; }).join(',');
+    var K = C(), A2 = K.pendingFp ? K.pendingFp.map(function (o) { return o.join('+'); }).join(',') : K.owners.map(function (o) { return o.map(sh3).join('+'); }).join(','),
+      N = K.pendingFp ? (K.pendingNames || []).join(',') : K.owners.map(function (o) { return o.length ? nameOf(o[0]) : ''; }).join(',');
     return { q: 'zboard', text: ('A:' + A2 + '#N:' + N).slice(0, 600) };
   }
   function restore(Lv) {
     var b = boardOf(Lv); if (!b) return false;
     if (b.state === 2 || Date.now() - b.id > b.dur * 1000 + 60000) { A.console_().board = null; return false; }
-    var bySh = {}; A.rosterIn().forEach(function (r) { bySh[sh3(r.sid)] = r.sid; });
-    A.console_().board = { id: b.id, state: b.state, theme: b.theme, seed: b.seed, n: b.n, dur: b.dur, all: b.all, solved: b.solved, gifts: b.gifts.slice(), owners: b.owners.map(function (o) { return o.map(function (f) { return bySh[f]; }).filter(Boolean); }), lastPush: 0 };
-    for (var i = A.console_().board.owners.length; i < b.n; i++) A.console_().board.owners.push([]);
+    A.console_().board = { pendingFp: b.owners, pendingNames: b.names, id: b.id, state: b.state, theme: b.theme, seed: b.seed, n: b.n, dur: b.dur, all: b.all, solved: b.solved, gifts: b.gifts.slice(), owners: [], lastPush: 0 };
+    resolveOwners(A.console_().board);
     return true;
+  }
+  // after a console reload the board knows its students only by fingerprint: match them once the roster has loaded
+  function resolveOwners(K) {
+    if (!K.pendingFp) return true;
+    var roster = A.rosterIn(); if (!roster.length) { K.owners = K.pendingFp.map(function () { return []; }); return false; }
+    var bySh = {}; roster.forEach(function (r) { bySh[sh3(r.sid)] = r.sid; });
+    K.owners = K.pendingFp.map(function (o) { return o.map(function (f) { return bySh[f]; }).filter(Boolean); });
+    for (var i = K.owners.length; i < K.n; i++) K.owners.push([]);
+    delete K.pendingFp; delete K.pendingNames; return true;
   }
   function watchState() { var K = C(); return { id: K.id, start: K.id, state: K.state, theme: K.theme, seed: K.seed, n: K.n, dur: K.dur, all: !!K.all, solved: K.solved, gifts: (K.gifts || []).slice(), owners: K.owners.map(function (o) { return o.map(sh3); }), names: K.owners.map(function (o) { return o.length ? nameOf(o[0]) : ''; }) }; }
   function watch() { var b = watchState(); open(b); V.watch = true; V.b = b; draw(); }
