@@ -757,7 +757,7 @@
   // the server's clock as seen from here: live.at is server time when the console last updated; the closest sample wins
   function noteSkew() { if (MODE !== 'student' || !live || !live.at) return; var k = live.at - Date.now(); if (srvSkewV == null || k > srvSkewV || k < srvSkewV - 30000) srvSkewV = k; }
   // 🔠 the Big Board (sfa-board.js): the class crossword at the start of a lesson, loaded and synced like the Clash
-  var BOARD_V = '20261104f', boardLoading = null;
+  var BOARD_V = '20261104g', boardLoading = null;
   function boardAssets(cb) {
     if (window.SFA_BOARD) return cb();
     if (boardLoading) { boardLoading.push(cb); return; }

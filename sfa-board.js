@@ -383,20 +383,39 @@
       list.appendChild(bt);
     });
   }
+  /* the first five questions are warm-ups: one quick step, small numbers, so everyone uncovers letters early and gets into
+     it. Different numbers and order for each student. Then the spiral review takes over. */
+  var EASY_N = 5;
+  function easyQs() {
+    var r = rng((A.S.me ? parseInt(sh3(A.S.me.sid), 36) * 31 : 7) + Math.round((ST.id || 0) / 1000) % 9973), n = function (a, b) { return a + Math.floor(r() * (b - a + 1)); };
+    var T = [
+      function () { var a = n(2, 9), b = n(2, 9); return { k: 'number', q: 'What is *' + a + ' × ' + b + '*?', ans: a * b, why: a + ' × ' + b + ' = ' + a * b + '.' }; },
+      function () { var a = n(2, 12); return { k: 'number', q: 'A machine *doubles* its input. What comes out for *' + a + '*?', ans: 2 * a, why: 'Double ' + a + ' is ' + 2 * a + '.' }; },
+      function () { var a = n(1, 9), b = n(2, 12); return { k: 'number', q: 'In the pair *(' + a + ', ' + b + ')*, what is the *output*?', ans: b, why: 'Input first, output second: the output is ' + b + '.' }; },
+      function () { var a = n(2, 6), x = n(1, 5); return { k: 'number', q: 'The rule is *add ' + a + '*. What comes out for *' + x + '*?', ans: x + a, why: x + ' + ' + a + ' = ' + (x + a) + '.' }; },
+      function () { var a = n(2, 5); return { k: 'number', q: 'A line goes *up 2 for every 1 across*. How far up for *' + a + ' across*?', ans: 2 * a, why: a + ' steps of 2 is ' + 2 * a + '.' }; },
+      function () { var a = n(3, 9); return { k: 'number', q: 'What is *half of ' + 2 * a + '*?', ans: a, why: 'Half of ' + 2 * a + ' is ' + a + '.' }; },
+      function () { var a = n(2, 9); return { k: 'poll', q: 'Which point is on the *y-axis* (the up line)?', opts: ['(' + a + ', 0)', '(0, ' + a + ')', '(' + a + ', ' + a + ')'], ans: 1, why: 'On the y-axis you haven\'t moved across at all: x is 0.' }; },
+      function () { var a = n(10, 20), b = n(2, 9); return { k: 'number', q: 'What is *' + a + ' − ' + b + '*?', ans: a - b, why: a + ' − ' + b + ' = ' + (a - b) + '.' }; }
+    ];
+    return shuffle(T, r).slice(0, EASY_N).map(function (f) { return Object.assign(f(), { from: 'warm-up', easy: true }); });
+  }
   function drawQ(box) {
     box.innerHTML = '';
     if (V.b.state !== 1) { box.appendChild(H('p', 'q', 'Time is up.')); return; }
-    if (!POOL) { box.appendChild(H('p', 'q', 'Loading questions…')); return; }
-    if (!POOL.length) { box.appendChild(H('p', 'q', 'No questions found.')); return; }
-    var q = POOL[ST.qi % POOL.length];
-    box.appendChild(H('p', 'kick', 'Answer to earn letters · from ' + esc(q.from || 'earlier') + (ST.streak >= 2 ? ' · 🔥 ' + ST.streak + ' in a row' : '')));
+    if (!ST.easy) { ST.easy = easyQs(); ST.ei = 0; keep(); }
+    var warm = ST.ei < ST.easy.length;
+    if (!warm && !POOL) { box.appendChild(H('p', 'q', 'Loading questions…')); return; }
+    if (!warm && !POOL.length) { box.appendChild(H('p', 'q', 'No questions found.')); return; }
+    var q = warm ? ST.easy[ST.ei] : POOL[ST.qi % POOL.length];
+    box.appendChild(H('p', 'kick', (warm ? '🌱 Warm-up ' + (ST.ei + 1) + ' of ' + ST.easy.length + ' · answer to earn letters' : 'Answer to earn letters · from ' + esc(q.from || 'earlier')) + (ST.streak >= 2 ? ' · 🔥 ' + ST.streak + ' in a row' : '')));
     box.appendChild(H('p', 'q', A.fmt(q.q)));
     if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (e) { } }
     if (ST.fb) {
       box.appendChild(H('div', ST.fb.ok ? 'fb good' : 'fb try', ST.fb.html));
       var wait = Math.max(0, ST.cool - Date.now()), nx = el('button', { type: 'button', 'class': 'btn primary', text: wait ? 'Next in ' + Math.ceil(wait / 1000) : 'Next question ▶' });
       if (wait) { nx.disabled = true; setTimeout(function () { if (root) draw(); }, 1000); }
-      nx.onclick = function () { ST.fb = null; ST.qi++; ST.tries = 0; keep(); draw(); };
+      nx.onclick = function () { ST.fb = null; if (ST.easy && ST.ei < ST.easy.length) ST.ei++; else ST.qi++; ST.tries = 0; keep(); draw(); };
       box.appendChild(nx); return;
     }
     function right() {
