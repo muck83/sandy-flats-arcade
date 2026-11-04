@@ -756,9 +756,51 @@
   }
   // the server's clock as seen from here: live.at is server time when the console last updated; the closest sample wins
   function noteSkew() { if (MODE !== 'student' || !live || !live.at) return; var k = live.at - Date.now(); if (srvSkewV == null || k > srvSkewV || k < srvSkewV - 30000) srvSkewV = k; }
+  // 🔠 the Big Board (sfa-board.js): the class crossword at the start of a lesson, loaded and synced like the Clash
+  var BOARD_V = '20261104d', boardLoading = null;
+  function boardAssets(cb) {
+    if (window.SFA_BOARD) return cb();
+    if (boardLoading) { boardLoading.push(cb); return; }
+    boardLoading = [cb];
+    var files = ['sfa-engine.js', 'sfa-sprites.js', 'sfa-board.js'].filter(function (f) { return !(f === 'sfa-engine.js' && window.SFEngine) && !(f === 'sfa-sprites.js' && window.SFA_SPRITES); }), k = 0;
+    (function next() {
+      if (k >= files.length) { var q = boardLoading; boardLoading = null; q.forEach(function (f) { try { f(); } catch (e) { console.warn(e); } }); return; }
+      var sc3 = document.createElement('script'); sc3.src = files[k++] + '?v=' + BOARD_V; sc3.onload = next;
+      sc3.onerror = function () { boardLoading = null; SFA.toast('The Big Board couldn\'t load. Check the connection.', 4000); };
+      document.head.appendChild(sc3);
+    })();
+  }
+  function hasBoard(L) { return !!(L && L.lesson === LID && L.counts && Array.isArray(L.counts.zbs)); }
+  function freshBoard(L) {
+    if (!hasBoard(L)) return false;
+    var st = MODE === 'screen' ? decRun(L.counts.zbid) : decRun(L.counts.zbst) || decRun(L.counts.zbid), dur = L.counts.zbs[4] || 360;
+    return MODE === 'teach' || (Date.now() + (MODE === 'screen' ? 0 : srvSkewV || 0)) - st <= dur * 1000 + 150000;
+  }
+  function boardSync() {
+    if (window.SFA_BOARD) return SFA_BOARD.sync();
+    if ((isLive() || MODE === 'screen') && freshBoard(live) && !(MODE === 'student' && saving && !S.me)) boardAssets(function () { SFA_BOARD.sync(); });
+  }
+  function boardSection(p) {
+    if (window.SFA_BOARD && console_.board) return SFA_BOARD.section(p);
+    if (cur > 3 || console_.clash) return;   // it's a starter: offered on the first slides of the lesson
+    var sec = H('div', 'sect');
+    sec.appendChild(H('h3', '', '🔠 Start with the Big Board? (optional, about 6 minutes)'));
+    sec.appendChild(H('p', 'muted', 'A class crossword: every student here gets their own word. Right answers to quick review questions from earlier lessons earn letter guesses (a vowel costs two). Solved words fill the crossword on the class screen and give free letters to the words that cross them. If every word is found, the whole class celebrates.'));
+    var th = el('select', { 'aria-label': 'Theme' }), t0 = SFA.store.get('teacher.board.theme', 0);
+    ['⚡ Pokémon', '⚽ Sport and football', '🎮 Games and food', '📐 Maths words'].forEach(function (t, i) { var o = el('option', { value: String(i), text: t }); if (i === t0) o.selected = true; th.appendChild(o); });
+    th.onchange = function () { SFA.store.set('teacher.board.theme', +th.value); };
+    var len = el('select', { 'aria-label': 'Length' }), m0 = SFA.store.get('teacher.board.mins', 6);
+    [4, 6, 8].forEach(function (m) { var o = el('option', { value: String(m), text: m + ' minutes' }); if (m === m0) o.selected = true; len.appendChild(o); });
+    len.onchange = function () { SFA.store.set('teacher.board.mins', +len.value); };
+    var sb = el('button', { type: 'button', 'class': 'btn primary', text: '🔠 Start the Big Board' });
+    if (!console_.on) { sb.disabled = true; sec.appendChild(H('p', 'state', 'Go live first, and wait for students to join: everyone here gets a word.')); }
+    sb.onclick = function () { sb.disabled = true; sb.textContent = 'Building the crossword…'; boardAssets(function () { SFA_BOARD.start(+th.value, +len.value); SFA.toast('The Big Board is on. Students\' screens switch within a few seconds.', 3500); }); };
+    var rowb = H('div', 'row'); rowb.appendChild(th); rowb.appendChild(len); rowb.appendChild(sb); sec.appendChild(rowb); p.appendChild(sec);
+  }
   function clashSync() {
     if (MODE === 'teach') return;
     noteSkew();
+    boardSync();
     if (window.SFA_CLASH) return SFA_CLASH.sync();
     if ((isLive() || MODE === 'screen') && freshClash(live) && !(MODE === 'student' && saving && !S.me)) clashAssets(function () { SFA_CLASH.sync(); });
   }
@@ -767,6 +809,7 @@
     if (window.SFA_CLASH && console_.clash) return SFA_CLASH.section(p);
     var sl = LES.slides[cur];
     if (!(sl && (sl.k === 'exit' || sl.k === 'end'))) return;   // an optional finale: it shows up at the end of the lesson
+    if (console_.board) return;   // one game at a time: the Big Board is still on
     var sec = H('div', 'sect');
     sec.appendChild(H('h3', '', '⚔️ Finish with a Lane Clash? (optional, 5 minutes)'));
     sec.appendChild(H('p', 'muted', 'Plants vs Zombies, team against team, with the Sandy Flats characters. Fair teams (balanced on what each student did in today\'s lesson), then 30 seconds of rules on every screen. Students answer this lesson\'s questions for coins, send characters down 5 lanes and plant defenders, and grab the other team\'s gold. Good lesson participation starts them with more coins and a higher hero level. The class screen shows the whole battle.'));
@@ -990,7 +1033,7 @@
     }, 15000);
     if (!console_.offline) tpost('live').then(function (j) {
       console_.climb = j.climb || null;
-      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && console_.spot.q === 'zclash') console_.spot = null; if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
+      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard')) console_.spot = null; if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
       // opened from the Climb dashboard ("End Climb → Lesson N"): go live straight away, so students' pages move into this lesson
       else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
       else consolePanel();
@@ -1010,7 +1053,7 @@
       if (my < applied) return;   // only an older reply than one already shown is dropped
       applied = my; console_.got = Date.now(); var js = JSON.stringify(j), wasErr = !!console_.err;
       console_.err = ''; if (js === lastData && !wasErr) return; lastData = js;
-      console_.data = j; computeFeed(); clashAgg(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
+      console_.data = j; computeFeed(); clashAgg(); if (window.SFA_BOARD && console_.board) SFA_BOARD.agg(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
     },
       function (e) {
         if (my === fetchSeq) fetching = 0;
@@ -1076,6 +1119,7 @@
     var counts = {}, spot = console_.spot;
     if (console_.run) counts.zrun = encRun(console_.run);
     if (console_.lock) counts.zlock = [1];
+    if (console_.board && window.SFA_BOARD) { SFA_BOARD.counts(counts); spot = SFA_BOARD.spot(); }   // the Big Board: the crossword, who has which word, what's solved
     if (console_.clash && window.SFA_CLASH) { SFA_CLASH.counts(counts); spot = SFA_CLASH.spot(); }   // the battle board, the teams, shout-outs and MVPs
     Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length && Object.keys(counts).length < 60) counts[q] = feed.per[q].counts; });
     return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: spot, timer: console_.timer, lock: console_.lock, auto: console_.auto };
@@ -1196,6 +1240,7 @@
     if (!console_.offline) { var fr2 = H('p', 'state' + (console_.got && Date.now() - console_.got < 20000 ? ' ok' : ' bad'), ''); fr2.id = 'fresh'; top.appendChild(fr2); }
     p.appendChild(top);
     freshTick();
+    boardSection(p);
     clashSection(p);
 
     // this slide

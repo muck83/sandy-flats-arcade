@@ -125,6 +125,18 @@ All of this needs the current `backend/Code.gs` deployed as a new version.
 
 Press 👁 beside any name on the Climb dashboard. It shows that student's screen: which screen they're on (waiting, check-in, question, explanation, guided try, summary), the question rebuilt exactly, what they've typed, picked or dragged so far, the time left on their clock and how often they've left the page. While it's open their page reports every 3 seconds (normally every 8), so it stays about 3 seconds behind. Close it to stop. Students don't see anything change. Needs the current `backend/Code.gs` deployed as a new version.
 
+## 🔠 The Big Board (an optional starter, any live lesson)
+
+A class crossword that mixes hangman, Wheel of Fortune and a crossword. On the first slides of a live lesson the console offers **🔠 Start the Big Board**: pick a theme (⚡ Pokémon, ⚽ Sport and football, 🎮 Games and food, 📐 Maths words: unit vocabulary such as slope, intercept and domain, with student-friendly clues) and a length (4, 6 or 8 minutes; 6 by default). Wait until students have joined: everyone with a row in the lesson gets their own word.
+
+- **Students** see their word as blank tiles with its crossword clue. Right answers to quick review questions (spiral review: number and multiple-choice questions, extras included, from the five lessons taught before this one) earn letter guesses; a vowel costs two, and three right in a row earns a bonus. They can type the whole word to solve it at any time. Every fifth miss gives a free letter, so nobody stays stuck.
+- **Solved words** fill in on the class crossword with the solver's name, and their letters appear in gold, free, in every word that crosses them.
+- **Helper mode:** once a student has found their word, every right answer earns a gift letter they can send to a classmate who is still looking (words that cross theirs are listed first). The classmate gets a gold letter and a "a classmate sent you a letter" message.
+- **The class screen:** a banner for every word cracked ("⚡ Jane cracked 6 ACROSS: CHECK!") and every gift, a pulsing "3 WORDS TO GO!", a giant 10-second countdown at the end, and a mystery picture beside the board that uncovers as words are found. Sound effects (🔇/🔊 in the top bar) are off until someone turns them on.
+- **Every word found:** the whole class gets a celebration (names, the Sandy Flats cast, confetti) on every screen.
+- **The console** shows time left, words found, and who is stuck (letters showing out of the word's length); **👁 Show the board**, **⏰ +1 minute**, **End it now** and **Back to the lesson**. Students who join late get a spare word (or share one if none are left).
+- Progress saves as the answer `zboardx1`, which the results script treats as a go-further extra, so it never counts as a lesson answer or in participation.
+
 ## ⏪ The Rewind arc (catch-up before Lesson 12)
 
 Lesson 12 leans on slope, graphing lines and solving. The Rewind arc revisits them inside the story: Gus is frozen mid-word after *The Undoer*, and the team rides Effie's Rewinder back through time to hear the rest of his sentence. Each Rewind is a full lesson with its own film, listed between Lesson 11 and Lesson 12.

@@ -426,3 +426,66 @@ body.clashing{overflow:hidden}
 .lcban .lcvs2{font:400 clamp(18px,3vw,26px) "Luckiest Guy",system-ui}.lcban .lcvs2 b{color:#fff;margin:0 6px}
 .lcban .lcpics{display:flex;gap:10px;justify-content:center}.lcban .lcpics img{width:clamp(48px,9vw,76px);height:clamp(48px,9vw,76px)}
 .lcban .lccount{font-size:clamp(64px,12vw,120px);color:#FFC94A;line-height:1}
+/* 🔠 the Big Board: the class crossword at the start of a lesson */
+body.boarding{overflow:hidden}
+.bb{position:fixed;inset:0;z-index:90;overflow:auto;background:radial-gradient(ellipse at top,#26305a,#0f1224 70%);color:#F3EFE7;padding:12px 16px 24px;display:flex;flex-direction:column;gap:12px}
+.bbtop{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.bbtitle{font:400 clamp(20px,3vw,30px) "Luckiest Guy",system-ui;color:#FFE14D;letter-spacing:.02em}.bbtitle small{font:600 13px var(--ui,system-ui);color:#BFC7E6;margin-left:6px;letter-spacing:0}
+.bbprog{font-weight:700}.bbprog b{color:#7CF2A2;font-size:20px}
+.bbbar{flex:1 1 160px;height:10px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}.bbbar i{display:block;height:100%;background:linear-gradient(90deg,#7CF2A2,#FFE14D);transition:width .6s}
+.bbclock{font:400 28px "Luckiest Guy",system-ui;color:#fff;min-width:70px;text-align:right}
+.bbbody{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:820px){.bbbody{grid-template-columns:1fr}}
+.bbleft{display:flex;flex-direction:column;gap:12px}
+.bbmine,.bbq,.bbmini,.bbwait,.bbclues{background:rgba(14,16,30,.78);border:2px solid rgba(255,225,77,.35);border-radius:16px;padding:12px 14px}
+.bbwait{text-align:center;font-size:18px}
+.bbclue{margin:0 0 8px;font-size:18px}.bbclue b{color:#FFE14D}.bbclue span{opacity:.7}
+.bbtiles{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.bbtile{width:clamp(30px,6vw,46px);height:clamp(38px,7vw,54px);border-radius:8px;border:2px solid #FFE14D;background:#151a33;display:flex;align-items:center;justify-content:center;font:400 clamp(20px,4vw,32px) "Luckiest Guy",system-ui;color:#fff}
+.bbtile.on{background:#2b3570;animation:bbflip .35s ease}.bbtile.gift{color:#FFC94A;border-color:#FFC94A;background:#3b2e10}
+@keyframes bbflip{from{transform:rotateX(90deg)}to{transform:none}}
+.bbstat{margin:0 0 8px;font-size:15px}.bbstat .off{opacity:.25}.bbgifttxt{margin:0 0 8px;color:#FFC94A;font-size:14px}
+.bbwin{margin:4px 0;font-size:18px;color:#7CF2A2;font-weight:700}
+.bbkeys{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;margin-bottom:8px}
+.bbkey{padding:8px 0;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font:700 16px var(--ui,system-ui);cursor:pointer}
+.bbkey.v{border-color:#9BDCFF;color:#9BDCFF}.bbkey.poor{opacity:.45}.bbkey.hit{background:#1f6b45;border-color:#7CF2A2;color:#fff}.bbkey.miss{background:#5a1c22;border-color:#E0463C;color:#ffb0b0;text-decoration:line-through}
+.bbkey:disabled{cursor:default}
+.bbsolve input{flex:1 1 180px}
+.bbmini{overflow:auto}
+.bbgrid{position:relative;margin:0 auto}
+.bbcell{position:absolute;width:var(--cs);height:var(--cs);box-sizing:border-box;border:1px solid #39406a;background:#e9ecf6;display:flex;align-items:center;justify-content:center}
+.bbcell small{position:absolute;left:2px;top:0;font:600 calc(var(--cs)*.26) var(--ui,system-ui);color:#555}
+.bbcell b{font:400 calc(var(--cs)*.62) "Luckiest Guy",system-ui;color:#1b1a22}
+.bbcell.on{background:#FFE14D;animation:bbpop .5s ease}.bbcell.mine{box-shadow:inset 0 0 0 3px #7CF2A2}
+@keyframes bbpop{0%{transform:scale(.4)}70%{transform:scale(1.15)}100%{transform:none}}
+.bbwho{position:absolute;font:700 12px var(--ui,system-ui);color:#7CF2A2;white-space:nowrap;text-shadow:0 1px 2px #000}
+.bbq .kick{margin:0 0 6px;font-size:13px;color:#FFE14D;text-transform:uppercase;letter-spacing:.04em}.bbq .q{font-size:18px;margin:0 0 10px}
+.bbclass{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.bbclass{grid-template-columns:1fr}}
+.bbbig{display:flex;justify-content:center;padding:14px 4px}
+.bbclues h3{margin:0 0 8px;color:#FFE14D;font-family:"Luckiest Guy",system-ui;font-weight:400}.bbclues p{margin:0 0 5px;font-size:15px}.bbclues b{color:#9BDCFF}.bbclues span{opacity:.6}
+.bb.screen .bbclues p{font-size:18px}
+.bbback{position:fixed;right:16px;bottom:16px}
+.bbparty{position:fixed;inset:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,12,30,.82);text-align:center;padding:20px}
+.bbparty .in{animation:bbpop .7s ease}.bbparty h1{font:400 clamp(40px,8vw,96px) "Luckiest Guy",system-ui;color:#FFE14D;margin:0;text-shadow:0 6px 0 #a5520e}
+.bbparty p{font-size:clamp(18px,2.6vw,26px)}
+.bbnames{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:900px}.bbnames span{padding:6px 12px;border-radius:99px;background:#7CF2A2;color:#10301F;font-weight:800}
+.bbparade{display:flex;gap:18px;margin-top:22px}.bbparade canvas{animation:bbhop .6s ease-in-out infinite alternate}
+@keyframes bbhop{from{transform:translateY(0)}to{transform:translateY(-22px)}}
+@media (prefers-reduced-motion:reduce){.bbtile.on,.bbcell.on,.bbparty .in,.bbparade canvas{animation:none}}
+/* the Big Board: banners, words to go, the final countdown, helper mode, the mystery picture */
+.bbban{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:96;padding:12px 22px;border-radius:999px;background:#1b2350;border:3px solid #7CF2A2;font-size:clamp(16px,2.4vw,24px);box-shadow:0 10px 30px rgba(0,0,0,.5);animation:bbin .35s cubic-bezier(.2,1.6,.4,1) both;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+.bbban.gift{border-color:#FFC94A}.bbban.out{opacity:0;transition:opacity .35s}
+.bbban.big{font-size:30px;top:90px}
+@keyframes bbin{from{transform:translateX(-50%) scale(.4);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+.bbtogo{font:400 20px "Luckiest Guy",system-ui;color:#FF8FD1;animation:bbpulse .8s ease-in-out infinite alternate}
+@keyframes bbpulse{from{transform:scale(1)}to{transform:scale(1.12)}}
+.bbsnd{background:none;border:1px solid rgba(255,255,255,.25);border-radius:10px;color:inherit;font-size:18px;padding:2px 8px;cursor:pointer}
+.bbcount{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:94;font:400 clamp(120px,24vw,260px) "Luckiest Guy",system-ui;color:#FF5B5B;text-shadow:0 8px 0 #5a1c22;pointer-events:none;opacity:.88}
+.bbcount.beat{animation:bbbeat .9s ease-out}
+@keyframes bbbeat{from{transform:translate(-50%,-50%) scale(1.5);opacity:1}to{transform:translate(-50%,-50%) scale(1);opacity:.7}}
+.bbhelp{margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(255,201,74,.10);border:1px dashed #FFC94A}
+.bbhelpt{margin:0 0 8px}.bbhelpl{display:flex;flex-wrap:wrap;gap:6px}.bbhelpl .btn.cross{border-color:#7CF2A2}
+.bbside{display:flex;flex-direction:column;gap:10px}
+.bbpict{margin:0;font-weight:700;color:#FFE14D}.bbpic{width:100%;max-width:480px;border-radius:14px;border:3px solid #FFE14D}
+@media (prefers-reduced-motion:reduce){.bbban,.bbtogo,.bbcount.beat{animation:none}}
