@@ -1,8 +1,8 @@
 /* 🔠 The Big Board: a class crossword at the start of a live lesson. Loaded by sfa-lesson.js when the teacher starts one.
 
-   Hangman + Wheel of Fortune + a crossword. Every student who is here gets their own word in one themed crossword.
-   Right answers to quick review questions (spiral review: the lessons already taught) earn letter guesses; a vowel costs
-   two. When a student solves their word it fills in on the class crossword, and its letters show up for free in every
+   Hangman + Wheel of Fortune + a crossword. Every student who is here gets their own long word (8 to 14 letters) in one
+   themed crossword. Right answers earn letter guesses (a vowel costs two): five two-step integer warm-ups, then spiral
+   review from the lessons already taught, easier to harder in four levels (levels 3 and 4 right first time earn two). When a student solves their word it fills in on the class crossword, and its letters show up for free in every
    word that crosses it. If every active student finds their word, the whole class gets a big celebration.
 
    How it stays in sync through the Sheet (the same way as the Lane Clash): every screen builds the identical crossword
@@ -20,202 +20,230 @@
   /* ---------------- themes: [WORD, clue] ---------------- */
   var THEMES = [
     { id: 'poke', name: 'Pokémon', e: '⚡', words: [
-      ['PIKACHU', 'Electric mouse Pokémon'], ['EEVEE', 'Brown fox that can evolve into eight types'], ['CHARMANDER', 'Fire lizard with a flame on its tail'],
-      ['BULBASAUR', 'Grass starter with a bulb on its back'], ['SQUIRTLE', 'Water turtle starter'], ['SNORLAX', 'Sleeps all day and blocks the road'],
-      ['JIGGLYPUFF', 'Pink singer who sends everyone to sleep'], ['MEOWTH', 'Team Rocket\'s talking cat'], ['PSYDUCK', 'Duck with a headache that never goes away'],
-      ['GENGAR', 'Grinning purple ghost'], ['ONIX', 'Giant rock snake'], ['MEWTWO', 'Psychic Pokémon made in a lab'], ['LUCARIO', 'Fighter that can sense aura'],
-      ['GYARADOS', 'Angry sea serpent that evolves from a floppy fish'], ['MAGIKARP', 'Fish whose only move is Splash'], ['VULPIX', 'Fire fox with six tails'],
-      ['ZUBAT', 'Cave bat that is everywhere'], ['POKEBALL', 'Red and white capsule'], ['DRAGONITE', 'Friendly orange dragon'], ['CHARIZARD', 'Fire and flying dragon'],
-      ['BLASTOISE', 'Turtle with water cannons on its shell'], ['GROWLITHE', 'Loyal fire puppy'], ['TOGEPI', 'Baby that still wears its eggshell'],
-      ['SLOWPOKE', 'Very, very slow pink Pokémon'], ['MACHAMP', 'Fighter with four arms'], ['ABRA', 'Teleports away the moment you see it'], ['DITTO', 'Can transform into anything'],
-      ['MUDKIP', 'Water starter with a fin on its head'], ['PIPLUP', 'Penguin starter'], ['ROWLET', 'Grass owl starter'], ['LITTEN', 'Fire cat starter'],
-      ['GRENINJA', 'Ninja frog with a tongue scarf'], ['GARCHOMP', 'Dragon shaped like a land shark'], ['TOTODILE', 'Crocodile starter with big jaws'],
-      ['TRAINER', 'Person who catches and battles Pokémon'], ['BADGE', 'What you win from a gym leader'], ['POTION', 'Heals your Pokémon'], ['EVOLVE', 'What a Pokémon does when it changes form'],
-      ['LEGENDARY', 'The rarest kind of Pokémon'], ['POKEDEX', 'Device that records every Pokémon you meet']] },
+      ['CHARMANDER', 'Fire lizard starter with a flame on the tip of its tail'], ['BULBASAUR', 'Grass starter with a bulb on its back'], ['SQUIRTLE', 'Water turtle starter from Kanto'],
+      ['JIGGLYPUFF', 'Pink balloon Pokémon whose song sends everyone to sleep'], ['GYARADOS', 'Angry sea serpent that evolves from a floppy fish'], ['MAGIKARP', 'Fish whose famous move is Splash'],
+      ['DRAGONITE', 'Friendly orange dragon that evolves from Dragonair'], ['CHARIZARD', 'Fire and Flying dragon that evolves from Charmeleon'], ['BLASTOISE', 'Turtle with water cannons on its shell'],
+      ['GROWLITHE', 'Loyal fire puppy'], ['SLOWPOKE', 'Very, very slow pink Pokémon'], ['GRENINJA', 'Ninja frog, the final form of Froakie'],
+      ['GARCHOMP', 'Land shark dragon from the Sinnoh region'], ['TOTODILE', 'Little blue crocodile starter from Johto'], ['LEGENDARY', 'Very rare Pokémon like Mewtwo and Rayquaza are called this'],
+      ['TEAMROCKET', 'Jessie, James and Meowth\'s gang of villains'], ['POKEMONCENTER', 'Where Nurse Joy heals your team'], ['ASHKETCHUM', 'Trainer from Pallet Town who has Pikachu'],
+      ['PALLETTOWN', 'Ash\'s home town in Kanto'], ['PROFESSOROAK', 'Kanto professor who gives you your first Pokémon'], ['EVOLUTION', 'When a Pokémon changes into a stronger form'],
+      ['GYMLEADER', 'Trainer you beat to win a badge'], ['RAYQUAZA', 'Green sky dragon legendary from Hoenn'], ['ALAKAZAM', 'Psychic Pokémon that holds two spoons'],
+      ['ARCANINE', 'Big fire dog that evolves from Growlithe'], ['BUTTERFREE', 'Butterfly that evolves from Metapod'], ['CATERPIE', 'Green bug that evolves into Metapod'],
+      ['WIGGLYTUFF', 'Pink balloon that evolves from Jigglypuff'], ['SANDSHREW', 'Ground-type mouse that curls into a ball'], ['NIDOKING', 'Purple Poison and Ground king with a horn'],
+      ['VENUSAUR', 'Final form of Bulbasaur, with a giant flower on its back'], ['CHARMELEON', 'Middle form between Charmander and Charizard'], ['WARTORTLE', 'Middle form between Squirtle and Blastoise'],
+      ['PIDGEOTTO', 'Bird that evolves from Pidgey'], ['TYRANITAR', 'Huge Rock and Dark monster that evolves from Pupitar'], ['METAGROSS', 'Steel and Psychic Pokémon with four legs'],
+      ['VAPOREON', 'Water-type evolution of Eevee'], ['ELITEFOUR', 'The four strongest trainers you face before the Champion'], ['THUNDERBOLT', 'Pikachu\'s famous electric move'],
+      ['FLAMETHROWER', 'Fire move that blasts a stream of flame'], ['HYDROPUMP', 'Powerful Water move that blasts a huge jet'], ['SOLARBEAM', 'Grass move that charges up with sunlight first'],
+      ['MASTERBALL', 'Purple ball that never fails to catch'], ['SHINYPOKEMON', 'A rare Pokémon with different colours from usual']] },
     { id: 'sport', name: 'Sport and football', e: '⚽', words: [
-      ['GOAL', 'What every striker wants to score'], ['STRIKER', 'Player whose job is scoring'], ['KEEPER', 'The only player allowed to use their hands'], ['PENALTY', 'A kick from the spot'],
-      ['OFFSIDE', 'Flag goes up: you were behind the last defender'], ['CORNER', 'Kick taken from the edge of the pitch by the flag'], ['REFEREE', 'Blows the whistle'],
-      ['DRIBBLE', 'Run with the ball at your feet'], ['TACKLE', 'Win the ball off an opponent'], ['HEADER', 'Hit the ball with your head'], ['STADIUM', 'Where the big match is played'],
-      ['TROPHY', 'Lift it if you win the final'], ['WHISTLE', 'What the referee blows'], ['CAPTAIN', 'Wears the armband'], ['DEFENDER', 'Stops the other team scoring'],
-      ['MIDFIELD', 'The middle of the pitch'], ['VOLLEY', 'Kick the ball before it hits the ground'], ['HATTRICK', 'Three goals by one player'], ['DERBY', 'A match between local rivals'],
-      ['JERSEY', 'A team shirt'], ['BOOTS', 'Football shoes with studs'], ['PITCH', 'The grass you play on'], ['LEAGUE', 'Teams play each other all season in one'],
-      ['CHAMPION', 'Winner of the whole thing'], ['MEDAL', 'Gold, silver or bronze'], ['SPRINT', 'A very fast short run'], ['RELAY', 'Race where you pass a baton'],
-      ['MARATHON', 'A very long running race'], ['DUNK', 'Slam the basketball through the hoop'], ['TENNIS', 'Sport with a racket, a net and a yellow ball'], ['SERVE', 'Start a point in tennis'],
-      ['OLYMPICS', 'Games held every four years with five rings'], ['COACH', 'Trains the team'], ['KICKOFF', 'How a football match starts'], ['MESSI', 'Argentina\'s little magician'],
-      ['RONALDO', 'Portugal star famous for his "Siuu"'], ['SALAH', 'Egypt\'s king of the right wing'], ['MBAPPE', 'French striker with rocket speed'], ['FREEKICK', 'A set piece after a foul'],
-      ['SUBSTITUTE', 'Player who comes off the bench']] },
+      ['GOALKEEPER', 'The only player allowed to use their hands in the box'], ['DEFENDER', 'Player whose job is to stop the other team scoring'], ['MIDFIELDER', 'Player in the middle of the pitch, between attack and defence'],
+      ['HATTRICK', 'Three goals by one player in one match'], ['CHAMPIONS', 'Winners of the league'], ['MARATHON', 'A running race of about 42 km'],
+      ['OLYMPICS', 'Games held every four years, with five rings'], ['FREEKICK', 'Awarded to a team after a foul'], ['SUBSTITUTE', 'Player who comes on from the bench'],
+      ['PENALTYKICK', 'Shot from the spot, 11 metres out'], ['WORLDCUP', 'Football\'s biggest tournament, every four years'], ['YELLOWCARD', 'A caution from the referee'],
+      ['CORNERKICK', 'Restart taken from the corner flag'], ['BICYCLEKICK', 'Overhead kick with your back to the goal'], ['SCOREBOARD', 'Shows the score at the ground'],
+      ['TEAMCAPTAIN', 'Player who wears the armband'], ['TOUCHLINE', 'The side line of a football pitch'], ['CROSSBAR', 'The top bar of the goal'],
+      ['GOALPOSTS', 'The two upright parts of the goal'], ['HALFTIME', 'The break in the middle of a match'], ['EXTRATIME', '30 more minutes when a knockout match is level'],
+      ['SHOOTOUT', 'Penalties taken one by one to settle a draw'], ['LIONELMESSI', 'Argentina\'s captain when they won the 2022 World Cup'], ['KYLIANMBAPPE', 'French forward who scored a hat-trick in the 2022 World Cup final'],
+      ['ERLINGHAALAND', 'Norwegian goal machine at Manchester City'], ['MOHAMEDSALAH', 'Egyptian star forward at Liverpool'], ['BASKETBALL', 'Hoops and a bouncing orange ball'],
+      ['VOLLEYBALL', 'Hit the ball over a high net with your hands, no catching'], ['BADMINTON', 'Racket sport played with a shuttlecock'], ['TABLETENNIS', 'Ping-pong'],
+      ['SWIMMING', 'Racing in the pool'], ['GYMNASTICS', 'Flips, beams, bars and rings'], ['ATHLETICS', 'Track and field events'],
+      ['WICKETKEEPER', 'Cricket player who crouches behind the stumps'], ['SKATEBOARD', 'Board on four wheels for tricks'], ['GOLDMEDAL', 'Prize for first place at the Olympics'],
+      ['SILVERMEDAL', 'Prize for second place at the Olympics'], ['STOPWATCH', 'Times a race'], ['STRETCHING', 'What you do to loosen up your muscles before sport'],
+      ['RELAYRACE', 'Team race where you pass a baton'], ['SPRINTER', 'Runner of short, fast races'], ['HIGHJUMP', 'Leap over a bar and land on a big mat'],
+      ['LONGJUMP', 'Run up and leap as far as you can into a sandpit'], ['PREMIERLEAGUE', 'England\'s top football league'], ['REALMADRID', 'Spanish club that has won the most European Cups'],
+      ['BARCELONA', 'Spanish club whose home is the Camp Nou'], ['MANCHESTER', 'English city with two big clubs, United and City']] },
     { id: 'games', name: 'Games and food', e: '🎮', words: [
-      ['CREEPER', 'Green mob that hisses, then explodes'], ['PICKAXE', 'Tool for mining blocks'], ['DIAMOND', 'The best ore to find underground'], ['PIXEL', 'One tiny square of a screen'],
-      ['RESPAWN', 'Come back after you lose a life'], ['LEVEL', 'Beat one to unlock the next'], ['BOSS', 'The big enemy at the end'], ['JOYSTICK', 'Stick you push to move'],
-      ['ARCADE', 'Room full of coin games'], ['AVATAR', 'Your character in a game'], ['QUEST', 'A mission in an adventure game'], ['PORTAL', 'Step in here, come out somewhere else'],
-      ['LAVA', 'Glowing orange: do not fall in'], ['COMBO', 'Moves chained together'], ['HIGHSCORE', 'The best result on the leaderboard'], ['SPEEDRUN', 'Finishing a game as fast as possible'],
-      ['CONTROLLER', 'What you hold to play'], ['GLITCH', 'A bug that makes a game act weird'], ['LOOT', 'Treasure you pick up'], ['CRAFT', 'Make tools from what you collect'],
-      ['PIZZA', 'Round, cheesy, comes in slices'], ['BURGER', 'Patty in a bun'], ['NACHOS', 'Tortilla chips with melted cheese'], ['POPCORN', 'Movie snack that pops'],
-      ['CHOCOLATE', 'Sweet brown bar'], ['SHAWARMA', 'Meat wrap sliced off a spinning grill'], ['FALAFEL', 'Fried balls of chickpeas'], ['DONUT', 'Sweet ring with a hole in the middle'],
-      ['PANCAKE', 'Flat breakfast you flip'], ['NOODLES', 'Long and slurpy'], ['TACO', 'Crunchy shell with filling'], ['WAFFLE', 'Breakfast with little squares'],
-      ['SUSHI', 'Rice and fish rolled in seaweed'], ['KEBAB', 'Meat cooked on a skewer'], ['MANGO', 'Sweet orange tropical fruit'], ['SMOOTHIE', 'Blended fruit drink'],
-      ['MILKSHAKE', 'Cold, thick and slurped through a straw'], ['CUPCAKE', 'Little cake with icing on top'], ['KUNAFA', 'Cheesy pastry dessert soaked in syrup'], ['CROISSANT', 'Buttery crescent pastry']] },
+      ['JOYSTICK', 'Stick you push to steer in an arcade game'], ['HIGHSCORE', 'The best score anyone has got'], ['SPEEDRUN', 'Finishing a game as fast as possible'],
+      ['CONTROLLER', 'What you hold to play on a console'], ['CHOCOLATE', 'Sweet treat made from cocoa beans'], ['SHAWARMA', 'Meat sliced off a turning spit, wrapped in bread'],
+      ['SMOOTHIE', 'Fruit blended into a thick drink'], ['MILKSHAKE', 'Cold drink of milk and ice cream'], ['CROISSANT', 'Flaky, crescent-shaped French pastry'],
+      ['MINECRAFT', 'Block-building game with creepers'], ['FORTNITE', 'Battle royale game with a closing storm and building'], ['SUPERMARIO', 'Nintendo plumber in a red cap'],
+      ['LEGENDOFZELDA', 'Nintendo series where Link saves Hyrule'], ['DONKEYKONG', 'Barrel-throwing ape from Nintendo'], ['MARIOKART', 'Nintendo racing game with banana peels and shells'],
+      ['ANIMALCROSSING', 'Nintendo game where you build an island village'], ['PLAYSTATION', 'Sony\'s games console'], ['NINTENDOSWITCH', 'Console you can play on the TV or in your hands'],
+      ['CHECKPOINT', 'Where you start again after losing a life'], ['MULTIPLAYER', 'A game with lots of players at once'], ['LEADERBOARD', 'Ranked list of the best scores'],
+      ['POWERUPS', 'Items that make you stronger for a while'], ['BOSSBATTLE', 'The big fight at the end of a level'], ['CHESSBOARD', '64 black and white squares'],
+      ['MONOPOLY', 'Board game with houses, hotels and going to jail'], ['SCRABBLE', 'Board game where you make words from letter tiles'], ['DOMINOES', 'Tiles with dots that you match end to end'],
+      ['CHEESEBURGER', 'Burger with a slice of cheese'], ['PEPPERONI', 'Spicy sausage slices on a pizza'], ['SPAGHETTI', 'Long, thin pasta'],
+      ['PANCAKES', 'Flat breakfast stack with syrup'], ['DOUGHNUTS', 'Ring-shaped fried sweet treats'], ['FRENCHFRIES', 'Long, thin fried potatoes'],
+      ['WATERMELON', 'Big green fruit, red inside with black seeds'], ['STRAWBERRY', 'Red fruit with its seeds on the outside'], ['PINEAPPLE', 'Spiky tropical fruit'],
+      ['CHICKENNUGGETS', 'Bite-size pieces of fried chicken'], ['ICECREAM', 'Cold, sweet scoops in a cone'], ['CUPCAKES', 'Small cakes with icing on top'],
+      ['MARSHMALLOW', 'Fluffy sweet you toast over a fire'], ['BIRTHDAYCAKE', 'Has candles to blow out'], ['SANDWICH', 'Filling between two slices of bread'],
+      ['OMELETTE', 'Beaten eggs fried in a pan and folded'], ['GAMEOVER', 'Words on the screen when you lose your last life'], ['SPACEINVADERS', 'Classic arcade game where you shoot rows of aliens']] },
     { id: 'maths', name: 'Maths words', e: '📐', words: [
-      ['SLOPE', 'How steep a line is: rise over run'], ['RISE', 'How far up between two points'], ['RUN', 'How far across between two points'], ['INTERCEPT', 'Where a line crosses an axis'],
-      ['FUNCTION', 'A rule that gives every input exactly one output'], ['INPUT', 'What goes into a machine'], ['OUTPUT', 'What comes out of a machine'], ['RULE', 'Tells a machine what to do to its input'],
-      ['RATE', 'How fast something changes'], ['LINEAR', 'The same step every time: its graph is a line'], ['NONLINEAR', 'Its steps change, so its graph curves or bends'], ['GRAPH', 'A picture of a rule on a grid'],
-      ['TABLE', 'Inputs and outputs in rows'], ['ORIGIN', 'The point (0, 0)'], ['AXIS', 'One of the two number lines on a grid'], ['VARIABLE', 'A letter that stands for a number'],
-      ['EQUATION', 'Two sides with an equals sign between them'], ['SOLVE', 'Find the value that makes it true'], ['UNDO', 'Run the steps backwards to find the input'], ['CHECK', 'Put your answer back in to make sure'],
-      ['DOMAIN', 'All the inputs a rule can take'], ['RANGE', 'All the outputs a rule gives'], ['START', 'The output when the input is zero'], ['STEP', 'How much the output changes each time the input goes up by one'],
-      ['NEGATIVE', 'Below zero; a slope that goes downhill'], ['POSITIVE', 'Above zero; a slope that goes uphill'], ['PARALLEL', 'Same slope, never meet'], ['STEEP', 'A big slope, like a cliff'],
-      ['HORIZONTAL', 'Flat: slope zero'], ['VERTICAL', 'Straight up and down'], ['POINT', 'A pair of numbers on a grid'], ['COORDINATE', 'One of the two numbers in (x, y)'],
-      ['QUADRANT', 'One of the four corners of the grid'], ['MAPPING', 'Arrows from inputs to outputs'], ['SQUARE', 'Multiply a number by itself'], ['ABSOLUTE', 'This value makes a V-shaped graph'],
-      ['CONSTANT', 'Never changes'], ['PATTERN', 'Something that repeats or grows in a regular way'], ['PREDICT', 'Use the rule to say what comes next'], ['FRACTION', 'One half or two thirds, for example']] },
-    { id: "animals", name: "Animals", e: "🦁", words: [
-      ["CHEETAH", "Fastest runner on land"], ["ELEPHANT", "Biggest land animal, with a trunk"], ["GIRAFFE", "Tallest animal, with a very long neck"],
-      ["PENGUIN", "Bird that swims but cannot fly"], ["OCTOPUS", "Eight arms and three hearts"], ["DOLPHIN", "Clever sea mammal that clicks and whistles"],
-      ["KANGAROO", "Hops around Australia with a pouch"], ["KOALA", "Sleepy Australian climber that eats eucalyptus"], ["PANDA", "Black and white bear that eats bamboo"],
-      ["CAMEL", "Desert animal with humps"], ["FALCON", "Hunting bird and the fastest diver in the sky"], ["OWL", "Night bird that turns its head almost all the way round"],
-      ["PARROT", "Colourful bird that can copy words"], ["SHARK", "Fish with rows and rows of sharp teeth"], ["WHALE", "The biggest animal that has ever lived"],
-      ["ZEBRA", "A horse in stripes"], ["GORILLA", "The biggest ape"], ["CHAMELEON", "Lizard that changes colour"],
-      ["CROCODILE", "Huge reptile with a powerful bite"], ["TIGER", "The biggest wild cat, with stripes"], ["LION", "King of the jungle, though it lives on the grassland"],
-      ["WOLF", "Howls at night and hunts in a pack"], ["FOX", "Clever wild dog with a bushy tail"], ["RABBIT", "Long ears, hops, loves carrots"],
-      ["HEDGEHOG", "Small animal covered in spines"], ["SLOTH", "The slowest mammal: it hangs from trees"], ["FLAMINGO", "Pink bird standing on one leg"],
-      ["PEACOCK", "Bird with a huge fan of tail feathers"], ["SCORPION", "Desert creature with a stinger on its tail"], ["SPIDER", "Eight legs and spins webs"],
-      ["BUTTERFLY", "Starts life as a caterpillar"], ["JELLYFISH", "Floats in the sea and can sting"], ["TURTLE", "Carries its house on its back"],
-      ["HIPPO", "River horse, and much more dangerous than it looks"], ["RHINO", "Big animal with a horn on its nose"], ["MONKEY", "Swings through trees and loves bananas"],
-      ["SQUIRREL", "Bushy tail; buries nuts for later"], ["ORYX", "Desert antelope with long straight horns"], ["BEAVER", "Builds dams with its teeth"],
-      ["OSTRICH", "The biggest bird: cannot fly but runs fast"]] },
-    { id: "space", name: "Space", e: "🚀", words: [
-      ["PLANET", "Earth is one; so is Mars"], ["ROCKET", "Blasts off into space"], ["GALAXY", "Billions of stars together"],
-      ["COMET", "Icy visitor with a glowing tail"], ["ASTEROID", "Space rock, mostly found between Mars and Jupiter"], ["METEOR", "Shooting star burning up in the sky"],
-      ["ORBIT", "The path one thing takes around another"], ["GRAVITY", "The pull that keeps your feet on the ground"], ["ASTRONAUT", "Person trained to go to space"],
-      ["TELESCOPE", "Makes faraway stars look closer"], ["SATELLITE", "Circles Earth and sends us signals"], ["MERCURY", "Planet closest to the Sun"],
-      ["VENUS", "The hottest planet"], ["EARTH", "The only planet we know has life"], ["MARS", "The red planet"],
-      ["JUPITER", "The biggest planet"], ["SATURN", "The planet with the famous rings"], ["URANUS", "Planet that spins on its side"],
-      ["NEPTUNE", "Blue planet furthest from the Sun"], ["PLUTO", "Used to be the ninth planet"], ["MOON", "Circles Earth and lights up the night"],
-      ["SUN", "The star at the centre of our solar system"], ["STAR", "A giant ball of burning gas"], ["ECLIPSE", "When the Moon blocks the Sun"],
-      ["NEBULA", "A cloud of gas and dust where stars are born"], ["BLACKHOLE", "Gravity so strong not even light escapes"], ["SUPERNOVA", "A star exploding"],
-      ["CRATER", "Hole left by a space rock crashing"], ["ALIEN", "A being from another world"], ["ROVER", "Robot car driving around on Mars"],
-      ["LAUNCH", "Three, two, one, lift off!"], ["SPACESUIT", "What astronauts wear outside"], ["COSMOS", "Another word for the universe"],
-      ["MILKYWAY", "Our home galaxy"], ["UNIVERSE", "Everything that exists"], ["LIGHTYEAR", "How far light travels in a year"],
-      ["SHUTTLE", "Spacecraft that could land like a plane"], ["LUNAR", "To do with the Moon"], ["SOLAR", "To do with the Sun"],
-      ["STATION", "Where astronauts live in orbit for months"]] },
-    { id: "heroes", name: "Superheroes", e: "🦸", words: [
-      ["SPIDERMAN", "Swings through New York on webs"], ["BATMAN", "Dark knight of Gotham"], ["SUPERMAN", "Man of steel from Krypton"],
-      ["IRONMAN", "Genius inventor in a metal suit"], ["HULK", "Gets angry and turns huge and green"], ["THOR", "God of thunder"],
-      ["WOLVERINE", "Hero with metal claws"], ["WAKANDA", "Home of Black Panther"], ["VENOM", "Black alien symbiote"],
-      ["THANOS", "Snapped his fingers wearing the Infinity Gauntlet"], ["LOKI", "Trickster brother of Thor"], ["GROOT", "Tree who only ever says three words"],
-      ["SHAZAM", "Says one magic word to become a grown-up hero"], ["AQUAMAN", "King of Atlantis"], ["FLASH", "Fastest man alive"],
-      ["JOKER", "Batman's laughing enemy"], ["ROBIN", "Batman's sidekick"], ["GOTHAM", "Batman's city"],
-      ["CAPE", "It flaps behind a hero in the wind"], ["MASK", "Hides a hero's face"], ["VILLAIN", "The bad guy"],
-      ["SIDEKICK", "The hero's helper"], ["LAIR", "A villain's secret base"], ["GADGET", "A clever tool on a utility belt"],
-      ["SHIELD", "Captain America throws it"], ["HAMMER", "Only the worthy can lift Thor's"], ["KRYPTONITE", "Green rock that weakens Superman"],
-      ["STORM", "Hero who controls the weather"], ["MAGNETO", "Villain who controls metal"], ["CYCLOPS", "Hero with laser eyes and a visor"],
-      ["HAWKEYE", "Never misses with a bow"], ["ANTMAN", "Hero who shrinks really small"], ["VISION", "Android with a gem in his forehead"],
-      ["ULTRON", "Robot villain built by Tony Stark"], ["GAUNTLET", "Glove that holds the six stones"], ["MULTIVERSE", "Lots of universes side by side"],
-      ["BATMOBILE", "Batman's car"], ["CATWOMAN", "Cat burglar of Gotham"], ["HERO", "Someone brave who saves the day"],
-      ["SUPERPOWER", "Flying, strength or speed, for example"]] },
-    { id: "anime", name: "Anime", e: "🍥", words: [
-      ["NARUTO", "Orange ninja who wants to be Hokage"], ["GOKU", "Saiyan hero who loves to eat and fight"], ["VEGETA", "Proud Saiyan prince"],
-      ["LUFFY", "Rubber pirate in a straw hat"], ["ZORO", "Swordsman who fights with three swords"], ["SASUKE", "Naruto's rival"],
-      ["KAKASHI", "Ninja teacher who is always late"], ["TOTORO", "Big fluffy forest spirit"], ["NINJA", "Sneaky fighter in the shadows"],
-      ["SAMURAI", "Japanese warrior with a sword"], ["SENSEI", "Teacher"], ["KATANA", "Curved Japanese sword"],
-      ["RAMEN", "Naruto's favourite noodle soup"], ["MANGA", "Japanese comics"], ["CHIBI", "Tiny, cute, big-headed drawing style"],
-      ["TANJIRO", "Demon slayer in a checked jacket"], ["NEZUKO", "Tanjiro's sister with a bamboo muzzle"], ["DEKU", "Hero student who got his power from All Might"],
-      ["ALLMIGHT", "The number one hero in My Hero Academia"], ["SAITAMA", "Bald hero who wins with one punch"], ["GOJO", "Blindfolded sorcerer"],
-      ["TITAN", "Giant that attacks the walls"], ["LEVI", "Short captain, strongest soldier"], ["EREN", "Wants to destroy every titan"],
-      ["KAMEHAMEHA", "Goku's energy blast"], ["RASENGAN", "Naruto's spinning ball of chakra"], ["SHARINGAN", "Red eye of the Uchiha"],
-      ["DRAGONBALL", "Collect all seven to make a wish"], ["HOKAGE", "Leader of the Hidden Leaf Village"], ["ONEPIECE", "The great treasure every pirate is chasing"],
-      ["CHAKRA", "A ninja's energy"], ["SAIYAN", "Goku's warrior race"], ["PIRATE", "Sails the seas looking for treasure"],
-      ["STRAWHAT", "Luffy's favourite hat"], ["SLAYER", "Hunts demons"], ["OTAKU", "A super fan"],
-      ["COSPLAY", "Dressing up as a character"], ["SHONEN", "Action anime for teens"], ["ITADORI", "Swallowed a cursed finger"],
-      ["ANIME", "Japanese animation"]] },
-    { id: "music", name: "Music", e: "🎵", words: [
-      ["GUITAR", "Six strings, strum it"], ["PIANO", "Black and white keys"], ["DRUMS", "Hit them with sticks"],
-      ["VIOLIN", "Played with a bow under your chin"], ["TRUMPET", "Brass instrument with three valves"], ["FLUTE", "Blow across the hole"],
-      ["BASS", "The lowest notes in the band"], ["MELODY", "The tune you hum"], ["RHYTHM", "The pattern of the beat"],
-      ["BEAT", "Tap your foot to it"], ["CHORUS", "The part of a song that repeats"], ["VERSE", "The part of a song that tells the story"],
-      ["LYRICS", "The words of a song"], ["CONCERT", "A live show"], ["ALBUM", "A collection of songs"],
-      ["PLAYLIST", "Your list of favourite songs"], ["SPEAKER", "Where the sound comes out"], ["HEADPHONES", "Music just for your ears"],
-      ["MICROPHONE", "The singer holds it"], ["SINGER", "Uses their voice"], ["RAPPER", "Rhymes fast over a beat"],
-      ["BAND", "A group that plays together"], ["TEMPO", "How fast the music goes"], ["REMIX", "A new version of a song"],
-      ["KARAOKE", "Sing along with the words on screen"], ["OUD", "Pear-shaped string instrument from the Middle East"], ["STAGE", "Where the band performs"],
-      ["ENCORE", "One more song!"], ["NOTE", "One sound written on the staff"], ["CHORD", "Three or more notes played together"],
-      ["PODCAST", "A show you listen to"], ["RADIO", "Music through the air in the car"], ["ORCHESTRA", "A big group with strings, brass and drums"],
-      ["CONDUCTOR", "Waves a stick at the orchestra"], ["SAXOPHONE", "Curvy jazz instrument"], ["DUET", "A song for two"],
-      ["SOLO", "Played by one person alone"], ["HARMONY", "Notes that sound good together"], ["ECHO", "Sound bouncing back"],
-      ["VOLUME", "Turn it up!"]] },
-    { id: "science", name: "Science lab", e: "🔬", words: [
-      ["ATOM", "The tiny building block of everything"], ["MOLECULE", "Atoms joined together"], ["CELL", "The smallest unit of life"],
-      ["ENERGY", "What it takes to do work"], ["FORCE", "A push or a pull"], ["MAGNET", "Sticks to iron"],
-      ["CIRCUIT", "A loop electricity flows around"], ["BATTERY", "Stores electricity"], ["OXYGEN", "The gas we breathe in"],
-      ["HYDROGEN", "The lightest element"], ["CARBON", "The element in diamonds and pencils"], ["ELEMENT", "One of the boxes on the periodic table"],
-      ["BEAKER", "Glass cup in the lab"], ["MICROSCOPE", "Makes tiny things look big"], ["GOGGLES", "Protect your eyes in the lab"],
-      ["EXPERIMENT", "A test to find something out"], ["HYPOTHESIS", "Your prediction before the test"], ["FOSSIL", "Ancient life turned to stone"],
-      ["VOLCANO", "Mountain that erupts lava"], ["DNA", "The code for life, shaped like a twisted ladder"], ["VIRUS", "A tiny germ that makes you sick"],
-      ["BACTERIA", "Tiny living things, some good, some bad"], ["ACID", "Lemon juice is one"], ["CRYSTAL", "Solid with flat, shiny faces"],
-      ["METAL", "Shiny and conducts electricity"], ["LIQUID", "Takes the shape of its container"], ["GAS", "Spreads out to fill any space"],
-      ["SOLID", "Keeps its own shape"], ["FRICTION", "The force that slows things down"], ["ELECTRON", "Tiny negative particle"],
-      ["PROTON", "Positive particle in the nucleus"], ["NEUTRON", "Particle with no charge"], ["VACCINE", "Trains your body to fight a germ"],
-      ["ROBOT", "A machine that follows a program"], ["LASER", "Super-straight beam of light"], ["PRISM", "Splits light into colours"],
-      ["RAINBOW", "Red, orange, yellow, green, blue, indigo, violet"], ["EVAPORATE", "What a liquid does when it turns into gas"], ["FLASK", "Lab bottle with a narrow neck"],
-      ["GRAVITY", "What makes an apple fall"]] },
-    { id: "world", name: "Around the world", e: "🌍", words: [
-      ["EGYPT", "Home of the pyramids"], ["PYRAMID", "Ancient tomb with four triangle sides"], ["SAHARA", "The biggest hot desert"],
-      ["NILE", "The longest river in Africa"], ["JAPAN", "Island country of sushi and bullet trains"], ["TOKYO", "Capital of Japan"],
-      ["PARIS", "City of the Eiffel Tower"], ["LONDON", "City of Big Ben"], ["BRAZIL", "Biggest country in South America"],
-      ["CANADA", "Country with the maple leaf flag"], ["MEXICO", "Country of tacos and the Maya"], ["INDIA", "Country of the Taj Mahal"],
-      ["CHINA", "Country with the Great Wall"], ["ITALY", "Country shaped like a boot"], ["ROME", "City of the Colosseum"],
-      ["SPAIN", "Home of Real Madrid and Barcelona"], ["DUBAI", "City with the tallest building in the world"], ["RIYADH", "Capital of Saudi Arabia"],
-      ["AMAZON", "Huge rainforest and river"], ["EVEREST", "Tallest mountain on Earth"], ["ICELAND", "Land of ice, fire and volcanoes"],
-      ["KENYA", "African country famous for safaris"], ["SAFARI", "A trip to see wild animals"], ["VENICE", "City where the streets are canals"],
-      ["PASSPORT", "Little book you show at the border"], ["AIRPORT", "Where planes take off"], ["ATLAS", "A book of maps"],
-      ["EQUATOR", "Imaginary line around Earth's middle"], ["CONTINENT", "Africa, Asia or Europe, for example"], ["ISLAND", "Land with water all around"],
-      ["DESERT", "Dry land with hardly any rain"], ["JUNGLE", "Thick, steamy rainforest"], ["CANYON", "Deep valley carved by a river"],
-      ["AUSTRALIA", "Country and continent of kangaroos"], ["GLOBE", "A round map of the world"], ["COMPASS", "Its needle always points north"],
-      ["MAP", "Shows you where you are"], ["PETRA", "Ancient city carved into pink rock in Jordan"], ["ARCTIC", "Icy region around the North Pole"],
-      ["KOREA", "Home of K-pop"]] },
-    { id: "ocean", name: "Under the sea", e: "🌊", words: [
-      ["CORAL", "Colourful reef builder"], ["REEF", "Underwater city of coral"], ["SEAHORSE", "The dad carries the babies"],
-      ["STARFISH", "Sea star with five arms"], ["CRAB", "Walks sideways"], ["LOBSTER", "Red when cooked, with big claws"],
-      ["SQUID", "Squirts ink and swims away"], ["CLAM", "Shellfish that opens and shuts"], ["OYSTER", "Can make a pearl"],
-      ["PEARL", "Shiny gem from an oyster"], ["SEAWEED", "Plants floating in the sea"], ["KELP", "Giant seaweed that grows in forests"],
-      ["SUBMARINE", "Ship that travels underwater"], ["SCUBA", "Diving with an air tank"], ["SNORKEL", "Tube for breathing at the surface"],
-      ["DIVER", "Swims deep underwater"], ["TIDE", "The sea comes in and goes out twice a day"], ["WAVE", "Ride it with a surfboard"],
-      ["SURF", "Ride the waves on a board"], ["ANCHOR", "Keeps a ship in place"], ["SHIPWRECK", "Sunken ship on the seabed"],
-      ["TREASURE", "Chest of gold"], ["SHELL", "Hold it to your ear to hear the sea"], ["SAND", "Covers the beach"],
-      ["ORCA", "Killer whale"], ["SEAL", "Barks and claps its flippers"], ["WALRUS", "Big tusks and a moustache"],
-      ["STINGRAY", "Flat fish with a barb in its tail"], ["EEL", "Long, slippery fish; some are electric"], ["PUFFERFISH", "Blows itself up like a ball"],
-      ["PLANKTON", "Tiny drifting life that whales eat"], ["CURRENT", "A river inside the ocean"], ["LIGHTHOUSE", "Tower that warns ships"],
-      ["HARBOUR", "Safe place for boats"], ["SAILOR", "Works on a ship"], ["LAGOON", "Calm water behind a reef"],
-      ["ABYSS", "The deepest, darkest part of the sea"], ["NARWHAL", "Unicorn of the sea"], ["MANATEE", "Gentle sea cow"],
-      ["TSUNAMI", "Giant wave caused by an earthquake"]] },
-    { id: "tech", name: "Tech and the internet", e: "💻", words: [
-      ["LAPTOP", "Computer that folds shut"], ["KEYBOARD", "Where you type"], ["MOUSE", "Click it to move the pointer"],
-      ["SCREEN", "Where you see it all"], ["WIFI", "Internet without wires"], ["PASSWORD", "Keep it secret"],
-      ["EMAIL", "A message to an inbox"], ["BROWSER", "App for visiting websites"], ["WEBSITE", "A page on the internet"],
-      ["APP", "Program on your phone"], ["CODE", "Instructions for a computer"], ["PROGRAM", "A set of coded instructions"],
-      ["HACKER", "Breaks into computer systems"], ["CLOUD", "Where your files are stored online"], ["DOWNLOAD", "Get a file from the internet"],
-      ["UPLOAD", "Send a file to the internet"], ["CHARGER", "Plug it in to fill your battery"], ["SELFIE", "A photo of yourself"],
-      ["EMOJI", "A tiny picture in a text"], ["HASHTAG", "The # symbol on social media"], ["MEME", "A funny picture everyone shares"],
-      ["VIDEO", "Moving pictures"], ["STREAMER", "Plays games live online"], ["VLOG", "A video diary"],
-      ["SMARTPHONE", "Phone that is also a computer"], ["TABLET", "Big touchscreen device"], ["PRINTER", "Turns a file into paper"],
-      ["BLUETOOTH", "Connects your earbuds without wires"], ["ROUTER", "Box that sends out the WiFi"], ["ALGORITHM", "Step-by-step rules a computer follows"],
-      ["USERNAME", "Your name online"], ["FOLLOWER", "Someone who subscribes to you"], ["UPDATE", "New version of an app"],
-      ["SEARCH", "Type it in the box to find it"], ["CHATBOT", "Program you can chat with"], ["DRONE", "Flying camera"],
-      ["HEADSET", "Headphones with a microphone"], ["SERVER", "Computer that hosts websites"], ["WEBCAM", "Camera for video calls"],
-      ["FIREWALL", "Keeps hackers out"]] },
-    { id: "cars", name: "Cars and racing", e: "🏎️", words: [
-      ["ENGINE", "The heart of a car"], ["WHEEL", "Round thing that turns"], ["BRAKE", "Pedal that stops the car"],
-      ["GEAR", "Change it to go faster"], ["CLUTCH", "Pedal you press to change gear"], ["FERRARI", "Red Italian supercar with a prancing horse"],
-      ["PORSCHE", "German sports car, like the 911"], ["TESLA", "Electric car company"], ["BUGATTI", "One of the fastest cars in the world"],
-      ["MCLAREN", "British supercar and Formula 1 team"], ["FORMULA", "Formula 1: the top level of racing"], ["PITSTOP", "New tyres in two seconds"],
-      ["HELMET", "Protects a racer's head"], ["FLAG", "Black and white checks mean you won"], ["PODIUM", "The top three stand on it"],
-      ["TRACK", "The road racers go round"], ["DRIFT", "Slide sideways round a corner"], ["TURBO", "Gives the engine extra power"],
-      ["NITRO", "Boost button in racing games"], ["SPOILER", "Wing on the back of a race car"], ["HORSEPOWER", "How strong an engine is"],
-      ["RACER", "Drives to win"], ["GARAGE", "Where a car sleeps"], ["MECHANIC", "Fixes cars"],
-      ["FUEL", "Petrol or diesel"], ["ELECTRIC", "Runs on a battery, not petrol"], ["HYBRID", "Has petrol and electric power"],
-      ["SEATBELT", "Buckle up!"], ["HIGHWAY", "Big, fast road"], ["OVERTAKE", "Pass the car in front"],
-      ["LAP", "Once round the track"], ["FINISH", "The line at the end of the race"], ["SUPERCAR", "Super fast, super expensive car"],
-      ["JEEP", "Off-road car"], ["TRUCK", "Carries big loads"], ["MOTORBIKE", "Two wheels and an engine"],
-      ["KART", "Small, low racing car"], ["HORN", "Beep beep!"], ["EXHAUST", "Pipe where the fumes come out"],
-      ["TOYOTA", "Japanese maker of the Land Cruiser"]] }
+      ['INTERCEPT', 'Where a line crosses an axis'], ['FUNCTION', 'A rule that gives exactly one output for each input'], ['NONLINEAR', 'A pattern that does not make a straight line'],
+      ['VARIABLE', 'A letter that stands for a number'], ['EQUATION', 'Two expressions with an equals sign between them'], ['NEGATIVE', 'Below zero'],
+      ['POSITIVE', 'Above zero'], ['PARALLEL', 'Lines that never meet'], ['HORIZONTAL', 'Flat, like the horizon'],
+      ['VERTICAL', 'Straight up and down'], ['COORDINATE', 'One number in an (x, y) pair'], ['QUADRANT', 'One of the four parts of the coordinate plane'],
+      ['ABSOLUTEVALUE', 'A number\'s distance from zero'], ['CONSTANT', 'A value that does not change'], ['FRACTION', 'Part of a whole, like 3/4'],
+      ['GRADIENT', 'The steepness of a line'], ['RATEOFCHANGE', 'How fast one quantity changes compared with another'], ['INITIALVALUE', 'The starting amount: the output when the input is 0'],
+      ['LINEARFUNCTION', 'A function whose graph is a straight line'], ['PERPENDICULAR', 'Lines that meet at a right angle'], ['RIGHTANGLE', 'Exactly 90 degrees'],
+      ['TRIANGLE', 'Shape with three sides'], ['RECTANGLE', 'Four right angles, opposite sides equal'], ['PARALLELOGRAM', 'Four-sided shape with two pairs of parallel sides'],
+      ['CIRCUMFERENCE', 'The distance around a circle'], ['DIAMETER', 'Straight line across a circle through the centre'], ['PYTHAGORAS', 'Greek mathematician with a famous theorem about right triangles'],
+      ['HYPOTENUSE', 'The longest side of a right triangle'], ['PERCENTAGE', 'A part out of a hundred'], ['PROPORTIONAL', 'When y = kx, y is directly ___ to x'],
+      ['INEQUALITY', 'A statement that uses < or >'], ['EXPRESSION', 'Numbers, letters and operations with no equals sign'], ['COEFFICIENT', 'The number in front of a variable, like 3 in 3x'],
+      ['SCATTERPLOT', 'Graph of dots that shows how two sets of data are related'], ['INTEGERS', 'Whole numbers and their negatives'], ['MULTIPLICATION', 'The operation shown by ×'],
+      ['SUBTRACTION', 'Taking away'], ['DENOMINATOR', 'The bottom number of a fraction'], ['NUMERATOR', 'The top number of a fraction'],
+      ['PRIMENUMBER', 'A number with exactly two factors, 1 and itself'], ['SQUAREROOT', 'The number that, times itself, gives the number you started with'], ['EXPONENT', 'The small raised number in 2³'],
+      ['DECIMALPOINT', 'The dot between the ones and the tenths'], ['TRANSLATION', 'A slide that moves a shape without turning it'], ['REFLECTION', 'A flip over a mirror line']] },
+    { id: 'animals', name: 'Animals', e: '🦁', words: [
+      ['ELEPHANT', 'Largest land animal, with a trunk'], ['KANGAROO', 'Australian hopper with a pouch'], ['CHAMELEON', 'Lizard that can change colour'],
+      ['CROCODILE', 'Big river reptile with powerful jaws'], ['HEDGEHOG', 'Small spiny mammal that curls into a ball'], ['FLAMINGO', 'Pink bird that often stands on one leg'],
+      ['SCORPION', 'Desert creature with a stinging tail'], ['BUTTERFLY', 'Insect that was once a caterpillar'], ['JELLYFISH', 'Sea creature with stinging tentacles and no brain'],
+      ['SQUIRREL', 'Bushy-tailed nut collector'], ['CHIMPANZEE', 'Great ape, one of our closest relatives'], ['RHINOCEROS', 'Big grey animal with horns on its nose'],
+      ['HIPPOPOTAMUS', 'Huge African animal that spends the day in rivers'], ['ALLIGATOR', 'Reptile like a crocodile, with a wider snout'], ['ARMADILLO', 'Mammal covered in bony armour'],
+      ['PORCUPINE', 'Rodent covered in sharp quills'], ['ORANGUTAN', 'Red-haired great ape of Borneo and Sumatra'], ['SILVERBACK', 'An adult male gorilla'],
+      ['POLARBEAR', 'Big white bear of the Arctic'], ['GRIZZLYBEAR', 'Big brown bear of North America'], ['KOMODODRAGON', 'The world\'s largest lizard, from Indonesia'],
+      ['RATTLESNAKE', 'Snake that shakes its tail as a warning'], ['ANACONDA', 'Huge snake of South America'], ['TARANTULA', 'Big, hairy spider'],
+      ['GRASSHOPPER', 'Green insect that jumps and chirps'], ['CATERPILLAR', 'Grows up to become a butterfly'], ['DRAGONFLY', 'Insect with four see-through wings that zooms over ponds'],
+      ['LADYBIRD', 'Red beetle with black spots (a ladybug)'], ['WOODPECKER', 'Bird that drums on tree trunks'], ['HUMMINGBIRD', 'Tiny bird that can fly backwards'],
+      ['PENGUINS', 'Birds that can\'t fly but swim brilliantly'], ['KINGFISHER', 'Bright blue bird that dives for fish'], ['MEERKATS', 'Desert mammals that stand on their back legs to keep lookout'],
+      ['DROMEDARY', 'A camel with one hump'], ['SNOWLEOPARD', 'Spotted big cat of the high mountains'], ['PLATYPUS', 'Egg-laying mammal with a duck\'s bill'],
+      ['TORTOISE', 'Slow land reptile with a shell'], ['SALAMANDER', 'Amphibian that looks like a lizard'], ['BLUEWHALE', 'The largest animal ever known'],
+      ['DALMATIAN', 'Dog breed with black spots'], ['ANTEATER', 'Slurps up ants with a long, sticky tongue'], ['BALDEAGLE', 'National bird of the USA'],
+      ['PANGOLIN', 'Scaly mammal that rolls into a ball']] },
+    { id: 'space', name: 'Space', e: '🚀', words: [
+      ['ASTEROID', 'Rocky lump orbiting the Sun, many between Mars and Jupiter'], ['ASTRONAUT', 'Person trained to travel into space'], ['TELESCOPE', 'Makes faraway stars look closer'],
+      ['SATELLITE', 'Anything that orbits a planet, like the Moon or a GPS craft'], ['BLACKHOLE', 'Gravity so strong that not even light escapes'], ['SUPERNOVA', 'The huge explosion of a dying star'],
+      ['SPACESUIT', 'What an astronaut wears outside the spacecraft'], ['MILKYWAY', 'Our home galaxy'], ['UNIVERSE', 'Everything that exists'],
+      ['LIGHTYEAR', 'The distance light travels in one year'], ['CONSTELLATION', 'Stars that make a picture, like Orion'], ['SOLARSYSTEM', 'The Sun and everything that orbits it'],
+      ['ANDROMEDA', 'The nearest big galaxy to the Milky Way'], ['METEORITE', 'A space rock that reaches the ground'], ['METEORSHOWER', 'Lots of shooting stars in one night'],
+      ['SPACESTATION', 'The ISS is one, orbiting Earth with a crew on board'], ['SPACESHUTTLE', 'NASA\'s reusable spacecraft, flown from 1981 to 2011'], ['MOONLANDING', 'Apollo 11 made the first one in 1969'],
+      ['NEILARMSTRONG', 'The first person to walk on the Moon'], ['YURIGAGARIN', 'The first human in space, in 1961'], ['WEIGHTLESS', 'How astronauts feel, floating in orbit'],
+      ['COUNTDOWN', 'Ten, nine, eight... liftoff!'], ['LAUNCHPAD', 'Where a rocket blasts off from'], ['MISSIONCONTROL', 'Team on the ground that guides a space flight'],
+      ['EXOPLANET', 'A planet orbiting a star other than the Sun'], ['REDPLANET', 'Nickname for Mars'], ['DWARFPLANET', 'What Pluto has been called since 2006'],
+      ['HALLEYSCOMET', 'Famous comet seen from Earth about every 76 years'], ['SUNSPOTS', 'Cooler, dark patches on the Sun'], ['SOLARFLARE', 'Sudden burst of energy from the Sun'],
+      ['SOLARECLIPSE', 'When the Moon blocks out the Sun'], ['LUNARECLIPSE', 'When Earth\'s shadow falls on the Moon'], ['PLANETARIUM', 'Dome where star shows are projected'],
+      ['OBSERVATORY', 'Building with a big telescope'], ['ASTRONOMY', 'The science of stars and planets'], ['COSMONAUT', 'Russian word for a space traveller'],
+      ['MARSROVER', 'Robot car exploring the Red Planet'], ['JAMESWEBB', 'Space telescope launched in 2021, named after a NASA leader'], ['SPACEWALK', 'Going outside a spacecraft in a spacesuit'],
+      ['THEBIGBANG', 'How scientists think the universe began'], ['GASGIANT', 'A huge planet made mostly of gas, like Jupiter'], ['INTERSTELLAR', 'Between the stars']] },
+    { id: 'heroes', name: 'Superheroes', e: '🦸', words: [
+      ['SPIDERMAN', 'Your friendly neighbourhood web-slinger'], ['SUPERMAN', 'Man of Steel from the planet Krypton'], ['WOLVERINE', 'X-Man with metal claws who heals fast'],
+      ['SIDEKICK', 'A hero\'s helper, like Robin'], ['KRYPTONITE', 'Green rock that makes Superman weak'], ['GAUNTLET', 'Thanos wears the Infinity ___'],
+      ['MULTIVERSE', 'Lots of universes side by side'], ['BATMOBILE', 'Batman\'s car'], ['CATWOMAN', 'Jewel thief in Gotham who dresses like a cat'],
+      ['SUPERPOWER', 'An amazing ability no normal person has'], ['WONDERWOMAN', 'Amazon princess with a lasso of truth'], ['TONYSTARK', 'Iron Man\'s real name'],
+      ['CAPTAINAMERICA', 'Super soldier with a round shield'], ['BLACKPANTHER', 'King of Wakanda'], ['BLACKWIDOW', 'Natasha Romanoff\'s hero name'],
+      ['BRUCEBANNER', 'Scientist who turns into the Hulk'], ['PETERPARKER', 'Spider-Man\'s secret identity'], ['CLARKKENT', 'Superman\'s secret identity'],
+      ['BRUCEWAYNE', 'Batman\'s secret identity'], ['GOTHAMCITY', 'Batman\'s home city'], ['THEJOKER', 'Batman\'s grinning enemy'],
+      ['DOCTORSTRANGE', 'Marvel\'s Sorcerer Supreme'], ['THEFLASH', 'The fastest man alive in DC comics'], ['GREENLANTERN', 'DC hero with a power ring'],
+      ['CAPTAINMARVEL', 'Carol Danvers\' hero name'], ['AVENGERS', 'Marvel team called Earth\'s Mightiest Heroes'], ['JUSTICELEAGUE', 'DC team with Superman, Batman and Wonder Woman'],
+      ['SPIDERSENSE', 'The tingle that warns Spider-Man of danger'], ['SECRETIDENTITY', 'A hero\'s normal life, hidden behind a mask'], ['SUPERVILLAIN', 'An evil enemy with powers'],
+      ['ARCHENEMY', 'A hero\'s greatest foe'], ['INVISIBILITY', 'The power not to be seen'], ['TELEPORTATION', 'The power to vanish and appear somewhere else'],
+      ['TELEKINESIS', 'Moving things with your mind'], ['SUPERSTRENGTH', 'The power to lift a car with ease'], ['PROFESSORX', 'Telepath in a wheelchair who leads the X-Men'],
+      ['VIBRANIUM', 'The metal in Captain America\'s shield'], ['UTILITYBELT', 'Batman\'s belt full of gadgets'], ['WEBSHOOTERS', 'Wrist gadgets Spider-Man uses to swing'],
+      ['STARLORD', 'Peter Quill\'s name in the Guardians of the Galaxy'], ['GREENGOBLIN', 'Spider-Man villain who flies on a glider'], ['MILESMORALES', 'Spider-Man from Brooklyn in Into the Spider-Verse']] },
+    { id: 'anime', name: 'Anime', e: '🍥', words: [
+      ['NARUTOUZUMAKI', 'Orange ninja who dreams of becoming Hokage'], ['SUPERSAIYAN', 'Goku\'s golden-haired power-up'], ['PRINCEVEGETA', 'The proud prince of all Saiyans'],
+      ['MONKEYDLUFFY', 'Rubber pirate captain in a straw hat'], ['RORONOAZORO', 'Straw Hat swordsman who fights with three swords'], ['SASUKEUCHIHA', 'Naruto\'s rival from the Uchiha clan'],
+      ['KAKASHIHATAKE', 'Masked ninja who teaches Team 7'], ['STUDIOGHIBLI', 'Animation studio behind Totoro and Spirited Away'], ['SPIRITEDAWAY', 'Ghibli film where Chihiro works in a bathhouse for spirits'],
+      ['HAYAOMIYAZAKI', 'Ghibli director of My Neighbor Totoro'], ['TANJIROKAMADO', 'Demon slayer in a green and black checked jacket'], ['NEZUKOKAMADO', 'Tanjiro\'s sister with a bamboo muzzle'],
+      ['DEMONSLAYER', 'Anime with Tanjiro and Nezuko'], ['IZUKUMIDORIYA', 'Deku\'s real name in My Hero Academia'], ['ALLMIGHT', 'Number one hero, the Symbol of Peace'],
+      ['MYHEROACADEMIA', 'Anime about students training to be heroes at U.A. High'], ['ONEPUNCHMAN', 'Saitama wins every fight with a single hit'], ['SATORUGOJO', 'Blindfolded strongest sorcerer in Jujutsu Kaisen'],
+      ['JUJUTSUKAISEN', 'Anime with Itadori and cursed spirits'], ['YUJIITADORI', 'Swallowed Sukuna\'s cursed finger'], ['ATTACKONTITAN', 'Humans hide behind huge walls from giants'],
+      ['ERENYEAGER', 'Wants to wipe out every titan'], ['CAPTAINLEVI', 'Humanity\'s strongest soldier'], ['KAMEHAMEHA', 'Goku\'s energy blast'],
+      ['RASENGAN', 'Naruto\'s spinning ball of chakra'], ['SHARINGAN', 'Red eye of the Uchiha clan'], ['DRAGONBALL', 'Collect all seven to make a wish'],
+      ['ONEPIECE', 'The great treasure every pirate is chasing'], ['STRAWHAT', 'Luffy\'s favourite hat'], ['NINETAILEDFOX', 'The beast sealed inside Naruto'],
+      ['SHONENJUMP', 'Japanese magazine where Naruto and One Piece began'], ['MANGAARTIST', 'Person who draws Japanese comics'], ['COSPLAYER', 'Fan who dresses up as a character'],
+      ['ANIMATION', 'Drawings brought to life frame by frame'], ['SAILORMOON', 'Magical girl who fights evil by moonlight'], ['DORAEMON', 'Blue robot cat from the future'],
+      ['SPYXFAMILY', 'Anime with Loid, Yor and Anya'], ['ANYAFORGER', 'Pink-haired girl who can read minds'], ['ICHIGOKUROSAKI', 'Orange-haired Soul Reaper in Bleach'],
+      ['SOLOLEVELING', 'Sung Jinwoo rises from the weakest hunter'], ['SHURIKEN', 'Ninja throwing star'], ['GUMGUMFRUIT', 'Devil Fruit that made Luffy\'s body rubber']] },
+    { id: 'music', name: 'Music', e: '🎵', words: [
+      ['HEADPHONES', 'Music just for your ears'], ['MICROPHONE', 'The singer holds it'], ['ORCHESTRA', 'Big group with strings, woodwind, brass and percussion'],
+      ['CONDUCTOR', 'Waves a baton in front of the orchestra'], ['SAXOPHONE', 'Curvy jazz instrument made of brass but played with a reed'], ['PLAYLIST', 'Your list of favourite songs'],
+      ['ELECTRICGUITAR', 'Plugs into an amp to rock out'], ['BASSGUITAR', 'Plays the lowest notes in a band'], ['DRUMSTICKS', 'What a drummer hits with'],
+      ['GRANDPIANO', 'The biggest piano, with a lid that opens'], ['VIOLINIST', 'Plays the violin'], ['TRUMPETER', 'Plays a brass instrument with three valves'],
+      ['CLARINET', 'Black woodwind instrument with a single reed'], ['TROMBONE', 'Brass instrument with a slide'], ['XYLOPHONE', 'Hit its wooden bars with mallets'],
+      ['TAMBOURINE', 'Shake it to jingle'], ['HARMONICA', 'Mouth organ you blow and suck'], ['ACCORDION', 'Squeeze box with buttons and keys'],
+      ['DOUBLEBASS', 'The biggest instrument in the string section'], ['FRENCHHORN', 'Curly brass instrument'], ['SYNTHESIZER', 'Electronic keyboard that makes all kinds of sounds'],
+      ['TURNTABLES', 'A DJ scratches records on these'], ['SONGWRITER', 'Writes the words and the tune'], ['SOUNDTRACK', 'The music of a film'],
+      ['MUSICVIDEO', 'Short film made for a song'], ['CONCERTHALL', 'Building for live orchestra music'], ['RECORDLABEL', 'Company that releases an artist\'s music'],
+      ['LYRICIST', 'Writes the words of songs'], ['MELODIES', 'Tunes you can hum'], ['HARMONIES', 'Notes sung together that sound good'],
+      ['TIMESIGNATURE', 'The 4/4 at the start of the music'], ['TREBLECLEF', 'Curly sign at the start of the high staff'], ['SHARPSANDFLATS', 'Symbols that raise or lower a note'],
+      ['CRESCENDO', 'Getting gradually louder'], ['METRONOME', 'Ticks to keep a steady beat'], ['BEATBOXING', 'Making drum sounds with your mouth'],
+      ['LOUDSPEAKER', 'Where the sound comes out'], ['AMPLIFIER', 'Makes an electric guitar\'s sound louder'], ['SUPERSTAR', 'A hugely famous singer'],
+      ['NUMBERONE', 'The top song in the charts'], ['MUSICFESTIVAL', 'Days of outdoor concerts'], ['BACKINGVOCALS', 'Singers behind the lead'],
+      ['LEADSINGER', 'The main voice in a band'], ['STREAMING', 'Listening online without downloading'], ['BEETHOVEN', 'Composer who kept writing music after going deaf'],
+      ['COMPOSER', 'Writes music'], ['SYMPHONY', 'Long piece for a full orchestra']] },
+    { id: 'science', name: 'Science lab', e: '🔬', words: [
+      ['MOLECULE', 'Atoms joined together'], ['HYDROGEN', 'The lightest element'], ['MICROSCOPE', 'Makes tiny things look big'],
+      ['EXPERIMENT', 'A test to find something out'], ['HYPOTHESIS', 'Your prediction before the test'], ['BACTERIA', 'Tiny living things, some good, some bad'],
+      ['FRICTION', 'The force that slows things down when surfaces rub'], ['ELECTRON', 'Tiny negative particle'], ['EVAPORATE', 'What a liquid does when it turns into a gas'],
+      ['PERIODICTABLE', 'Chart of all the elements'], ['PHOTOSYNTHESIS', 'How plants make food from sunlight'], ['CARBONDIOXIDE', 'The gas we breathe out, CO2'],
+      ['NITROGEN', 'The gas that makes up most of the air'], ['ELECTRICITY', 'Flows through wires to power things'], ['MAGNETISM', 'Force that pulls on iron'],
+      ['ISAACNEWTON', 'Scientist who explained gravity and the laws of motion'], ['ALBERTEINSTEIN', 'Scientist famous for E = mc²'], ['MARIECURIE', 'The first person to win two Nobel Prizes'],
+      ['CHARLESDARWIN', 'Scientist of evolution by natural selection'], ['BUNSENBURNER', 'Gas burner in the school lab'], ['TESTTUBE', 'Thin glass tube for small experiments'],
+      ['SAFETYGOGGLES', 'Protect your eyes in the lab'], ['THERMOMETER', 'Measures temperature'], ['CONDENSATION', 'Gas turning back into liquid, like drops on a cold window'],
+      ['MELTINGPOINT', 'The temperature where a solid turns liquid'], ['BOILINGPOINT', '100 °C for water at sea level'], ['NEUTRONS', 'Particles with no charge in the nucleus'],
+      ['CHROMOSOME', 'Thread of DNA in a cell\'s nucleus'], ['SKELETON', '206 bones in an adult human'], ['ECOSYSTEM', 'Living things and their surroundings working together'],
+      ['FOODCHAIN', 'Grass, rabbit, fox: who eats whom'], ['INSULATOR', 'Material that blocks electricity, like rubber'], ['ERUPTION', 'When a volcano blows'],
+      ['EARTHQUAKE', 'Shaking ground when the plates move'], ['TECTONICPLATES', 'Giant slabs of Earth\'s crust'], ['FOSSILFUELS', 'Coal, oil and gas'],
+      ['RENEWABLE', 'Energy from sun or wind that won\'t run out'], ['SOLARPANEL', 'Turns sunlight into electricity'], ['WINDTURBINE', 'Giant spinning blades that make electricity'],
+      ['VACCINATION', 'Training your immune system with a jab'], ['MICROORGANISM', 'Living thing too small to see without a microscope'], ['REACTION', 'Chemical ___: substances change into new ones'],
+      ['SPECTRUM', 'Red to violet: light split into its colours'], ['WAVELENGTH', 'Distance from one wave peak to the next'], ['LABORATORY', 'Room where scientists do experiments'],
+      ['STATESOFMATTER', 'Solid, liquid and gas'], ['ACCELERATION', 'How fast speed is changing']] },
+    { id: 'world', name: 'Around the world', e: '🌍', words: [
+      ['PASSPORT', 'Little book you show at the border'], ['CONTINENT', 'Africa, Asia or Europe, for example'], ['AUSTRALIA', 'Country and continent of kangaroos'],
+      ['EIFFELTOWER', 'Iron tower in Paris'], ['LONDONEYE', 'Giant wheel beside the River Thames'], ['NEWYORKCITY', 'Home of the Statue of Liberty'],
+      ['GREATWALL', 'China\'s ancient barrier, thousands of km long'], ['TAJMAHAL', 'White marble tomb in Agra, India'], ['PYRAMIDS', 'Ancient tombs at Giza in Egypt'],
+      ['COLOSSEUM', 'Ancient arena in Rome'], ['MACHUPICCHU', 'Inca city high in the Andes of Peru'], ['BURJKHALIFA', 'The world\'s tallest building, in Dubai'],
+      ['SAHARADESERT', 'Largest hot desert, across North Africa'], ['RAINFOREST', 'Hot, wet forest like the Amazon'], ['MOUNTEVEREST', 'Tallest mountain on Earth'],
+      ['KILIMANJARO', 'Africa\'s highest mountain, in Tanzania'], ['NIAGARAFALLS', 'Waterfalls on the border of the USA and Canada'], ['GRANDCANYON', 'Huge gorge carved by the Colorado River'],
+      ['SAUDIARABIA', 'Kingdom whose capital is Riyadh'], ['UNITEDKINGDOM', 'England, Scotland, Wales and Northern Ireland'], ['SOUTHAFRICA', 'Country with three capital cities'],
+      ['ARGENTINA', 'South American country, home of the tango'], ['SWITZERLAND', 'Alpine country of chocolate and watches'], ['NETHERLANDS', 'Country of windmills and tulips'],
+      ['PHILIPPINES', 'Asian country of over 7,000 islands'], ['NEWZEALAND', 'Island country of kiwis and the All Blacks'], ['INDONESIA', 'Huge island country that includes Bali'],
+      ['PORTUGAL', 'Spain\'s neighbour, with Lisbon as its capital'], ['ISTANBUL', 'Turkish city on two continents'], ['SINGAPORE', 'Island city-state in South-East Asia'],
+      ['HONGKONG', 'City of skyscrapers on China\'s south coast'], ['WASHINGTONDC', 'Capital of the USA'], ['CAPETOWN', 'South African city below Table Mountain'],
+      ['RIODEJANEIRO', 'Brazilian city with the Christ the Redeemer statue'], ['BUENOSAIRES', 'Capital of Argentina'], ['NORTHPOLE', 'The top of the world, in the Arctic'],
+      ['ANTARCTICA', 'Frozen continent around the South Pole'], ['MEDITERRANEAN', 'Sea between Europe and Africa'], ['PACIFICOCEAN', 'The largest ocean'],
+      ['ATLANTICOCEAN', 'Ocean between the Americas and Europe'], ['TIMEZONES', 'Why it\'s night in one country and day in another'], ['LATITUDE', 'Lines on a map that run east to west'],
+      ['LONGITUDE', 'Lines on a map that run from pole to pole']] },
+    { id: 'ocean', name: 'Under the sea', e: '🌊', words: [
+      ['SEAHORSE', 'The dad carries the babies'], ['STARFISH', 'Sea star with five arms'], ['SUBMARINE', 'Ship that travels underwater'],
+      ['SHIPWRECK', 'Sunken ship on the seabed'], ['TREASURE', 'Chest of pirate gold'], ['STINGRAY', 'Flat fish with a barb in its tail'],
+      ['PUFFERFISH', 'Blows itself up like a ball'], ['PLANKTON', 'Tiny drifting life that whales eat'], ['LIGHTHOUSE', 'Tower that warns ships'],
+      ['CORALREEF', 'Colourful underwater city built by tiny animals'], ['HAMMERHEAD', 'Shark with a T-shaped head'], ['WHALESHARK', 'The biggest fish in the sea'],
+      ['KILLERWHALE', 'Black and white orca'], ['HUMPBACKWHALE', 'Whale famous for its long songs'], ['DOLPHINS', 'Clever, playful mammals that use echolocation'],
+      ['OCTOPUSES', 'Eight-armed animals that squirt ink'], ['GIANTSQUID', 'Huge deep-sea animal with eyes as big as plates'], ['SEAURCHIN', 'Spiny ball on the seabed'],
+      ['SEACUCUMBER', 'Squishy, sausage-shaped seabed animal'], ['HERMITCRAB', 'Lives in an empty shell and moves house'], ['LOBSTERS', 'Big-clawed shellfish that turn red when cooked'],
+      ['KELPFOREST', 'Underwater forest of giant seaweed'], ['SEATURTLE', 'Reptile that swims thousands of km to lay eggs on a beach'], ['CLOWNFISH', 'Orange and white fish that lives in an anemone'],
+      ['SEAANEMONE', 'Stinging animal that looks like a flower'], ['BARRACUDA', 'Long, toothy hunting fish'], ['SWORDFISH', 'Fish with a long, flat, pointed bill'],
+      ['ANGLERFISH', 'Deep-sea fish with a glowing lure'], ['NARWHALS', 'Tusked whales called unicorns of the sea'], ['MANATEES', 'Gentle plant-eaters called sea cows'],
+      ['WALRUSES', 'Tusked, whiskered animals of the Arctic'], ['SEALIONS', 'Noisy, flippered animals that can walk on land'], ['SCUBADIVER', 'Swims deep with an air tank'],
+      ['OXYGENTANK', 'What a scuba diver breathes from'], ['SURFBOARD', 'Ride the waves on it'], ['TIDEPOOL', 'Rocky puddle left when the sea goes out'],
+      ['HIGHTIDE', 'When the sea comes furthest up the beach'], ['SANDCASTLE', 'Build it on the beach with a bucket'], ['SEASHELLS', 'Found on the beach; hold one to your ear'],
+      ['MARIANATRENCH', 'The deepest place in the ocean'], ['SAILBOAT', 'Pushed along by the wind'], ['PIRATESHIP', 'Flies the skull and crossbones'],
+      ['SEAGULLS', 'Noisy beach birds that steal chips'], ['PELICANS', 'Birds with a big pouch under their beaks'], ['OCEANCURRENT', 'A river of moving water inside the sea']] },
+    { id: 'tech', name: 'Tech and the internet', e: '💻', words: [
+      ['KEYBOARD', 'Where you type'], ['PASSWORD', 'Keep it secret'], ['DOWNLOAD', 'Get a file from the internet'],
+      ['STREAMER', 'Plays games live online'], ['SMARTPHONE', 'Phone that is also a computer'], ['BLUETOOTH', 'Connects your earbuds without wires'],
+      ['ALGORITHM', 'Step-by-step rules a computer follows'], ['USERNAME', 'Your name online'], ['FOLLOWERS', 'People who subscribe to your account'],
+      ['FIREWALL', 'Keeps hackers out of a network'], ['TOUCHSCREEN', 'Screen you tap and swipe'], ['WEBBROWSER', 'App for visiting websites'],
+      ['SEARCHENGINE', 'Type a question and it finds web pages'], ['SOCIALMEDIA', 'Apps for sharing posts with friends'], ['VIDEOCALL', 'Talking face to face over the internet'],
+      ['NOTIFICATION', 'A ping telling you something new arrived'], ['ROBOTICS', 'Building and programming robots'], ['PROGRAMMING', 'Writing code'],
+      ['JAVASCRIPT', 'Programming language that runs in web browsers'], ['COMPUTER', 'Machine that runs programs'], ['MICROCHIP', 'Tiny slice of silicon full of circuits'],
+      ['PROCESSOR', 'The brain of a computer'], ['MOTHERBOARD', 'The main circuit board inside a computer'], ['HARDDRIVE', 'Stores the files inside a computer'],
+      ['USBSTICK', 'Plug-in memory you can carry on a keyring'], ['SCREENSHOT', 'A picture of what\'s on your screen'], ['WALLPAPER', 'The picture behind your apps'],
+      ['SPREADSHEET', 'Rows and columns of cells, like Excel'], ['CYBERSECURITY', 'Protecting computers from attacks'], ['ANTIVIRUS', 'Software that finds and removes malware'],
+      ['PHISHING', 'Fake emails that try to steal your password'], ['ENCRYPTION', 'Scrambling data so only the right person can read it'], ['BROADBAND', 'Fast home internet connection'],
+      ['INTERNET', 'Worldwide network of computers'], ['HYPERLINK', 'Click it to jump to another page'], ['CLOUDSTORAGE', 'Keeping your files on servers online'],
+      ['VIRTUALREALITY', 'Headset that puts you inside a 3D world'], ['QUADCOPTER', 'Drone with four spinning rotors'], ['SELFIESTICK', 'Pole to hold your phone out for a photo'],
+      ['HASHTAGS', 'Words with # in front on social media'], ['SUBSCRIBERS', 'People who follow a YouTube channel'], ['LIVESTREAM', 'Video broadcast online as it happens'],
+      ['CHARGINGCABLE', 'Plug it in to fill your battery'], ['POWERBANK', 'Portable battery for charging on the go'], ['SOFTWARE', 'The programs on a computer'],
+      ['HARDWARE', 'The physical parts of a computer']] },
+    { id: 'cars', name: 'Cars and racing', e: '🏎️', words: [
+      ['HORSEPOWER', 'How strong an engine is'], ['MECHANIC', 'Fixes cars'], ['SEATBELT', 'Buckle up!'],
+      ['OVERTAKE', 'Pass the car in front'], ['SUPERCAR', 'Super fast, super expensive car'], ['LAMBORGHINI', 'Italian supercar maker with a raging bull badge'],
+      ['MASERATI', 'Italian luxury car with a trident badge'], ['ROLLSROYCE', 'British luxury car maker'], ['ASTONMARTIN', 'British sports car driven by James Bond'],
+      ['MERCEDESBENZ', 'German car maker with a three-pointed star'], ['VOLKSWAGEN', 'German maker of the Beetle and the Golf'], ['LANDCRUISER', 'Toyota\'s tough off-road SUV'],
+      ['FORMULAONE', 'The top level of single-seater racing'], ['PITSTOPS', 'New tyres in about two seconds'], ['CHEQUEREDFLAG', 'Black and white flag waved at the finish'],
+      ['LEWISHAMILTON', 'British Formula 1 driver with seven world titles'], ['MAXVERSTAPPEN', 'Dutch Formula 1 world champion with Red Bull'], ['GRANDPRIX', 'A Formula 1 race'],
+      ['RACETRACK', 'Circuit the cars go round'], ['STEERINGWHEEL', 'Turn it to change direction'], ['SPEEDOMETER', 'Dial that shows how fast you\'re going'],
+      ['ACCELERATOR', 'Pedal that makes the car go faster'], ['HANDBRAKE', 'Lever that holds a parked car still'], ['WINDSCREEN', 'The glass at the front of a car'],
+      ['HEADLIGHTS', 'Lights at the front for driving at night'], ['SPARKPLUG', 'Makes the spark that lights the fuel'], ['GEARSTICK', 'Lever you move to change gear'],
+      ['EXHAUSTPIPE', 'Where the fumes come out'], ['DRIFTING', 'Sliding sideways round a corner on purpose'], ['TURBOCHARGER', 'Uses exhaust gas to give the engine more power'],
+      ['NITROBOOST', 'Button for a burst of speed in racing games'], ['SPORTSCAR', 'Low, fast two-seater'], ['CONVERTIBLE', 'Car with a roof that folds down'],
+      ['MOTORBIKE', 'Two wheels and an engine'], ['MONSTERTRUCK', 'Pickup on giant wheels that crushes cars'], ['GOKARTING', 'Racing small, low cars round a track'],
+      ['DRIVINGTEST', 'Pass it to get your licence'], ['NUMBERPLATE', 'Shows a car\'s registration'], ['PETROLSTATION', 'Where you fill up with fuel'],
+      ['HYBRIDCAR', 'Car with petrol and electric power'], ['ELECTRICCAR', 'Runs on a battery, not petrol'], ['DASHBOARD', 'Panel of dials in front of the driver'],
+      ['SUSPENSION', 'Springs that smooth out the bumps'], ['PODIUMFINISH', 'Coming in the top three'], ['POLEPOSITION', 'Starting at the front of the grid']] }
   ];
   // the mystery picture behind each theme's board
   var PIC = { poke: ['⚡', '🔥', '💧', '🌿', '⭐', '🥚', '🐉', '🎒'], sport: ['⚽', '🏆', '🥅', '🏃', '🥇', '📣', '🏀', '🎾'], games: ['🎮', '🍕', '🍔', '🍩', '💎', '👾', '🌮', '🍿'], maths: ['📈', '📐', '➗', '✖️', '📊', '🔢', '📏', '🧮'],
@@ -252,7 +280,7 @@
     n = Math.min(n, pool.length);
     while (placed.length < n) {
       var best = null, tried = 0;
-      for (var i = 0; i < pool.length && tried < 14; i++) {
+      for (var i = 0; i < pool.length && tried < 24; i++) {
         if (used[i]) continue; tried++;
         var w = pool[i][0];
         Object.keys(grid).forEach(function (kk) {
@@ -264,7 +292,7 @@
               var r0 = d === 'D' ? rc[0] - k : rc[0], c0 = d === 'A' ? rc[1] - k : rc[1], cr = fits(w, r0, c0, d); if (cr <= 0) return;
               var rr1 = d === 'D' ? r0 + w.length - 1 : r0, cc1 = d === 'A' ? c0 + w.length - 1 : c0;
               var hgt = Math.max(box.r1, rr1) - Math.min(box.r0, r0) + 1, wid = Math.max(box.c1, cc1) - Math.min(box.c0, c0) + 1;
-              var sc = cr * 30 - (hgt + wid) * 2 - Math.abs(hgt * 1.6 - wid);   // crossings, then compact and wider than tall (a screen)
+              var sc = cr * 30 - (hgt + wid) * 6 - Math.abs(hgt * 1.6 - wid) * 3;   // crossings, then compact and wider than tall (a screen): long words, so compact matters
               if (!best || sc > best.s) best = { i: i, r: r0, c: c0, d: d, s: sc };
             });
           }
@@ -388,25 +416,36 @@
   }
   function close() { if (!root) return; clearInterval(V.tick); [].forEach.call(document.querySelectorAll('.bbban'), function (x) { x.remove(); }); root.remove(); root = null; V = null; document.body.classList.remove('boarding'); }
 
-  // spiral review: number and multiple-choice questions (and their extras) from the lessons already taught, newest first
+  /* spiral review: number and multiple-choice questions (and their ★ go-further extras) from the five lessons before this
+     one, in four levels from easier to harder. A question's level = 1 + one step each for: from the two newest lessons, a
+     typed answer (not multiple choice), and two steps for a ★ extra (top level 4). So level 1 is multiple choice from the
+     older lessons and level 4 is the ★ extras. A student's run climbs: 3 of level 1, 4 of level 2, 5 of level 3, every
+     level 4, then the rest climbing again. Shuffled within each level, so every student's order differs. */
+  var RAMP = [3, 4, 5];
   function loadPool() {
     if (POOL || poolLoading) return; poolLoading = true;
     var me = A.LES(), plan = (window.SFA_PLAN || []).filter(function (p) { return p.n < me.n; }).sort(function (a, b) { return b.n - a.n; }).slice(0, 5), got = [], k = 0, keepFn = window.SFA_LESSON;
-    function take(L) {
+    function take(L, pos) {
+      var from = L.label || 'Lesson ' + L.n, newer = pos < Math.floor(plan.length / 2) ? 1 : 0;
+      var lv = function (q, star) { return 1 + Math.min(3, newer + (q.k === 'number' ? 1 : 0) + (star ? 2 : 0)); };
       L.slides.forEach(function (s) {
-        if (s.k === 'number' && s.ans != null) got.push({ k: 'number', q: s.q, ans: s.ans, tol: s.tol, fig: s.fig, why: s.why, from: L.label || 'Lesson ' + L.n });
-        if (s.k === 'poll' && s.ans != null && !s.warm) got.push({ k: 'poll', q: s.q, opts: s.opts, ans: s.ans, fig: s.fig, why: s.why, from: L.label || 'Lesson ' + L.n });
-        (s.more || []).forEach(function (m) { if ((m.k === 'number' || m.k === 'poll') && m.ans != null) got.push(Object.assign({ from: L.label || 'Lesson ' + L.n }, m)); });
+        if (s.k === 'number' && s.ans != null) got.push({ k: 'number', q: s.q, ans: s.ans, tol: s.tol, fig: s.fig, why: s.why, from: from, lv: lv(s) });
+        if (s.k === 'poll' && s.ans != null && !s.warm) got.push({ k: 'poll', q: s.q, opts: s.opts, ans: s.ans, fig: s.fig, why: s.why, from: from, lv: lv(s) });
+        (s.more || []).forEach(function (m) { if ((m.k === 'number' || m.k === 'poll') && m.ans != null) got.push(Object.assign({ from: from }, m, { lv: lv(m, true), star: true })); });
       });
     }
     (function next() {
       if (k >= plan.length) {
         window.SFA_LESSON = keepFn; poolLoading = false;
-        if (!got.length) take(me);   // the first lesson: nothing earlier, so today's
+        if (!got.length) take(me, 0);   // the first lesson: nothing earlier, so today's
         var r = rng((A.S.me ? parseInt(sh3(A.S.me.sid), 36) * 977 : 1) + (ST ? Math.round(ST.id / 1000) % 100000 : 0));
-        POOL = shuffle(got, r); draw(); return;
+        var lvs = [1, 2, 3, 4].map(function (l) { return shuffle(got.filter(function (q) { return q.lv === l; }), r); });
+        var run = [];
+        RAMP.forEach(function (c, i) { run = run.concat(lvs[i].splice(0, c)); });
+        POOL = run.concat(lvs[3], lvs[0], lvs[1], lvs[2]); draw(); return;
       }
-      window.SFA_LESSON = function (L) { take(L); };
+      var pos = k;
+      window.SFA_LESSON = function (L) { take(L, pos); };
       var s = document.createElement('script'); s.src = 'lessons/L' + plan[k++].l + '.js'; s.onload = s.onerror = function () { s.remove(); next(); }; document.head.appendChild(s);
     })();
   }
@@ -443,7 +482,7 @@
   }
   function grid(B, b, opts) {
     opts = opts || {};
-    var wrap = H('div', 'bbgrid'), cs = opts.cell || 34;
+    var cs = opts.cell || 34, wrap = H('div', 'bbgrid' + (cs < 13 ? ' tiny' : ''));   // tiny: too small for clue numbers
     wrap.style.width = (B.cols * cs) + 'px'; wrap.style.height = (B.rows * cs) + 'px'; wrap.style.setProperty('--cs', cs + 'px');
     var mine = opts.mine >= 0 ? B.words[opts.mine] : null, mineCells = {};
     if (mine) cellsOf(mine).forEach(function (rc, k) { mineCells[rc[0] + ',' + rc[1]] = k; });
@@ -462,7 +501,8 @@
     if (opts.names) B.words.forEach(function (it, i) { if (!b.solved[i] || !b.names[i]) return; var tg = H('span', 'bbwho', esc(b.names[i])); tg.style.left = (it.c * cs) + 'px'; tg.style.top = (it.r * cs - 16) + 'px'; wrap.appendChild(tg); });
     return wrap;
   }
-  function fitGrid(B, w, h) { return Math.max(14, Math.min(46, Math.floor(Math.min(w / B.cols, h / B.rows)))); }
+  // cell size so the whole crossword fits w × h (the words are long, so a full class board is often 30+ cells across)
+  function fitGrid(B, w, h, min) { return Math.max(min || 14, Math.min(46, Math.floor(Math.min(w / B.cols, h / B.rows)))); }
 
   function draw() {
     if (!root) return;
@@ -490,7 +530,7 @@
     // my word: tiles, the clue, my letters and misses
     var mineBox = H('div', 'bbmine');
     mineBox.appendChild(H('p', 'bbclue', '<b>' + it.no + (it.d === 'A' ? ' across' : ' down') + '</b> · ' + esc(it.clue) + ' <span>(' + it.len + ' letters)</span>'));
-    var tiles = H('div', 'bbtiles'), free = freeLetters(B, ST.w, b.solved);
+    var tiles = H('div', 'bbtiles' + (it.len >= 10 ? ' long' : '')), free = freeLetters(B, ST.w, b.solved);
     for (var k = 0; k < it.len; k++) { var sh = shown(k); tiles.appendChild(H('span', 'bbtile' + (sh ? ' on' : '') + (sh && !ST.solved && ((free[k] && !ST.guessed[it.w[k]]) || (ST.gifted && ST.gifted[it.w[k]])) ? ' gift' : ''), sh ? it.w[k] : '')); }
     mineBox.appendChild(tiles);
     var solvedNow = ST.solved || b.solved[ST.w];
@@ -516,7 +556,7 @@
     }
     left.appendChild(mineBox);
     // the class crossword, my word outlined
-    var gb = H('div', 'bbmini'); var cs = fitGrid(B, Math.min(520, (window.innerWidth || 800) * 0.42), 260);
+    var vw = window.innerWidth || 800, gb = H('div', 'bbmini'), cs = vw <= 820 ? fitGrid(B, vw - 64, 340, 9) : fitGrid(B, Math.min(600, vw * 0.44), 340, 10);
     gb.appendChild(grid(B, b, { cell: cs, mine: ST.w, shown: shown })); left.appendChild(gb);
     // questions: the only way to earn letters
     var qb = H('div', 'bbq'); body.appendChild(qb); drawQ(qb);
@@ -538,22 +578,39 @@
       list.appendChild(bt);
     });
   }
-  /* the first five questions are warm-ups: one quick step, small numbers, so everyone uncovers letters early and gets into
-     it. Different numbers and order for each student. Then the spiral review takes over. */
+  /* the first five questions are warm-ups: integers in two steps (order of operations, negatives in every one), climbing
+     from multiply-then-add to three steps with brackets, so everyone uncovers letters early but has to think. Each level
+     has two forms; the form and the numbers differ for each student. Then the spiral review takes over. */
   var EASY_N = 5;
   function easyQs() {
     var r = rng((A.S.me ? parseInt(sh3(A.S.me.sid), 36) * 31 : 7) + Math.round((ST.id || 0) / 1000) % 9973), n = function (a, b) { return a + Math.floor(r() * (b - a + 1)); };
-    var T = [
-      function () { var a = n(2, 9), b = n(2, 9); return { k: 'number', q: 'What is *' + a + ' × ' + b + '*?', ans: a * b, why: a + ' × ' + b + ' = ' + a * b + '.' }; },
-      function () { var a = n(2, 12); return { k: 'number', q: 'A machine *doubles* its input. What comes out for *' + a + '*?', ans: 2 * a, why: 'Double ' + a + ' is ' + 2 * a + '.' }; },
-      function () { var a = n(1, 9), b = n(2, 12); return { k: 'number', q: 'In the pair *(' + a + ', ' + b + ')*, what is the *output*?', ans: b, why: 'Input first, output second: the output is ' + b + '.' }; },
-      function () { var a = n(2, 6), x = n(1, 5); return { k: 'number', q: 'The rule is *add ' + a + '*. What comes out for *' + x + '*?', ans: x + a, why: x + ' + ' + a + ' = ' + (x + a) + '.' }; },
-      function () { var a = n(2, 5); return { k: 'number', q: 'A line goes *up 2 for every 1 across*. How far up for *' + a + ' across*?', ans: 2 * a, why: a + ' steps of 2 is ' + 2 * a + '.' }; },
-      function () { var a = n(3, 9); return { k: 'number', q: 'What is *half of ' + 2 * a + '*?', ans: a, why: 'Half of ' + 2 * a + ' is ' + a + '.' }; },
-      function () { var a = n(2, 9); return { k: 'poll', q: 'Which point is on the *y-axis* (the up line)?', opts: ['(' + a + ', 0)', '(0, ' + a + ')', '(' + a + ', ' + a + ')'], ans: 1, why: 'On the y-axis you haven\'t moved across at all: x is 0.' }; },
-      function () { var a = n(10, 20), b = n(2, 9); return { k: 'number', q: 'What is *' + a + ' − ' + b + '*?', ans: a - b, why: a + ' − ' + b + ' = ' + (a - b) + '.' }; }
+    var m = function (v) { return v < 0 ? '(−' + (-v) + ')' : String(v); }, w = function (v) { return v < 0 ? '−' + (-v) : String(v); };
+    var L = [
+      [   // 1: multiply, then add
+        function () { var a = n(2, 6), b = n(3, 9), c = n(2, 12), p = -a * b; return { q: w(-a) + ' × ' + b + ' + ' + c, ans: p + c, why: 'Multiply first: ' + w(-a) + ' × ' + b + ' = ' + w(p) + '. Then ' + w(p) + ' + ' + c + ' = ' + w(p + c) + '.' }; },
+        function () { var c = n(5, 15), a = n(2, 5), b = n(2, 6), p = -a * b; return { q: c + ' + ' + a + ' × ' + m(-b), ans: c + p, why: 'Multiply first: ' + a + ' × ' + m(-b) + ' = ' + w(p) + '. Then ' + c + ' + ' + m(p) + ' = ' + w(c + p) + '.' }; }
+      ],
+      [   // 2: divide or multiply, then subtract
+        function () { var d = n(2, 6), k = n(2, 8), e = n(2, 9); return { q: m(-d * k) + ' ÷ ' + d + ' − ' + m(-e), ans: -k + e, why: m(-d * k) + ' ÷ ' + d + ' = ' + w(-k) + '. Taking away ' + w(-e) + ' is the same as adding ' + e + ': ' + w(-k) + ' + ' + e + ' = ' + w(e - k) + '.' }; },
+        function () { var a = n(2, 6), b = n(2, 6), c = a * b + n(1, 12); return { q: m(-a) + ' × ' + m(-b) + ' − ' + c, ans: a * b - c, why: 'Negative times negative is positive: ' + m(-a) + ' × ' + m(-b) + ' = ' + a * b + '. Then ' + a * b + ' − ' + c + ' = ' + w(a * b - c) + '.' }; }
+      ],
+      [   // 3: two products, then combine
+        function () { var a = n(2, 5), b = n(2, 7), c = n(2, 6), d = n(2, 5), p = -a * b, q = -c * d; return { q: a + ' × ' + m(-b) + ' − ' + m(-c) + ' × ' + d, ans: p - q, why: a + ' × ' + m(-b) + ' = ' + w(p) + ' and ' + m(-c) + ' × ' + d + ' = ' + w(q) + '. Then ' + w(p) + ' − ' + m(q) + ' = ' + w(p) + ' + ' + (-q) + ' = ' + w(p - q) + '.' }; },
+        function () { var a = n(2, 6), b = n(2, 6), c = n(2, 5), d = n(2, 6), p = -a * b, q = c * d; return { q: m(-a) + ' × ' + b + ' + ' + m(-c) + ' × ' + m(-d), ans: p + q, why: m(-a) + ' × ' + b + ' = ' + w(p) + ' and ' + m(-c) + ' × ' + m(-d) + ' = ' + q + '. Then ' + w(p) + ' + ' + q + ' = ' + w(p + q) + '.' }; }
+      ],
+      [   // 4: brackets first
+        function () { var x = n(1, 6), y = x + n(3, 9), c = n(2, 6), s = x - y; return { q: '(' + x + ' − ' + y + ') × ' + m(-c), ans: s * -c, why: 'Brackets first: ' + x + ' − ' + y + ' = ' + w(s) + '. Then ' + m(s) + ' × ' + m(-c) + ' = ' + s * -c + ' (negative times negative is positive).' }; },
+        function () { var c = n(2, 6), k = n(2, 7), t = -k * c, y = n(2, 9), x = t - y; return { q: '(' + w(x) + ' + ' + y + ') ÷ ' + m(-c), ans: k, why: 'Brackets first: ' + w(x) + ' + ' + y + ' = ' + w(t) + '. Then ' + m(t) + ' ÷ ' + m(-c) + ' = ' + k + ' (negative divided by negative is positive).' }; }
+      ],
+      [   // 5: three steps
+        function () { var a = n(2, 9), b = n(2, 5), c = n(1, 5), d = c + n(3, 8), s = c - d, p = b * s; return { q: a + ' − ' + b + ' × (' + c + ' − ' + d + ')', ans: a - p, why: 'Brackets: ' + c + ' − ' + d + ' = ' + w(s) + '. Multiply: ' + b + ' × ' + m(s) + ' = ' + w(p) + '. Then ' + a + ' − ' + m(p) + ' = ' + a + ' + ' + (-p) + ' = ' + w(a - p) + '.' }; },
+        function () { var a = n(2, 6), b = n(2, 6), d = n(2, 5), e = n(2, 6), c = d * e, p = -a * b; return { q: m(-a) + ' × ' + b + ' − ' + c + ' ÷ ' + m(-d), ans: p + e, why: m(-a) + ' × ' + b + ' = ' + w(p) + ' and ' + c + ' ÷ ' + m(-d) + ' = ' + w(-e) + '. Then ' + w(p) + ' − ' + m(-e) + ' = ' + w(p) + ' + ' + e + ' = ' + w(p + e) + '.' }; }
+      ]
     ];
-    return shuffle(T, r).slice(0, EASY_N).map(function (f) { return Object.assign(f(), { from: 'warm-up', easy: true }); });
+    return L.slice(0, EASY_N).map(function (forms, i) {
+      var o = forms[r() < 0.5 ? 0 : 1]();
+      return { k: 'number', q: 'What is *' + o.q + '*?', ans: o.ans, why: o.why, from: 'warm-up', easy: true, lv: i + 1 };
+    });
   }
   function drawQ(box) {
     box.innerHTML = '';
@@ -563,7 +620,8 @@
     if (!warm && !POOL) { box.appendChild(H('p', 'q', 'Loading questions…')); return; }
     if (!warm && !POOL.length) { box.appendChild(H('p', 'q', 'No questions found.')); return; }
     var q = warm ? ST.easy[ST.ei] : POOL[ST.qi % POOL.length];
-    box.appendChild(H('p', 'kick', (warm ? '🌱 Warm-up ' + (ST.ei + 1) + ' of ' + ST.easy.length + ' · answer to earn letters' : 'Answer to earn letters · from ' + esc(q.from || 'earlier')) + (ST.streak >= 2 ? ' · 🔥 ' + ST.streak + ' in a row' : '')));
+    var lv = q.lv || 1, big = !warm && lv >= 3;   // levels 3 and 4: right first time earns 2 letter guesses
+    box.appendChild(H('p', 'kick', (warm ? '🌱 Warm-up ' + (ST.ei + 1) + ' of ' + ST.easy.length + ' · integers · answer to earn letters' : 'Level ' + lv + ' of 4 · ' + '★'.repeat(lv) + (big ? ' · right first time: 2 letters' : '') + ' · from ' + esc(q.from || 'earlier')) + (ST.streak >= 2 ? ' · 🔥 ' + ST.streak + ' in a row' : '')));
     box.appendChild(H('p', 'q', A.fmt(q.q)));
     if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (e) { } }
     if (ST.fb) {
@@ -574,10 +632,11 @@
       box.appendChild(nx); return;
     }
     function right() {
-      var first = !ST.tries; ST.streak = first ? ST.streak + 1 : 0; ST.right++; xp(ST.easy && ST.ei < ST.easy.length ? 4 : first ? 10 : 5);
-      var got = 1 + (first && ST.streak % 3 === 0 ? 1 : 0), helping = ST.solved || V.b.solved[ST.w] || ST.w < 0;
+      var first = !ST.tries; ST.streak = first ? ST.streak + 1 : 0; ST.right++; xp(warm ? 4 : first ? 10 : 5);
+      var bonus = first && big, three = first && ST.streak % 3 === 0;
+      var got = (bonus ? 2 : 1) + (three ? 1 : 0), helping = ST.solved || V.b.solved[ST.w] || ST.w < 0;
       if (helping) ST.giftCred = (ST.giftCred || 0) + got; else ST.credits += got;
-      ST.fb = { ok: true, html: '<b>Yes! +' + got + (helping ? ' gift letter' + (got > 1 ? 's' : '') + ' to send' : ' letter guess' + (got > 1 ? 'es' : '')) + '.</b>' + (got > 1 ? ' 🔥 Three in a row!' : '') };
+      ST.fb = { ok: true, html: '<b>Yes! +' + got + (helping ? ' gift letter' + (got > 1 ? 's' : '') + ' to send' : ' letter guess' + (got > 1 ? 'es' : '')) + '.</b>' + (bonus ? ' ⭐ Level ' + lv + ' bonus!' : '') + (three ? ' 🔥 Three in a row!' : '') };
       sendSoon(); keep(); draw();
     }
     function wrong() { xp(1); ST.streak = 0; ST.cool = Date.now() + 4000; ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') }; keep(); draw(); }
@@ -618,7 +677,7 @@
   // the class screen (and the teacher's view): the whole crossword, who found what, and the clues still open
   function drawClass() {
     var b = V.b, B = V.B, body = H('div', 'bbclass'); root.appendChild(body);
-    var w = (window.innerWidth || 1000) * (A.MODE === 'screen' ? 0.62 : 0.6), h = (window.innerHeight || 700) * 0.7;
+    var w = (window.innerWidth || 1000) * ((window.innerWidth || 1000) <= 820 ? 0.92 : A.MODE === 'screen' ? 0.63 : 0.6), h = Math.max(240, (window.innerHeight || 700) - 110);
     var gw = H('div', 'bbbig'); gw.appendChild(grid(B, b, { cell: fitGrid(B, w, h), names: true })); body.appendChild(gw);
     var side = H('div', 'bbside'); body.appendChild(side);
     var sc = solvedCount(b, B), pc = document.createElement('canvas'); pc.className = 'bbpic'; pc.width = 480; pc.height = 300; picture(pc, B.theme, b.all ? 1 : sc.of ? sc.n / sc.of : 0, b.seed); side.appendChild(H('p', 'bbpict', b.all ? '🖼️ The mystery picture!' : '🖼️ Mystery picture: every word found uncovers more'));
@@ -699,7 +758,7 @@
     if (owned && done === owned) { K.all = true; end(); return; }
     if (changed) { (A.pushNow || A.pushLive)(); A.consolePanel(); }
   }
-  function end() { var K = C(); if (!K) return; K.state = 2; K.endedAt = Date.now(); A.pushLive(); A.consolePanel(); }
+  function end() { var K = C(); if (!K) return; if (K.state === 1 && A.trophy) { var TT = THEMES[K.theme % THEMES.length], own = 0, sol = 0; (K.owners || []).forEach(function (o, i) { if (o.length) { own++; if (K.solved[i]) sol++; } }); A.trophy({ k: 'board', id: K.id, win: !!K.all, theme: TT.e + ' ' + TT.name, found: sol, of: own }); } K.state = 2; K.endedAt = Date.now(); A.pushLive(); A.consolePanel(); }
   function tick() {
     var K = C(); if (!K) return;
     if (K.state === 1 && Date.now() >= K.id + K.dur * 1000) end();
