@@ -757,7 +757,7 @@
   // the server's clock as seen from here: live.at is server time when the console last updated; the closest sample wins
   function noteSkew() { if (MODE !== 'student' || !live || !live.at) return; var k = live.at - Date.now(); if (srvSkewV == null || k > srvSkewV || k < srvSkewV - 30000) srvSkewV = k; }
   // 🔠 the Big Board (sfa-board.js): the class crossword at the start of a lesson, loaded and synced like the Clash
-  var BOARD_V = '20261104g', boardLoading = null;
+  var BOARD_V = '20261104h', boardLoading = null;
   function boardAssets(cb) {
     if (window.SFA_BOARD) return cb();
     if (boardLoading) { boardLoading.push(cb); return; }
@@ -787,7 +787,7 @@
     sec.appendChild(H('h3', '', '🔠 Start with the Big Board? (optional, about 6 minutes)'));
     sec.appendChild(H('p', 'muted', 'A class crossword: every student here gets their own word. Right answers to quick review questions from earlier lessons earn letter guesses (a vowel costs two). Solved words fill the crossword on the class screen and give free letters to the words that cross them. If every word is found, the whole class celebrates.'));
     var th = el('select', { 'aria-label': 'Theme' }), t0 = SFA.store.get('teacher.board.theme', 0);
-    ['⚡ Pokémon', '⚽ Sport and football', '🎮 Games and food', '📐 Maths words'].forEach(function (t, i) { var o = el('option', { value: String(i), text: t }); if (i === t0) o.selected = true; th.appendChild(o); });
+    ['⚡ Pokémon', '⚽ Sport and football', '🎮 Games and food', '📐 Maths words', '🦁 Animals', '🚀 Space', '🦸 Superheroes', '🍥 Anime', '🎵 Music', '🔬 Science lab', '🌍 Around the world', '🌊 Under the sea', '💻 Tech and the internet', '🏎️ Cars and racing'].forEach(function (t, i) { var o = el('option', { value: String(i), text: t }); if (i === t0) o.selected = true; th.appendChild(o); });
     th.onchange = function () { SFA.store.set('teacher.board.theme', +th.value); };
     var len = el('select', { 'aria-label': 'Length' }), m0 = SFA.store.get('teacher.board.mins', 6);
     [4, 6, 8].forEach(function (m) { var o = el('option', { value: String(m), text: m + ' minutes' }); if (m === m0) o.selected = true; len.appendChild(o); });
