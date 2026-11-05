@@ -11,7 +11,7 @@
   var A = window.SFA_LESSON_API, L = window.SFA_LANES, SP = window.SFA_SPRITES, SFA = window.SFA, esc = SFA.esc;
   if (!A || !L || !SP) return;
   var H = A.H, el = A.el, fmt = A.fmt;
-  var COOL_MS = 5000, BOARD_CAP = 70, PUSH_MS = 1000, BRIEF = 30;   // BRIEF: seconds of rules on every screen before the battle clock starts
+  var COOL_MS = 5000, BOARD_CAP = 70, PUSH_MS = 1000, BRIEF = 40, RALLY_FIRST = 600, RALLY_EVERY = 900, RALLY_WIN = 200, RALLY_SHOW = 70, RALLY_NEED = 0.6;   // rallies: in ticks (0.1 s). BRIEF: seconds of rules on every screen before the battle clock starts
   var TEAMS = [['Team Llama', '🦙', '#FFC94A'], ['Team Toaster', '🍞', '#5CC8FF'], ['The Wobbly Penguins', '🐧', '#FFC94A'], ['The Angry Croissants', '🥐', '#5CC8FF'], ['The Pickle Pirates', '🥒', '#FFC94A'], ['Captain Noodle\'s Crew', '🍜', '#5CC8FF'], ['The Disco Cats', '🐱', '#FFC94A'], ['The Grumpy Clouds', '☁️', '#5CC8FF']];
   var TC = ['#FFC94A', '#5CC8FF'];   // team colours: gold on the left, sky on the right
   function teamNames(id) { var k = Math.round(id / 1000) % 4; return [{ name: TEAMS[k * 2][0], e: TEAMS[k * 2][1] }, { name: TEAMS[k * 2 + 1][0], e: TEAMS[k * 2 + 1][1] }]; }
@@ -22,14 +22,14 @@
   // the id of a student's k-th placement on the board (j: the next try if that id is busy). The console gives it and the
   // student's page works it out too, so a page knows exactly which characters are its own, and which were turned away
   function pid(sid, id, k, j) { var h = 5381, t = String(sid) + ':' + Math.round(id / 1000) + ':' + k + ':' + (j || 0); for (var i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return 1 + h % 9998; }
-  var WHY = { g: 'it got scrambled on the way', l: 'your hero level hadn\'t reached the console yet', c: 'the console counted fewer coins for you', r: 'it was still recharging', f: 'your team\'s lanes were packed', s: 'a teammate took the last planting spot in that lane first' };
+  var WHY = { h: 'you had already sent your avatar', u: 'your avatar wasn\'t unlocked on the console yet', g: 'it got scrambled on the way', l: 'your hero level hadn\'t reached the console yet', c: 'the console counted fewer coins for you', r: 'it was still recharging', f: 'your team\'s lanes were packed', s: 'a teammate took the last planting spot in that lane first' };
 
   // the battle in the live state: id (also names the teams), start in server time, and the board
   function clashOf(Lv) {
     var c = Lv && Lv.counts; if (!c || Lv.lesson !== A.LID || !Array.isArray(c.zcs) || !Array.isArray(c.zcid)) return null;
     var st = A.MODE === 'screen' ? decRun(c.zcid) : decRun(c.zcst) || decRun(c.zcid), dur = c.zcs[5] || L.DUR;
     if (A.MODE !== 'teach' && sNow() - st > dur * 100 + 180000) return null;   // over 3 minutes past its end: stale
-    return { id: decRun(c.zcid), start: A.MODE === 'screen' ? decRun(c.zcid) : decRun(c.zcst) || decRun(c.zcid), state: c.zcs[3], t: c.zcs[0], score: [c.zcs[1], c.zcs[2]], dur: c.zcs[5] || L.DUR, brief: c.zcs[6] || 0 };
+    return { id: decRun(c.zcid), start: A.MODE === 'screen' ? decRun(c.zcid) : decRun(c.zcst) || decRun(c.zcid), state: c.zcs[3], t: c.zcs[0], score: [c.zcs[1], c.zcs[2]], dur: c.zcs[5] || L.DUR, brief: c.zcs[6] || 0, rally: Array.isArray(c.zcr) ? { no: c.zcr[0], st: c.zcr[1], q: c.zcr[2], at: c.zcr[3], r: [c.zcr[4], c.zcr[6]], of: [c.zcr[5], c.zcr[7]], won: [c.zcr[8], c.zcr[9]], ln: [c.zcr[10], c.zcr[11]] } : null };
   }
   // the spotlight slot: "U:fingerprint,…#E:seq~kind~name~team~lane~type~n;…#R:placement id~why;…#M:name~gold~right;…"
   // (U: is team 0 as sh3 fingerprints of the student ids; T: is the same list as plain ids, from before)
@@ -44,6 +44,7 @@
       else if (k === 'A:') o.awards = v.split(';').map(function (x) { var p = x.split('~'); return { k: p[0], name: p[1], team: +p[2], n: +p[3] }; }).filter(function (a) { return a.name; });
       else if (k === 'R:') v.split(';').forEach(function (x) { var p = x.split('~'); if (+p[0]) o.rej[+p[0]] = p[1] || 'g'; });
       else if (k === 'N:') o.names = v.split('|').slice(0, 2).map(function (x) { return x ? x.split(',') : []; });
+      else if (k === 'Q:') { o.hl = {}; v.split(',').forEach(function (x) { var q = x.split('~'); if (+q[0]) o.hl[+q[0]] = { look: q[1] || '', n: q[2] || '' }; }); }
       else if (k === 'V:') o.looks = v.split('|').slice(0, 2).map(function (x) { return x ? x.split(',') : []; });
       else if (k === 'H:') o.heroes = v.split(';').map(function (x) { var p = x.split('~'); return { name: p[0], team: +p[1], gold: +p[2], right: +p[3], lv: +p[4] || 1 }; }).filter(function (a) { return a.name; });
     });
@@ -92,6 +93,8 @@
       V.S = snap;
     }
     V.c = c; V.sp = sp;
+    if (sp.hl) { V.heroLooks = V.heroLooks || {}; Object.keys(sp.hl).forEach(function (id) { V.heroLooks[id] = sp.hl[id]; }); }
+    var rk = c.rally ? c.rally.no + '.' + c.rally.st : ''; if (rk !== V.rk) { var first = V.rk == null; V.rk = rk; if (!first) onRally(c); }
     if (sp.looks && (sp.looks[0].length || sp.looks[1].length)) { V.looks = sp.looks; if (CL && A.MODE === 'student') CL.looks = sp.looks; }
     if (sp.names && (sp.names[0].length || sp.names[1].length)) { V.names = sp.names; if (CL && A.MODE === 'student' && JSON.stringify(CL.names) !== JSON.stringify(sp.names)) { CL.names = sp.names; keep(); } }
     if (V.S) claimMine(V.S, sp.rej);
@@ -172,7 +175,7 @@
     keep(); clearTimeout(saveT);
     // the newest placements and how many came before them (n): the results script keeps 600 characters of an answer
     var p = CL.places.map(function (x) { return x.l + '.' + x.t + '.' + x.d + '.' + x.v; }).join(',');
-    A.record({ id: 'zclash', k: 'open' }, 'c3;id:' + Math.round(CL.id / 1000) + ';r:' + CL.right + ';w:' + (CL.wr || 0) + ';e:' + CL.earned + ';b:' + CL.bonus + ';v:' + CL.boost + ';sk:' + (CL.best || 0) + (CL.ping ? ';g:' + CL.ping.l + '.' + CL.ping.t : '') + ';n:' + (CL.total - CL.places.length) + ';p:' + p, null);
+    A.record({ id: 'zclash', k: 'open' }, 'c3;id:' + Math.round(CL.id / 1000) + ';r:' + CL.right + ';w:' + (CL.wr || 0) + ';e:' + CL.earned + ';b:' + CL.bonus + ';v:' + CL.boost + ';sk:' + (CL.best || 0) + (CL.ping ? ';g:' + CL.ping.l + '.' + CL.ping.t : '') + (CL.raN ? ';ra:' + CL.raN + '.' + CL.raOk : '') + ';n:' + (CL.total - CL.places.length) + ';p:' + p, null);
   }
   function sendSoon() { clearTimeout(saveT); saveT = setTimeout(send, 4000); }
   function pool_() {
@@ -189,6 +192,7 @@
     if (CL && c.state === 3) return 'The battle starts in a few seconds.';
     if (!CL || c.state !== 1 || T0 >= c.dur - 5) return 'The battle is over.';
     if (T0 >= c.dur - 70) return 'Too late to send more: the battle ends in a few seconds.';
+    if (U.hero) { if (CL.heroUsed) return 'You\'ve sent your avatar this battle.'; if (heroRight() < U.need) return 'Answer ' + (U.need - heroRight()) + ' more right to unlock your avatar hero.'; }
     if (U.lv > lv()) return 'Unlocks at hero level ' + U.lv + '.';
     if (CL.coins < U.cost) return 'Not enough coins: answer questions to earn more.';
     if ((CL.cd[t] || 0) > T0) return U.name + ' is recharging.';
@@ -202,7 +206,7 @@
     var t = V.sel, why = canPlace(t, l); if (why) { SFA.toast(why); return; }
     var U = L.UNITS[t], T0 = Math.floor(nowT(V.c));
     CL.coins -= U.cost; CL.cd[t] = T0 + U.cd; CL.sent++;
-    var p = { l: l, t: t, d: T0, v: lv() };
+    var p = { l: l, t: t, d: T0, v: U.hero ? heroLvMine() : lv() }; if (U.hero) { CL.heroUsed = true; xp(5); }
     sfx('pop'); CL.places.push(p); CL.temps.push({ k: CL.total, l: l, t: t, at: T0 + L.DEPLOY, made: Date.now() }); CL.total++;
     if (CL.places.length > 30) CL.places = CL.places.slice(-30);
     send();
@@ -228,7 +232,7 @@
       for (var j = 0; j < 6; j++) { var id = pid(A.S.me.sid, CL.id, x.k, j); if (ids[id]) { CL.mineIds[id] = 1; return false; } }
       var why = rej && rej[pid(A.S.me.sid, CL.id, x.k, 0)];
       if (why) {
-        var U = L.UNITS[x.t]; CL.coins += U.cost; CL.cd[x.t] = 0; CL.refunds = (CL.refunds || 0) + 1; keep(); drawCards();
+        var U = L.UNITS[x.t]; CL.coins += U.cost; CL.cd[x.t] = 0; if (U.hero) CL.heroUsed = false; CL.refunds = (CL.refunds || 0) + 1; keep(); drawCards();
         SFA.toast('Your ' + U.name + ' was turned away (' + (WHY[why] || WHY.g) + '), so you got your ' + U.cost + ' coins back.', 5000);
         return false;
       }
@@ -259,6 +263,57 @@
     return T.slice(0, WARM_N).map(function (f) { var o = f(); return { k: 'number', q: 'What is *' + o[0] + '*?', ans: o[1], why: o[2], warm: true }; });
   }
   // ⭐ arcade XP (kept across lessons by sfa-lesson.js)
+  // 📣 a team rally on this student's screen: answer it (one try) before the normal questions carry on
+  function rallyLeft(c) { var R = c.rally; return R ? Math.max(0, Math.ceil((R.at + RALLY_WIN - nowT(c)) / 10)) : 0; }
+  function drawRally(box, c) {
+    var R = c.rally; if (!R || !R.st || me < 0 || !CL) return false;
+    CL.ra = CL.ra || {};
+    var T = teamNames(c.id), mineAns = CL.ra[R.no], q = rallyQ(R);
+    if (R.st === 2) {
+      var won = R.won[me], pct = R.of[me] ? Math.round(100 * R.r[me] / R.of[me]) : 0;
+      box.appendChild(H('div', 'lcrally ' + (won ? 'won' : 'lost'), won ? '📣 <b>Rally won!</b> ' + R.r[me] + ' of ' + R.of[me] + ' right (' + pct + '%): a free <b>' + esc(L.UNITS[won - 1].name) + '</b> joins lane ' + (R.ln[me] + 1) + '!' : '📣 Rally missed: ' + R.r[me] + ' of ' + R.of[me] + ' right (' + pct + '%). 60% wins a free character. Next time!'));
+      return false;
+    }
+    if (mineAns != null || rallyLeft(c) <= 0 || !q) {
+      box.appendChild(H('div', 'lcrally', '📣 <b>Team rally</b> · ' + (mineAns == null ? 'time\'s up' : mineAns ? '✅ you got it' : '❌ not that one') + ' · your team: ' + R.r[me] + ' of ' + R.of[me] + ' right so far · ' + rallyLeft(c) + ' s'));
+      return false;
+    }
+    box.classList.add('rallyon');
+    box.appendChild(H('p', 'kick', '📣 TEAM RALLY · ' + T[me].e + ' ' + esc(T[me].name) + ' · <span class="lcrallyt">' + rallyLeft(c) + ' s</span>'));
+    box.appendChild(H('p', 'lcrule', 'Everyone on your team gets this one, one try. If 60% get it right, your team gets a free character!'));
+    box.appendChild(H('p', 'q', A.fmt(q.q)));
+    if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (e) { } }
+    var answer = function (ok) { CL.ra[R.no] = ok ? 1 : 0; CL.raN = R.no; CL.raOk = ok ? 1 : 0; xp(ok ? 10 : 1); if (ok) A.confetti(); keep(); send(); drawQ(); };
+    if (q.k === 'number') {
+      var inp = el('input', { type: 'text', inputmode: 'decimal', placeholder: 'Type a number', 'aria-label': 'Rally answer', autocomplete: 'off' }), go = el('button', { type: 'button', 'class': 'btn primary', text: '📣 Answer' }), row = H('div', 'row');
+      row.appendChild(inp); row.appendChild(go); box.appendChild(row);
+      var chk = function () { var v = A.numOf(inp.value); if (!inp.value.trim() || isNaN(v)) return inp.focus(); answer(Math.abs(v - q.ans) <= (q.tol || 1e-9) + 1e-9); };
+      go.onclick = chk; inp.onkeydown = function (e) { if (e.key === 'Enter') chk(); };
+    } else {
+      var list = H('div', 'opts'); box.appendChild(list);
+      q.opts.forEach(function (o, k) { var bt = el('button', { type: 'button', 'class': 'opt' }); bt.appendChild(H('span', 'L', A.letter(k))); bt.appendChild(H('span', 't', A.fmt(o))); bt.onclick = function () { answer(k === q.ans); }; list.appendChild(bt); });
+    }
+    clearTimeout(V.rallyT); V.rallyT = setTimeout(function tickR() { if (root && V && V.c && V.c.rally && V.c.rally.st === 1) { var t = root.querySelector('.lcrallyt'); if (t) t.textContent = rallyLeft(V.c) + ' s'; if (rallyLeft(V.c) <= 0) drawQ(); else V.rallyT = setTimeout(tickR, 1000); } }, 1000);
+    return true;
+  }
+  // a rally starts or ends: shout it out, redraw the question box, and the class screen's panel
+  function onRally(c) {
+    var R = c.rally; if (!R) return;
+    var T = teamNames(c.id);
+    if (R.st === 1) { shout({ e: 'gus', who: '📣 TEAM RALLY!', text: 'Everyone answer the rally question: 60% right wins your team a free character!', team: -1, mine: true }); sfx('pop'); }
+    if (R.st === 2) [0, 1].forEach(function (t) { if (R.won[t]) shout({ e: L.UNITS[R.won[t] - 1].who, who: T[t].e + ' ' + T[t].name.toUpperCase(), text: 'won the rally (' + R.r[t] + ' of ' + R.of[t] + ')! A free <b>' + esc(L.UNITS[R.won[t] - 1].name.toUpperCase()) + '</b> joins lane ' + (R.ln[t] + 1) + '.', team: t, mine: t === me, gold: true }); });
+    if (A.MODE === 'student') drawQ();
+    rallyPanel();
+  }
+  function rallyPanel() {
+    if (!root || A.MODE === 'student') return;
+    var old = root.querySelector('.lcrallyp'); if (old) old.remove();
+    var c = V.c, R = c && c.rally; if (!R || R.st !== 1) return;
+    var q = rallyQ(R), T = teamNames(c.id); if (!q) return;
+    var p = H('div', 'lcrallyp', '<b class="lckick">📣 TEAM RALLY · <span class="lcrallyt">' + rallyLeft(c) + ' s</span></b><p class="q">' + A.fmt(q.q) + '</p>' + (q.k === 'poll' ? '<div class="bropts">' + q.opts.map(function (o, k) { return '<p><b>' + A.letter(k) + '</b> ' + A.fmt(o) + '</p>'; }).join('') + '</div>' : '') +
+      '<p class="lcrallys">' + [0, 1].map(function (t) { return '<span style="color:' + TC[t] + '">' + T[t].e + ' ' + R.r[t] + ' of ' + R.of[t] + '</span>'; }).join(' · ') + ' right · 60% wins a free character</p>');
+    root.appendChild(p);
+  }
   function xp(n, once) { if (A.hero && CL) A.hero.add('c', String(Math.round(CL.id / 1000)) + (once ? 'e' : ''), n, once); }
   function drawQ() {
     var box = hud.q; if (!box || !CL) return;
@@ -267,6 +322,7 @@
     if (c.state === 3) { box.appendChild(H('p', 'q', 'Read the rules: the questions start with the battle.')); return; }
     if (c.state !== 1) { box.appendChild(H('p', 'q', 'The battle is over.')); return; }
     if (!pool.length) { box.appendChild(H('p', 'q', 'No questions in this lesson for the Clash.')); return; }
+    if (drawRally(box, c)) return;
     if (CL.wi == null) { CL.warm = warmQs(); CL.wi = 0; CL.wr = 0; keep(); }
     var warm = CL.wi < CL.warm.length, bonusRound = !warm && CL.qi >= CL.order.length, q = warm ? CL.warm[CL.wi] : pool[CL.order[CL.qi % CL.order.length]];
     box.appendChild(H('p', 'kick', warm ? '🌱 Warm-up ' + (CL.wi + 1) + ' of ' + CL.warm.length + ' · integers · 1 coin' : 'Answer to earn coins · ' + (bonusRound ? 'bonus round: 1 coin' : q.hard ? '★★ hard: 4 coins' : 'right first try: 3 coins') + (CL.streak >= 2 ? ' · 🔥 ' + CL.streak + ' in a row' : '')));
@@ -324,12 +380,27 @@
   /* ---------- the hero panel and the seed-packet cards ---------- */
   var thumbs = {};
   function thumb(who) {
+    if (who === 'hero') return heroURL(myLook(), 64);
     if (thumbs[who]) return thumbs[who];
     var s = SP.get(who); if (!s) return '';
     var c = document.createElement('canvas'), k = Math.min(64 / s.w, 64 / s.h); c.width = 64; c.height = 64;
     c.getContext('2d').drawImage(s.frames[0], (64 - s.w * k) / 2, 64 - s.h * k, s.w * k, s.h * k);
     return (thumbs[who] = c.toDataURL());
   }
+  // 🌟 the avatar hero: each student's Wardrobe look, as a card picture and as a sprite on the board
+  var heroImgs = {};
+  function heroURL(look, size) { var AV = window.SFA_AVATAR; return AV ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(AV.svg(look || '', { size: size || 64 })) : ''; }
+  function myLook() { var AV = window.SFA_AVATAR; return AV && A.S.me ? AV.myLook(AV.profile(), A.S.me.sid) : ''; }
+  function heroSp(look) {
+    look = look || ''; var h = heroImgs[look];
+    if (!h) { h = heroImgs[look] = { ok: false }; var img = new Image(); img.onload = function () { h.ok = true; }; img.src = heroURL(look, 160); h.sp = { frames: [img], w: 160, h: 184 }; }
+    return h.ok ? h.sp : null;
+  }
+  function heroOf(u) { return (V.heroLooks && V.heroLooks[u.id % 10000]) || (CL && CL.mineIds[u.id] ? { look: myLook(), n: '' } : null); }
+  function spOf(u) { var U = L.UNITS[u.type]; if (U.hero) { var hh = heroOf(u); return heroSp(hh ? hh.look : ''); } return SP.get(U.who); }
+  function heroLvMine() { var AV = window.SFA_AVATAR; return L.heroLv(AV ? AV.level(AV.profile().xp || 0) : 1); }
+  function heroRight() { return CL ? (CL.right || 0) + (CL.wr || 0) : 0; }
+  function lookByName(n) { var NM = V.names || (CL && CL.names), LK = V.looks || (CL && CL.looks); if (!NM || !LK) return ''; for (var t = 0; t < 2; t++) { var i = (NM[t] || []).indexOf(n); if (i >= 0 && LK[t]) return LK[t][i] || ''; } return ''; }
   function drawCards() {
     if (!hud.cards || !CL) return;
     var n = lv(), next = L.UNITS.filter(function (U) { return U.lv === n + 1; })[0], toNext = n >= 5 ? 0 : 3 - (CL.right % 3);
@@ -338,11 +409,16 @@
     hud.cards.innerHTML = '';
     var T0 = V && V.c ? nowT(V.c) : 0;
     L.ORDER.forEach(function (t) {
-      var U = L.UNITS[t], locked = U.lv > n, cd = Math.max(0, (CL.cd[t] || 0) - T0), b = el('button', { type: 'button', 'class': 'lccard' + (V.sel === t ? ' sel' : '') + (locked ? ' locked' : '') + (CL.coins < U.cost ? ' poor' : '') });
-      b.innerHTML = '<img alt="" src="' + thumb(U.who) + '"><b>' + esc(U.name) + '</b><small>' + esc(U.role) + '</small><span class="lccost">' + U.cost + '🪙</span>' + (locked ? '<span class="lclock">🔒 Lv ' + U.lv + '</span>' : '') + (cd ? '<span class="lccd" style="--p:' + Math.round(100 * cd / U.cd) + '"></span>' : '');
-      b.title = U.say; b.onclick = function () { if (locked) { SFA.toast(U.name + ' unlocks at hero level ' + U.lv + '. Answer questions to level up.'); return; } pickCard(t); };
+      var U = L.UNITS[t], locked = U.hero ? heroRight() < U.need || !!CL.heroUsed : U.lv > n, cd = U.hero ? 0 : Math.max(0, (CL.cd[t] || 0) - T0), b = el('button', { type: 'button', 'class': 'lccard' + (U.hero ? ' hero' : '') + (V.sel === t ? ' sel' : '') + (locked ? ' locked' : '') + (CL.coins < U.cost ? ' poor' : '') });
+      var C0 = L.CLS[U.cls] || {};
+      b.innerHTML = '<span class="lccls" title="' + esc(C0.n || '') + '">' + (C0.e || '') + '</span><img alt="" src="' + thumb(U.who) + '"><b>' + esc(U.name) + '</b><small>' + esc(U.hero ? 'Lv ' + heroLvMine() + ' hero' : U.role) + '</small><span class="lccost">' + (U.cost ? U.cost + '🪙' : 'FREE') + '</span>' + (locked ? '<span class="lclock">' + (U.hero ? (CL.heroUsed ? '✓ Sent' : '🔒 ' + (U.need - heroRight()) + ' more right') : '🔒 Lv ' + U.lv) + '</span>' : '') + (cd ? '<span class="lccd" style="--p:' + Math.round(100 * cd / U.cd) + '"></span>' : '');
+      b.title = U.say + (C0.n ? ' · ' + C0.e + ' ' + C0.n + ': good against ' + C0.good + '; watch out for ' + C0.bad + '.' : '');
+      b.onclick = function () { if (locked) { SFA.toast(U.hero ? (CL.heroUsed ? 'You\'ve sent your avatar this battle.' : 'Answer ' + (U.need - heroRight()) + ' more right to unlock your avatar hero.') : U.name + ' unlocks at hero level ' + U.lv + '. Answer questions to level up.'); return; } pickCard(t); };
       hud.cards.appendChild(b);
     });
+    // counters: what the picked card is good and bad against (or the cheat sheet)
+    var SU = V.sel >= 0 ? L.UNITS[V.sel] : null, SC = SU ? L.CLS[SU.cls] : null;
+    hud.cards.appendChild(H('p', 'lcvs', SC ? '<b>' + SC.e + ' ' + esc(SU.name) + '</b> ✅ ' + esc(SC.good) + ' · ❌ ' + esc(SC.bad) : '🎯 shooters beat 🏃 runners · 🦍 giants shrug off 🎯 shooters · 🧱 walls beat 🦍 giants · 💥 breakers smash 🧱 walls · ⭕ Zero clears a lane'));
     laneButtons();
   }
   function laneButtons() {
@@ -399,7 +475,7 @@
     return { w: w, h: h, vw: vw, lh: (h - top) / L.LANES, top: top, X: function (x) { return vw + (x / L.LEN) * (w - 2 * vw); } };
   }
   function laneY(G, l) { return G.top + G.lh * (l + 0.82); }
-  function sizeOf(who, G) { var k = { gus: 0.62, one: 0.74, sam: 0.66, pigeon: 0.34, max: 0.98, zero: 0.42, mux: 0.6, rita: 0.66, priya: 0.62, dunmore: 0.84, undef: 1.12 }[who] || 0.6; return G.lh * k * (L.LANES > 3 ? 1.3 : 1); }
+  function sizeOf(who, G) { var k = { hero: 0.8, gus: 0.62, one: 0.74, sam: 0.66, pigeon: 0.34, max: 0.98, zero: 0.42, mux: 0.6, rita: 0.66, priya: 0.62, dunmore: 0.84, undef: 1.12 }[who] || 0.6; return G.lh * k * (L.LANES > 3 ? 1.3 : 1); }
   function dust(u) { var G = geo(); for (var i = 0; i < 8; i++) V.parts.push({ k: 'dust', x: G.X(u.x) + (Math.random() - 0.5) * 30, y: laneY(G, u.lane), vx: (Math.random() - 0.5) * 60, vy: -Math.random() * 40, life: 0.6, t: 0 }); }
   function die(u, mowed) {
     var G = geo(), R = V.units[u.id] || {};
@@ -552,14 +628,14 @@
         c.font = 'bold ' + Math.round(G.lh * 0.28) + 'px sans-serif'; c.textAlign = 'center'; c.fillStyle = '#ff5a4a'; c.fillText('⚠', gx, gy + Math.sin(now / 120) * 3);
       }
     });
-    if (CL) CL.temps.forEach(function (x) { if (T0 > x.at + 40) return; var gx = me ? w - G.vw - 18 : G.vw + 18, left = Math.max(0, (x.at - T0) / 10); c.save(); c.globalAlpha = 0.45; var sp3 = SP.get(L.UNITS[x.t].who); if (sp3) drawSprite(sp3, gx, laneY(G, x.l), sizeOf(L.UNITS[x.t].who, G) * 0.7, me, 0); c.restore(); ring(c, gx, laneY(G, x.l) - G.lh * 0.62, 11, 1 - left / (L.DEPLOY / 10), TC[me], Math.ceil(left)); });
+    if (CL) CL.temps.forEach(function (x) { if (T0 > x.at + 40) return; var gx = me ? w - G.vw - 18 : G.vw + 18, left = Math.max(0, (x.at - T0) / 10); c.save(); c.globalAlpha = 0.45; var sp3 = L.UNITS[x.t].hero ? heroSp(myLook()) : SP.get(L.UNITS[x.t].who); if (sp3) drawSprite(sp3, gx, laneY(G, x.l), sizeOf(L.UNITS[x.t].who, G) * 0.7, me, 0); c.restore(); ring(c, gx, laneY(G, x.l) - G.lh * 0.62, 11, 1 - left / (L.DEPLOY / 10), TC[me], Math.ceil(left)); });
     // the units: march bob, lunge when fighting, flash when hit, a health bar, level stars, a "You" tag
     var alive = {};
     S.units.slice().sort(function (a, b) { return a.lane - b.lane; }).forEach(function (u) {
       alive[u.id] = 1;
       var U = L.UNITS[u.type], R = V.units[u.id] || (V.units[u.id] = { born: now }), tx = G.X(u.x);
       R.dx = R.dx == null ? tx : R.dx + (tx - R.dx) * Math.min(1, dt * 10);
-      var sz = sizeOf(U.who, G), y = laneY(G, u.lane), dirn = u.team ? -1 : 1, sp = SP.get(U.who), age = (now - (R.born || 0)) / 1000;
+      var sz = sizeOf(U.who, G), y = laneY(G, u.lane), dirn = u.team ? -1 : 1, sp = spOf(u), age = (now - (R.born || 0)) / 1000;
       var bob = U.kind === 'a' && !u.fight ? -Math.abs(Math.sin(now / 130 + u.id)) * sz * 0.06 : 0;
       var lunge = u.fight ? Math.max(0, Math.sin(now / 90 + u.id)) * sz * 0.12 * dirn : 0;
       var drop = age < 0.35 ? -(1 - age / 0.35) * G.lh * 0.6 : 0, squash = age < 0.5 ? 1 + Math.sin(age * 18) * 0.12 * (1 - age / 0.5) : 1;
@@ -574,6 +650,7 @@
       if (u.hp < u.max) { var bw = Math.max(26, sz * 0.5); c.fillStyle = 'rgba(0,0,0,.5)'; c.fillRect(R.dx - bw / 2, y - sz - 8, bw, 5); c.fillStyle = u.hp / u.max > 0.5 ? '#3BFF8A' : u.hp / u.max > 0.25 ? '#FFC94A' : '#E0463C'; c.fillRect(R.dx - bw / 2, y - sz - 8, bw * Math.max(0, u.hp / u.max), 5); }
       if (u.lv > 1) { c.font = Math.round(Math.max(9, sz * 0.13)) + 'px sans-serif'; c.textAlign = 'center'; c.fillStyle = '#FFC94A'; c.fillText('★'.repeat(Math.min(5, u.lv - 1)), R.dx, y - sz - 14); }
       if (CL && CL.mineIds[u.id]) { c.font = 'bold 11px sans-serif'; c.fillStyle = '#fff'; c.textAlign = 'center'; c.fillText('YOU', R.dx, y + 14); }
+      else if (U.hero) { var hn = heroOf(u); if (hn && hn.n) { c.font = 'bold 11px sans-serif'; c.fillStyle = '#FFE14D'; c.textAlign = 'center'; c.fillText(hn.n, R.dx, y + 14); } }
       // peas from pigeons
       if (U.reach && u.fight && Math.random() < dt * 2.2) { var tg = S.units.filter(function (o) { return o.id === u.fight; })[0]; if (tg) V.peas.push({ x0: R.dx + dirn * sz * 0.3, y0: y - sz * 0.5, x1: G.X(tg.x), y1: laneY(G, tg.lane) - sizeOf(L.UNITS[tg.type].who, G) * 0.5, t: 0 }); }
       // sparks when fighting
@@ -629,6 +706,8 @@
 
   /* ---------- the HUD: gold, clock, the wave meter, comeback, end of the battle ---------- */
   function hudTick() {
+    if (root && A.MODE !== 'student' && V && V.c && V.c.rally && V.c.rally.st === 1) { var rp = root.querySelector('.lcrallyp'); if (!rp || rp._k !== V.c.rally.r.join() + V.c.rally.of.join()) { rallyPanel(); rp = root.querySelector('.lcrallyp'); if (rp) rp._k = V.c.rally.r.join() + V.c.rally.of.join(); } else { var tt = rp.querySelector('.lcrallyt'); if (tt) tt.textContent = rallyLeft(V.c) + ' s'; } }
+    else if (root && A.MODE !== 'student') { var rp2 = root.querySelector('.lcrallyp'); if (rp2) rp2.remove(); }
     if (!root || !V) return;
     var c = V.c, S = V.S, T0 = nowT(c), T = teamNames(c.id);
     [0, 1].forEach(function (t) {
@@ -676,6 +755,8 @@
     bans.push('<span class="lcbig">🧠</span><b class="lckick">Answer to earn coins</b><p class="lcyours">Five quick integer warm-ups first (1 coin each), then the lesson questions: a right first try earns <b>3 coins</b>. Three in a row earns a bonus. Every 3 right levels up your hero and unlocks new characters.</p>');
     bans.push(pics(['gus', 'rita', 'one', 'max', 'undef']) + '<b class="lckick">Send attackers</b><p class="lcyours">Pick a card, then a lane. Attackers march to the other fort and grab its gold. The bigger ones cost more but grab far more: worth saving up for!</p>');
     bans.push(pics(['sam', 'dunmore', 'pigeon', 'priya', 'zero']) + '<b class="lckick">Defend your lanes</b><p class="lcyours">Each lane has 3 planting spots. <b>Sam</b> and <b>Mr. Dunmore</b> block, <b>Pea Pigeon</b> and <b>Priya</b> shoot, and <b>Zero</b> erases every enemy in a lane.</p>');
+    bans.push('<span class="lcbig">⚔️</span><b class="lckick">Counters win battles</b><p class="lcyours">🎯 <b>Shooters</b> beat 🏃 <b>runners</b>. 🦍 <b>Giants</b> shrug off shooters. 🧱 <b>Walls</b> beat giants. 💥 <b>Breakers</b> smash walls and shooters. ⭕ <b>Zero</b> clears a whole lane. Pick a card to see what it\'s good against.</p>');
+    bans.push(pics(['hero']) + '<b class="lckick">🌟 Your avatar and 📣 rallies</b><p class="lcyours">After 5 right answers you can send <b>your own Wardrobe avatar</b> down a lane, free, once a battle: the higher your arcade level, the stronger it is. Every 90 seconds a <b>team rally</b> question pops up: if 60% of your team gets it right, you win a free character.</p>');
     bans.push('<span class="lcbig">🏰</span><b class="lckick">Watch your fort</b><p class="lcyours">A red <b>!</b> at a gate means enemies are close. <b>Mux</b> charges the first one to reach a gate. 📣 Call your team for help.</p>');
     bans.push('<span class="lcbig">🔥</span><b class="lckick">Never give up</b><p class="lcyours">The last minute is the <b>final wave</b>: double gold. A team that falls behind gets bonus coins and tougher characters.</p>');
     var words = bans.map(function (h) { return /lcrost/.test(h) ? 14 : h.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length; });
@@ -760,7 +841,8 @@
     sp.ev.forEach(function (e) {
       if (e.seq <= shoutSeen) return;
       var U = L.UNITS[e.type] || L.UNITS[0], mine = me >= 0 && e.team === me, isMe = mine && e.name === myName;
-      if (e.k === 's' && !isMe) shoutQ.push({ e: U.who, who: e.name.toUpperCase(), text: (U.kind === 'd' ? 'planted ' : 'sent ') + '<b>' + esc(U.name.toUpperCase()) + '</b> ' + (U.kind === 's' ? 'rolling down lane ' + (e.lane + 1) : U.kind === 'd' ? 'in lane ' + (e.lane + 1) : 'down lane ' + (e.lane + 1)) + '!', team: e.team, mine: mine });
+      if (e.k === 's' && !isMe && U.hero) shoutQ.push({ e: 'gus', img: heroURL(lookByName(e.name), 64), who: e.name.toUpperCase(), text: 'sent their <b>🌟 AVATAR HERO</b> down lane ' + (e.lane + 1) + '!', team: e.team, mine: mine, gold: true });
+      else if (e.k === 's' && !isMe) shoutQ.push({ e: U.who, who: e.name.toUpperCase(), text: (U.kind === 'd' ? 'planted ' : 'sent ') + '<b>' + esc(U.name.toUpperCase()) + '</b> ' + (U.kind === 's' ? 'rolling down lane ' + (e.lane + 1) : U.kind === 'd' ? 'in lane ' + (e.lane + 1) : 'down lane ' + (e.lane + 1)) + '!', team: e.team, mine: mine });
       if (e.k === 'g' && !isMe) shoutQ.push({ e: U.who, who: e.name.toUpperCase() + '\'S ' + U.name.toUpperCase(), text: 'grabbed <b>' + e.n + ' GOLD</b> from ' + esc(T[1 - e.team].name) + '!', team: e.team, mine: mine, gold: true });
       if (e.k === 'p' && (mine || A.MODE === 'screen') && !isMe) shoutQ.push({ e: 'gus', who: '📣 ' + e.name.toUpperCase() + ':', text: '<b>Help in lane ' + (e.lane + 1) + '!</b>', team: e.team, mine: mine, small: true });
       if (e.k === 't') shoutQ.push({ e: 'max', who: '⏰ +1 MINUTE!', text: A.TEACHER + ' added time to the battle.', team: -1, mine: true });
@@ -775,7 +857,7 @@
     if (shoutBusy || !shoutQ.length || !root) return;
     var o = shoutQ.shift(); shoutBusy = true;
     var b = H('div', 'lcshout' + (o.team === -1 ? ' wave' : o.mine ? ' ours' : ' theirs') + (o.gold ? ' gold' : '') + (o.small ? ' small' : ''));
-    b.innerHTML = '<img alt="" src="' + thumb(o.e) + '"><span><b class="who">' + esc(o.who) + '</b> ' + o.text + '</span>';
+    b.innerHTML = '<img alt="" src="' + (o.img || thumb(o.e)) + '"><span><b class="who">' + esc(o.who) + '</b> ' + o.text + '</span>';
     root.appendChild(b);
     var d = o.small ? 1400 : A.MODE === 'screen' ? 2600 : 2000;
     setTimeout(function () { b.classList.add('out'); }, d);
@@ -850,6 +932,8 @@
       if (g && (acc.ping == null || +g[2] > acc.ping)) { if (acc.ping != null) ev(K, 'p', H0.name, team, +g[1], 0, 0); acc.ping = +g[2]; } else if (acc.ping == null) acc.ping = 0;   // after a console reload, an old call isn't replayed
       if (lvMax >= 4 && lvMax > acc.lvSeen && acc.lvSeen) ev(K, 'h', H0.name, team, 0, 0, lvMax);
       acc.lvSeen = lvMax;
+      var ra = s.match(/;ra:(\d+)\.([01])/), RL = K.rally;
+      if (ra && RL && RL.st === 1 && +ra[1] === RL.no && RL.ans[sid] == null) { RL.ans[sid] = +ra[2]; RL.of[team]++; if (+ra[2]) RL.r[team]++; }
       // the row holds the newest placements; n: says how many came before them (rows from before n: start at 0)
       var list = ((s.match(/;p:([0-9.,]*)/) || [, ''])[1]).split(',').filter(Boolean), n0 = get('n');
       if (acc.n < 0) { acc.n = n0 + list.length; return; }   // console reloaded mid-battle: those are already on the board
@@ -857,18 +941,20 @@
       for (var i = Math.max(0, acc.n - n0); i < list.length; i++) {
         var k = n0 + i, p = list[i].split('.').map(Number), l = p[0], t = p[1], d = p[2], v = p[3], U = L.UNITS[t];
         if (!U || !(l >= 0 && l < L.LANES) || p.length < 4) { turn('garbled', k, 'g'); continue; }
+        if (U.hero && acc.hero) { turn('avatar already sent', k, 'h'); continue; }
+        if (U.hero && r + get('w') < U.need) { turn('avatar not unlocked', k, 'u'); continue; }
         if (U.lv > lvMax) { turn('level too low', k, 'l'); continue; }
         if (acc.spent + U.cost > budget) { turn('not enough coins', k, 'c'); continue; }
         if ((acc.cd[t] || -1e9) > d + 20) { turn('still recharging', k, 'r'); continue; }
         if (K.S.units.concat(K.S.pend).filter(function (u) { return u.team === team; }).length >= BOARD_CAP) { turn('board full', k, 'f'); continue; }
         if (U.kind === 'd' && L.planted(K.S, team, l) >= L.TILES.length) { turn('spots taken', k, 's'); continue; }
         D.placed++;
-        acc.spent += U.cost; acc.cd[t] = d + U.cd; if (U.kind === 'd') H0.def++;
+        acc.spent += U.cost; acc.cd[t] = d + U.cd; if (U.kind === 'd') H0.def++; if (U.hero) acc.hero = 1;
         var at = Math.max(Math.ceil(T0) + 5, Math.min(d + L.DEPLOY, Math.ceil(T0) + L.DEPLOY + 20)), id = 0;
         for (var j = 0; j < 6 && !id; j++) { var c0 = pid(sid, K.id, k, j); if (!busy[c0]) id = c0; }
         if (id) busy[id] = 1;
-        L.place(K.S, { id: id || undefined, team: team, lane: l, type: t, lv: Math.min(v || 1, lvMax), at: at, owner: H0.name, sid: sid, d: d });
-        if (U.cost >= 5) ev(K, 's', H0.name, team, l, t, 0);
+        L.place(K.S, { id: id || undefined, team: team, lane: l, type: t, lv: U.hero ? Math.min(Math.max(1, v || 1), L.heroLv(lookLvOf(sid))) : Math.min(v || 1, lvMax), at: at, owner: H0.name, sid: sid, d: d });
+        if (U.cost >= 5 || U.hero) ev(K, 's', H0.name, team, l, t, 0);
       }
       acc.n = Math.max(acc.n, n0 + list.length);
     });
@@ -885,6 +971,7 @@
     if (K.state === 3 && Date.now() >= (K.go || K.id)) { K.state = 1; A.pushLive(); A.consolePanel(); }
     if (!K.frozen && K.state === 1) {
       L.advance(K.S, Math.floor(cNow(K)), refFx);
+      rallyTick(K);
       if (K.S.t >= K.S.dur) end();
     }
     if (K.frozen && K.endedAt && Date.now() - K.endedAt > 120000) { A.console_().clash = null; if (root && V && V.watch) close(); (A.pushNow || A.pushLive)(); A.consolePanel(); SFA.toast('The battle results closed. Everyone is back on the slides.', 4000); return; }
@@ -909,11 +996,41 @@
     K.mvp = [0, 1].map(function (t) { return Object.keys(K.hero).map(function (s) { return K.hero[s]; }).filter(function (h) { return h.team === t; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); })[0] || null; });
     A.pushLive(); A.consolePanel();
   }
+  /* 📣 rallies: every 90 s each team gets the same question for 20 s. If 60% of a team's answers are right, the console
+     drops a free character for that team into its busiest lane (Rental Rita first, then One, then Maximus). */
+  function rallyList() { var P = pool_(), m = P.filter(function (q) { return q.k === 'poll' && q.opts && q.opts.length <= 5; }); return m.length ? m : P; }
+  function rallyQ(R) { var P = rallyList(); return P.length ? P[R.q % P.length] : null; }
+  function rallyTick(K) {
+    var R = K.rally || (K.rally = { no: 0, st: 0, q: 0, at: 0, r: [0, 0], of: [0, 0], won: [0, 0], ln: [0, 0], ans: {} }), T = K.S.t;
+    if (K.rNext == null) K.rNext = RALLY_FIRST;
+    if (R.st === 0 && T >= K.rNext && K.S.dur - T > RALLY_WIN + 150 && rallyList().length) {
+      R.no++; R.st = 1; R.q = Math.floor(Math.random() * 9999); R.at = T; R.r = [0, 0]; R.of = [0, 0]; R.won = [0, 0]; R.ln = [0, 0]; R.ans = {}; K.rNext = T + RALLY_EVERY;
+      (A.pushNow || A.pushLive)(); A.consolePanel();
+    } else if (R.st === 1 && T >= R.at + RALLY_WIN) {
+      var types = [6, 2, 4], ty = types[Math.min(types.length - 1, R.no - 1)];
+      [0, 1].forEach(function (tm) {
+        if (!(R.of[tm] > 0 && R.r[tm] / R.of[tm] >= RALLY_NEED)) return;
+        var press = [0, 0, 0, 0, 0]; K.S.units.forEach(function (u) { if (u.team !== tm && L.UNITS[u.type].kind === 'a') press[u.lane]++; });
+        var best = 0; for (var l = 1; l < L.LANES; l++) if (press[l] > press[best]) best = l; if (!press[best]) best = Math.floor(Math.random() * L.LANES);
+        var lvs = Object.keys(K.hero).map(function (s2) { return K.hero[s2]; }).filter(function (h) { return h.team === tm; }).map(function (h) { return h.lv || 1; });
+        var lvT = lvs.length ? Math.max(1, Math.min(5, Math.round(lvs.reduce(function (a, b) { return a + b; }, 0) / lvs.length))) : 1;
+        L.place(K.S, { team: tm, lane: best, type: ty, lv: lvT, at: Math.ceil(cNow(K)) + 5, owner: 'Rally', sid: '' });
+        R.won[tm] = ty + 1; R.ln[tm] = best;
+      });
+      R.st = 2; (A.pushNow || A.pushLive)(); A.consolePanel();
+    } else if (R.st === 2 && T >= R.at + RALLY_WIN + RALLY_SHOW) { R.st = 0; (A.pushNow || A.pushLive)(); }
+  }
   function counts(out) {
     var K = C(); if (!K) return;
+    var RR = K.rally; if (RR && RR.no) out.zcr = [RR.no, RR.st, RR.q, Math.min(9999, RR.at), RR.r[0], RR.of[0], RR.r[1], RR.of[1], RR.won[0], RR.won[1], RR.ln[0], RR.ln[1]];
     out.zcid = A.encRun(K.id); out.zcst = A.encRun(K.id + (A.console_().skew || 0));
-    Object.assign(out, L.encode(K.S, K.state, 48));
+    Object.assign(out, L.encode(K.S, K.state, 46));
     out.zcs.push(briefLeft(K));   // zcs[6]: seconds of rules left
+  }
+  function lookLvOf(sid) {
+    var lv = 1, t = '';
+    (A.consoleAnswers() || []).forEach(function (a) { if (a.q !== 'zlookx1' || a.sid !== sid) return; var m = String(a.answer).match(/^lk1;[0-9a-z]{1,12};(\d+)/); if (m && String(a.time) >= t) { t = String(a.time); lv = +m[1]; } });
+    return lv;
   }
   function looksBySid() {
     var out = {}, t = {};
@@ -944,7 +1061,9 @@
     var txt = '#E:' + E + (RJ ? '#R:' + RJ : '') + (M ? '#M:' + M : '') + (AW ? '#A:' + AW : '') + (HS ? '#H:' + HS : '');
     // who is on which team, by name, whenever there's room (always during the rules)
     var TLs = teamLists(K), NL = TLs.map(function (l) { return l.map(function (x) { return x.n.replace(/[~,#|;]/g, ''); }).join(','); }).join('|'), base = ('U:' + t0).slice(0, 595 - txt.length) + txt;
-    var LKs = looksBySid(), VL = TLs.map(function (l) { return l.map(function (x) { return LKs[x.sid] || (window.SFA_AVATAR ? SFA_AVATAR.defLook(x.sid) : ''); }).join(','); }).join('|');
+    var LKs = looksBySid(), HQ = K.S.units.concat(K.S.pend).filter(function (u) { return L.UNITS[u.type] && L.UNITS[u.type].hero; }).slice(-12).map(function (u) { return (u.id % 10000) + '~' + (LKs[u.sid] || (window.SFA_AVATAR ? SFA_AVATAR.defLook(u.sid) : '')) + '~' + String(u.owner || '').replace(/[~,#|;]/g, '').slice(0, 10); }).join(',');
+    if (HQ && base.length + HQ.length + 3 <= 598) base += '#Q:' + HQ;
+    var VL = TLs.map(function (l) { return l.map(function (x) { return LKs[x.sid] || (window.SFA_AVATAR ? SFA_AVATAR.defLook(x.sid) : ''); }).join(','); }).join('|');
     if (base.length + NL.length + 3 <= 598) base += '#N:' + NL;
     else if (K.state === 3) base = ('U:' + t0).slice(0, 595 - txt.length - NL.length - 3) + txt + '#N:' + NL;
     if (K.state === 3 && base.indexOf('#N:') >= 0 && base.length + VL.length + 3 <= 598) base += '#V:' + VL;   // avatars for the team intro, when they fit

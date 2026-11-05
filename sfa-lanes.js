@@ -18,18 +18,37 @@
   // speed in lane units per second; gold grabbed at the vault; reach for shooters; hero level needed; cooldown in ticks
   // Better characters cost more and grab more gold for every coin spent, so saving up pays. A right answer earns 3 coins.
   L.UNITS = [
-    { id: 'gus', kind: 'a', who: 'gus', name: 'Gus', role: 'Sneaky runner', cost: 3, hp: 45, dps: 11, spd: 135, gold: 8, lv: 1, cd: 40, say: 'Fast and cheap. Slips through empty lanes.' },
-    { id: 'sam', kind: 'd', who: 'sam', name: 'Squaring Sam', role: 'Wall', wall: true, cost: 6, hp: 160, dps: 9, lv: 1, cd: 100, say: 'Plants himself in your half and blocks the lane.' },
-    { id: 'one', kind: 'a', who: 'one', name: 'One', role: 'Superhero', cost: 9, hp: 170, dps: 30, spd: 85, gold: 24, lv: 3, cd: 80, breaker: 2, say: 'Smashes walls and shooters: double damage to defenders.' },
-    { id: 'zero', kind: 's', who: 'zero', name: 'Zero', role: 'Eraser', cost: 9, pie: 90, lv: 3, cd: 200, say: 'Rolls down a lane and erases every enemy in it.' },
-    { id: 'max', kind: 'a', who: 'max', name: 'Maximus Million', role: 'Giant', cost: 16, hp: 480, dps: 38, spd: 55, gold: 50, lv: 4, cd: 250, say: 'Huge and slow. Grabs loads of gold.' },
-    { id: 'pigeon', kind: 'd', who: 'pigeon', name: 'Pea Pigeon', role: 'Shooter', cost: 5, hp: 40, dps: 8, reach: 300, lv: 1, cd: 60, say: 'Perches in your half and pelts attackers from afar.' },
-    { id: 'rita', kind: 'a', who: 'rita', name: 'Rental Rita', role: 'Speedy courier', cost: 5, hp: 80, dps: 9, spd: 175, gold: 16, lv: 2, cd: 60, say: 'Zooms down the lane on her scooter. Fragile, but she carries a big bag.' },
-    { id: 'priya', kind: 'd', who: 'priya', name: 'Priya', role: 'Sharpshooter', cost: 11, hp: 60, dps: 13, reach: 420, lv: 2, cd: 120, say: 'Hits attackers from almost halfway down the lane.' },
-    { id: 'dunmore', kind: 'd', who: 'dunmore', name: 'Mr. Dunmore', role: 'Fortress', wall: true, cost: 14, hp: 320, dps: 13, lv: 4, cd: 200, say: 'Stands in the lane like a closed door. Very hard to get past.' },
-    { id: 'undef', kind: 'a', who: 'undef', name: 'The Undefined', role: 'Boss', cost: 24, hp: 820, dps: 50, spd: 40, gold: 90, lv: 5, cd: 400, breaker: 1.5, say: 'The biggest thing on the Grid. Slow, terrifying, and worth a fortune.' }
+    { id: 'gus', cls: 'run', kind: 'a', who: 'gus', name: 'Gus', role: 'Sneaky runner', cost: 3, hp: 45, dps: 11, spd: 135, gold: 8, lv: 1, cd: 40, say: 'Fast and cheap. Slips through empty lanes.' },
+    { id: 'sam', cls: 'wall', kind: 'd', who: 'sam', name: 'Squaring Sam', role: 'Wall', wall: true, cost: 6, hp: 160, dps: 9, lv: 1, cd: 100, say: 'Plants himself in your half and blocks the lane.' },
+    { id: 'one', cls: 'brk', kind: 'a', who: 'one', name: 'One', role: 'Superhero', cost: 9, hp: 170, dps: 30, spd: 85, gold: 24, lv: 3, cd: 80, breaker: 2, say: 'Smashes walls and shooters: double damage to defenders.' },
+    { id: 'zero', cls: 'spell', kind: 's', who: 'zero', name: 'Zero', role: 'Eraser', cost: 9, pie: 90, lv: 3, cd: 200, say: 'Rolls down a lane and erases every enemy in it.' },
+    { id: 'max', cls: 'giant', kind: 'a', who: 'max', name: 'Maximus Million', role: 'Giant', cost: 16, hp: 480, dps: 38, spd: 55, gold: 50, lv: 4, cd: 250, say: 'Huge and slow. Grabs loads of gold.' },
+    { id: 'pigeon', cls: 'shoot', kind: 'd', who: 'pigeon', name: 'Pea Pigeon', role: 'Shooter', cost: 5, hp: 40, dps: 8, reach: 300, lv: 1, cd: 60, say: 'Perches in your half and pelts attackers from afar.' },
+    { id: 'rita', cls: 'run', kind: 'a', who: 'rita', name: 'Rental Rita', role: 'Speedy courier', cost: 5, hp: 80, dps: 9, spd: 175, gold: 16, lv: 2, cd: 60, say: 'Zooms down the lane on her scooter. Fragile, but she carries a big bag.' },
+    { id: 'priya', cls: 'shoot', kind: 'd', who: 'priya', name: 'Priya', role: 'Sharpshooter', cost: 11, hp: 60, dps: 13, reach: 420, lv: 2, cd: 120, say: 'Hits attackers from almost halfway down the lane.' },
+    { id: 'dunmore', cls: 'wall', kind: 'd', who: 'dunmore', name: 'Mr. Dunmore', role: 'Fortress', wall: true, cost: 14, hp: 320, dps: 13, lv: 4, cd: 200, say: 'Stands in the lane like a closed door. Very hard to get past.' },
+    { id: 'undef', cls: 'giant', kind: 'a', who: 'undef', name: 'The Undefined', role: 'Boss', cost: 24, hp: 820, dps: 50, spd: 40, gold: 90, lv: 5, cd: 400, breaker: 1.5, say: 'The biggest thing on the Grid. Slow, terrifying, and worth a fortune.' },
+    { id: 'hero', cls: 'hero', hero: true, kind: 'a', who: 'hero', name: 'Your avatar', role: 'Hero · once a battle', cost: 0, hp: 200, dps: 24, spd: 95, gold: 28, lv: 1, cd: 30000, need: 5, say: 'Free, once a battle: send YOUR Wardrobe avatar down a lane. The higher your arcade level, the stronger it is. Unlocks after 5 right answers.' }
   ];
-  L.ORDER = [0, 5, 1, 6, 7, 2, 3, 4, 8, 9];   // seed-packet order on screen: by hero level
+  L.ORDER = [10, 0, 5, 1, 6, 7, 2, 3, 4, 8, 9];
+  // counters: every character has a class, and some classes hit others harder (L.vs). The cards print it.
+  L.CLS = {
+    run: { e: '🏃', n: 'Runner', good: 'empty lanes: fast gold', bad: '🎯 shooters hit runners twice as hard' },
+    shoot: { e: '🎯', n: 'Shooter', good: '🏃 runners: double damage', bad: '🦍 giants take half; 💥 breakers smash shooters' },
+    giant: { e: '🦍', n: 'Giant', good: '🎯 shooters barely scratch it (half damage)', bad: '🧱 walls hit giants twice as hard' },
+    wall: { e: '🧱', n: 'Wall', good: '🦍 giants: double damage; stops 🏃 runners', bad: '💥 breakers smash walls (double damage)' },
+    brk: { e: '💥', n: 'Breaker', good: '🧱 walls and 🎯 shooters: double damage', bad: '⭕ Zero and crowds of attackers' },
+    spell: { e: '⭕', n: 'Spell', good: 'a whole lane at once: best on crowds', bad: 'slow to recharge' },
+    hero: { e: '🌟', n: 'Hero', good: 'grows with your arcade level', bad: 'only once a battle' }
+  };
+  L.vs = function (M, O) {
+    var f = M.breaker && O.kind === 'd' ? M.breaker : 1;
+    if (M.cls === 'shoot') { if (O.cls === 'run') f *= 2; else if (O.cls === 'giant') f *= 0.5; }
+    if (M.cls === 'wall' && O.cls === 'giant') f *= 2;
+    return f;
+  };
+  // the avatar hero's level comes from the student's arcade level (1-9)
+  L.heroLv = function (arcadeLv) { return Math.max(1, Math.min(9, Math.floor(arcadeLv) || 1)); };   // seed-packet order on screen: by hero level
   L.unit = function (t) { return L.UNITS[t]; };
   L.mul = function (lv) { return 1 + 0.12 * (lv - 1); };                           // each hero level: 12% stronger
   L.frenzy = function (t, dur) { dur = dur || L.DUR; return t >= dur - L.FRENZY && t < dur; };   // the final wave: the last minute
@@ -119,7 +138,7 @@
         if (M.reach && L.UNITS[o.type].kind !== 'a') continue;   // shooters only aim at attackers
         var d = (o.x - me.x) * dir; if (d >= -5 && d <= reach && d < bd) { bd = d; best = o; }
       }
-      if (best) { dmg[best.id] = (dmg[best.id] || 0) + M.dps * L.mul(me.lv) * 0.1 * (M.breaker && L.UNITS[best.type].kind === 'd' ? M.breaker : 1); me.fight = best.id; }
+      if (best) { dmg[best.id] = (dmg[best.id] || 0) + M.dps * L.mul(me.lv) * 0.1 * L.vs(M, L.UNITS[best.type]); me.fight = best.id; }
       else { me.fight = 0; if (M.kind === 'a') me.x += dir * M.spd * 0.1 * (fz ? 1.5 : 1); }
     }
     var keep = [];
@@ -164,7 +183,7 @@
   // the snapshot the console sends out with the live state: 4 numbers a unit (id, x or leave-tick, code, hp; hp 0 = in
   // the gate), 3 units per counts key (zu0, zu1, …), plus zcs = [tick, gold 0, gold 1, state, Mux bits, length in ticks]
   // and zcm = the tick each charged Mux parks again (team 0's lanes, then team 1's). Every number 0..9999.
-  function code(u) { return u.lane * 1000 + u.type * 100 + u.lv * 10 + u.team; }
+  function code(u) { return u.lane * 2000 + u.type * 100 + u.lv * 10 + u.team; }   // types 0-19, levels 1-9, lanes 0-4: at most 9999
   L.encode = function (S, state, maxKeys) {
     var bits = 0; for (var tm = 0; tm < 2; tm++) for (var ln = 0; ln < L.LANES; ln++) if (S.mow[tm][ln]) bits |= 1 << (tm * L.LANES + ln);
     var out = { zcs: [S.t, Math.min(9999, S.score[0]), Math.min(9999, S.score[1]), state || 1, bits, Math.min(9999, S.dur || L.DUR)] }, nums = [];
@@ -182,7 +201,7 @@
     for (var k = 0; Array.isArray(counts['zu' + k]); k++) {
       var a = counts['zu' + k];
       for (var i = 0; i + 3 < a.length; i += 4) {
-        var c = a[i + 2], o = { id: a[i], lane: Math.floor(c / 1000), type: Math.floor(c / 100) % 10, lv: Math.floor(c / 10) % 10 || 1, team: c % 10 };
+        var c = a[i + 2], o = { id: a[i], lane: Math.floor(c / 2000), type: Math.floor((c % 2000) / 100), lv: Math.floor(c / 10) % 10 || 1, team: c % 10 };
         if (!L.UNITS[o.type]) continue;
         if (a[i + 3] === 0) { o.at = a[i + 1]; S.pend.push(o); }
         else {
