@@ -127,6 +127,8 @@
     var qe = d.querySelector('.lcq p.q'); if (!qe) return;
     var pool = []; A.LES().slides.forEach(function (s) { if ((s.k === 'number' || s.k === 'poll') && s.ans != null) pool.push(s); (s.more || []).forEach(function (m) { if ((m.k === 'number' || m.k === 'poll') && m.ans != null) pool.push(m); }); });
     var q = pool.filter(function (x) { return norm(x.q) === norm(qe.innerHTML); })[0];
+    // the integer warm-ups: work them out from the question ("What is (−3) × 4?")
+    if (!q) { var wt = qe.textContent.match(/What is (.+)\?/); if (wt) { try { var v = Function('return ' + wt[1].replace(/−/g, '-').replace(/×/g, '*').replace(/÷/g, '/').replace(/--/g, '- -'))(); if (isFinite(v)) q = { k: 'number', ans: v }; } catch (e) { } } }
     var ok = q && Math.random() < skill;
     var inp = d.querySelector('.lcq input');
     if (inp) { inp.value = ok ? String(q.ans) : '999'; d.querySelector('.lcq .row button').click(); }

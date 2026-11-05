@@ -170,7 +170,7 @@
     keep(); clearTimeout(saveT);
     // the newest placements and how many came before them (n): the results script keeps 600 characters of an answer
     var p = CL.places.map(function (x) { return x.l + '.' + x.t + '.' + x.d + '.' + x.v; }).join(',');
-    A.record({ id: 'zclash', k: 'open' }, 'c3;id:' + Math.round(CL.id / 1000) + ';r:' + CL.right + ';e:' + CL.earned + ';b:' + CL.bonus + ';v:' + CL.boost + ';sk:' + (CL.best || 0) + (CL.ping ? ';g:' + CL.ping.l + '.' + CL.ping.t : '') + ';n:' + (CL.total - CL.places.length) + ';p:' + p, null);
+    A.record({ id: 'zclash', k: 'open' }, 'c3;id:' + Math.round(CL.id / 1000) + ';r:' + CL.right + ';w:' + (CL.wr || 0) + ';e:' + CL.earned + ';b:' + CL.bonus + ';v:' + CL.boost + ';sk:' + (CL.best || 0) + (CL.ping ? ';g:' + CL.ping.l + '.' + CL.ping.t : '') + ';n:' + (CL.total - CL.places.length) + ';p:' + p, null);
   }
   function sendSoon() { clearTimeout(saveT); saveT = setTimeout(send, 4000); }
   function pool_() {
@@ -235,6 +235,27 @@
   }
 
   /* ---------- questions (the only way to earn coins) ---------- */
+  /* the first five questions are integer warm-ups: one step, a negative in every one, 1 coin each. Everyone gets a
+     character on the board in the first half minute. They don't count for streaks or hero levels. */
+  var WARM_N = 5;
+  function warmQs() {
+    var k = (A.S.me ? A.S.me.sid : 'x') + ':w:' + Math.round(CL.id / 1000), s0 = 7;
+    for (var h = 0; h < k.length; h++) s0 = (s0 * 31 + k.charCodeAt(h)) % 2147483647;
+    var r = function () { s0 = (s0 * 1103515245 + 12345) % 2147483648; return s0 / 2147483648; }, n = function (a, b) { return a + Math.floor(r() * (b - a + 1)); };
+    var m = function (v) { return v < 0 ? '(−' + (-v) + ')' : String(v); }, w = function (v) { return v < 0 ? '−' + (-v) : String(v); };
+    var T = [
+      function () { var a = -n(2, 9), b = n(2, 9); return [w(a) + ' + ' + b, a + b, 'Start at ' + w(a) + ' and go up ' + b + ': ' + w(a + b) + '.']; },
+      function () { var a = n(1, 6), b = a + n(2, 7); return [a + ' − ' + b, a - b, 'From ' + a + ', going down ' + b + ' passes zero: ' + w(a - b) + '.']; },
+      function () { var a = -n(2, 8), b = n(2, 7); return [w(a) + ' − ' + b, a - b, 'Going down from a negative goes further below zero: ' + w(a - b) + '.']; },
+      function () { var a = n(1, 8), b = n(2, 7); return [a + ' − ' + m(-b), a + b, 'Taking away a negative is the same as adding: ' + a + ' + ' + b + ' = ' + (a + b) + '.']; },
+      function () { var a = n(2, 9), b = n(2, 6); return [w(-a) + ' × ' + b, -a * b, 'Negative times positive is negative: ' + w(-a * b) + '.']; },
+      function () { var a = n(2, 6), b = n(2, 6); return [m(-a) + ' × ' + m(-b), a * b, 'Negative times negative is positive: ' + a * b + '.']; },
+      function () { var a = n(2, 6), b = n(2, 9); return [w(-a * b) + ' ÷ ' + a, -b, 'Negative divided by positive is negative: ' + w(-b) + '.']; },
+      function () { var a = n(2, 6), b = n(2, 9); return [w(-a * b) + ' ÷ ' + m(-a), b, 'Negative divided by negative is positive: ' + b + '.']; }
+    ];
+    for (var i = T.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = T[i]; T[i] = T[j]; T[j] = t; }
+    return T.slice(0, WARM_N).map(function (f) { var o = f(); return { k: 'number', q: 'What is *' + o[0] + '*?', ans: o[1], why: o[2], warm: true }; });
+  }
   function drawQ() {
     var box = hud.q; if (!box || !CL) return;
     box.innerHTML = '';
@@ -242,8 +263,9 @@
     if (c.state === 3) { box.appendChild(H('p', 'q', 'Read the rules: the questions start with the battle.')); return; }
     if (c.state !== 1) { box.appendChild(H('p', 'q', 'The battle is over.')); return; }
     if (!pool.length) { box.appendChild(H('p', 'q', 'No questions in this lesson for the Clash.')); return; }
-    var bonusRound = CL.qi >= CL.order.length, q = pool[CL.order[CL.qi % CL.order.length]];
-    box.appendChild(H('p', 'kick', 'Answer to earn coins · ' + (bonusRound ? 'bonus round: 1 coin' : q.hard ? '★★ hard: 4 coins' : 'right first try: 3 coins') + (CL.streak >= 2 ? ' · 🔥 ' + CL.streak + ' in a row' : '')));
+    if (CL.wi == null) { CL.warm = warmQs(); CL.wi = 0; CL.wr = 0; keep(); }
+    var warm = CL.wi < CL.warm.length, bonusRound = !warm && CL.qi >= CL.order.length, q = warm ? CL.warm[CL.wi] : pool[CL.order[CL.qi % CL.order.length]];
+    box.appendChild(H('p', 'kick', warm ? '🌱 Warm-up ' + (CL.wi + 1) + ' of ' + CL.warm.length + ' · integers · 1 coin' : 'Answer to earn coins · ' + (bonusRound ? 'bonus round: 1 coin' : q.hard ? '★★ hard: 4 coins' : 'right first try: 3 coins') + (CL.streak >= 2 ? ' · 🔥 ' + CL.streak + ' in a row' : '')));
     box.appendChild(H('p', 'q', fmt(q.q)));
     if (q.fig) { var f = H('div', 'cfig'); f.appendChild(A.figure(q.fig)); box.appendChild(f); }
     if (CL.fb) {
@@ -251,10 +273,14 @@
       var wait = Math.max(0, CL.cool - Date.now());
       var nx = el('button', { type: 'button', 'class': 'btn primary', text: wait ? 'Think it through… ' + Math.ceil(wait / 1000) : 'Next question ▶' });
       if (wait) { nx.disabled = true; setTimeout(function () { if (root) drawQ(); }, 1000); }
-      nx.onclick = function () { CL.fb = null; CL.qi++; CL.tries = 0; keep(); drawQ(); };
+      nx.onclick = function () { CL.fb = null; if (warm) { CL.wi++; if (CL.wi === CL.warm.length) SFA.toast('⚔️ Warmed up! Now the lesson questions: 3 coins each, more for streaks.', 4500); } else CL.qi++; CL.tries = 0; keep(); drawQ(); };
       box.appendChild(nx); return;
     }
     function right() {
+      if (warm) {   // a warm-up: 1 coin (plus any comeback coins), no streak, no hero level
+        var cbw = V.S ? L.behind(V.S, me) : 0, gw = 1 + cbw; CL.coins += gw; CL.earned += gw; CL.wr++; A.confetti();
+        CL.fb = { ok: true, html: '<b>Yes! +' + gw + ' coin' + (gw === 1 ? '' : 's') + '.</b> Warm-ups pay 1; the lesson questions pay 3.' }; sendSoon(); drawCards(); return;
+      }
       var first = !CL.tries; CL.streak = first ? CL.streak + 1 : 0; CL.best = Math.max(CL.best || 0, CL.streak);
       var cb = V.S ? L.behind(V.S, me) : 0, got = L.coinsFor(first, q.hard, CL.streak, bonusRound) + cb, before = lv();
       CL.coins += got; CL.earned += got; CL.right++; A.confetti();
@@ -262,7 +288,7 @@
       if (lv() > before) levelUp(lv());
       sendSoon(); drawCards();
     }
-    function wrong(html) { CL.streak = 0; CL.cool = Date.now() + COOL_MS; CL.fb = { ok: false, html: html }; }
+    function wrong(html) { if (!warm) CL.streak = 0; CL.cool = Date.now() + (warm ? 2000 : COOL_MS); CL.fb = { ok: false, html: html }; }
     if (q.k === 'number') {
       var inp = el('input', { type: 'text', inputmode: q.ans < 0 ? 'text' : 'decimal', placeholder: 'Type a number', 'aria-label': 'Clash answer', autocomplete: 'off' });
       var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' }), row = H('div', 'row'); row.appendChild(inp); row.appendChild(go); box.appendChild(row);
@@ -638,7 +664,7 @@
     var NM = clashSpot(A.live()).names || (CL && CL.names);
     if (NM && (NM[0].length || NM[1].length)) bans.push('<b class="lckick">👥 The teams</b><div class="lcrost">' + [0, 1].map(function (t) { return '<div class="t' + t + (t === me ? ' mine' : '') + '"><b style="color:' + TC[t] + '">' + T[t].e + ' ' + esc(T[t].name) + '</b><p>' + NM[t].map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</p></div>'; }).join('') + '</div>');
     if (CL && A.MODE === 'student') bans.push('<span class="lcbig">🎁</span><b class="lckick">Your lesson bonus</b><p class="lcyours">You start with <b>' + CL.bonus + ' coins</b>' + (CL.boost ? ' at <b>hero level ' + (1 + CL.boost) + '</b>' : '') + ' for your work in today\'s lesson. Effort counts most!</p>');
-    bans.push('<span class="lcbig">🧠</span><b class="lckick">Answer to earn coins</b><p class="lcyours">A right first try earns <b>3 coins</b>. Three in a row earns a bonus. Every 3 right levels up your hero and unlocks new characters.</p>');
+    bans.push('<span class="lcbig">🧠</span><b class="lckick">Answer to earn coins</b><p class="lcyours">Five quick integer warm-ups first (1 coin each), then the lesson questions: a right first try earns <b>3 coins</b>. Three in a row earns a bonus. Every 3 right levels up your hero and unlocks new characters.</p>');
     bans.push(pics(['gus', 'rita', 'one', 'max', 'undef']) + '<b class="lckick">Send attackers</b><p class="lcyours">Pick a card, then a lane. Attackers march to the other fort and grab its gold. The bigger ones cost more but grab far more: worth saving up for!</p>');
     bans.push(pics(['sam', 'dunmore', 'pigeon', 'priya', 'zero']) + '<b class="lckick">Defend your lanes</b><p class="lcyours">Each lane has 3 planting spots. <b>Sam</b> and <b>Mr. Dunmore</b> block, <b>Pea Pigeon</b> and <b>Priya</b> shoot, and <b>Zero</b> erases every enemy in a lane.</p>');
     bans.push('<span class="lcbig">🏰</span><b class="lckick">Watch your fort</b><p class="lcyours">A red <b>!</b> at a gate means enemies are close. <b>Mux</b> charges the first one to reach a gate. 📣 Call your team for help.</p>');
@@ -804,7 +830,7 @@
       // the student's page counted its own lesson bonus (b) and level boost (v); the console's count can differ (Start fresh,
       // a class filter, answers still on their way), so take the larger, capped at the most a lesson can give
       var myB = Math.min(10, Math.max(bonus.coins, get('b'))), myV = Math.min(2, Math.max(bonus.boost, get('v')));
-      var budget = myB + 9 * r + 4, lvMax = L.lvOf(r, myV);
+      var budget = myB + 9 * r + 3 * Math.min(10, get('w')) + 4, lvMax = L.lvOf(r, myV);
       var D = K.diag || (K.diag = { students: {}, placed: 0, turned: {}, last: 0 }); D.students[sid] = 1; D.last = Math.max(D.last, Date.parse(last[sid].time) || 0);
       // turned away: counted for the console, and announced (by the placement's id) so that student gets the coins back
       var turn = function (why, k, code) { D.turned[why] = (D.turned[why] || 0) + 1; K.rej = (K.rej || []).concat([[pid(sid, K.id, k, 0), code]]).slice(-12); };
