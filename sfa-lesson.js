@@ -734,7 +734,7 @@
 
 
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261104d', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261105d', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }
@@ -757,7 +757,7 @@
   // the server's clock as seen from here: live.at is server time when the console last updated; the closest sample wins
   function noteSkew() { if (MODE !== 'student' || !live || !live.at) return; var k = live.at - Date.now(); if (srvSkewV == null || k > srvSkewV || k < srvSkewV - 30000) srvSkewV = k; }
   // 🔠 the Big Board (sfa-board.js): the class crossword at the start of a lesson, loaded and synced like the Clash
-  var BOARD_V = '20261104h', boardLoading = null;
+  var BOARD_V = '20261105d', boardLoading = null;
   function boardAssets(cb) {
     if (window.SFA_BOARD) return cb();
     if (boardLoading) { boardLoading.push(cb); return; }
@@ -824,7 +824,61 @@
   }
 
   // 👹 Boss Raid (sfa-raid.js): the whole class against one boss; review at the start, exit ticket at the end
-  var RAID_V = '20261105c', raidLoading = null;
+  /* ⭐ Arcade level: XP from every Boss Raid, Lane Clash and Big Board, kept for the whole term. It saves with the
+     student's arcade results (as the reserved game 'g99', so it follows them to another computer) and unlocks small
+     Boss Raid perks. Effort counts: every try earns a little, right answers more, finishing a game a bonus. */
+  var HERO_KEY = 'g99', HERO_CAP = 600, heroSent = 0;
+  var HERO_TITLES = ['Rookie', 'Scout', 'Brawler', 'Ranger', 'Knight', 'Champion', 'Hero', 'Captain', 'Legend', 'Mythic'];
+  var HERO_UNLOCK = { 2: 'Boss Raid: your special hits 5 harder', 3: 'Boss Raid: start with 1 charge on your special', 4: 'A new title: Ranger', 5: 'Boss Raid: your special hits 10 harder', 6: 'Boss Raid: start with 2 charges', 7: 'A new title: Hero', 8: 'Boss Raid: more loot drops', 9: 'A new title: Legend', 10: 'Boss Raid: your special hits 20 harder' };
+  function heroNeed(n) { return 75 * n * (n - 1); }   // XP to reach level n: 2 at 150, 3 at 450, 4 at 900, 5 at 1500, 10 at 6750
+  function heroLv(xp) { var n = 1; while (n < 30 && xp >= heroNeed(n + 1)) n++; return n; }
+  function heroTitle(n) { return HERO_TITLES[Math.min(n, HERO_TITLES.length) - 1] + (n > HERO_TITLES.length ? ' ' + '★'.repeat(Math.min(5, n - HERO_TITLES.length)) : ''); }
+  function heroP() { var P = SFA.store.get(HERO_KEY, null); if (!P || typeof P.xp !== 'number') P = { xp: 0, games: {}, got: {} }; P.games = P.games || {}; P.got = P.got || {}; return P; }
+  function heroInfo(xp) {
+    if (xp == null) xp = heroP().xp;
+    var n = heroLv(xp), a = heroNeed(n), b = heroNeed(n + 1);
+    return { lv: n, xp: xp, title: heroTitle(n), into: xp - a, span: b - a, pct: Math.round(100 * (xp - a) / (b - a)), perks: { sp: n >= 10 ? 20 : n >= 5 ? 10 : n >= 2 ? 5 : 0, ch: n >= 6 ? 2 : n >= 3 ? 1 : 0, loot: n >= 8 ? 1.3 : 1 } };
+  }
+  // game: 'r' raid, 'c' clash, 'b' board. gid: that game's id (plus 'e' for its finishing bonus, given once)
+  function heroAdd(game, gid, amt, once) {
+    if (MODE !== 'student' || !S || !S.me || !(amt > 0)) return 0;
+    var P = heroP(), k = game + gid, had = P.got[k] || 0;
+    if (once && had) return 0;
+    amt = Math.min(Math.round(amt), HERO_CAP - had); if (amt <= 0) return 0;
+    if (!had && !once) P.games[game] = (P.games[game] || 0) + 1;
+    P.got[k] = had + amt;
+    var ks = Object.keys(P.got); if (ks.length > 60) ks.slice(0, ks.length - 60).forEach(function (x) { delete P.got[x]; });
+    var lv0 = heroLv(P.xp); P.xp += amt; P.at = Date.now();
+    SFA.store.set(HERO_KEY, P);
+    var I = heroInfo(P.xp);
+    // to the Sheet only now and then (a level, a finishing bonus, or every 90 s), so a busy class doesn't add a save per answer
+    if (once || I.lv > lv0 || Date.now() - heroSent > 90000) {
+      heroSent = Date.now();
+      try { if (S.report) S.report(HERO_KEY, P, { levels: [], levelsDone: 0, levelsTotal: 0, coreDone: 0, coreTotal: 0, standard: false, specials: [], assisted: 0, tickets: 0 }); } catch (e) { }
+    }
+    heroChip(amt, I);
+    if (I.lv > lv0) heroLevelUp(I);
+    return amt;
+  }
+  var chipT = 0;
+  function heroChip(amt, I) {
+    var c = document.getElementById('sfaXp');
+    if (!c) { c = el('div', { id: 'sfaXp', 'class': 'xpchip', 'aria-hidden': 'true' }); document.body.appendChild(c); }
+    c.innerHTML = '<b>+' + amt + ' XP</b><span>⭐ <em>Arcade </em>Lv ' + I.lv + '</span><i><u style="width:' + I.pct + '%"></u></i>';
+    c.classList.remove('out'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+    clearTimeout(chipT); chipT = setTimeout(function () { c.classList.add('out'); }, 1800);
+  }
+  function heroLevelUp(I) {
+    var u = HERO_UNLOCK[I.lv];
+    var o = el('div', { 'class': 'xplvup', role: 'status' });
+    o.innerHTML = '<div class="card"><small>⭐ ARCADE LEVEL UP!</small><span>' + I.lv + '</span><b>' + esc(I.title) + '</b>' + (u ? '<p>🔓 ' + esc(u) + '</p>' : '<p>Keep going: next level at ' + heroNeed(I.lv + 1) + ' XP.</p>') + '</div>';
+    o.onclick = function () { o.remove(); };
+    document.body.appendChild(o); confetti();
+    setTimeout(function () { o.classList.add('out'); }, 3200); setTimeout(function () { o.remove(); }, 3700);
+  }
+  var HERO = { add: heroAdd, info: heroInfo, need: heroNeed, unlock: HERO_UNLOCK, title: heroTitle };
+
+  var RAID_V = '20261105d', raidLoading = null;
   function raidAssets(cb) {
     if (window.SFA_RAID) return cb();
     if (raidLoading) { raidLoading.push(cb); return; }
@@ -1452,7 +1506,7 @@
   window.SFA_LESSON_API = {
     LID: LID, MODE: MODE, TEACHER: TEACHER, S: S, every: every, pushNow: function () { clearTimeout(pushT); var L = liveObj(); live = L; broadcast(); if (!console_.on || console_.offline) return; lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) console_.skew = j.live.at - Math.round((t0 + Date.now()) / 2); }).catch(function () { }); }, H: H, el: el, fmt: fmt, figure: figure, confetti: confetti, numOf: numOf, numTxt: numTxt, letter: letter, first: first, nice: nice, xid: xid,
     decRun: decRun, encRun: encRun, record: record, beforeRun: beforeRun, tpost: tpost, pushLive: pushLive, consolePanel: consolePanel, rosterIn: rosterIn,
-    live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
+    hero: HERO, live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
     srvSkew: function () { return MODE === 'screen' ? 0 : srvSkewV || 0; }, console_: function () { return console_; }, consoleAnswers: function () { return console_ && console_.data && console_.data.answers; }
   };
   window.SFA_LESSON = function (L) { LES = L; };

@@ -256,6 +256,8 @@
     for (var i = T.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = T[i]; T[i] = T[j]; T[j] = t; }
     return T.slice(0, WARM_N).map(function (f) { var o = f(); return { k: 'number', q: 'What is *' + o[0] + '*?', ans: o[1], why: o[2], warm: true }; });
   }
+  // ⭐ arcade XP (kept across lessons by sfa-lesson.js)
+  function xp(n, once) { if (A.hero && CL) A.hero.add('c', String(Math.round(CL.id / 1000)) + (once ? 'e' : ''), n, once); }
   function drawQ() {
     var box = hud.q; if (!box || !CL) return;
     box.innerHTML = '';
@@ -278,17 +280,17 @@
     }
     function right() {
       if (warm) {   // a warm-up: 1 coin (plus any comeback coins), no streak, no hero level
-        var cbw = V.S ? L.behind(V.S, me) : 0, gw = 1 + cbw; CL.coins += gw; CL.earned += gw; CL.wr++; A.confetti();
+        var cbw = V.S ? L.behind(V.S, me) : 0, gw = 1 + cbw; CL.coins += gw; CL.earned += gw; CL.wr++; A.confetti(); xp(4);
         CL.fb = { ok: true, html: '<b>Yes! +' + gw + ' coin' + (gw === 1 ? '' : 's') + '.</b> Warm-ups pay 1; the lesson questions pay 3.' }; sendSoon(); drawCards(); return;
       }
       var first = !CL.tries; CL.streak = first ? CL.streak + 1 : 0; CL.best = Math.max(CL.best || 0, CL.streak);
       var cb = V.S ? L.behind(V.S, me) : 0, got = L.coinsFor(first, q.hard, CL.streak, bonusRound) + cb, before = lv();
-      CL.coins += got; CL.earned += got; CL.right++; A.confetti();
+      CL.coins += got; CL.earned += got; CL.right++; A.confetti(); xp(first ? 10 : 5);
       CL.fb = { ok: true, html: '<b>Yes! +' + got + ' coin' + (got === 1 ? '' : 's') + '.</b>' + (first && CL.streak % 3 === 0 ? ' 🔥 Three in a row!' : '') + (cb ? ' ⚡ comeback coin' + (cb > 1 ? 's' : '') : '') };
       if (lv() > before) levelUp(lv());
       sendSoon(); drawCards();
     }
-    function wrong(html) { if (!warm) CL.streak = 0; CL.cool = Date.now() + (warm ? 2000 : COOL_MS); CL.fb = { ok: false, html: html }; }
+    function wrong(html) { xp(1); if (!warm) CL.streak = 0; CL.cool = Date.now() + (warm ? 2000 : COOL_MS); CL.fb = { ok: false, html: html }; }
     if (q.k === 'number') {
       var inp = el('input', { type: 'text', inputmode: q.ans < 0 ? 'text' : 'decimal', placeholder: 'Type a number', 'aria-label': 'Clash answer', autocomplete: 'off' });
       var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' }), row = H('div', 'row'); row.appendChild(inp); row.appendChild(go); box.appendChild(row);
@@ -715,6 +717,7 @@
   function showEnd(c, sp) {
     V.over = true; sfx('win');
     var T = teamNames(c.id), S = V.S || { score: c.score }, win = S.score[0] === S.score[1] ? -1 : S.score[0] > S.score[1] ? 0 : 1;
+    if (CL && A.MODE === 'student' && (CL.right || CL.wr)) xp(30 + (win === me ? 30 : 0), true);   // finishing bonus, once
     // the results as banners, one at a time (no scrolling): the winner, each MVP, each award, your own battle, then a
     // summary that stays. Each stays up as long as it takes to read; a tap moves on
     var head = win < 0 ? 'It\'s a draw!' : T[win].e + ' ' + esc(T[win].name) + ' wins!', score = '<p class="lcfinal"><span style="color:' + TC[0] + '">' + S.score[0] + '</span> gold to <span style="color:' + TC[1] + '">' + S.score[1] + '</span> gold</p>';

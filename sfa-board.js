@@ -310,6 +310,8 @@
   function keep() { if (ST) SFA.store.set(key(), ST); }
   function myIdx(b) { if (!A.S.me) return -1; var f = sh3(A.S.me.sid); for (var i = 0; i < b.owners.length; i++) if (b.owners[i].indexOf(f) >= 0) return i; return -1; }
 
+  // ⭐ arcade XP (kept across lessons by sfa-lesson.js); once = a one-time bonus tag
+  function xp(n, once) { if (A.hero && ST) A.hero.add('b', String(Math.round(ST.id / 1000)) + (once || ''), n, !!once); }
   function sync() {
     var Lv = A.live(), b = A.isLive() || A.MODE === 'screen' ? boardOf(Lv) : null;
     if (b && A.MODE !== 'teach' && b.state === 2 && sNow() - b.start > b.dur * 1000 + 150000) b = null;   // long over: gone
@@ -326,6 +328,8 @@
         keep();
       }
       receiveGifts(b);
+      if (ST.solved) xp(20, 's');   // cracking your own word: a bonus, once
+      if (b.state === 2 && ST.right) xp(30 + (b.all ? 30 : 0), 'e');   // finishing bonus, more if the class found every word
     }
     // what's new since the last update: a banner for every word solved and every gift letter sent
     if (V.prev) {
@@ -570,13 +574,13 @@
       box.appendChild(nx); return;
     }
     function right() {
-      var first = !ST.tries; ST.streak = first ? ST.streak + 1 : 0; ST.right++;
+      var first = !ST.tries; ST.streak = first ? ST.streak + 1 : 0; ST.right++; xp(ST.easy && ST.ei < ST.easy.length ? 4 : first ? 10 : 5);
       var got = 1 + (first && ST.streak % 3 === 0 ? 1 : 0), helping = ST.solved || V.b.solved[ST.w] || ST.w < 0;
       if (helping) ST.giftCred = (ST.giftCred || 0) + got; else ST.credits += got;
       ST.fb = { ok: true, html: '<b>Yes! +' + got + (helping ? ' gift letter' + (got > 1 ? 's' : '') + ' to send' : ' letter guess' + (got > 1 ? 'es' : '')) + '.</b>' + (got > 1 ? ' 🔥 Three in a row!' : '') };
       sendSoon(); keep(); draw();
     }
-    function wrong() { ST.streak = 0; ST.cool = Date.now() + 4000; ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') }; keep(); draw(); }
+    function wrong() { xp(1); ST.streak = 0; ST.cool = Date.now() + 4000; ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') }; keep(); draw(); }
     if (q.k === 'number') {
       var inp = el('input', { type: 'text', inputmode: 'decimal', placeholder: 'Type a number', 'aria-label': 'Answer', autocomplete: 'off' }), go = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' }), row = H('div', 'row');
       row.appendChild(inp); row.appendChild(go); box.appendChild(row);

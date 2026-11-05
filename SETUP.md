@@ -145,9 +145,10 @@ The whole class against one giant boss on the class screen. The console offers i
 - **🎟️ Exit ticket**: this lesson's own questions, the core ones first and then the ★ ones. Each student's first try at each question is recorded.
 - **Both modes** start with five quick integer warm-ups (−4 + 9, 3 − (−5), (−3) × (−5), −24 ÷ 6 and so on, different for each student). They only scratch the boss for 2 damage each and don't count for streaks or the exit ticket, then the real questions hit for 10.
 
-Pick a boss (🤖 Glitch Golem, 🐉 The Nonlinear Hydra, 🫧 Mega Slime, 🦑 Void Kraken, or random) and a length (4, 6 or 8 minutes; 6 by default). Go live and wait for students to join first, because the boss's health is set by how many are here (about 330 HP per student for 6 minutes). Students who arrive in the first half make it a little tougher.
+Pick a boss (🤖 Glitch Golem, 🐉 The Nonlinear Hydra, 🫧 Mega Slime, 🦑 Void Kraken, or random) and a length (4, 6 or 8 minutes; 6 by default). Go live and wait for students to join first, because the boss's health is set by how many are here (about 450 HP per student for 6 minutes). Students who arrive in the first half make it a little tougher.
 
 - **Attacking:** a right answer to a real question hits for 10 (5 on a second try), double for a streak of three or more, and half as much again for ★ questions, then the combo and any buffs. Every hit shows on the class screen with the student's name.
+- **🎯 Weak spot:** after each right answer to a real question, a target glows on the boss for under two seconds. Tapping it in time lands the hit a second time. On a phone scrolled past the boss, it appears under the feedback instead.
 - **Heroes and specials:** before the first question each student picks a hero. Every right answer (warm-ups too) charges its special; after 4 a glowing button fires it:
   - 🔥 **Fire Mage** fires a FIREBALL for 60 damage.
   - 🏹 **Archer** fires an ARROW STORM: 30 damage, then their next 3 hits are critical hits.
@@ -155,15 +156,24 @@ Pick a boss (🤖 Glitch Golem, 🐉 The Nonlinear Hydra, 🫧 Mega Slime, 🦑 
   - 🎸 **Bard** plays a BATTLE SONG: 20 damage, and for 15 seconds every hit by anyone does +5.
 
   Specials fill the stage on every screen with the student's name.
+- **📣 Cheers:** students tap 🔥 👏 😱 💪 🎉 (one every 10 seconds) and the emoji floats up the class screen with their name.
 - **Class combo:** when many students land hits within a few seconds of each other (a quarter of the raiders for x1.5, half for x2), everyone's hits are multiplied. It shows in the top bar and big on the class screen.
 - **Loot:** critical hits (35%) and the odd normal hit (12%) drop a loot card: ⚡ full special charge, 💥 double damage for 3 hits, 🎯 2 sure crits, or 💣 a 40-damage bomb.
 - **Targets:** about every 40 seconds (between boss attacks) the boss targets two or three named students, a different pair each time. They get one question and 15 seconds: right is a dodge (30 damage back and extra special charge), wrong or too slow and they're stunned for 6 seconds. Everyone sees who was targeted.
-- **Boss attacks:** about every 80 seconds (sooner in its last stand) the boss charges. The same question appears on every screen for 20 seconds. If 70% of the answers are right, the class blocks it and everyone who got it right counter-attacks for 25. If not, the boss heals 10%. The class screen then shows the right answer and why. **⚠️ Boss attack now** on the console fires one whenever you like.
+- **Boss attacks:** about every 80 seconds (sooner in its last stand) the boss charges. The same question appears on every screen for 20 seconds. If 70% of the answers are right, the class blocks it and everyone who got it right counter-attacks for 25. If not, the boss heals 10% (never past full health). The class screen then shows the right answer and why. **⚠️ Boss attack now** on the console fires one whenever you like.
 - **Phases:** at half health the boss is enraged, and at a fifth it makes its last stand; it looks angrier each time.
 - **The end:** bring it to zero for a big win with an MVP podium. If time runs out it gets away, with its health left on screen. Every student sees their own damage, and in exit-ticket mode also their score ("5 of 6 right first time").
 - **On the console:** health, raiders and each boss attack's result (with the question). Below that, every student's first-try score, lowest first (🟢 80%+, 🟡 50%+, 🔴 below), and the questions the class found hardest. **📋 Copy results** puts it all on the clipboard to paste into a spreadsheet. The console picks the raid back up if it's reloaded.
 
 One game at a time: the Big Board, the Boss Raid and the Lane Clash don't run together.
+
+## ⭐ Arcade level (all three live games)
+
+Every Boss Raid, Lane Clash and Big Board earns XP that adds up over the term. Effort counts: 1 XP for any try, 4 for a right warm-up, 10 for a right answer (5 on a second try), 10 for a dodge or a right boss-attack answer, 20 for cracking your Big Board word, and 30 for finishing a game (60 if the class won). One game can give at most 600, plus its finishing bonus. Each gain shows as a small chip in the corner, and each new level gets a card.
+
+Levels: 2 at 150 XP, 3 at 450, 4 at 900, 5 at 1,500, then on up (10 at 6,750), with titles from Rookie to Mythic. A level unlocks small Boss Raid perks: the special hits 5 harder at level 2 (10 at 5, 20 at 10), the special starts with 1 charge at level 3 (2 at 6), and more loot at level 8. The hero picker shows the student's level and what's next, and Top damage on the class screen shows each student's level.
+
+The XP is saved with the student's arcade results (as a hidden entry, `g99`, in the Progress tab), so it follows them to another computer when they sign in. It adds nothing to their levels or certificates.
 
 ## ⏪ The Rewind arc (catch-up before Lesson 12)
 

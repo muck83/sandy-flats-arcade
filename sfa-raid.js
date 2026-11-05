@@ -30,9 +30,10 @@
   var A = window.SFA_LESSON_API, SFA = window.SFA;
   if (!A || !SFA) return;
   var H = A.H, el = A.el, esc = SFA.esc;
-  var QID = 'zraidx1', ATK_WIN = 20, ATK_GRACE = 6, ATK_SHOW = 8, ATK_FIRST = 45, ATK_EVERY = 80, BLOCK = 0.7, PER = 330, COUNTER = 25, EASY_N = 5, EASY_D = 2;
+  var QID = 'zraidx1', ATK_WIN = 20, ATK_GRACE = 6, ATK_SHOW = 8, ATK_FIRST = 45, ATK_EVERY = 80, BLOCK = 0.7, PER = 450, COUNTER = 25, EASY_N = 5, EASY_D = 2;
   var CMUL = [1, 1, 1.5, 2];   // the class combo: level 2 is x1.5, level 3 is x2
   var CHARGE = 4, DODGE = 30, STUN_MS = 6000, TG_WIN = 15, SONG = 15;
+  var AIM_MS = 1700, EMO = ['🔥', '👏', '😱', '💪', '🎉'], CHEER_MS = 10000;   // the weak spot's life; the cheers; one cheer every 10 s
   var HEROES = [
     { id: 'mage', name: 'Fire Mage', e: '🔥', sp: 'FIREBALL', d: 60, col: '#FF7A2E', txt: 'A giant fireball: 60 damage.' },
     { id: 'archer', name: 'Archer', e: '🏹', sp: 'ARROW STORM', d: 30, col: '#7CF2A2', txt: '30 damage, then your next 3 hits are critical hits.' },
@@ -66,7 +67,7 @@
     var sp = Lv.spot && Lv.spot.q === 'zraid' ? String(Lv.spot.text || '') : '', top = [], ev = [], seq = 0, tfp = [], tnm = [], g = Array.isArray(c.zrt) ? c.zrt : [];
     sp.split('#').forEach(function (part) {
       var k2 = part.slice(0, 2), v = part.slice(2);
-      if (k2 === 'T:' && v) top = v.split(',').map(function (x) { var p = x.split('~'); return { n: p[0], d: +p[1] || 0, s: +p[2] || 0 }; });
+      if (k2 === 'T:' && v) top = v.split(',').map(function (x) { var p = x.split('~'); return { n: p[0], d: +p[1] || 0, s: +p[2] || 0, lv: +p[3] || 0 }; });
       if (k2 === 'L:') { var q = v.split('|'); seq = +q[0] || 0; ev = (q[1] ? q[1].split(',') : []).map(function (x) { var p = x.split('~'); return { n: p[0], d: +p[1] || 0, k: +p[2] || 0 }; }); }
       if (k2 === 'G:' && v) v.split(',').forEach(function (x) { var p = x.split('~'); tfp.push(p[0]); tnm.push(p[1] || ''); });
     });
@@ -134,6 +135,10 @@
   var root = null, V = null, ST = null;
   function key() { return 'raid.' + A.LID; }
   function keep() { if (ST) SFA.store.set(key(), ST); }
+  // ⭐ arcade level (sfa-lesson.js): XP for effort, and small perks for the special
+  function xp(n, once) { if (A.hero && ST) A.hero.add('r', String(Math.round(ST.id / 1000)) + (once ? 'e' : ''), n, once); }
+  function hinfo() { return A.hero ? A.hero.info() : { lv: 1, title: 'Rookie', pct: 0, xp: 0, perks: { sp: 0, ch: 0, loot: 1 } }; }
+  function spBonus(lv) { return lv >= 10 ? 20 : lv >= 5 ? 10 : lv >= 2 ? 5 : 0; }
   function myName() { return A.S.me ? clean(A.first(A.S.me.name).replace(/[^A-Za-zÀ-ÿ' -]/g, '')) : ''; }
 
   function sync() {
@@ -147,7 +152,8 @@
   function open(b) {
     close();
     var saved = SFA.store.get(key(), null);
-    ST = saved && saved.id === b.id ? saved : { id: b.id, dmg: 0, hits: 0, n: 0, streak: 0, best: 0, tries: 0, fb: null, cool: 0, qi: 0, res: {}, atk: {}, countered: {}, hero: null, charge: 0, spUsed: 0, buffs: { crit: 0, dbl: 0 }, dg: 0, sn: 0, stunUntil: 0, tg: {} };
+    ST = saved && saved.id === b.id ? saved : { id: b.id, dmg: 0, hits: 0, n: 0, streak: 0, best: 0, tries: 0, fb: null, cool: 0, qi: 0, res: {}, atk: {}, countered: {}, hero: null, charge: 0, spUsed: 0, buffs: { crit: 0, dbl: 0 }, dg: 0, sn: 0, stunUntil: 0, tg: {}, em: 0, emi: 0, cheerAt: 0 };
+    if (!(saved && saved.id === b.id) && A.MODE === 'student') ST.charge = Math.min(CHARGE, hinfo().perks.ch);
     V = { id: b.id, b: b, hurt: 0, fl: [], parts: [] };
     root = H('div', 'br' + (A.MODE !== 'student' ? ' screen' : '')); root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-label', 'Boss Raid');
     document.body.appendChild(root); document.body.classList.add('boarding');
@@ -232,7 +238,16 @@
     if (e.k >= 10) { var h = HEROES[(e.k - 10) % HEROES.length]; spFx(h, e.n, e.d); banner(h.e + ' <b>' + esc(e.n) + '</b>: ' + h.sp + '! −' + e.d, 'special'); }
     else if (e.k === 3) { hitFx(e.n + ' dodged!', e.d, 1); }
     else if (e.k === 4) { banner('😵 <b>' + esc(e.n) + '</b> got stunned!', 'hurt'); }
+    else if (e.k >= 5 && e.k <= 9) cheerFx(EMO[e.k - 5], e.n);
     else hitFx(e.n, e.d, e.k === 1);
+  }
+  // a cheer floats up the stage: big on the class screen
+  function cheerFx(emo, name) {
+    if (!root) return;
+    var st = root.querySelector('.brstage'); if (!st || st.querySelectorAll('.brcheerfx').length > 12) return;
+    var f = H('div', 'brcheerfx', '<span>' + emo + '</span>' + (name ? '<small>' + esc(name) + '</small>' : ''));
+    f.style.left = (8 + Math.random() * 84) + '%'; f.style.animationDuration = (2.2 + Math.random() * 0.8) + 's';
+    st.appendChild(f); setTimeout(function () { f.remove(); }, 3200);
   }
   function spFx(h, name, d) {
     if (!root) return;
@@ -352,7 +367,7 @@
     var b = V.b, B = bossOf(b);
     var typed = {}, focus = document.activeElement && root.contains(document.activeElement) ? document.activeElement.getAttribute('aria-label') : null;
     [].forEach.call(root.querySelectorAll('input'), function (x) { typed[x.getAttribute('aria-label')] = x.value; });
-    var floats = root.querySelectorAll('.brdmg');
+    var floats = root.querySelectorAll('.brdmg,.brcheerfx');
     root.innerHTML = '';
     setTimeout(function () { if (!root) return; [].forEach.call(root.querySelectorAll('input'), function (x) { var k = x.getAttribute('aria-label'); if (typed[k]) x.value = typed[k]; if (k === focus) x.focus({ preventScroll: true }); }); nextBanner(); }, 0);
     var top = H('div', 'brtop', '<span class="brtitle">👹 BOSS RAID <small>' + esc(MODES[b.mode]) + '</small></span><span class="brname">' + B.e + ' ' + esc(B.name) + '</span><span class="brhp"><u></u><i></i><span></span></span><span class="brbuffs"></span><span class="brclock"></span><button type="button" class="bbsnd" title="Sound effects">' + (soundOn() ? '🔊' : '🔇') + '</button>');
@@ -370,8 +385,10 @@
     }
     if (A.MODE !== 'student') return drawClass(body, stage);
     stage.appendChild(heroBar());
+    if (ST.hero != null) stage.appendChild(cheerBar());
     if (b.state === 2) return;
     var qb = H('div', 'brq'); body.appendChild(qb);
+    setTimeout(placeAim, 0);
     V.stunned = Date.now() < (ST.stunUntil || 0);
     if (b.atk.st && !b.win) drawAtk(qb);
     else if (targeted(b)) drawTarget(qb);
@@ -385,7 +402,8 @@
     var bar = H('div', 'brme'), h = HEROES[ST.hero];
     var dmg = '⚔️ <b>' + ST.dmg + '</b> damage' + (ST.streak >= 2 ? ' · 🔥 ' + ST.streak + ' in a row' : '') + (ST.buffs.dbl ? ' · 💥×2 for ' + ST.buffs.dbl : '') + (ST.buffs.crit ? ' · 🎯 ' + ST.buffs.crit + ' sure crit' + (ST.buffs.crit > 1 ? 's' : '') : '');
     if (!h) { bar.innerHTML = dmg; return bar; }
-    bar.innerHTML = '<span class="brhero" style="--hc:' + h.col + '">' + h.e + ' ' + h.name + '</span><span class="brpips">' + [0, 1, 2, 3].map(function (i) { return '<i class="' + (i < ST.charge ? 'on' : '') + '"></i>'; }).join('') + '</span> ' + dmg;
+    var I = hinfo();
+    bar.innerHTML = '<span class="brhero" style="--hc:' + h.col + '">' + h.e + ' ' + h.name + '</span><span class="brlv" title="' + I.xp + ' XP">⭐ Lv ' + I.lv + '</span><span class="brpips">' + [0, 1, 2, 3].map(function (i) { return '<i class="' + (i < ST.charge ? 'on' : '') + '"></i>'; }).join('') + '</span> ' + dmg;
     if (ST.charge >= CHARGE && V.b.state === 1) {
       var go = el('button', { type: 'button', 'class': 'brspbtn', text: h.e + ' ' + h.sp + '!' }); go.style.setProperty('--hc', h.col);
       go.title = h.txt; go.onclick = special; bar.appendChild(go);
@@ -394,15 +412,16 @@
   }
   function special() {
     var h = HEROES[ST.hero]; if (!h || ST.charge < CHARGE || V.b.state !== 1) return;
-    ST.charge = 0; ST.spUsed++; ST.dmg += h.d;
+    var d = h.d + hinfo().perks.sp;
+    ST.charge = 0; ST.spUsed++; ST.dmg += d;
     if (h.id === 'archer') ST.buffs.crit += 3;
-    keep(); send(); spFx(h, 'You', h.d);
-    SFA.toast(h.e + ' ' + h.sp + '! ' + h.txt, 3500); draw();
+    keep(); send(); spFx(h, 'You', d);
+    SFA.toast(h.e + ' ' + h.sp + '! ' + h.txt + (d > h.d ? ' (+' + (d - h.d) + ' for your level)' : ''), 3500); draw();
   }
   function charge(n) { var was = ST.charge; ST.charge = Math.min(CHARGE, ST.charge + n); if (was < CHARGE && ST.charge >= CHARGE && ST.hero != null) { snd('loot'); SFA.toast(HEROES[ST.hero].e + ' Your ' + HEROES[ST.hero].sp + ' is ready! Press the glowing button.', 3500); } }
   // loot: critical hits drop it often, normal hits now and then. It opens with a little reveal.
   function maybeLoot(crit) {
-    if (Math.random() > (crit ? 0.35 : 0.12)) return;
+    if (Math.random() > (crit ? 0.35 : 0.12) * hinfo().perks.loot) return;
     var L = LOOT[Math.floor(Math.random() * LOOT.length)];
     if (L.k === 'charge') charge(CHARGE); if (L.k === 'dbl') ST.buffs.dbl += 3; if (L.k === 'crit') ST.buffs.crit += 2;
     if (L.k === 'bomb') { ST.dmg += 40; hitFx('Loot bomb', 40, 1); }
@@ -411,11 +430,55 @@
     document.body.appendChild(pop); pop.onclick = function () { pop.remove(); };
     setTimeout(function () { pop.classList.add('out'); }, 2200); setTimeout(function () { pop.remove(); }, 2700);
   }
+  // 🎯 the weak spot: after a right answer it glows somewhere on the boss for a moment. Tap it in time: the hit lands twice.
+  function aim(d) {
+    var a = { d: d, at: Date.now() + 250 + Math.random() * 450, x: 22 + Math.random() * 56, y: 22 + Math.random() * 40 };
+    V.aim = a;
+    setTimeout(function () { if (V && V.aim === a) { V.aim = null; [].forEach.call(document.querySelectorAll('.brweak,.braimbox'), function (x) { x.remove(); }); } }, a.at - Date.now() + AIM_MS);
+    setTimeout(placeAim, Math.max(0, a.at - Date.now()));
+  }
+  function placeAim() {
+    if (!root || !V || !V.aim) return;
+    var a = V.aim, now = Date.now(); if (now < a.at || now >= a.at + AIM_MS) return;
+    if (root.querySelector('.brweak')) return;
+    // on the boss when it's on screen; otherwise (a phone scrolled down) in a strip under the feedback
+    var stage = root.querySelector('.brstage'), r = stage && stage.getBoundingClientRect(), sy = r ? r.top + r.height * a.y / 100 : -1, vis = sy > 50 && sy < window.innerHeight - 50, host = stage;
+    if (!vis) { var qb = root.querySelector('.brq'); if (!qb) return; host = H('div', 'braimbox'); var fb = qb.querySelector('.fb'); qb.insertBefore(host, fb ? fb.nextSibling : qb.firstChild); }
+    var w = el('button', { type: 'button', 'class': 'brweak', 'aria-label': 'Weak spot: tap it' }); w.innerHTML = '<i></i>';
+    w.style.left = a.x + '%'; w.style.top = (vis ? a.y : 50) + '%'; w.style.animationDelay = (-(now - a.at)) + 'ms';
+    w.onclick = function (e) {
+      e.stopPropagation(); if (V.aim !== a) return; V.aim = null; w.remove(); var hb = root.querySelector('.braimbox'); if (hb) hb.remove();
+      ST.dmg += a.d; ST.bulls = (ST.bulls || 0) + 1; hitFx('🎯 WEAK SPOT!', a.d, 1); V.shake = 0.5;
+      if (ST.fb && ST.fb.ok) ST.fb.html += ' <b>🎯 Weak spot! +' + a.d + '.</b>';
+      keep(); sendSoon(); draw();
+    };
+    host.appendChild(w);
+  }
+  // 📣 cheers: one every 10 seconds, floating up the class screen with your name
+  function cheerBar() {
+    var bar = H('div', 'brcheer'), wait = Math.max(0, (ST.cheerAt || 0) + CHEER_MS - Date.now());
+    var unlock = function () { if (root) [].forEach.call(root.querySelectorAll('.brch'), function (x) { x.disabled = false; }); };
+    EMO.forEach(function (e, i) {
+      var bt = el('button', { type: 'button', 'class': 'brch', 'aria-label': 'Cheer ' + e }); bt.textContent = e; bt.disabled = wait > 0;
+      bt.onclick = function () {
+        if (Date.now() < (ST.cheerAt || 0) + CHEER_MS) return;
+        ST.cheerAt = Date.now(); ST.em = (ST.em || 0) + 1; ST.emi = i; keep(); send(); cheerFx(e, 'You');
+        [].forEach.call(root.querySelectorAll('.brch'), function (x) { x.disabled = true; });
+        setTimeout(unlock, CHEER_MS);
+      };
+      bar.appendChild(bt);
+    });
+    if (wait > 0) setTimeout(unlock, wait);
+    return bar;
+  }
   // pick a hero: before the first question
   function drawPick(box) {
     box.classList.add('pick');
     box.appendChild(H('p', 'kick', 'Choose your hero'));
     box.appendChild(H('p', 'brrule', 'Every right answer charges your special. When it\'s full, press it for a big move.'));
+    var I = hinfo(), nx = A.hero ? A.hero.need(I.lv + 1) : 0, got = [I.perks.sp ? 'special +' + I.perks.sp + ' damage' : '', I.perks.ch ? 'start with ' + I.perks.ch + ' charge' + (I.perks.ch > 1 ? 's' : '') : '', I.perks.loot > 1 ? 'more loot' : ''].filter(Boolean);
+    var nu = A.hero ? A.hero.unlock[I.lv + 1] : '';
+    box.appendChild(H('div', 'brlvcard', '<b>⭐ Level ' + I.lv + ' · ' + esc(I.title) + '</b><i><u style="width:' + I.pct + '%"></u></i><small>' + I.xp + ' / ' + nx + ' XP' + (got.length ? ' · 🔓 ' + got.join(', ') : '') + (nu ? '<br>Next level: ' + esc(nu) : '') + '</small>'));
     var g = H('div', 'brheroes'); box.appendChild(g);
     HEROES.forEach(function (h, i) {
       var c = el('button', { type: 'button', 'class': 'brpickc' }); c.style.setProperty('--hc', h.col);
@@ -435,6 +498,7 @@
   function tgAnswer(ok) {
     var b = V.b; if (ST.tg[b.tg.no] != null) return;
     ST.tg[b.tg.no] = ok ? 1 : 0;
+    xp(ok ? 10 : 1);
     if (ok) { ST.dg++; ST.dmg += DODGE; charge(2); hitFx('DODGED!', DODGE, 1); SFA.toast('🌀 Dodged! You hit back for ' + DODGE + ' and charged your special.', 3000); }
     else { ST.sn++; ST.stunUntil = Date.now() + STUN_MS; ST.streak = 0; V.shake = 1; snd('hurt'); }
     keep(); send(); draw();
@@ -493,19 +557,19 @@
     function right() {
       var first = !ST.tries; ST.hits++; ST.n++;
       if (q.easy) {   // warm-ups: a tiny scratch; streaks and critical hits are for the real questions
-        ST.dmg += EASY_D; charge(1); ST.fb = { ok: true, html: '<b>🗡️ Scratch! ' + EASY_D + ' damage.</b> Warm-ups are small hits, but they charge your special.' };
+        ST.dmg += EASY_D; charge(1); xp(4); ST.fb = { ok: true, html: '<b>🗡️ Scratch! ' + EASY_D + ' damage.</b> Warm-ups are small hits, but they charge your special.' };
         hitFx('You', EASY_D, 0); sendSoon(); keep(); draw(); return;
       }
       ST.streak = first ? ST.streak + 1 : 0; ST.best = Math.max(ST.best, ST.streak);
       var sure = ST.buffs.crit > 0, crit = (first && ST.streak >= 3) || sure, d = first ? 10 : 5, dbl = ST.buffs.dbl > 0, song = songLeft(V.b) ? 5 : 0, combo = CMUL[V.b.combo] || 1;
       if (sure) ST.buffs.crit--; if (dbl) ST.buffs.dbl--;
       if (crit) d *= 2; if (q.star) d = Math.round(d * 1.5); if (dbl) d *= 2; d = Math.round((d + song) * combo);
-      ST.dmg += d; mark(first ? 1 : 2); charge(1);
+      ST.dmg += d; mark(first ? 1 : 2); charge(1); xp(first ? 10 : 5);
       var extra = [crit && !sure ? '🔥 ' + ST.streak + ' in a row' : '', sure ? '🎯 sure crit' : '', dbl ? '💥 double' : '', song ? '🎸 +5' : '', combo > 1 ? '⚡ combo x' + combo : ''].filter(Boolean).join(' · ');
       ST.fb = { ok: true, html: '<b>' + (crit ? '💥 CRITICAL HIT! ' : '⚔️ Hit! ') + d + ' damage.</b>' + (extra ? ' ' + extra + '.' : first && ST.streak === 2 ? ' One more in a row for a critical hit.' : '') };
-      hitFx('You', d, crit); maybeLoot(crit); sendSoon(); keep(); draw();
+      hitFx('You', d, crit); maybeLoot(crit); aim(d); sendSoon(); keep(); draw();
     }
-    function wrong() { if (!q.easy) ST.streak = 0; ST.n++; mark(0); ST.cool = Date.now() + (q.easy ? 2000 : 4000); ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') }; sendSoon(); keep(); draw(); }
+    function wrong() { xp(1); if (!q.easy) ST.streak = 0; ST.n++; mark(0); ST.cool = Date.now() + (q.easy ? 2000 : 4000); ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') }; sendSoon(); keep(); draw(); }
     if (q.k === 'number') {
       var inp = el('input', { type: 'text', inputmode: 'decimal', placeholder: 'Type a number', 'aria-label': 'Answer', autocomplete: 'off' }), go = el('button', { type: 'button', 'class': 'btn primary', text: '⚔️ Attack' }), row = H('div', 'row');
       row.appendChild(inp); row.appendChild(go); box.appendChild(row);
@@ -529,7 +593,7 @@
       if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (e) { } }
       if (mine != null) { box.appendChild(H('div', 'fb ' + (mine ? 'good' : 'try'), '<b>Locked in.</b> ' + (mine ? '✅ You got it.' : '❌ Not that one.') + ' Waiting for the rest of the class…')); return; }
       if (atkLeft(b) <= 0) { box.appendChild(H('p', 'state', 'Time! Waiting for the result…')); return; }
-      var answer = function (ok) { ST.atk[a.no] = ok ? 1 : 0; keep(); send(); draw(); };
+      var answer = function (ok) { ST.atk[a.no] = ok ? 1 : 0; xp(ok ? 10 : 1); keep(); send(); draw(); };
       if (q.k === 'number') {
         var inp = el('input', { type: 'text', inputmode: 'decimal', placeholder: 'Type a number', 'aria-label': 'Block', autocomplete: 'off' }), go = el('button', { type: 'button', 'class': 'btn primary', text: '🛡️ Block' }), row = H('div', 'row');
         row.appendChild(inp); row.appendChild(go); box.appendChild(row);
@@ -566,9 +630,10 @@
     if (b.tg.st === 1 && b.state === 1 && !b.win) side.appendChild(H('div', 'brq atk tg', '<p class="kick">🎯 TARGETED · <span class="brtgt">' + tgLeft(b) + ' s</span></p><p class="q"><b>' + b.tg.names.map(esc).join(', ') + '</b>: answer to dodge, or get stunned!</p>'));
     var lb = H('div', 'brlead'); lb.appendChild(H('h3', '', '⚔️ Top damage'));
     if (!b.top.length) lb.appendChild(H('p', 'muted', 'Answer questions to attack!'));
-    b.top.forEach(function (t, i) { lb.appendChild(H('p', '', '<span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + '</span> <b>' + esc(t.n) + '</b> <i>' + t.d + '</i>')); });
+    b.top.forEach(function (t, i) { lb.appendChild(H('p', '', '<span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + '</span> <b>' + esc(t.n) + '</b>' + (t.lv > 1 ? '<em class="brlvs">Lv ' + t.lv + '</em>' : '') + ' <i>' + t.d + '</i>')); });
     lb.appendChild(H('p', 'muted', b.n + ' raiders · ' + (b.max - Math.max(0, b.hp) + b.heal) + ' damage so far'));
     // the class combo, big: the more students hit within a few seconds of each other, the harder everyone hits
+    if (b.state === 1) side.appendChild(H('p', 'brcheerhint', 'Cheer from your device: ' + EMO.join(' ')));
     if (b.state === 1) side.appendChild(H('div', 'brlead brcombo c' + b.combo, '<h3>⚡ Class combo</h3><p class="brcm"><b>x' + CMUL[b.combo] + '</b>' + ['', '', ' Nice!', ' MAX!'][b.combo] + '</p><p class="muted">Hit together! The more of you land a hit within a few seconds, the more damage everyone does (up to x2).</p>' + (b.shields ? '<p>🛡️ <b>' + b.shields + '</b> knight shield' + (b.shields > 1 ? 's' : '') + ' up: the next failed block is covered.</p>' : '')));
     side.appendChild(lb);
     if (V.watch) { var x = el('button', { type: 'button', 'class': 'btn bbback', text: '✕ Back to the console' }); x.onclick = function () { close(); }; root.appendChild(x); }
@@ -581,7 +646,9 @@
     var mine = '';
     if (A.MODE === 'student') {
       var got = 0, of = 0; Object.keys(ST.res || {}).forEach(function (k) { of++; if (ST.res[k] === 1) got++; });
-      mine = '<p class="brmine">You dealt <b>' + ST.dmg + '</b> damage with ' + ST.hits + ' hit' + (ST.hits === 1 ? '' : 's') + (ST.best >= 3 ? ', best streak ' + ST.best : '') + '.' + (b.mode === 1 && of ? ' Exit ticket: <b>' + got + ' of ' + of + '</b> right first time.' : '') + '</p>';
+      if (ST.hits || ST.n) xp(30 + (b.win ? 30 : 0), true);
+      var I = hinfo();
+      mine = '<p class="brmine">⭐ Level ' + I.lv + ' ' + esc(I.title) + ' · ' + I.xp + ' XP</p><p class="brmine">You dealt <b>' + ST.dmg + '</b> damage with ' + ST.hits + ' hit' + (ST.hits === 1 ? '' : 's') + (ST.best >= 3 ? ', best streak ' + ST.best : '') + '.' + (b.mode === 1 && of ? ' Exit ticket: <b>' + got + ' of ' + of + '</b> right first time.' : '') + '</p>';
     }
     p.innerHTML = '<div class="in">' + head + (mvp ? '<div class="brmvps">' + mvp + '</div>' : '') + mine + '</div>';
     body.appendChild(p);
@@ -593,7 +660,7 @@
     clearTimeout(sendT); if (A.MODE !== 'student' || !V) return;
     var x = ''; Object.keys(ST.res || {}).forEach(function (k) { k = +k; while (x.length < k) x += '.'; x = x.slice(0, k) + ST.res[k] + x.slice(k + 1); });
     var at = Object.keys(ST.atk || {}).slice(-12).map(function (k) { return k + '.' + ST.atk[k]; }).join(',');
-    A.record({ id: QID, k: 'open' }, 'r1;id:' + Math.round(V.id / 1000) + ';d:' + ST.dmg + ';h:' + ST.hits + ';n:' + ST.n + ';b:' + ST.best + (at ? ';a:' + at : '') + (ST.hero != null ? ';hr:' + ST.hero : '') + ';sp:' + (ST.spUsed || 0) + ';dg:' + (ST.dg || 0) + ';sn:' + (ST.sn || 0) + (x ? ';x:' + x.slice(0, 340) : ''), null);
+    A.record({ id: QID, k: 'open' }, 'r1;id:' + Math.round(V.id / 1000) + ';d:' + ST.dmg + ';h:' + ST.hits + ';n:' + ST.n + ';b:' + ST.best + (at ? ';a:' + at : '') + (ST.hero != null ? ';hr:' + ST.hero : '') + ';sp:' + (ST.spUsed || 0) + ';dg:' + (ST.dg || 0) + ';sn:' + (ST.sn || 0) + ';lv:' + hinfo().lv + (ST.em ? ';em:' + ST.em + '.' + ST.emi : '') + (x ? ';x:' + x.slice(0, 340) : ''), null);
   }
   function sendSoon() { clearTimeout(sendT); sendT = setTimeout(send, 2000); }
 
@@ -621,28 +688,31 @@
     if (!A.rosterIn().length) return;
     var key2 = 'id:' + Math.round(K.id / 1000) + ';', last = {}, changed = false, quiet = !!K.restored;
     (A.consoleAnswers() || []).forEach(function (a) { if (a.q === QID && String(a.answer).indexOf(key2) >= 0 && (!last[a.sid] || String(a.time) >= String(last[a.sid].time))) last[a.sid] = a; });
-    var tot = 0, ar = 0, ao = 0, fresh = [];
+    var tot = 0, ar = 0, ao = 0, fresh = [], cheers = 0;
     Object.keys(last).forEach(function (sid) {
       var s = String(last[sid].answer), get = function (k) { var m = s.match(new RegExp(';' + k + ':(-?\\d+)')); return m ? +m[1] : 0; };
       var atks = {}; ((s.match(/;a:([0-9.,]*)/) || [, ''])[1]).split(',').filter(Boolean).forEach(function (p) { var q = p.split('.'); atks[q[0]] = +q[1]; });
-      var row = { d: get('d'), h: get('h'), n: get('n'), b: get('b'), a: atks, x: (s.match(/;x:([0-2.]*)/) || [, ''])[1], hr: /;hr:\d/.test(s) ? get('hr') : -1, sp: get('sp'), dg: get('dg'), sn: get('sn') };
+      var row = { d: get('d'), h: get('h'), n: get('n'), b: get('b'), a: atks, x: (s.match(/;x:([0-2.]*)/) || [, ''])[1], hr: /;hr:\d/.test(s) ? get('hr') : -1, sp: get('sp'), dg: get('dg'), sn: get('sn'), lv: get('lv') || 1, em: 0, emi: 0 };
+      var emm = s.match(/;em:(\d+)\.(\d)/); if (emm) { row.em = +emm[1]; row.emi = +emm[2]; }
       // someone who arrived after the start: in the first half the boss gets tougher, so a bigger class still has a fight
       if (!K.seen[sid]) { K.seen[sid] = 1; if (K.state === 1 && !quiet && Date.now() - K.id < K.dur * 500) { var add = Math.min(9999 - K.max, K.per || PER); K.max += add; changed = true; } }
-      var old = K.rows[sid] || (quiet ? row : { d: 0, sp: 0, dg: 0, sn: 0 }), was = old.d, nm = nameOf(sid), e0 = elapsed(K);
+      var old = K.rows[sid] || (quiet ? row : { d: 0, sp: 0, dg: 0, sn: 0, em: 0 }), was = old.d, nm = nameOf(sid), e0 = elapsed(K);
       if (K.state === 1) {
         // specials, dodges and stuns first (each with its own banner), then whatever damage is left as an ordinary hit
-        var h = HEROES[row.hr] || HEROES[0], dsp = Math.max(0, row.sp - (old.sp || 0)), ddg = Math.max(0, row.dg - (old.dg || 0)), dsn = Math.max(0, row.sn - (old.sn || 0));
+        var h = HEROES[row.hr] || HEROES[0], hd = h.d + spBonus(row.lv), dsp = Math.max(0, row.sp - (old.sp || 0)), ddg = Math.max(0, row.dg - (old.dg || 0)), dsn = Math.max(0, row.sn - (old.sn || 0));
         for (var i = 0; i < Math.min(dsp, 3); i++) {
-          fresh.push({ n: nm, d: h.d, k: 10 + HEROES.indexOf(h) });
+          fresh.push({ n: nm, d: hd, k: 10 + HEROES.indexOf(h) });
           if (h.id === 'knight') K.shields = Math.min(3, (K.shields || 0) + 1);
           if (h.id === 'bard') K.songEnd = Math.max(K.songEnd || 0, Math.round(e0) + SONG);
         }
         for (var j = 0; j < Math.min(ddg, 2); j++) fresh.push({ n: nm, d: DODGE, k: 3 });
         if (dsn) fresh.push({ n: nm, d: 0, k: 4 });
-        var dd = row.d - was - dsp * h.d - ddg * DODGE;
+        var dd = row.d - was - dsp * hd - ddg * DODGE;
         if (dd > 0) fresh.push({ n: nm, d: dd, k: dd >= 20 ? 1 : 0 });
         if (row.d > was) K.lastHit[sid] = Date.now();
       }
+      // a cheer (at most three a round, so hits still get through)
+      if (row.em > (old.em || 0) && cheers < 3 && row.emi < EMO.length) { cheers++; fresh.push({ n: nm, d: 0, k: 5 + row.emi }); }
       if (!K.rows[sid] || K.rows[sid].d !== row.d || K.rows[sid].n !== row.n) changed = true;
       K.rows[sid] = row; tot += row.d;
       if (K.atk.st === 1 && atks[K.atk.no] != null) { ao++; ar += atks[K.atk.no] ? 1 : 0; }
@@ -687,7 +757,7 @@
   function resolveAttack() {
     var K = C(), a = K.atk;
     a.blocked = a.of > 0 && a.right / a.of >= BLOCK ? 1 : 0;
-    var heal = a.blocked ? 0 : Math.round(K.max * 0.1);
+    var heal = a.blocked ? 0 : Math.min(Math.round(K.max * 0.1), K.max - Math.max(0, K.hp));   // it can't heal past full
     a.shielded = 0; if (heal && K.shields > 0) { K.shields--; a.shielded = 1; heal = 0; }   // a knight's shield takes it
     if (heal) { K.heal += heal; K.hp = Math.min(K.max, K.hp + heal); }
     a.st = 2; K.hist.push({ no: a.no, q: a.q, right: a.right, of: a.of, blocked: a.blocked, heal: heal });
@@ -717,11 +787,11 @@
     out.zra = [K.atk.no, K.atk.st, K.atk.q, Math.min(9999, K.atk.at), K.atk.right, K.atk.of, K.atk.blocked ? 1 : 0, K.atk.shielded ? 1 : 0];
     out.zrt = [K.tg.no, K.tg.st, K.tg.q, Math.min(9999, K.tg.at)];
   }
-  function topOf(K) { return Object.keys(K.rows).map(function (s) { return { n: nameOf(s), d: K.rows[s].d, s: K.rows[s].b }; }).filter(function (t) { return t.d > 0; }).sort(function (a, b) { return b.d - a.d; }).slice(0, 5); }
+  function topOf(K) { return Object.keys(K.rows).map(function (s) { return { n: nameOf(s), d: K.rows[s].d, s: K.rows[s].b, lv: K.rows[s].lv || 1 }; }).filter(function (t) { return t.d > 0; }).sort(function (a, b) { return b.d - a.d; }).slice(0, 5); }
   function spot() {
     var K = C();
     var G = K.tg.st === 1 ? '#G:' + K.tg.sids.map(function (s) { return sh3(s) + '~' + nameOf(s); }).join(',') : '';
-    return { q: 'zraid', text: ('T:' + topOf(K).map(function (t) { return t.n + '~' + t.d + '~' + t.s; }).join(',') + G + '#L:' + K.seq + '|' + K.ev.map(function (e) { return clean(e.n) + '~' + e.d + '~' + e.k; }).join(',')).slice(0, 600) };
+    return { q: 'zraid', text: ('T:' + topOf(K).map(function (t) { return t.n + '~' + t.d + '~' + t.s + '~' + t.lv; }).join(',') + G + '#L:' + K.seq + '|' + K.ev.map(function (e) { return clean(e.n) + '~' + e.d + '~' + e.k; }).join(',')).slice(0, 600) };
   }
   function restore(Lv) {
     var b = raidOf(Lv); if (!b) return false;
