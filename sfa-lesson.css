@@ -556,3 +556,35 @@ body.boarding{overflow:hidden}
 .lcteamsc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}
 .lcteamsc>div{display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start;padding:8px;border-radius:10px;border:1px solid var(--line,#ccc)}
 .lcteamsc>div>b{width:100%;margin-bottom:2px}.lcteamsc span{padding:1px 8px;border-radius:99px;background:rgba(127,127,127,.15);font-size:14px}
+/* Boss Raid: heroes, specials, combo, loot, targets */
+.brbuffs{display:flex;gap:6px;flex-wrap:wrap}.brbuffs span{padding:3px 10px;border-radius:99px;font:800 13px var(--ui,system-ui);animation:brpulse .7s ease-in-out infinite alternate}
+.brbuffs .combo{background:#FFE14D;color:#1b1a22}.brbuffs .song{background:#FF8FD1;color:#2a0d1f}.brbuffs .shield{background:#9CC8FF;color:#0d1f3a}
+.br.screen .brbuffs span{font-size:18px;padding:5px 14px}
+.brme{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.brhero{font:400 18px "Luckiest Guy",system-ui;color:var(--hc)}
+.brpips{display:inline-flex;gap:4px}.brpips i{width:18px;height:10px;border-radius:4px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3)}.brpips i.on{background:#FFE14D;box-shadow:0 0 8px #FFE14D}
+.brspbtn{margin-left:auto;padding:10px 18px;border-radius:14px;border:3px solid #fff;background:var(--hc);color:#1b1a22;font:400 20px "Luckiest Guy",system-ui;cursor:pointer;animation:brglow .6s ease-in-out infinite alternate}
+@keyframes brglow{from{box-shadow:0 0 6px var(--hc);transform:scale(1)}to{box-shadow:0 0 26px var(--hc);transform:scale(1.07)}}
+.brheroes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.brpickc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px;border-radius:14px;border:3px solid var(--hc);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;text-align:center}
+.brpickc:hover{background:rgba(255,255,255,.14);transform:translateY(-2px)}
+.brpickc span{font-size:36px}.brpickc b{font:400 20px "Luckiest Guy",system-ui;color:var(--hc)}.brpickc i{font-style:normal;font-weight:800;font-size:12px;letter-spacing:.05em}.brpickc small{font-size:12.5px;opacity:.85}
+.brq.stun{border-color:#FFB020;background:rgba(60,40,8,.9)}
+.brstun{display:flex;flex-direction:column;align-items:center;gap:4px;margin:18px 0;font-size:56px}.brstun b{font:400 34px "Luckiest Guy",system-ui;color:#FFB020}.brstun span{font-size:18px}
+.brq.tg{border-color:#FF8A00;background:rgba(70,30,0,.9)}.brq.tg .kick{color:#FFB060}.brtgt{display:inline-block;min-width:44px;padding:1px 8px;border-radius:99px;background:#FF8A00;color:#fff}
+.brsp{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;animation:brspin 1.9s ease-out forwards;text-align:center}
+.brsp span{font-size:clamp(90px,16vw,170px);line-height:1;filter:drop-shadow(0 0 30px rgba(255,255,255,.6))}
+.brsp b{font:400 clamp(30px,5vw,58px) "Luckiest Guy",system-ui;color:#fff;text-shadow:0 4px 0 #141428}.brsp small{font:800 18px var(--ui,system-ui);color:#FFE14D;text-shadow:0 1px 3px #000}
+.brsp.mage{background:radial-gradient(circle,rgba(255,122,46,.75),rgba(255,60,0,.15) 60%,transparent 75%)}.brsp.archer{background:radial-gradient(circle,rgba(124,242,162,.6),transparent 70%)}
+.brsp.knight{background:radial-gradient(circle,rgba(156,200,255,.65),transparent 70%)}.brsp.bard{background:radial-gradient(circle,rgba(255,143,209,.65),transparent 70%)}
+@keyframes brspin{0%{opacity:0;transform:scale(.3)}15%{opacity:1;transform:scale(1.15)}30%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(1.3)}}
+.brloot{position:fixed;inset:0;z-index:97;display:flex;align-items:center;justify-content:center;background:rgba(10,6,20,.55);cursor:pointer}
+.brloot .card{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 26px;border-radius:20px;background:linear-gradient(160deg,#3b2a6b,#1d1438);border:4px solid #FFE14D;box-shadow:0 0 40px rgba(255,225,77,.5);animation:brflipin .6s cubic-bezier(.2,1.6,.4,1) both;text-align:center;max-width:300px}
+.brloot small{font:800 14px var(--ui,system-ui);color:#FFE14D;letter-spacing:.1em}.brloot span{font-size:70px;line-height:1}.brloot b{font:400 28px "Luckiest Guy",system-ui;color:#fff}.brloot p{margin:0;font-size:16px}
+.brloot.out{opacity:0;transition:opacity .4s}
+@keyframes brflipin{from{transform:rotateY(90deg) scale(.5)}to{transform:none}}
+.brban.special{border-color:#FFE14D;background:#3a2210}.brban.combo{border-color:#FFE14D;background:#3a3410}
+@media (prefers-reduced-motion:reduce){.brbuffs span,.brspbtn,.brsp,.brloot .card{animation:none}}
+.brcombo .brcm{display:block;margin:0 0 4px;font:400 22px "Luckiest Guy",system-ui;color:#FFE14D}.brcombo .brcm b{font-size:52px;line-height:1;color:#fff}
+.brcombo.c2{border-color:#FFE14D}.brcombo.c3{border-color:#FF8FD1;box-shadow:0 0 24px rgba(255,143,209,.45)}.brcombo.c3 .brcm b{color:#FF8FD1}
+.brcombo p{display:block}

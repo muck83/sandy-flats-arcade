@@ -824,7 +824,7 @@
   }
 
   // 👹 Boss Raid (sfa-raid.js): the whole class against one boss; review at the start, exit ticket at the end
-  var RAID_V = '20261104d', raidLoading = null;
+  var RAID_V = '20261105c', raidLoading = null;
   function raidAssets(cb) {
     if (window.SFA_RAID) return cb();
     if (raidLoading) { raidLoading.push(cb); return; }
@@ -854,7 +854,7 @@
     if (!(cur <= 3 || atEnd)) return;   // a review at the start of the lesson, an exit ticket at the end
     var sec = H('div', 'sect');
     sec.appendChild(H('h3', '', atEnd ? '👹 Finish with a Boss Raid exit ticket? (optional, about 6 minutes)' : '👹 Start with a Boss Raid review? (optional, about 6 minutes)'));
-    sec.appendChild(H('p', 'muted', 'The whole class against one giant boss on the class screen. Every right answer hits it; streaks land critical hits. Every 80 seconds the boss charges an attack: one question on every screen, and if 70% of the answers are right the class blocks it and counter-attacks, otherwise it heals. Both start with five quick integer warm-ups that only scratch the boss (2 damage each); then the real questions hit for 10. Review uses questions from the five lessons before this one. Exit ticket uses this lesson\'s questions and records every student\'s first try, so you see who got what and which questions the class missed.'));
+    sec.appendChild(H('p', 'muted', 'The whole class against one giant boss on the class screen. Each student picks a hero (Fire Mage, Archer, Knight or Bard) whose special charges as they answer. Every right answer hits the boss; streaks land critical hits, crits drop loot, and hitting together builds a class combo (up to x2). The boss targets two or three students every half minute (answer to dodge, or get stunned), and every 80 seconds the boss charges an attack: one question on every screen, and if 70% of the answers are right the class blocks it and counter-attacks, otherwise it heals. Both start with five quick integer warm-ups that only scratch the boss (2 damage each); then the real questions hit for 10. Review uses questions from the five lessons before this one. Exit ticket uses this lesson\'s questions and records every student\'s first try, so you see who got what and which questions the class missed.'));
     var md = el('select', { 'aria-label': 'Raid questions' });
     [['0', '📚 Review (earlier lessons)'], ['1', '🎟️ Exit ticket (this lesson)']].forEach(function (o) { var op = el('option', { value: o[0], text: o[1] }); if ((o[0] === '1') === atEnd) op.selected = true; md.appendChild(op); });
     var bs = el('select', { 'aria-label': 'Boss' }), b0 = SFA.store.get('teacher.raid.boss', -1);

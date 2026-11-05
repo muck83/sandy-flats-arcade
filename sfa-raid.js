@@ -11,16 +11,40 @@
    the answers are right, the class blocks it and everyone who got it right counter-attacks; if not, the boss heals.
    At half health the boss is enraged, at a fifth it makes its last stand. Bring it to zero before the time runs out.
 
+   To make it a game and not just a quiz:
+   - Heroes: each student picks Fire Mage, Archer, Knight or Bard. Every right answer charges a special (4 to fill); press it
+     for a big move: a 60-damage fireball, an arrow storm (then 3 sure critical hits), a shield that takes the class's next
+     failed block, or a battle song (+5 on everyone's hits for 15 s).
+   - Combo: when many students hit within a few seconds the class combo goes to x2 or x3, multiplying everyone's damage.
+   - Loot: critical hits (and the odd normal one) drop a loot card: full special charge, double damage, sure crits, a bomb.
+   - Targets: every half minute or so the boss targets two or three named students. They get 15 seconds for one question:
+     right is a dodge (30 damage back), wrong or too slow and they're stunned for 6 seconds.
+
    Sync through the Sheet, like the Big Board: the console adds up everyone's damage from their running rows (q "zraidx1":
    ids ending x1 are go-further extras, so this never counts as a lesson answer) and publishes the boss in the live counts
-   (zrs: state, mode, boss, length, max HP, HP, won, students, healed; zra: the attack) and the spotlight (spot.q "zraid":
-   "T:" the top five, "L:" the latest hits, for the damage numbers on every screen). */
+   (zrs: state, mode, boss, length, max HP, HP, won, students, healed, combo, battle song until, shields; zra: the attack;
+   zrt: the targets) and the spotlight (spot.q "zraid": "T:" the top five, "L:" the latest hits and specials, "G:" who is
+   targeted, for the damage numbers and banners on every screen). */
 (function () {
   'use strict';
   var A = window.SFA_LESSON_API, SFA = window.SFA;
   if (!A || !SFA) return;
   var H = A.H, el = A.el, esc = SFA.esc;
-  var QID = 'zraidx1', ATK_WIN = 20, ATK_GRACE = 6, ATK_SHOW = 8, ATK_FIRST = 45, ATK_EVERY = 80, BLOCK = 0.7, PER = 130, COUNTER = 25, EASY_N = 5, EASY_D = 2;
+  var QID = 'zraidx1', ATK_WIN = 20, ATK_GRACE = 6, ATK_SHOW = 8, ATK_FIRST = 45, ATK_EVERY = 80, BLOCK = 0.7, PER = 330, COUNTER = 25, EASY_N = 5, EASY_D = 2;
+  var CMUL = [1, 1, 1.5, 2];   // the class combo: level 2 is x1.5, level 3 is x2
+  var CHARGE = 4, DODGE = 30, STUN_MS = 6000, TG_WIN = 15, SONG = 15;
+  var HEROES = [
+    { id: 'mage', name: 'Fire Mage', e: '🔥', sp: 'FIREBALL', d: 60, col: '#FF7A2E', txt: 'A giant fireball: 60 damage.' },
+    { id: 'archer', name: 'Archer', e: '🏹', sp: 'ARROW STORM', d: 30, col: '#7CF2A2', txt: '30 damage, then your next 3 hits are critical hits.' },
+    { id: 'knight', name: 'Knight', e: '🛡️', sp: 'SHIELD WALL', d: 20, col: '#9CC8FF', txt: '20 damage, and a shield for the class: it takes the next boss attack you don\'t block.' },
+    { id: 'bard', name: 'Bard', e: '🎸', sp: 'BATTLE SONG', d: 20, col: '#FF8FD1', txt: '20 damage, and for 15 seconds every hit by anyone does +5.' }
+  ];
+  var LOOT = [
+    { k: 'charge', e: '⚡', name: 'Full charge', txt: 'Your special is ready!' },
+    { k: 'dbl', e: '💥', name: 'Double damage', txt: 'Your next 3 hits do double damage.' },
+    { k: 'crit', e: '🎯', name: 'Sure crits', txt: 'Your next 2 hits are critical hits.' },
+    { k: 'bomb', e: '💣', name: 'Loot bomb', txt: '40 damage, right now!' }
+  ];
   var BOSSES = [
     { id: 'golem', name: 'Glitch Golem', e: '🤖', atk: 'BIT CRUSHER', col: ['#53E0FF', '#5B4BD6', '#1d2a6b'] },
     { id: 'hydra', name: 'The Nonlinear Hydra', e: '🐉', atk: 'TRIPLE BITE', col: ['#4FD97A', '#9B4BE0', '#16402a'] },
@@ -39,17 +63,23 @@
   function raidOf(Lv) {
     var c = Lv && Lv.counts; if (!c || Lv.lesson !== A.LID || !Array.isArray(c.zrs) || !Array.isArray(c.zrid)) return null;
     var z = c.zrs, id = A.decRun(c.zrid), start = A.MODE === 'screen' ? id : A.decRun(c.zrst) || id, a = Array.isArray(c.zra) ? c.zra : [];
-    var sp = Lv.spot && Lv.spot.q === 'zraid' ? String(Lv.spot.text || '') : '', top = [], ev = [], seq = 0;
+    var sp = Lv.spot && Lv.spot.q === 'zraid' ? String(Lv.spot.text || '') : '', top = [], ev = [], seq = 0, tfp = [], tnm = [], g = Array.isArray(c.zrt) ? c.zrt : [];
     sp.split('#').forEach(function (part) {
       var k2 = part.slice(0, 2), v = part.slice(2);
       if (k2 === 'T:' && v) top = v.split(',').map(function (x) { var p = x.split('~'); return { n: p[0], d: +p[1] || 0, s: +p[2] || 0 }; });
-      if (k2 === 'L:') { var q = v.split('|'); seq = +q[0] || 0; ev = (q[1] ? q[1].split(',') : []).map(function (x) { var p = x.split('~'); return { n: p[0], d: +p[1] || 0, c: +p[2] || 0 }; }); }
+      if (k2 === 'L:') { var q = v.split('|'); seq = +q[0] || 0; ev = (q[1] ? q[1].split(',') : []).map(function (x) { var p = x.split('~'); return { n: p[0], d: +p[1] || 0, k: +p[2] || 0 }; }); }
+      if (k2 === 'G:' && v) v.split(',').forEach(function (x) { var p = x.split('~'); tfp.push(p[0]); tnm.push(p[1] || ''); });
     });
     return { id: id, start: start, state: z[0], mode: z[1] || 0, boss: z[2] || 0, dur: z[3] || 360, max: z[4] || 1000, hp: z[5] == null ? z[4] : z[5], win: !!z[6], n: z[7] || 0, heal: z[8] || 0,
-      atk: { no: a[0] || 0, st: a[1] || 0, q: a[2] || 0, at: a[3] || 0, right: a[4] || 0, of: a[5] || 0, blocked: !!a[6] }, top: top, ev: ev, seq: seq };
+      combo: z[9] || 1, songEnd: z[10] || 0, shields: z[11] || 0,
+      atk: { no: a[0] || 0, st: a[1] || 0, q: a[2] || 0, at: a[3] || 0, right: a[4] || 0, of: a[5] || 0, blocked: !!a[6], shielded: !!a[7] },
+      tg: { no: g[0] || 0, st: g[1] || 0, q: g[2] || 0, at: g[3] || 0, fps: tfp, names: tnm }, top: top, ev: ev, seq: seq };
   }
   function leftOf(b) { return Math.max(0, Math.round((b.start + b.dur * 1000 - sNow()) / 1000)); }
   function atkLeft(b) { return Math.max(0, Math.ceil(ATK_WIN - (sNow() - (b.start + b.atk.at * 1000)) / 1000)); }
+  function secNow(b) { return (sNow() - b.start) / 1000; }
+  function tgLeft(b) { return Math.max(0, Math.ceil(TG_WIN - (secNow(b) - b.tg.at))); }
+  function songLeft(b) { return b.songEnd ? Math.max(0, Math.ceil(b.songEnd - secNow(b))) : 0; }
   function phaseOf(b) { var f = b.max ? b.hp / b.max : 1; return f > 0.5 ? 1 : f > 0.2 ? 2 : 3; }
   function bossOf(b) { return BOSSES[b.boss % BOSSES.length]; }
 
@@ -82,6 +112,7 @@
   // boss attacks are multiple choice when there are any (everyone answers at once, so quick to read and quick to answer)
   function atkList(pool) { var p = pool.filter(function (q) { return q.k === 'poll' && q.opts && q.opts.length <= 5; }); return p.length ? p : pool; }
   function atkQ(b) { var pool = POOLS[b.mode]; if (!pool || !pool.length) return null; var L = atkList(pool); return L[b.atk.q % L.length]; }
+  function tgQ(b) { var pool = POOLS[b.mode]; if (!pool || !pool.length) return null; var L = atkList(pool); return L[b.tg.q % L.length]; }
   function easyQs() {
     var r = rng((A.S.me ? parseInt(sh3(A.S.me.sid), 36) * 31 : 7) + Math.round((ST.id || 0) / 1000) % 9973), n = function (a, b) { return a + Math.floor(r() * (b - a + 1)); };
     // integer operations: one step each, small numbers, negatives in every one
@@ -116,7 +147,7 @@
   function open(b) {
     close();
     var saved = SFA.store.get(key(), null);
-    ST = saved && saved.id === b.id ? saved : { id: b.id, dmg: 0, hits: 0, n: 0, streak: 0, best: 0, tries: 0, fb: null, cool: 0, qi: 0, res: {}, atk: {}, countered: {} };
+    ST = saved && saved.id === b.id ? saved : { id: b.id, dmg: 0, hits: 0, n: 0, streak: 0, best: 0, tries: 0, fb: null, cool: 0, qi: 0, res: {}, atk: {}, countered: {}, hero: null, charge: 0, spUsed: 0, buffs: { crit: 0, dbl: 0 }, dg: 0, sn: 0, stunUntil: 0, tg: {} };
     V = { id: b.id, b: b, hurt: 0, fl: [], parts: [] };
     root = H('div', 'br' + (A.MODE !== 'student' ? ' screen' : '')); root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-label', 'Boss Raid');
     document.body.appendChild(root); document.body.classList.add('boarding');
@@ -136,7 +167,7 @@
     if (V.seen == null) V.seen = b.seq;
     else if (b.seq > V.seen) {
       var first = b.seq - b.ev.length + 1, me = A.MODE === 'student' ? myName() : null;
-      b.ev.forEach(function (e, i) { if (first + i > V.seen && e.n !== me) hitFx(e.n, e.d, e.c); });
+      b.ev.forEach(function (e, i) { if (first + i > V.seen && e.n !== me) evFx(e); });
       V.seen = b.seq;
     }
     if (prev) {
@@ -146,14 +177,23 @@
       if (b.atk.st === 2 && !(prev.atk.st === 2 && prev.atk.no === b.atk.no)) {
         V.lastHeal = Math.max(0, b.heal - prev.heal);
         if (b.atk.blocked) { banner('🛡️ <b>BLOCKED!</b> ' + b.atk.right + ' of ' + b.atk.of + ' got it right', 'block'); snd('block'); }
+        else if (b.atk.shielded) { banner('🛡️ <b>SHIELD WALL!</b> A knight\'s shield took the hit. No healing!', 'block'); snd('block'); }
         else { banner('💥 <b>The boss hit the class!</b> It healed ' + V.lastHeal + ' HP', 'hurt'); snd('hurt'); V.shake = 1; }
         // my counter-attack: a blocked attack I got right
         if (A.MODE === 'student' && b.atk.blocked && ST.atk[b.atk.no] === 1 && !ST.countered[b.atk.no]) { ST.countered[b.atk.no] = 1; ST.dmg += COUNTER; keep(); send(); hitFx('Your counter', COUNTER, 1); }
       }
     }
+    if (prev && b.state === 1 && !b.win) {
+      if (b.combo > prev.combo) { banner('⚡ <b>COMBO x' + CMUL[b.combo] + '!</b> Everyone\'s hits do ' + CMUL[b.combo] + '× damage. Keep hitting together!', 'combo'); snd('crit'); }
+      if (b.tg.st === 1 && !(prev.tg.st === 1 && prev.tg.no === b.tg.no)) {
+        var mineT = A.MODE === 'student' && A.S.me && b.tg.fps.indexOf(sh3(A.S.me.sid)) >= 0;
+        banner('🎯 <b>' + esc(bossOf(b).name) + '</b> targets <b>' + b.tg.names.map(esc).join(' & ') + '</b>!', 'alarm'); snd('alarm'); if (mineT) V.shake = 1;
+      }
+    }
     if (b.win && !V.wonAt) { V.wonAt = performance.now(); boom(); snd('win'); }
     V.prev = b;
-    var sig = [b.state, b.win, b.atk.no, b.atk.st, A.MODE === 'student' ? ST.atk[b.atk.no] : b.atk.of, phaseOf(b), b.top.map(function (t) { return t.n + t.d; }).join('.'), !!POOLS[b.mode]].join('|');
+    var sig = [b.state, b.win, b.atk.no, b.atk.st, A.MODE === 'student' ? ST.atk[b.atk.no] : b.atk.of, phaseOf(b), b.top.map(function (t) { return t.n + t.d; }).join('.'), !!POOLS[b.mode],
+      b.tg.no + '.' + b.tg.st, A.MODE === 'student' ? [ST.hero, ST.tg[b.tg.no], targeted(b)].join('.') : [b.tg.names.join('.'), b.combo, b.shields].join('.')].join('|');
     if (sig !== V.sig) { V.sig = sig; draw(); } else drawTop();
   }
 
@@ -173,7 +213,7 @@
     if (!soundOn()) return;
     try {
       AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-      var t = AC.currentTime, notes = { hit: [330], crit: [440, 660], alarm: [220, 180, 220, 180], block: [523, 659, 784], hurt: [200, 140], win: [523, 659, 784, 1047, 1319], tick: [440] }[k] || [500];
+      var t = AC.currentTime, notes = { hit: [330], crit: [440, 660], alarm: [220, 180, 220, 180], block: [523, 659, 784], hurt: [200, 140], win: [523, 659, 784, 1047, 1319], tick: [440], special: [392, 523, 659, 880], loot: [784, 988, 1319] }[k] || [500];
       notes.forEach(function (f, i) { var o = AC.createOscillator(), g = AC.createGain(); o.type = k === 'alarm' || k === 'hurt' ? 'sawtooth' : k === 'tick' ? 'square' : 'triangle'; o.frequency.value = f; o.connect(g); g.connect(AC.destination); var t0 = t + i * (k === 'alarm' ? 0.16 : 0.1); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(k === 'tick' || k === 'hit' ? 0.05 : 0.1, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.25); o.start(t0); o.stop(t0 + 0.28); });
     } catch (e) { }
   }
@@ -186,6 +226,20 @@
     var f = H('div', 'brdmg' + (crit ? ' crit' : ''), (name ? '<small>' + esc(name) + '</small>' : '') + '−' + d + (crit ? '!' : ''));
     f.style.left = (25 + Math.random() * 50) + '%'; f.style.top = (18 + Math.random() * 40) + '%';
     st.appendChild(f); setTimeout(function () { f.remove(); }, 1500);
+  }
+  // what a classmate did, on every screen: hits float up, specials fill the stage, dodges and stuns get a banner
+  function evFx(e) {
+    if (e.k >= 10) { var h = HEROES[(e.k - 10) % HEROES.length]; spFx(h, e.n, e.d); banner(h.e + ' <b>' + esc(e.n) + '</b>: ' + h.sp + '! −' + e.d, 'special'); }
+    else if (e.k === 3) { hitFx(e.n + ' dodged!', e.d, 1); }
+    else if (e.k === 4) { banner('😵 <b>' + esc(e.n) + '</b> got stunned!', 'hurt'); }
+    else hitFx(e.n, e.d, e.k === 1);
+  }
+  function spFx(h, name, d) {
+    if (!root) return;
+    V.hurt = 1; V.shake = 0.7; snd('special');
+    var st = root.querySelector('.brstage'); if (!st) return;
+    var f = H('div', 'brsp ' + h.id, '<span>' + h.e + '</span><b>' + h.sp + '!</b><small>' + esc(name) + ' · −' + d + '</small>');
+    st.appendChild(f); setTimeout(function () { f.remove(); }, 1900);
   }
   function boom() { for (var i = 0; i < 60; i++) { var a = Math.random() * Math.PI * 2, s = 120 + Math.random() * 380; V.parts.push({ x: 300, y: 250, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120, life: 1.4 + Math.random(), c: ['#FFE14D', '#FF7AC0', '#7CF2A2', '#53E0FF', '#fff'][i % 5] }); } }
   function frame(dt) {
@@ -281,6 +335,12 @@
     bar.querySelector('i').style.width = (100 * f).toFixed(1) + '%'; bar.querySelector('u').style.width = (100 * f).toFixed(1) + '%';
     bar.querySelector('span').textContent = Math.max(0, b.hp) + ' / ' + b.max + ' HP';
     var at = root.querySelector('.bratkt'); if (at && b.atk.st === 1) at.textContent = atkLeft(b) + ' s';
+    var tt = root.querySelector('.brtgt'); if (tt && b.tg.st === 1) tt.textContent = tgLeft(b) + ' s';
+    var bf = t.querySelector('.brbuffs'), sl = songLeft(b);
+    if (bf) bf.innerHTML = (b.combo > 1 && b.state === 1 ? '<span class="combo">⚡ COMBO x' + CMUL[b.combo] + '</span>' : '') + (sl && b.state === 1 ? '<span class="song">🎸 +5 · ' + sl + ' s</span>' : '') + (b.shields && b.state === 1 ? '<span class="shield">🛡️ ' + (b.shields > 1 ? '×' + b.shields : 'shield up') + '</span>' : '');
+    // a target that runs out of time is stunned; a stun that wears off frees the question box
+    if (A.MODE === 'student' && targeted(b) && tgLeft(b) === 0) tgAnswer(false);
+    if (A.MODE === 'student' && ST.stunUntil && Date.now() >= ST.stunUntil && V.stunned) { V.stunned = false; draw(); }
     var cd = root.querySelector('.brcount');
     if (b.state === 1 && left > 0 && left <= 10 && !b.win) { if (!cd) { cd = H('div', 'brcount'); root.appendChild(cd); } if (cd.textContent !== String(left)) { cd.textContent = left; snd('tick'); } }
     else if (cd) cd.remove();
@@ -295,7 +355,7 @@
     var floats = root.querySelectorAll('.brdmg');
     root.innerHTML = '';
     setTimeout(function () { if (!root) return; [].forEach.call(root.querySelectorAll('input'), function (x) { var k = x.getAttribute('aria-label'); if (typed[k]) x.value = typed[k]; if (k === focus) x.focus({ preventScroll: true }); }); nextBanner(); }, 0);
-    var top = H('div', 'brtop', '<span class="brtitle">👹 BOSS RAID <small>' + esc(MODES[b.mode]) + '</small></span><span class="brname">' + B.e + ' ' + esc(B.name) + '</span><span class="brhp"><u></u><i></i><span></span></span><span class="brclock"></span><button type="button" class="bbsnd" title="Sound effects">' + (soundOn() ? '🔊' : '🔇') + '</button>');
+    var top = H('div', 'brtop', '<span class="brtitle">👹 BOSS RAID <small>' + esc(MODES[b.mode]) + '</small></span><span class="brname">' + B.e + ' ' + esc(B.name) + '</span><span class="brhp"><u></u><i></i><span></span></span><span class="brbuffs"></span><span class="brclock"></span><button type="button" class="bbsnd" title="Sound effects">' + (soundOn() ? '🔊' : '🔇') + '</button>');
     root.appendChild(top);
     top.querySelector('.bbsnd').onclick = function () { SFA.store.set('raid.sound', !soundOn()); this.textContent = soundOn() ? '🔊' : '🔇'; snd('block'); };
     var body = H('div', 'brbody'); root.appendChild(body);
@@ -309,12 +369,94 @@
       if (wait > 0) setTimeout(function () { if (root) draw(); }, wait + 50); else ending(body);
     }
     if (A.MODE !== 'student') return drawClass(body, stage);
-    stage.appendChild(H('p', 'brme', '⚔️ Your damage <b>' + ST.dmg + '</b> · ' + ST.hits + ' hit' + (ST.hits === 1 ? '' : 's') + (ST.streak >= 2 ? ' · 🔥 ' + ST.streak + ' in a row' : '')));
+    stage.appendChild(heroBar());
     if (b.state === 2) return;
     var qb = H('div', 'brq'); body.appendChild(qb);
-    if (b.atk.st && !b.win) drawAtk(qb); else drawQ(qb);
+    V.stunned = Date.now() < (ST.stunUntil || 0);
+    if (b.atk.st && !b.win) drawAtk(qb);
+    else if (targeted(b)) drawTarget(qb);
+    else if (ST.hero == null) drawPick(qb);
+    else if (V.stunned) drawStun(qb);
+    else drawQ(qb);
   }
 
+  // my hero, my special's charge, my buffs, and the big button when it's ready
+  function heroBar() {
+    var bar = H('div', 'brme'), h = HEROES[ST.hero];
+    var dmg = '⚔️ <b>' + ST.dmg + '</b> damage' + (ST.streak >= 2 ? ' · 🔥 ' + ST.streak + ' in a row' : '') + (ST.buffs.dbl ? ' · 💥×2 for ' + ST.buffs.dbl : '') + (ST.buffs.crit ? ' · 🎯 ' + ST.buffs.crit + ' sure crit' + (ST.buffs.crit > 1 ? 's' : '') : '');
+    if (!h) { bar.innerHTML = dmg; return bar; }
+    bar.innerHTML = '<span class="brhero" style="--hc:' + h.col + '">' + h.e + ' ' + h.name + '</span><span class="brpips">' + [0, 1, 2, 3].map(function (i) { return '<i class="' + (i < ST.charge ? 'on' : '') + '"></i>'; }).join('') + '</span> ' + dmg;
+    if (ST.charge >= CHARGE && V.b.state === 1) {
+      var go = el('button', { type: 'button', 'class': 'brspbtn', text: h.e + ' ' + h.sp + '!' }); go.style.setProperty('--hc', h.col);
+      go.title = h.txt; go.onclick = special; bar.appendChild(go);
+    }
+    return bar;
+  }
+  function special() {
+    var h = HEROES[ST.hero]; if (!h || ST.charge < CHARGE || V.b.state !== 1) return;
+    ST.charge = 0; ST.spUsed++; ST.dmg += h.d;
+    if (h.id === 'archer') ST.buffs.crit += 3;
+    keep(); send(); spFx(h, 'You', h.d);
+    SFA.toast(h.e + ' ' + h.sp + '! ' + h.txt, 3500); draw();
+  }
+  function charge(n) { var was = ST.charge; ST.charge = Math.min(CHARGE, ST.charge + n); if (was < CHARGE && ST.charge >= CHARGE && ST.hero != null) { snd('loot'); SFA.toast(HEROES[ST.hero].e + ' Your ' + HEROES[ST.hero].sp + ' is ready! Press the glowing button.', 3500); } }
+  // loot: critical hits drop it often, normal hits now and then. It opens with a little reveal.
+  function maybeLoot(crit) {
+    if (Math.random() > (crit ? 0.35 : 0.12)) return;
+    var L = LOOT[Math.floor(Math.random() * LOOT.length)];
+    if (L.k === 'charge') charge(CHARGE); if (L.k === 'dbl') ST.buffs.dbl += 3; if (L.k === 'crit') ST.buffs.crit += 2;
+    if (L.k === 'bomb') { ST.dmg += 40; hitFx('Loot bomb', 40, 1); }
+    snd('loot');
+    var pop = H('div', 'brloot', '<div class="card"><small>🎁 LOOT!</small><span>' + L.e + '</span><b>' + L.name + '</b><p>' + L.txt + '</p></div>');
+    document.body.appendChild(pop); pop.onclick = function () { pop.remove(); };
+    setTimeout(function () { pop.classList.add('out'); }, 2200); setTimeout(function () { pop.remove(); }, 2700);
+  }
+  // pick a hero: before the first question
+  function drawPick(box) {
+    box.classList.add('pick');
+    box.appendChild(H('p', 'kick', 'Choose your hero'));
+    box.appendChild(H('p', 'brrule', 'Every right answer charges your special. When it\'s full, press it for a big move.'));
+    var g = H('div', 'brheroes'); box.appendChild(g);
+    HEROES.forEach(function (h, i) {
+      var c = el('button', { type: 'button', 'class': 'brpickc' }); c.style.setProperty('--hc', h.col);
+      c.innerHTML = '<span>' + h.e + '</span><b>' + h.name + '</b><i>' + h.sp + '</i><small>' + h.txt + '</small>';
+      c.onclick = function () { ST.hero = i; keep(); send(); snd('block'); draw(); };
+      g.appendChild(c);
+    });
+  }
+  function drawStun(box) {
+    box.classList.add('stun');
+    var left = Math.ceil((ST.stunUntil - Date.now()) / 1000);
+    box.appendChild(H('p', 'brstun', '😵<b>STUNNED!</b><span>Back in ' + left + ' s</span>'));
+    setTimeout(function () { if (root) draw(); }, 1000);
+  }
+  // the boss targets me: one question, 15 seconds. Right: dodge and hit back. Wrong or too slow: stunned.
+  function targeted(b) { return A.MODE === 'student' && A.S.me && b.tg.st === 1 && b.tg.fps.indexOf(sh3(A.S.me.sid)) >= 0 && ST.tg[b.tg.no] == null && b.state === 1 && !b.win; }
+  function tgAnswer(ok) {
+    var b = V.b; if (ST.tg[b.tg.no] != null) return;
+    ST.tg[b.tg.no] = ok ? 1 : 0;
+    if (ok) { ST.dg++; ST.dmg += DODGE; charge(2); hitFx('DODGED!', DODGE, 1); SFA.toast('🌀 Dodged! You hit back for ' + DODGE + ' and charged your special.', 3000); }
+    else { ST.sn++; ST.stunUntil = Date.now() + STUN_MS; ST.streak = 0; V.shake = 1; snd('hurt'); }
+    keep(); send(); draw();
+  }
+  function drawTarget(box) {
+    var b = V.b, q = tgQ(b), B = bossOf(b);
+    box.classList.add('atk', 'tg');
+    box.appendChild(H('p', 'kick', '🎯 ' + esc(B.name.toUpperCase()) + ' IS TARGETING YOU! · <span class="brtgt">' + tgLeft(b) + ' s</span>'));
+    box.appendChild(H('p', 'brrule', 'Get it right to dodge and hit back for ' + DODGE + '. Wrong or too slow: stunned for ' + STUN_MS / 1000 + ' seconds.'));
+    if (!q) { box.appendChild(H('p', 'q', 'Loading…')); return; }
+    box.appendChild(H('p', 'q', A.fmt(q.q)));
+    if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (e) { } }
+    if (q.k === 'number') {
+      var inp = el('input', { type: 'text', inputmode: 'decimal', placeholder: 'Type a number', 'aria-label': 'Dodge', autocomplete: 'off' }), go = el('button', { type: 'button', 'class': 'btn primary', text: '🌀 Dodge' }), row = H('div', 'row');
+      row.appendChild(inp); row.appendChild(go); box.appendChild(row);
+      var chk = function () { var v = A.numOf(inp.value); if (!inp.value.trim() || isNaN(v)) return inp.focus(); tgAnswer(Math.abs(v - q.ans) <= (q.tol || 1e-9) + 1e-9); };
+      go.onclick = chk; inp.onkeydown = function (e) { if (e.key === 'Enter') chk(); };
+    } else {
+      var list = H('div', 'opts'); box.appendChild(list);
+      q.opts.forEach(function (o, k) { var bt = el('button', { type: 'button', 'class': 'opt' }); bt.appendChild(H('span', 'L', A.letter(k))); bt.appendChild(H('span', 't', A.fmt(o))); bt.onclick = function () { tgAnswer(k === q.ans); }; list.appendChild(bt); });
+    }
+  }
   // the question to answer next: warm-ups (review only), then the pool in this student's own order
   function nextQ() {
     var b = V.b, pool = POOLS[b.mode]; if (!pool) return null;
@@ -351,14 +493,17 @@
     function right() {
       var first = !ST.tries; ST.hits++; ST.n++;
       if (q.easy) {   // warm-ups: a tiny scratch; streaks and critical hits are for the real questions
-        ST.dmg += EASY_D; ST.fb = { ok: true, html: '<b>🗡️ Scratch! ' + EASY_D + ' damage.</b> Warm-ups are small hits; the real questions hit much harder.' };
+        ST.dmg += EASY_D; charge(1); ST.fb = { ok: true, html: '<b>🗡️ Scratch! ' + EASY_D + ' damage.</b> Warm-ups are small hits, but they charge your special.' };
         hitFx('You', EASY_D, 0); sendSoon(); keep(); draw(); return;
       }
       ST.streak = first ? ST.streak + 1 : 0; ST.best = Math.max(ST.best, ST.streak);
-      var crit = first && ST.streak >= 3, d = first ? 10 : 5; if (crit) d *= 2; if (q.star) d = Math.round(d * 1.5);
-      ST.dmg += d; mark(first ? 1 : 2);
-      ST.fb = { ok: true, html: '<b>' + (crit ? '💥 CRITICAL HIT! ' : '⚔️ Hit! ') + d + ' damage.</b>' + (crit ? ' 🔥 ' + ST.streak + ' in a row.' : first && ST.streak === 2 ? ' One more in a row for a critical hit.' : '') };
-      hitFx('You', d, crit); sendSoon(); keep(); draw();
+      var sure = ST.buffs.crit > 0, crit = (first && ST.streak >= 3) || sure, d = first ? 10 : 5, dbl = ST.buffs.dbl > 0, song = songLeft(V.b) ? 5 : 0, combo = CMUL[V.b.combo] || 1;
+      if (sure) ST.buffs.crit--; if (dbl) ST.buffs.dbl--;
+      if (crit) d *= 2; if (q.star) d = Math.round(d * 1.5); if (dbl) d *= 2; d = Math.round((d + song) * combo);
+      ST.dmg += d; mark(first ? 1 : 2); charge(1);
+      var extra = [crit && !sure ? '🔥 ' + ST.streak + ' in a row' : '', sure ? '🎯 sure crit' : '', dbl ? '💥 double' : '', song ? '🎸 +5' : '', combo > 1 ? '⚡ combo x' + combo : ''].filter(Boolean).join(' · ');
+      ST.fb = { ok: true, html: '<b>' + (crit ? '💥 CRITICAL HIT! ' : '⚔️ Hit! ') + d + ' damage.</b>' + (extra ? ' ' + extra + '.' : first && ST.streak === 2 ? ' One more in a row for a critical hit.' : '') };
+      hitFx('You', d, crit); maybeLoot(crit); sendSoon(); keep(); draw();
     }
     function wrong() { if (!q.easy) ST.streak = 0; ST.n++; mark(0); ST.cool = Date.now() + (q.easy ? 2000 : 4000); ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') }; sendSoon(); keep(); draw(); }
     if (q.k === 'number') {
@@ -418,10 +563,13 @@
         if (q) box.appendChild(H('div', 'fb good', '<b>The answer: ' + esc(q.k === 'poll' ? A.letter(q.ans) + ', ' + String(q.opts[q.ans]).replace(/\*/g, '') : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '')));
       }
     }
+    if (b.tg.st === 1 && b.state === 1 && !b.win) side.appendChild(H('div', 'brq atk tg', '<p class="kick">🎯 TARGETED · <span class="brtgt">' + tgLeft(b) + ' s</span></p><p class="q"><b>' + b.tg.names.map(esc).join(', ') + '</b>: answer to dodge, or get stunned!</p>'));
     var lb = H('div', 'brlead'); lb.appendChild(H('h3', '', '⚔️ Top damage'));
     if (!b.top.length) lb.appendChild(H('p', 'muted', 'Answer questions to attack!'));
     b.top.forEach(function (t, i) { lb.appendChild(H('p', '', '<span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + '</span> <b>' + esc(t.n) + '</b> <i>' + t.d + '</i>')); });
     lb.appendChild(H('p', 'muted', b.n + ' raiders · ' + (b.max - Math.max(0, b.hp) + b.heal) + ' damage so far'));
+    // the class combo, big: the more students hit within a few seconds of each other, the harder everyone hits
+    if (b.state === 1) side.appendChild(H('div', 'brlead brcombo c' + b.combo, '<h3>⚡ Class combo</h3><p class="brcm"><b>x' + CMUL[b.combo] + '</b>' + ['', '', ' Nice!', ' MAX!'][b.combo] + '</p><p class="muted">Hit together! The more of you land a hit within a few seconds, the more damage everyone does (up to x2).</p>' + (b.shields ? '<p>🛡️ <b>' + b.shields + '</b> knight shield' + (b.shields > 1 ? 's' : '') + ' up: the next failed block is covered.</p>' : '')));
     side.appendChild(lb);
     if (V.watch) { var x = el('button', { type: 'button', 'class': 'btn bbback', text: '✕ Back to the console' }); x.onclick = function () { close(); }; root.appendChild(x); }
   }
@@ -445,7 +593,7 @@
     clearTimeout(sendT); if (A.MODE !== 'student' || !V) return;
     var x = ''; Object.keys(ST.res || {}).forEach(function (k) { k = +k; while (x.length < k) x += '.'; x = x.slice(0, k) + ST.res[k] + x.slice(k + 1); });
     var at = Object.keys(ST.atk || {}).slice(-12).map(function (k) { return k + '.' + ST.atk[k]; }).join(',');
-    A.record({ id: QID, k: 'open' }, 'r1;id:' + Math.round(V.id / 1000) + ';d:' + ST.dmg + ';h:' + ST.hits + ';n:' + ST.n + ';b:' + ST.best + (at ? ';a:' + at : '') + (x ? ';x:' + x.slice(0, 380) : ''), null);
+    A.record({ id: QID, k: 'open' }, 'r1;id:' + Math.round(V.id / 1000) + ';d:' + ST.dmg + ';h:' + ST.hits + ';n:' + ST.n + ';b:' + ST.best + (at ? ';a:' + at : '') + (ST.hero != null ? ';hr:' + ST.hero : '') + ';sp:' + (ST.spUsed || 0) + ';dg:' + (ST.dg || 0) + ';sn:' + (ST.sn || 0) + (x ? ';x:' + x.slice(0, 340) : ''), null);
   }
   function sendSoon() { clearTimeout(sendT); sendT = setTimeout(send, 2000); }
 
@@ -463,7 +611,8 @@
     if (bossI == null || bossI < 0) bossI = Math.floor(Math.random() * BOSSES.length);
     var seen = {}; who.forEach(function (s) { seen[s] = 1; });
     A.console_().raid = { id: t, state: 1, mode: mode ? 1 : 0, boss: bossI, dur: dur, max: max, hp: max, heal: 0, win: false, per: Math.round(PER * dur / 360), seen: seen,
-      atk: { no: 0, st: 0, q: 0, at: 0, right: 0, of: 0, blocked: 0 }, nextAtk: ATK_FIRST, rows: {}, ev: [], seq: 0, hist: [], lastPush: 0 };
+      atk: { no: 0, st: 0, q: 0, at: 0, right: 0, of: 0, blocked: 0, shielded: 0 }, nextAtk: ATK_FIRST, rows: {}, ev: [], seq: 0, hist: [], lastPush: 0,
+      combo: 1, songEnd: 0, shields: 0, lastHit: {}, tg: { no: 0, st: 0, q: 0, at: 0, sids: [] }, nextTg: 18, tgSeen: {} };
     loadPool(mode ? 1 : 0, function () { A.consolePanel(); });
     A.pushLive(); A.consolePanel();
   }
@@ -476,17 +625,31 @@
     Object.keys(last).forEach(function (sid) {
       var s = String(last[sid].answer), get = function (k) { var m = s.match(new RegExp(';' + k + ':(-?\\d+)')); return m ? +m[1] : 0; };
       var atks = {}; ((s.match(/;a:([0-9.,]*)/) || [, ''])[1]).split(',').filter(Boolean).forEach(function (p) { var q = p.split('.'); atks[q[0]] = +q[1]; });
-      var row = { d: get('d'), h: get('h'), n: get('n'), b: get('b'), a: atks, x: (s.match(/;x:([0-2.]*)/) || [, ''])[1] };
+      var row = { d: get('d'), h: get('h'), n: get('n'), b: get('b'), a: atks, x: (s.match(/;x:([0-2.]*)/) || [, ''])[1], hr: /;hr:\d/.test(s) ? get('hr') : -1, sp: get('sp'), dg: get('dg'), sn: get('sn') };
       // someone who arrived after the start: in the first half the boss gets tougher, so a bigger class still has a fight
       if (!K.seen[sid]) { K.seen[sid] = 1; if (K.state === 1 && !quiet && Date.now() - K.id < K.dur * 500) { var add = Math.min(9999 - K.max, K.per || PER); K.max += add; changed = true; } }
-      var was = K.rows[sid] ? K.rows[sid].d : (quiet ? row.d : 0);
-      if (row.d > was && K.state === 1) fresh.push({ n: nameOf(sid), d: row.d - was, c: row.d - was >= 20 ? 1 : 0 });
+      var old = K.rows[sid] || (quiet ? row : { d: 0, sp: 0, dg: 0, sn: 0 }), was = old.d, nm = nameOf(sid), e0 = elapsed(K);
+      if (K.state === 1) {
+        // specials, dodges and stuns first (each with its own banner), then whatever damage is left as an ordinary hit
+        var h = HEROES[row.hr] || HEROES[0], dsp = Math.max(0, row.sp - (old.sp || 0)), ddg = Math.max(0, row.dg - (old.dg || 0)), dsn = Math.max(0, row.sn - (old.sn || 0));
+        for (var i = 0; i < Math.min(dsp, 3); i++) {
+          fresh.push({ n: nm, d: h.d, k: 10 + HEROES.indexOf(h) });
+          if (h.id === 'knight') K.shields = Math.min(3, (K.shields || 0) + 1);
+          if (h.id === 'bard') K.songEnd = Math.max(K.songEnd || 0, Math.round(e0) + SONG);
+        }
+        for (var j = 0; j < Math.min(ddg, 2); j++) fresh.push({ n: nm, d: DODGE, k: 3 });
+        if (dsn) fresh.push({ n: nm, d: 0, k: 4 });
+        var dd = row.d - was - dsp * h.d - ddg * DODGE;
+        if (dd > 0) fresh.push({ n: nm, d: dd, k: dd >= 20 ? 1 : 0 });
+        if (row.d > was) K.lastHit[sid] = Date.now();
+      }
       if (!K.rows[sid] || K.rows[sid].d !== row.d || K.rows[sid].n !== row.n) changed = true;
       K.rows[sid] = row; tot += row.d;
       if (K.atk.st === 1 && atks[K.atk.no] != null) { ao++; ar += atks[K.atk.no] ? 1 : 0; }
     });
     delete K.restored;
     if (fresh.length) { K.ev = K.ev.concat(fresh).slice(-8); K.seq += fresh.length; changed = true; }
+    if (comboNow(K)) changed = true;
     if (K.atk.st === 1 && (ao !== K.atk.of || ar !== K.atk.right)) { K.atk.of = ao; K.atk.right = ar; changed = true; }
     var hp = Math.max(0, Math.min(K.max, K.max - tot + K.heal));
     if (hp !== K.hp) { K.hp = hp; changed = true; }
@@ -495,6 +658,26 @@
     if (changed) { (A.pushNow || A.pushLive)(); A.consolePanel(); }
   }
   function elapsed(K) { return (Date.now() - K.id) / 1000; }
+  // the class combo: how many different students hit in the last 9 seconds, against how many are raiding
+  function comboNow(K) {
+    var now = Date.now(), hitters = Object.keys(K.lastHit || {}).filter(function (s) { return now - K.lastHit[s] < 9000; }).length, raiders = Math.max(1, Object.keys(K.rows).length);
+    var c = hitters >= 3 && hitters >= raiders * 0.5 ? 3 : hitters >= 2 && hitters >= raiders * 0.25 ? 2 : 1;
+    if (K.state !== 1) c = 1;
+    if (c !== K.combo) { K.combo = c; return true; }
+    return false;
+  }
+  // the boss targets two or three students who are raiding (not the same ones every time)
+  function startTarget() {
+    var K = C(), e = elapsed(K), now = Date.now();
+    var pool = Object.keys(K.rows).filter(function (s) { return now - (K.lastHit[s] || 0) < 120000 || K.rows[s].n > 0; });
+    if (!pool.length) { K.nextTg = e + 15; return; }
+    pool.sort(function (a, b) { return (K.tgSeen[a] || 0) - (K.tgSeen[b] || 0) || Math.random() - 0.5; });
+    var n = Math.min(pool.length, pool.length >= 12 ? 3 : 2), who = pool.slice(0, n);
+    who.forEach(function (s) { K.tgSeen[s] = (K.tgSeen[s] || 0) + 1; });
+    K.tg = { no: K.tg.no + 1, st: 1, q: Math.floor(Math.random() * 9999), at: Math.round(e), sids: who };
+    K.nextTg = e + TG_WIN + 25 + Math.random() * 15;
+    (A.pushNow || A.pushLive)(); A.consolePanel();
+  }
   function startAttack() {
     var K = C(), e = elapsed(K);
     K.atk = { no: K.atk.no + 1, st: 1, q: Math.floor(Math.random() * 9999), at: Math.round(e), right: 0, of: 0, blocked: 0 };
@@ -505,6 +688,7 @@
     var K = C(), a = K.atk;
     a.blocked = a.of > 0 && a.right / a.of >= BLOCK ? 1 : 0;
     var heal = a.blocked ? 0 : Math.round(K.max * 0.1);
+    a.shielded = 0; if (heal && K.shields > 0) { K.shields--; a.shielded = 1; heal = 0; }   // a knight's shield takes it
     if (heal) { K.heal += heal; K.hp = Math.min(K.max, K.hp + heal); }
     a.st = 2; K.hist.push({ no: a.no, q: a.q, right: a.right, of: a.of, blocked: a.blocked, heal: heal });
     (A.pushNow || A.pushLive)(); A.consolePanel();
@@ -518,6 +702,10 @@
       else if (K.atk.st === 0 && e >= K.nextAtk && K.dur - e > ATK_WIN + 10) startAttack();
       else if (K.atk.st === 1 && e >= K.atk.at + ATK_WIN + ATK_GRACE) resolveAttack();
       else if (K.atk.st === 2 && e >= K.atk.at + ATK_WIN + ATK_GRACE + ATK_SHOW) { K.atk.st = 0; (A.pushNow || A.pushLive)(); A.consolePanel(); }
+      // targets: not during a boss attack, and not just before one
+      if (K.tg.st === 1 && e >= K.tg.at + TG_WIN + 4) { K.tg.st = 0; (A.pushNow || A.pushLive)(); }
+      else if (K.tg.st === 0 && K.atk.st === 0 && e >= K.nextTg && K.nextAtk - e > TG_WIN + 6 && K.dur - e > TG_WIN + 8) startTarget();
+      if (comboNow(K)) (A.pushNow || A.pushLive)();
     }
     if (Date.now() - K.lastPush >= 6000) { K.lastPush = Date.now(); (A.pushNow || A.pushLive)(); if (K.state === 1) A.consolePanel(); }
     if (root && V && V.watch) apply(watchState());
@@ -525,19 +713,22 @@
   function counts(out) {
     var K = C(); if (!K) return;
     out.zrid = A.encRun(K.id); out.zrst = A.encRun(K.id + (A.console_().skew || 0));
-    out.zrs = [K.state, K.mode, K.boss, Math.min(9999, K.dur), K.max, Math.max(0, K.hp), K.win ? 1 : 0, Math.min(9999, Object.keys(K.rows).length || Object.keys(K.seen).length), Math.min(9999, K.heal)];
-    out.zra = [K.atk.no, K.atk.st, K.atk.q, Math.min(9999, K.atk.at), K.atk.right, K.atk.of, K.atk.blocked ? 1 : 0];
+    out.zrs = [K.state, K.mode, K.boss, Math.min(9999, K.dur), K.max, Math.max(0, K.hp), K.win ? 1 : 0, Math.min(9999, Object.keys(K.rows).length || Object.keys(K.seen).length), Math.min(9999, K.heal), K.combo || 1, Math.min(9999, K.songEnd || 0), K.shields || 0];
+    out.zra = [K.atk.no, K.atk.st, K.atk.q, Math.min(9999, K.atk.at), K.atk.right, K.atk.of, K.atk.blocked ? 1 : 0, K.atk.shielded ? 1 : 0];
+    out.zrt = [K.tg.no, K.tg.st, K.tg.q, Math.min(9999, K.tg.at)];
   }
   function topOf(K) { return Object.keys(K.rows).map(function (s) { return { n: nameOf(s), d: K.rows[s].d, s: K.rows[s].b }; }).filter(function (t) { return t.d > 0; }).sort(function (a, b) { return b.d - a.d; }).slice(0, 5); }
   function spot() {
     var K = C();
-    return { q: 'zraid', text: ('T:' + topOf(K).map(function (t) { return t.n + '~' + t.d + '~' + t.s; }).join(',') + '#L:' + K.seq + '|' + K.ev.map(function (e) { return clean(e.n) + '~' + e.d + '~' + e.c; }).join(',')).slice(0, 600) };
+    var G = K.tg.st === 1 ? '#G:' + K.tg.sids.map(function (s) { return sh3(s) + '~' + nameOf(s); }).join(',') : '';
+    return { q: 'zraid', text: ('T:' + topOf(K).map(function (t) { return t.n + '~' + t.d + '~' + t.s; }).join(',') + G + '#L:' + K.seq + '|' + K.ev.map(function (e) { return clean(e.n) + '~' + e.d + '~' + e.k; }).join(',')).slice(0, 600) };
   }
   function restore(Lv) {
     var b = raidOf(Lv); if (!b) return false;
     if (b.state === 2 || Date.now() - b.id > b.dur * 1000 + 60000) { A.console_().raid = null; return false; }
     A.console_().raid = { id: b.id, state: b.state, mode: b.mode, boss: b.boss, dur: b.dur, max: b.max, hp: b.hp, heal: b.heal, win: b.win, per: Math.round(PER * b.dur / 360), seen: {},
-      atk: { no: b.atk.no, st: b.atk.st, q: b.atk.q, at: b.atk.at, right: b.atk.right, of: b.atk.of, blocked: b.atk.blocked ? 1 : 0 }, nextAtk: Math.max(ATK_FIRST, b.atk.at + ATK_WIN + ATK_EVERY), rows: {}, ev: [], seq: b.seq, hist: [], lastPush: 0, restored: true };
+      atk: { no: b.atk.no, st: b.atk.st, q: b.atk.q, at: b.atk.at, right: b.atk.right, of: b.atk.of, blocked: b.atk.blocked ? 1 : 0, shielded: b.atk.shielded ? 1 : 0 }, nextAtk: Math.max(ATK_FIRST, b.atk.at + ATK_WIN + ATK_EVERY), rows: {}, ev: [], seq: b.seq, hist: [], lastPush: 0, restored: true,
+      combo: 1, songEnd: b.songEnd, shields: b.shields, lastHit: {}, tg: { no: b.tg.no, st: 0, q: 0, at: 0, sids: [] }, nextTg: Math.round((Date.now() - b.id) / 1000) + 20, tgSeen: {} };
     loadPool(b.mode, function () { A.consolePanel(); });
     return true;
   }
@@ -565,6 +756,8 @@
     sec.appendChild(H('h3', '', '👹 Boss Raid · ' + esc(MODES[K.mode]) + ' · ' + B.e + ' ' + esc(B.name)));
     var left = Math.max(0, Math.round(K.dur - elapsed(K))), raiders = Object.keys(K.rows).length;
     sec.appendChild(H('p', '', (K.state === 1 ? '<b>' + Math.floor(left / 60) + ':' + ('0' + left % 60).slice(-2) + '</b> left · ' : K.win ? '<b>🏆 Boss defeated!</b> · ' : '<b>Time: it got away.</b> ') + 'HP <b>' + Math.max(0, K.hp) + ' / ' + K.max + '</b> · ' + raiders + ' raider' + (raiders === 1 ? '' : 's') + (K.atk.st === 1 ? ' · ⚠️ attack on: ' + K.atk.right + ' of ' + K.atk.of + ' right so far' : '')));
+    var hc = [0, 0, 0, 0]; Object.keys(K.rows).forEach(function (sid) { if (K.rows[sid].hr >= 0) hc[K.rows[sid].hr % 4]++; });
+    sec.appendChild(H('p', 'muted', 'Heroes: ' + HEROES.map(function (h, i) { return h.e + ' ' + hc[i]; }).join(' · ') + (K.combo > 1 ? ' · ⚡ combo x' + CMUL[K.combo] : '') + (K.shields ? ' · 🛡️ ' + K.shields + ' shield' + (K.shields > 1 ? 's' : '') : '') + (K.tg.st === 1 ? ' · 🎯 targeting ' + K.tg.sids.map(nameOf).join(', ') : '')));
     var r = H('div', 'row');
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: '👁 Show the boss', title: 'The boss on this screen', onclick: function () { watch(); } }));
     if (K.state === 1 && K.atk.st === 0 && K.dur - elapsed(K) > ATK_WIN + 10) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: '⚠️ Boss attack now', onclick: function () { startAttack(); } }));
