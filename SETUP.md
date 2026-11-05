@@ -178,7 +178,7 @@ The XP is saved with the student's arcade results (as a hidden entry, `g99`, in 
 
 ## 👕 Avatars, coins, the Wardrobe and the fashion show
 
-Every student has an avatar: a little character with a colour, eyes, mouth, hat, extra, trail and name colour. They dress it in the **👕 Wardrobe** (`avatar.html`, in the student menu, and on the first slide of every live lesson).
+Every student has an avatar: a little character with a colour, character type (blob, cat, bear, bunny, frog, capybara, axolotl, robot, ghost, dragon and more), eyes, mouth, hat, extra, trail, pet and name colour. They dress it in the **👕 Wardrobe** (`avatar.html`, in the student menu, and on the first slide of every live lesson).
 
 - **Coins count everything done so far:** 5 per arcade game level, 40 per standard certificate and 25 per special one, 1 per 5 XP from Boss Raid, Lane Clash and the Big Board, 2 per lesson answer (+1 if right, +5 per lesson joined), and 5 per secure Climb skill plus 2 per Climb session. The Wardrobe shows where each student's coins came from. Lesson answers made on another computer are fetched once and then count everywhere.
 - **Spending:** basic parts are free; the rest cost coins, and the best need an arcade level (crown at level 5, halo at 7, gold name at 8 and so on). What students own and wear saves with their arcade results, so it follows them to any computer.

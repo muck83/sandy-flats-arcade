@@ -27,7 +27,7 @@
       '.wd .wdgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}',
       '.wd .wdit{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;border:2px solid #3A3550;background:#24202F;color:#F3EFE7;cursor:pointer;font:inherit}',
       '.wd .wdit:hover{border-color:#B48CFF}.wd .wdit.on{border-color:#3BFF8A;box-shadow:0 0 0 2px rgba(59,255,138,.3)}.wd .wdit.try{border-color:#FFC94A}.wd .wdit.lock{opacity:.6}',
-      '.wd .wdit b{font-size:13px;line-height:1.1}.wd .wdit small{font-size:12px;font-weight:800;color:#FFC94A}.wd .wdit small.own{color:#3BFF8A}.wd .wdit small.lk{color:#ABA5BC}',
+      '.wd .wdnm{display:flex;align-items:center;min-height:64px;font:400 24px "Luckiest Guy",system-ui}.wd .wdit b{font-size:13px;line-height:1.1}.wd .wdit small{font-size:12px;font-weight:800;color:#FFC94A}.wd .wdit small.own{color:#3BFF8A}.wd .wdit small.lk{color:#ABA5BC}',
       '.wd .wdbuy{position:sticky;bottom:0;margin-top:12px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:#2a2140;border:2px solid #FFC94A}',
       '.wd .wdbuy span{flex:1 1 200px;font-weight:700}.wd .wdbtn{padding:9px 16px;border-radius:12px;border:0;background:#FFC94A;color:#231800;font-weight:800;cursor:pointer}.wd .wdbtn:disabled{opacity:.45;cursor:default}.wd .wdbtn.ghost{background:transparent;color:#F3EFE7;border:2px solid #3A3550}'
     ].join('\n');
@@ -86,7 +86,7 @@
         var own = AV.owns(P, cat, i), lock = (it.lv || 0) > lv, pr = AV.itemPrice(cat, i), on = cur[cat] === i, tr = L[cat] === i && !on;
         var t = {}; AV.ORDER.forEach(function (k) { t[k] = cur[k]; }); t[cat] = i;
         var c = SFA.el('button', { type: 'button', 'class': 'wdit' + (on ? ' on' : '') + (tr ? ' try' : '') + (lock ? ' lock' : ''), 'aria-label': it.n });
-        c.innerHTML = AV.svg(AV.encode(t), { size: 64 }) + '<b>' + esc(it.n) + '</b>' + (on ? '<small class="own">✓ Wearing</small>' : own ? '<small class="own">Owned</small>' : lock ? '<small class="lk">🔒 Level ' + it.lv + '</small>' : '<small>🪙 ' + pr + '</small>');
+        c.innerHTML = (cat === 'n' ? '<span class="wdnm ' + AV.nameCls(AV.encode(t)) + '">' + esc(first()) + '</span>' : AV.svg(AV.encode(t), { size: 64 })) + '<b>' + esc(it.n) + '</b>' + (on ? '<small class="own">✓ Wearing</small>' : own ? '<small class="own">Owned</small>' : lock ? '<small class="lk">🔒 Level ' + it.lv + '</small>' : '<small>🪙 ' + pr + '</small>');
         c.onclick = function () {
           if (own) { P.look = AV.encode(t); tryLook = null; AV.save(P); if (opt.onChange) opt.onChange(P); draw(); }
           else { tryLook = AV.encode(t); draw(); }
