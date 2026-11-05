@@ -176,6 +176,21 @@ Levels: 2 at 150 XP, 3 at 450, 4 at 900, 5 at 1,500, then on up (10 at 6,750), w
 
 The XP is saved with the student's arcade results (as a hidden entry, `g99`, in the Progress tab), so it follows them to another computer when they sign in. It adds nothing to their levels or certificates.
 
+## 👕 Avatars, coins, the Wardrobe and the fashion show
+
+Every student has an avatar: a little character with a colour, eyes, mouth, hat, extra, trail and name colour. They dress it in the **👕 Wardrobe** (`avatar.html`, in the student menu, and on the first slide of every live lesson).
+
+- **Coins count everything done so far:** 5 per arcade game level, 40 per standard certificate and 25 per special one, 1 per 5 XP from Boss Raid, Lane Clash and the Big Board, 2 per lesson answer (+1 if right, +5 per lesson joined), and 5 per secure Climb skill plus 2 per Climb session. The Wardrobe shows where each student's coins came from. Lesson answers made on another computer are fetched once and then count everywhere.
+- **Spending:** basic parts are free; the rest cost coins, and the best need an arcade level (crown at level 5, halo at 7, gold name at 8 and so on). What students own and wear saves with their arcade results, so it follows them to any computer.
+- **Prices from the class's totals:** on the **Class results** page there's a 🪙 Coins column, a "median coins earned" tile, and a **👕 Wardrobe prices** card. The prices are designed for a class whose middle student has about 1,000 coins. Press **Set the prices from these totals** and the prices scale to your class's real median (pick a class first if you teach several). The setting is saved on that computer and reaches students the next time you go live in a lesson.
+- **The lobby (first slide of a live lesson):** students see their avatar, their coins, a **👕 Wardrobe** button, and **🕺 Strut across every screen** (25 coins at the standard prices, once every 20 seconds). A strut walks their avatar across the bottom of every screen with their name. The class screen shows everyone who has joined as a line of avatars with names, so you can see who's in at a glance.
+- **👗 Fashion show:** on the console (any slide, when no game is on), **Start the fashion show** walks every student who's here down a catwalk on the class screen and every device: their avatar, name, level, title and what they're wearing, about 5 seconds each (4, 5 or 7), then a group bow. The student on the runway gets "You're on the runway!" on their own screen; everyone else can tap 👏. **⏭ Next** skips ahead and **End the show** stops it.
+- **Lane Clash team intros:** the "The teams" card at the start of a Clash shows each player's avatar above their name, marching in.
+
+## 🏆 Trophy shelf
+
+`trophies.html` (🏆 Trophies in the teacher menu, and a button next to the fashion show) shows every Boss Raid, Big Board and Lane Clash the class has played this term: bosses beaten, boards cleared, Clash winners and the team with the most wins, plus a class goal bar. Trophies are added automatically when a game ends on your console and are kept on that computer (use the same computer for the console, or download the CSV). Pick a class at the top; **📺 Big for the projector** makes the cards bigger.
+
 ## ⏪ The Rewind arc (catch-up before Lesson 12)
 
 Lesson 12 leans on slope, graphing lines and solving. The Rewind arc revisits them inside the story: Gus is frozen mid-word after *The Undoer*, and the team rides Effie's Rewinder back through time to hear the rest of his sentence. Each Rewind is a full lesson with its own film, listed between Lesson 11 and Lesson 12.

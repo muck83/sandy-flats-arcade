@@ -818,7 +818,7 @@
     a.st = 2; K.hist.push({ no: a.no, q: a.q, right: a.right, of: a.of, blocked: a.blocked, heal: heal });
     (A.pushNow || A.pushLive)(); A.consolePanel();
   }
-  function end() { var K = C(); if (!K) return; K.state = 2; if (K.atk.st) K.atk.st = 0; K.endedAt = Date.now(); A.pushLive(); A.consolePanel(); }
+  function end() { var K = C(); if (!K) return; if (K.state === 1 && A.trophy) { var TB = BOSSES[K.boss % BOSSES.length]; A.trophy({ k: 'raid', id: K.id, win: !!K.win, boss: TB.e + ' ' + TB.name, mode: MODES[K.mode], left: K.max ? Math.round(100 * Math.max(0, K.hp) / K.max) : 0, n: Object.keys(K.rows).length }); } K.state = 2; if (K.atk.st) K.atk.st = 0; K.endedAt = Date.now(); A.pushLive(); A.consolePanel(); }
   /* catch-up both ways. Crushing it: the boss gets a second wind and heals. Too slow: a class hitting too slowly to finish gets a weaker boss. From the last minute's damage rate, if the boss
      wouldn't fall by 90% of the time, its health drops to what would (at most 35% at a time; never tougher). */
   function catchUp(e, early) {

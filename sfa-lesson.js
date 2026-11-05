@@ -225,7 +225,7 @@
   function record(s, answer, correct) {
     if (correct === true && still.slide === cur && !String(s.id).match(/x[1-3]$/)) { stillNote(); if (still.max >= 15000 && Date.now() - still.end < 8000) watchBump(6, 1); }
     mine[s.id] = { answer: String(answer), correct: correct, sent: false, kind: s.k, run: liveRun() };
-    saveLocal(); flush(); refreshDots(); clearTimeout(watchT); watchT = setTimeout(watchSend, 15000 + Math.random() * 10000);
+    saveLocal(); flush(); refreshDots(); if (!/^z/.test(s.id)) heroLes(); clearTimeout(watchT); watchT = setTimeout(watchSend, 15000 + Math.random() * 10000);
     setTimeout(function () { if (slideEl && slideEl.scrollHeight > slideEl.clientHeight + 4) slideEl.scrollTo({ top: slideEl.scrollHeight, behavior: 'smooth' }); }, 120);
   }
   function flush() {
@@ -413,6 +413,7 @@
       if (s.kicker) w.appendChild(H('p', 'kick', fmt(s.kicker)));
       w.appendChild(H('h1', '', fmt(s.title || LES.title)));
       if (s.sub) w.appendChild(H('p', 'sub', fmt(s.sub)));
+      if (LES.slides[0] === s) lobbyPanel(d);
     },
     signin: function (s, d, show) {
       var w = head(s, d); w.appendChild(H('h2', '', fmt(s.title || 'Before we start')));
@@ -734,7 +735,7 @@
 
 
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261105d', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261105i', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }
@@ -757,7 +758,7 @@
   // the server's clock as seen from here: live.at is server time when the console last updated; the closest sample wins
   function noteSkew() { if (MODE !== 'student' || !live || !live.at) return; var k = live.at - Date.now(); if (srvSkewV == null || k > srvSkewV || k < srvSkewV - 30000) srvSkewV = k; }
   // 🔠 the Big Board (sfa-board.js): the class crossword at the start of a lesson, loaded and synced like the Clash
-  var BOARD_V = '20261105d', boardLoading = null;
+  var BOARD_V = '20261105i', boardLoading = null;
   function boardAssets(cb) {
     if (window.SFA_BOARD) return cb();
     if (boardLoading) { boardLoading.push(cb); return; }
@@ -782,7 +783,7 @@
   }
   function boardSection(p) {
     if (window.SFA_BOARD && console_.board) return SFA_BOARD.section(p);
-    if (cur > 3 || console_.clash || console_.raid) return;   // it's a starter: offered on the first slides of the lesson
+    if (cur > 3 || console_.clash || console_.raid || console_.show) return;   // it's a starter: offered on the first slides of the lesson
     var sec = H('div', 'sect');
     sec.appendChild(H('h3', '', '🔠 Start with the Big Board? (optional, about 6 minutes)'));
     sec.appendChild(H('p', 'muted', 'A class crossword: every student here gets their own word. Right answers to quick review questions from earlier lessons earn letter guesses (a vowel costs two). Solved words fill the crossword on the class screen and give free letters to the words that cross them. If every word is found, the whole class celebrates.'));
@@ -800,6 +801,10 @@
   function clashSync() {
     if (MODE === 'teach') return;
     noteSkew();
+    priceSync();
+    lookSync();
+    lobbySync();
+    showSync();
     boardSync();
     raidSync();
     if (window.SFA_CLASH) return SFA_CLASH.sync();
@@ -810,7 +815,7 @@
     if (window.SFA_CLASH && console_.clash) return SFA_CLASH.section(p);
     var sl = LES.slides[cur];
     if (!(sl && (sl.k === 'exit' || sl.k === 'end'))) return;   // an optional finale: it shows up at the end of the lesson
-    if (console_.board || console_.raid) return;   // one game at a time: the Big Board or a Boss Raid is still on
+    if (console_.board || console_.raid || console_.show) return;   // one game at a time: the Big Board or a Boss Raid is still on
     var sec = H('div', 'sect');
     sec.appendChild(H('h3', '', '⚔️ Finish with a Lane Clash? (optional, 5 minutes)'));
     sec.appendChild(H('p', 'muted', 'Plants vs Zombies, team against team, with the Sandy Flats characters. Fair teams (balanced on what each student did in today\'s lesson), then 30 seconds of rules on every screen. Students answer this lesson\'s questions for coins, send characters down 5 lanes and plant defenders, and grab the other team\'s gold. Good lesson participation starts them with more coins and a higher hero level. The class screen shows the whole battle.'));
@@ -852,13 +857,43 @@
     SFA.store.set(HERO_KEY, P);
     var I = heroInfo(P.xp);
     // to the Sheet only now and then (a level, a finishing bonus, or every 90 s), so a busy class doesn't add a save per answer
-    if (once || I.lv > lv0 || Date.now() - heroSent > 90000) {
-      heroSent = Date.now();
-      try { if (S.report) S.report(HERO_KEY, P, { levels: [], levelsDone: 0, levelsTotal: 0, coreDone: 0, coreTotal: 0, standard: false, specials: [], assisted: 0, tickets: 0 }); } catch (e) { }
-    }
+    heroReport(P, once || I.lv > lv0);
     heroChip(amt, I);
     if (I.lv > lv0) heroLevelUp(I);
     return amt;
+  }
+  function heroReport(P, force) {
+    if (!force && Date.now() - heroSent < 90000) return;
+    heroSent = Date.now();
+    try { if (S && S.report) S.report(HERO_KEY, P, { levels: [], levelsDone: 0, levelsTotal: 0, coreDone: 0, coreTotal: 0, standard: false, specials: [], assisted: 0, tickets: Math.min(9999, P.xp || 0) }); } catch (e) { }
+  }
+  // 👕 lesson answers count towards the wardrobe's coins on any computer: keep this lesson's count in the profile
+  function heroLes() {
+    if (MODE !== 'student' || !S || !S.me) return;
+    var n = 0, r = 0; Object.keys(mine).forEach(function (q) { var a = mine[q]; if (/^z|^here$/.test(q) || !a || !a.answer) return; n++; if (a.correct === true || a.correct === 'yes') r++; });
+    var P = heroP(); P.les = P.les || {}; var o = P.les[LID] || {};
+    if (o.n === n && o.r === r) return;
+    P.les[LID] = { n: n, r: r }; SFA.store.set(HERO_KEY, P); heroReport(P, false);
+  }
+  // 👗 my avatar goes to the console once a lesson (for the fashion show and the Lane Clash team intros)
+  var lookKey = '';
+  function lookSync() {
+    if (MODE !== 'student' || !S || !S.me || !saving || !isLive() || !window.SFA_AVATAR) return;
+    var P = heroP(), look = P.look || SFA_AVATAR.defLook(S.me.sid), lv = heroLv(P.xp || 0), k = liveRun() + ':' + look + ':' + lv;
+    if (k === lookKey) return; lookKey = k;
+    record({ id: 'zlookx1', k: 'open' }, 'lk1;' + look + ';' + lv, null);
+  }
+  // 🪙 wardrobe prices, set by the teacher from the class's coin totals, ride along in the live state
+  function priceSync() { var v = live && live.counts && Array.isArray(live.counts.zpr) ? +live.counts.zpr[0] : 0; if (v > 0 && SFA.store.get('teacher.avprice', 0) !== v) SFA.store.set('teacher.avprice', v); }
+  // 🏆 the trophy shelf (trophies.html): every boss beaten, board cleared and Clash won, kept on the teacher's computer
+  function trophy(o) {
+    if (MODE !== 'teach') return;
+    var cl = {}; rosterIn().forEach(function (r) { if (r.cls) cl[r.cls] = (cl[r.cls] || 0) + 1; });
+    var top = Object.keys(cl).sort(function (a, b) { return cl[b] - cl[a]; })[0] || '';
+    var T = SFA.store.get('teacher.trophies', []) || [];
+    if (o.id && T.some(function (t) { return t.id === o.id && t.k === o.k; })) return;
+    T.push(Object.assign({ t: Date.now(), lesson: LID, label: LES ? (LES.label || 'Lesson ' + LES.n) : LID, cls: top }, o));
+    SFA.store.set('teacher.trophies', T.slice(-300));
   }
   var chipT = 0;
   function heroChip(amt, I) {
@@ -878,7 +913,171 @@
   }
   var HERO = { add: heroAdd, info: heroInfo, need: heroNeed, unlock: HERO_UNLOCK, title: heroTitle };
 
-  var RAID_V = '20261105h', raidLoading = null;
+
+  /* ---------- 👕 the lobby: the first slide while the class joins ----------
+     Students dress their avatar (the Wardrobe, sfa-wardrobe.js) and can pay coins to strut across every screen.
+     The class screen shows everyone who has joined as a line of avatars, so the teacher sees who's in.
+     Sync: each student's look comes in "zlookx1" (lookSync); a strut is a "zstrutx1" row ("st1;<count>;<look>;<level>").
+     The console puts the line-up and the current strut in the spotlight (q "zlobby": "J:name~look,…#S:seq~name~look")
+     whenever nothing else is using it. */
+  (function () {
+    if (document.getElementById('sfaLobbyCss')) return;
+    var c = document.createElement('style'); c.id = 'sfaLobbyCss';
+    c.textContent = [
+      '.lobby{margin-top:14px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 16px}',
+      '.lobby .lbme{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:18px;background:rgba(0,0,0,.25)}',
+      '.lobby .lbme b{font-size:1.1em}.lobby .lbme small{display:block;color:#FFC94A;font-weight:800}',
+      '.lobbystrip{width:100%;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:4px 6px;margin-top:6px}',
+      '.lobbystrip .lbav{display:flex;flex-direction:column;align-items:center;font-weight:800;font-size:.72em;line-height:1.1;animation:lbin .5s cubic-bezier(.2,1.6,.4,1) both}',
+      '.lobbystrip .lbn{font-weight:800}.lobbystrip h3{width:100%;text-align:center;margin:0 0 2px}',
+      '@keyframes lbin{from{transform:translateY(20px) scale(.5);opacity:0}to{transform:none;opacity:1}}',
+      '.strut{position:fixed;bottom:4px;left:0;z-index:95;pointer-events:none;display:flex;flex-direction:column;align-items:center;animation:strutgo 6.5s linear forwards}',
+      '.strut b{margin-top:-6px;padding:2px 12px;border-radius:99px;background:rgba(20,10,30,.85);border:2px solid #FFC94A;font:400 20px "Luckiest Guy",system-ui;white-space:nowrap}',
+      '.strut .av{filter:drop-shadow(0 8px 12px rgba(0,0,0,.5))}',
+      '@keyframes strutgo{0%{transform:translateX(-200px)}45%,55%{transform:translateX(calc(50vw - 70px)) scale(1.08)}100%{transform:translateX(calc(100vw + 60px))}}',
+      '.wdov{position:fixed;inset:0;z-index:93;overflow:auto;background:rgba(10,8,16,.96);padding:14px 16px 30px}',
+      '.wdov .wdovtop{display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:1180px;margin:0 auto 10px}',
+      '.wdov .wdovtop h2{margin:0;font:400 28px "Luckiest Guy",system-ui;color:#FFE14D}.wdov .wd{max-width:1180px;margin:0 auto}',
+      '@media (prefers-reduced-motion:reduce){.strut{animation-duration:9s}.lobbystrip .lbav{animation:none}}'
+    ].join('\n');
+    document.head.appendChild(c);
+  })();
+  function lobbyPanel(d) {
+    var box = H('div', 'lobby'); d.appendChild(box);
+    function draw() {
+      box.innerHTML = '';
+      if (MODE !== 'student') { var st = H('div', 'lobbystrip'); box.appendChild(st); lobbyDraw(st); return; }
+      if (!window.SFA_AVATAR || !saving || !S.me) return;
+      var P = SFA_AVATAR.profile(), look = SFA_AVATAR.myLook(P, S.me.sid), W = window.SFA_WARDROBE ? SFA_WARDROBE.wallet(P) : null, pr = SFA_AVATAR.strutPrice();
+      var me = H('div', 'lbme', SFA_AVATAR.svg(look, { size: 64, walk: true }) + '<div><b class="' + SFA_AVATAR.nameCls(look) + '">' + esc(first(S.me.name)) + '</b>' + (W ? '<small>🪙 ' + W.left + ' coins</small>' : '') + '</div>');
+      box.appendChild(me);
+      var wb = el('button', { type: 'button', 'class': 'btn primary', text: '👕 Wardrobe' }); wb.onclick = openWardrobe; box.appendChild(wb);
+      var sb = el('button', { type: 'button', 'class': 'btn', text: '🕺 Strut across every screen · 🪙 ' + pr });
+      var wait = Math.max(0, (lobby.strutAt || 0) + 20000 - Date.now());
+      sb.disabled = !isLive() || !W || W.left < pr || wait > 0;
+      sb.title = !isLive() ? 'Struts work while the lesson is live' : W && W.left < pr ? 'You need ' + (pr - W.left) + ' more coins' : '';
+      sb.onclick = strut; box.appendChild(sb);
+      if (wait > 0) setTimeout(function () { if (box.isConnected) draw(); }, wait + 50);
+    }
+    d._upd = function () { draw(); };
+    box._draw = draw; draw();
+    if (MODE === 'student' && window.SFA_WARDROBE && S.me) setTimeout(function () { SFA_WARDROBE.mount(document.createElement('div'), {}); setTimeout(draw, 4000); }, 1500 + Math.random() * 12000);   // the wallet: fetch the server's totals (spread out, so a class doesn't all ask at once)
+  }
+  var lobby = { strutAt: 0, seen: -1, joined: [] };
+  function openWardrobe() {
+    if (!window.SFA_WARDROBE) return;
+    var ov = H('div', 'wdov'), top = H('div', 'wdovtop', '<h2>👕 Wardrobe</h2>'), x = el('button', { type: 'button', 'class': 'btn primary', text: '✓ Done' });
+    top.appendChild(x); ov.appendChild(top); var box = H('div'); ov.appendChild(box); document.body.appendChild(ov);
+    x.onclick = function () { ov.remove(); lookKey = ''; lookSync(); if (slideEl && slideEl._upd) slideEl._upd(); };
+    SFA_WARDROBE.mount(box, {});
+  }
+  function strut() {
+    if (!window.SFA_WARDROBE || !isLive() || Date.now() - (lobby.strutAt || 0) < 20000) return;
+    var P = SFA_AVATAR.profile(), W = SFA_WARDROBE.wallet(P), pr = SFA_AVATAR.strutPrice(); if (W.left < pr) return;
+    P.spent = (P.spent || 0) + pr; P.struts = (P.struts || 0) + 1; SFA_AVATAR.save(P); lobby.strutAt = Date.now();
+    var look = SFA_AVATAR.myLook(P, S.me.sid);
+    record({ id: 'zstrutx1', k: 'open' }, 'st1;' + P.struts + ';' + look + ';' + heroLv(P.xp || 0), null);
+    SFA.toast('🕺 You\'re up! Your avatar struts across every screen in a few seconds.', 3500);
+    if (slideEl && slideEl._upd) slideEl._upd();
+  }
+  function strutFx(name, look) {
+    if (!window.SFA_AVATAR) return;
+    var f = H('div', 'strut', SFA_AVATAR.svg(look, { size: MODE === 'screen' ? 150 : 110, walk: true }) + '<b class="' + SFA_AVATAR.nameCls(look) + '">' + esc(name) + '</b>');
+    document.body.appendChild(f); setTimeout(function () { f.remove(); }, 6700);
+  }
+  function lobbyDraw(st) {
+    st = st || (slideEl && slideEl.querySelector('.lobbystrip')); if (!st || !window.SFA_AVATAR) return;
+    var J = lobby.joined, key = J.map(function (j) { return j.n + j.look; }).join(','); if (st._k === key) return; st._k = key;
+    var sz = J.length > 24 ? 40 : J.length > 12 ? 52 : 64;
+    st.innerHTML = '<h3>👋 ' + (J.length ? J.length + ' here' : 'Waiting for the class to join…') + '</h3>' + J.map(function (j) { return '<div class="lbav">' + SFA_AVATAR.svg(j.look, { size: sz }) + '<span class="lbn ' + SFA_AVATAR.nameCls(j.look) + '">' + esc(j.n) + '</span></div>'; }).join('');
+  }
+  function lobbyOf(sp) {
+    var o = { joined: null, seq: -1, name: '', look: '' };
+    if (!sp || sp.q !== 'zlobby') return o;
+    String(sp.text || '').split('#').forEach(function (part) {
+      var k = part.slice(0, 2), v = part.slice(2);
+      if (k === 'J:') o.joined = v ? v.split(',').map(function (x) { var q = x.split('~'); return { n: q[0], look: q[1] || '' }; }) : [];
+      if (k === 'S:') { var q = v.split('~'); o.seq = +q[0]; o.name = q[1] || ''; o.look = q[2] || ''; }
+    });
+    return o;
+  }
+  // students and the class screen: the line-up and any strut
+  function lobbySync() {
+    if (MODE === 'teach' || !(isLive() || MODE === 'screen')) return;
+    var o = lobbyOf(live && live.spot);
+    if (o.joined) { lobby.joined = o.joined; lobbyDraw(); }
+    if (o.seq >= 0) { if (lobby.seen >= 0 && o.seq > lobby.seen) strutFx(o.name, o.look); lobby.seen = Math.max(lobby.seen, o.seq); }
+    else if (lobby.seen < 0) lobby.seen = 0;
+  }
+  // the console: who's here and their looks, and the strut queue
+  function lobbyAgg() {
+    if (MODE !== 'teach' || !console_.on) return;
+    var K = console_.lobby || (console_.lobby = { seen: {}, q: [], cur: null, seq: 0, at: 0, start: Date.now() });
+    var ids = {}; rosterIn().forEach(function (r) { ids[r.sid] = r; });
+    var looks = {}, here = {}, strs = {};
+    ((console_.data && console_.data.answers) || []).forEach(function (a) {
+      if (!ids[a.sid]) return;
+      if (!beforeRun(a)) here[a.sid] = 1;
+      if (a.q === 'zlookx1') { var m = String(a.answer).match(/^lk1;([0-9a-z]{1,12})/); if (m && (!looks[a.sid] || String(a.time) >= looks[a.sid].t)) looks[a.sid] = { look: m[1], t: String(a.time) }; }
+      if (a.q === 'zstrutx1') { var m2 = String(a.answer).match(/^st1;(\d+);([0-9a-z]{1,12})/); if (m2 && (!strs[a.sid] || +m2[1] > strs[a.sid].n)) strs[a.sid] = { n: +m2[1], look: m2[2], t: Date.parse(a.time) || 0 }; }
+    });
+    var nm = function (sid) { return String(first(ids[sid].name) || '').replace(/[^A-Za-zÀ-ÿ' -]/g, '').slice(0, 10); };
+    Object.keys(strs).forEach(function (sid) {
+      var x = strs[sid], was = K.seen[sid];
+      if (was == null) { K.seen[sid] = x.n; if (x.t > K.start - 30000) K.q.push({ n: nm(sid), look: x.look }); return; }   // a strut from before the console opened plays only if it's recent
+      if (x.n > was) { K.seen[sid] = x.n; K.q.push({ n: nm(sid), look: x.look }); }
+    });
+    var J = Object.keys(here).map(function (sid) { return { n: nm(sid), look: looks[sid] ? looks[sid].look : (window.SFA_AVATAR ? SFA_AVATAR.defLook(sid) : '0000000') }; }).sort(function (a, b) { return a.n.localeCompare(b.n); });
+    var jk = JSON.stringify(J); if (jk !== K.jk) { K.jk = jk; lobby.joined = J; lobbyDraw(); pushLive(); }
+    lobbyTick();
+  }
+  function lobbyTick() {
+    var K = console_.lobby; if (!K || MODE !== 'teach') return;
+    if (K.cur && Date.now() - K.at < 7000) return;
+    if (K.cur) { K.cur = null; }
+    if (K.q.length && !lobbyBusy()) { K.cur = K.q.shift(); K.seq++; K.at = Date.now(); strutFx(K.cur.n, K.cur.look); pushLive(); }
+  }
+  function lobbyBusy() { return !!(console_.board || console_.clash || console_.raid || console_.show || console_.spot); }
+  function lobbySpot() {
+    var K = console_.lobby; if (!K || lobbyBusy()) return null;
+    var S2 = K.cur ? '#S:' + K.seq + '~' + K.cur.n + '~' + K.cur.look : '#S:' + K.seq, J = '';
+    if (cur <= 1) { var list = []; (lobby.joined || []).forEach(function (j) { var t = j.n.replace(/[~,#|]/g, '') + '~' + j.look; if ((list.join(',') + t).length < 560 - S2.length) list.push(t); }); J = 'J:' + list.join(','); }
+    return { q: 'zlobby', text: (J + S2).slice(0, 600) };
+  }
+  every(function () { if (MODE === 'teach' && console_.on) lobbyTick(); }, 1000);
+
+  // 👗 the fashion show (sfa-show.js): every student's avatar on the catwalk, on the class screen and every device
+  var SHOW_V = '20261105a', showLoading = null;
+  function showAssets(cb) {
+    if (window.SFA_SHOW) return cb();
+    if (showLoading) { showLoading.push(cb); return; }
+    showLoading = [cb];
+    var sc5 = document.createElement('script'); sc5.src = 'sfa-show.js?v=' + SHOW_V;
+    sc5.onload = function () { var q = showLoading; showLoading = null; q.forEach(function (f) { try { f(); } catch (e) { console.warn(e); } }); };
+    sc5.onerror = function () { showLoading = null; SFA.toast('The fashion show couldn\'t load. Check the connection.', 4000); };
+    document.head.appendChild(sc5);
+  }
+  function hasShow(L) { return !!(L && L.lesson === LID && L.counts && Array.isArray(L.counts.zfs)); }
+  function showSync() {
+    if (window.SFA_SHOW) return SFA_SHOW.sync();
+    if ((isLive() || MODE === 'screen') && hasShow(live) && live.counts.zfs[0] === 1 && !(MODE === 'student' && saving && !S.me)) showAssets(function () { SFA_SHOW.sync(); });
+  }
+  function showSection(p) {
+    if (console_.board || console_.clash || console_.raid) return;
+    if (window.SFA_SHOW && console_.show) return SFA_SHOW.section(p);
+    var sec = H('div', 'sect');
+    sec.appendChild(H('h3', '', '👗 Avatar fashion show (optional)'));
+    sec.appendChild(H('p', 'muted', 'Every student here walks the catwalk on the class screen (and on every device) in the avatar they built in the Wardrobe: their name, level and look, one after another. About 5 seconds each.'));
+    var len = el('select', { 'aria-label': 'Seconds each' }), s0 = SFA.store.get('teacher.show.secs', 5);
+    [4, 5, 7].forEach(function (m) { var o = el('option', { value: String(m), text: m + ' seconds each' }); if (m === s0) o.selected = true; len.appendChild(o); });
+    len.onchange = function () { SFA.store.set('teacher.show.secs', +len.value); };
+    var sb = el('button', { type: 'button', 'class': 'btn primary', text: '👗 Start the fashion show' });
+    if (!console_.on) { sb.disabled = true; sec.appendChild(H('p', 'state', 'Go live first, and wait for students to join.')); }
+    sb.onclick = function () { sb.disabled = true; showAssets(function () { SFA_SHOW.start(+len.value); }); };
+    var rw = H('div', 'row'); rw.appendChild(len); rw.appendChild(sb); rw.appendChild(el('a', { href: 'trophies.html', target: '_blank', 'class': 'btn', text: '🏆 Trophy shelf' })); sec.appendChild(rw); p.appendChild(sec);
+  }
+
+  var RAID_V = '20261105i', raidLoading = null;
   function raidAssets(cb) {
     if (window.SFA_RAID) return cb();
     if (raidLoading) { raidLoading.push(cb); return; }
@@ -903,7 +1102,7 @@
   }
   function raidSection(p) {
     if (window.SFA_RAID && console_.raid) return SFA_RAID.section(p);
-    if (console_.board || console_.clash) return;   // one game at a time
+    if (console_.board || console_.clash || console_.show) return;   // one game at a time
     var sl = LES.slides[cur], atEnd = !!(sl && (sl.k === 'exit' || sl.k === 'end'));
     if (!(cur <= 3 || atEnd)) return;   // a review at the start of the lesson, an exit ticket at the end
     var sec = H('div', 'sect');
@@ -1134,7 +1333,7 @@
     }, 15000);
     if (!console_.offline) tpost('live').then(function (j) {
       console_.climb = j.climb || null;
-      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid')) console_.spot = null; if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
+      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid' || console_.spot.q === 'zshow')) console_.spot = null; if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
       // opened from the Climb dashboard ("End Climb → Lesson N"): go live straight away, so students' pages move into this lesson
       else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
       else consolePanel();
@@ -1154,7 +1353,7 @@
       if (my < applied) return;   // only an older reply than one already shown is dropped
       applied = my; console_.got = Date.now(); var js = JSON.stringify(j), wasErr = !!console_.err;
       console_.err = ''; if (js === lastData && !wasErr) return; lastData = js;
-      console_.data = j; computeFeed(); clashAgg(); if (window.SFA_BOARD && console_.board) SFA_BOARD.agg(); if (window.SFA_RAID && console_.raid) SFA_RAID.agg(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
+      console_.data = j; computeFeed(); clashAgg(); if (window.SFA_BOARD && console_.board) SFA_BOARD.agg(); if (window.SFA_RAID && console_.raid) SFA_RAID.agg(); lobbyAgg(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
     },
       function (e) {
         if (my === fetchSeq) fetching = 0;
@@ -1217,10 +1416,12 @@
   function broadcast() { if (bc) bc.postMessage({ t: 'state', slide: cur, live: liveObj(), feed: feed }); }
   function liveObj() {
     // the results script keeps the first 60 counts keys: the run, the lock and the battle go first, the slides' tallies last
-    var counts = {}, spot = console_.spot;
+    var counts = {}, spot = console_.spot || lobbySpot();
     if (console_.run) counts.zrun = encRun(console_.run);
     if (console_.lock) counts.zlock = [1];
+    var prs = SFA.store.get('teacher.priceScale', 0); if (prs > 0) counts.zpr = [Math.min(9999, prs)];
     if (console_.board && window.SFA_BOARD) { SFA_BOARD.counts(counts); spot = SFA_BOARD.spot(); }
+    if (console_.show && window.SFA_SHOW) { SFA_SHOW.counts(counts); spot = SFA_SHOW.spot(); }
     if (console_.raid && window.SFA_RAID) { SFA_RAID.counts(counts); spot = SFA_RAID.spot(); }   // the boss, its health, the attack, the top five and the latest hits   // the Big Board: the crossword, who has which word, what's solved
     if (console_.clash && window.SFA_CLASH) { SFA_CLASH.counts(counts); spot = SFA_CLASH.spot(); }   // the battle board, the teams, shout-outs and MVPs
     Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length && Object.keys(counts).length < 60) counts[q] = feed.per[q].counts; });
@@ -1344,6 +1545,7 @@
     freshTick();
     boardSection(p);
     raidSection(p);
+    showSection(p);
     clashSection(p);
 
     // this slide
@@ -1506,7 +1708,7 @@
   window.SFA_LESSON_API = {
     LID: LID, MODE: MODE, TEACHER: TEACHER, S: S, every: every, pushNow: function () { clearTimeout(pushT); var L = liveObj(); live = L; broadcast(); if (!console_.on || console_.offline) return; lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) console_.skew = j.live.at - Math.round((t0 + Date.now()) / 2); }).catch(function () { }); }, H: H, el: el, fmt: fmt, figure: figure, confetti: confetti, numOf: numOf, numTxt: numTxt, letter: letter, first: first, nice: nice, xid: xid,
     decRun: decRun, encRun: encRun, record: record, beforeRun: beforeRun, tpost: tpost, pushLive: pushLive, consolePanel: consolePanel, rosterIn: rosterIn,
-    hero: HERO, live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
+    hero: HERO, trophy: trophy, live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
     srvSkew: function () { return MODE === 'screen' ? 0 : srvSkewV || 0; }, console_: function () { return console_; }, consoleAnswers: function () { return console_ && console_.data && console_.data.answers; }
   };
   window.SFA_LESSON = function (L) { LES = L; };

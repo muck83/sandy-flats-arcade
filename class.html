@@ -428,6 +428,7 @@ a.btn{text-decoration:none;display:inline-block}
   };
 })();
 </script>
+<script src="sfa-avatar.js?v=20261105a"></script>
 <script>
 (function () {
   'use strict';
@@ -639,7 +640,14 @@ a.btn{text-decoration:none;display:inline-block}
       if (x.a.correct) { p.c++; checked++; if (x.a.correct === 'yes') { p.r++; right++; } }
       if (x.flag && !/^left/.test(x.flag)) flagged[x.s.sid] = 1;
     });
+    var coins = {}, AVt = window.SFA_AVATAR;
+    R.forEach(function (r) {
+      var p = per[r.s.sid] || { n: 0, r: 0, les: {} };
+      coins[r.s.sid] = AVt ? AVt.earned({ games: Object.keys(r.g).map(function (k) { return r.g[k]; }), xp: r.g.g99 ? Number(r.g.g99.tickets) || 0 : 0, les: { n: p.n, r: p.r, joined: Object.keys(p.les).length }, climb: r.cl }) : { total: 0, parts: [] };
+    });
+    var cs = R.map(function (r) { return coins[r.s.sid].total; }).sort(function (a, b) { return a - b; }), med = cs.length ? (cs.length % 2 ? cs[(cs.length - 1) / 2] : Math.round((cs[cs.length / 2 - 1] + cs[cs.length / 2]) / 2)) : 0;
     R.sort(function (a, b) {
+      if (sortBy === 'coins') return coins[b.s.sid].total - coins[a.s.sid].total;
       if (sortBy === 'name') return a.s.name.localeCompare(b.s.name);
       if (sortBy === 'email') return (emails[a.s.sid] || '').localeCompare(emails[b.s.sid] || '');
       if (sortBy === 'last') return (a.last || '').localeCompare(b.last || '');
@@ -656,7 +664,8 @@ a.btn{text-decoration:none;display:inline-block}
       tile(R.reduce(function (a, r) { return a + r.sp; }, 0), 'special certificates'),
       tile(les.by ? AR.length : '…', 'lesson answers'),
       tile(les.by ? (checked ? Math.round(100 * right / checked) + '%' : '—') : '…', 'right in lessons (marked questions)'),
-      tile(les.by ? Object.keys(flagged).length : '…', 'students flagged for possible AI help')
+      tile(les.by ? Object.keys(flagged).length : '…', 'students flagged for possible AI help'),
+      tile(les.by ? med : '…', 'median coins earned (Wardrobe)')
     ]);
     if (les.err) tiles.appendChild(el('p', { 'class': 'say bad', text: 'Lesson answers didn\'t load: ' + les.err + '. Press Refresh.' }));
     var sel = el('select', { 'aria-label': 'Class' }, [el('option', { value: '', text: 'All classes' })].concat(Object.keys(classes).sort().map(function (c) { var o = el('option', { value: c, text: 'Class ' + c }); if (c === cls) o.selected = true; return o; })));
@@ -664,7 +673,7 @@ a.btn{text-decoration:none;display:inline-block}
     var find = el('input', { type: 'search', placeholder: 'Find a student', value: q, 'aria-label': 'Find a student' });
     find.addEventListener('input', function () { q = find.value.toLowerCase(); render(); setTimeout(function () { var f = document.querySelector('.filters input'); if (f) { f.focus(); f.setSelectionRange(q.length, q.length); } }, 0); });
     var GS = gamesShown();
-    var head = el('tr', {}, [th('Student', 'name'), showEmail ? th('Email', 'email') : null, th('Last played', 'last'), th('Levels', 'lv'), th('Lessons', 'les'), th('Climb', 'climb')].concat(GS.map(function (G) { return th('Film ' + G.film + ' · ' + G.title, G.id); })));
+    var head = el('tr', {}, [th('Student', 'name'), showEmail ? th('Email', 'email') : null, th('Last played', 'last'), th('Levels', 'lv'), th('Lessons', 'les'), th('Climb', 'climb'), th('🪙 Coins', 'coins')].concat(GS.map(function (G) { return th('Film ' + G.film + ' · ' + G.title, G.id); })));
     // game picker
     var pick = el('details', { 'class': 'gpick' }); pick.open = pickOpen; pick.addEventListener('toggle', function () { pickOpen = pick.open; });
     pick.appendChild(el('summary', { text: 'Choose games to show (' + GS.length + ' of ' + SFA.GAMES.length + ')' }));
@@ -691,7 +700,8 @@ a.btn{text-decoration:none;display:inline-block}
         el('td', { text: String(r.lv) }),
         (function () { var p = per[r.s.sid]; if (!les.by) return el('td', { 'class': 'muted', text: '…' }); if (!p) return el('td', { 'class': 'muted', text: '·' });
           return el('td', { title: p.n + ' answers in ' + Object.keys(p.les).length + ' lessons' + (p.c ? ', ' + p.r + ' of ' + p.c + ' marked questions right' : ''), text: Object.keys(p.les).length + ' · ' + (p.c ? Math.round(100 * p.r / p.c) + '%' : p.n + ' ans') + (flagged[r.s.sid] ? ' ⚠' : '') }); })(),
-        climbCell(r.cl)
+        climbCell(r.cl),
+        el('td', { title: coins[r.s.sid].parts.map(function (q) { return q.label + ': ' + q.c; }).join(' · '), text: les.by ? String(coins[r.s.sid].total) : '…' })
       ].concat(GS.map(function (G) {
         var p = r.g[G.id]; if (!p) return el('td', { 'class': 'muted', text: '·' });
         var pct = p.levelsTotal ? Math.round(100 * p.levelsDone / p.levelsTotal) : 0;
@@ -711,9 +721,21 @@ a.btn{text-decoration:none;display:inline-block}
       var d = String(e.detail).split(' '), what = e.type === 'certificate' ? (e.detail === 'standard' ? 'earned ★ the standard certificate' : 'earned ✦ ' + e.detail) : 'cleared ' + (d.slice(2).join(' ') || d[0]) + (d[1] === 'stretch' ? ' (stretch)' : '');
       return el('li', {}, [el('time', { text: SFA.ago(e.time) }), el('b', { text: names[e.sid] || e.sid }), ' ' + what + ' in ' + (gt[e.game] || e.game)]);
     }));
+    var prices = null;
+    if (les.by && AVt) {
+      var want = Math.max(10, Math.min(1000, Math.round(med / 10))), now = SFA.store.get('teacher.priceScale', 0);
+      prices = el('div', { 'class': 'card', style: 'margin:12px 0' }, [
+        el('h2', { text: '👕 Wardrobe prices' }),
+        el('p', { 'class': 'muted', text: 'Students spend coins on their avatars. Coins count everything done so far: arcade game levels (5 each) and certificates (40 standard, 25 special), 1 coin per 5 XP from Boss Raid, Lane Clash and the Big Board, lesson answers (2 each, +1 if right, +5 a lesson) and Climb (5 per secure skill, 2 a session). ' + (cls ? 'Class ' + cls : 'Everyone shown') + ': the middle student has earned ' + med + ' coins. The prices are designed for a middle student with 1,000, so this class would get prices ×' + (want / 100).toFixed(2) + ' (a crown would cost ' + Math.max(5, Math.round(250 * want / 100 / 5) * 5) + ').' }),
+        el('div', { 'class': 'row' }, [
+          el('button', { type: 'button', 'class': 'btn primary', text: 'Set the prices from these totals (×' + (want / 100).toFixed(2) + ')', onclick: function () { SFA.store.set('teacher.priceScale', want); render(); if (SFA.toast) SFA.toast('Saved. Students get the new prices the next time you go live in a lesson.', 4000); } }),
+          el('span', { 'class': 'muted', text: now ? 'Now: ×' + (now / 100).toFixed(2) + ' (saved on this computer; it reaches students when you go live).' : 'Now: the standard prices (×1.00).' })
+        ])
+      ]);
+    }
     body.innerHTML = '';
     body.appendChild(el('div', {}, [
-      tiles,
+      tiles, prices,
       el('div', { 'class': 'filters' }, [sel, find, pick, el('span', { 'class': 'muted', text: 'Click a name to see everything that student has done, film by film. Tap a column heading to sort. ★ standard · ✦ specials.' })]),
       el('div', { 'class': 'two' }, [
         el('div', { 'class': 'card scroll-x tablewrap', style: 'padding:0 8px 6px 0' }, [el('table', { 'class': 'grid' }, [el('thead', {}, [head]), tb])]),

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wardrobe · Sandy Flats Arcade</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css?v=20261102a">
+<style>
+.wrap{max-width:1180px;margin:0 auto;padding:12px 16px 40px}
+.intro{color:var(--muted);margin:10px 0 14px;max-width:70ch}
+#signin{max-width:520px;margin:0 0 16px}
+</style>
+</head><body>
+<div class="wrap">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">👕 Wardrobe</h1></header>
+  <p class="intro">Dress your avatar for the fashion show and the class games. You earn coins from everything you do: arcade game levels and certificates, Boss Raid, Lane Clash and Big Board XP, lesson answers and Climb. Higher arcade levels unlock the best gear.</p>
+  <div id="signin"><div id="sfaAccount"></div></div>
+  <div id="wardrobe"></div>
+</div>
+<script src="config.js?v=20261102a"></script>
+<script src="sfa-kit.js?v=20261102a"></script>
+<script src="sfa-sync.js?v=20261102a"></script>
+<script src="sfa-account.js?v=20261102a"></script>
+<script src="sfa-avatar.js?v=20261105a"></script>
+<script src="sfa-wardrobe.js?v=20261105a"></script>
+<script src="sfa-nav.js?v=20261105a"></script>
+<script>
+(function () {
+  var S = SFA.sync, box = document.getElementById('wardrobe'), w = null, was = null;
+  function go() {
+    var me = S && S.me ? S.me.sid : null;
+    document.getElementById('signin').hidden = !!me;
+    if (w && me === was) return;
+    was = me; if (window.SFA_WARDROBE) { SFA_WARDROBE.refresh(); w = SFA_WARDROBE.mount(box); }
+  }
+  if (S && S.onChange) S.onChange(go); else go();
+})();
+</script>
+</body></html>

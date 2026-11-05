@@ -34,7 +34,7 @@
   // the spotlight slot: "U:fingerprint,…#E:seq~kind~name~team~lane~type~n;…#R:placement id~why;…#M:name~gold~right;…"
   // (U: is team 0 as sh3 fingerprints of the student ids; T: is the same list as plain ids, from before)
   function clashSpot(Lv) {
-    var o = { t0: null, ev: [], mvp: [], awards: [], heroes: [], rej: {}, names: null }, sp = Lv && Lv.spot && Lv.spot.q === 'zclash' ? String(Lv.spot.text || '') : '';
+    var o = { t0: null, ev: [], mvp: [], awards: [], heroes: [], rej: {}, names: null, looks: null }, sp = Lv && Lv.spot && Lv.spot.q === 'zclash' ? String(Lv.spot.text || '') : '';
     sp.split('#').forEach(function (part) {
       var k = part.slice(0, 2), v = part.slice(2);
       if (k === 'T:') { o.t0 = {}; v.split(',').forEach(function (x) { if (x) o.t0[x] = 1; }); }
@@ -44,6 +44,7 @@
       else if (k === 'A:') o.awards = v.split(';').map(function (x) { var p = x.split('~'); return { k: p[0], name: p[1], team: +p[2], n: +p[3] }; }).filter(function (a) { return a.name; });
       else if (k === 'R:') v.split(';').forEach(function (x) { var p = x.split('~'); if (+p[0]) o.rej[+p[0]] = p[1] || 'g'; });
       else if (k === 'N:') o.names = v.split('|').slice(0, 2).map(function (x) { return x ? x.split(',') : []; });
+      else if (k === 'V:') o.looks = v.split('|').slice(0, 2).map(function (x) { return x ? x.split(',') : []; });
       else if (k === 'H:') o.heroes = v.split(';').map(function (x) { var p = x.split('~'); return { name: p[0], team: +p[1], gold: +p[2], right: +p[3], lv: +p[4] || 1 }; }).filter(function (a) { return a.name; });
     });
     return o;
@@ -91,6 +92,7 @@
       V.S = snap;
     }
     V.c = c; V.sp = sp;
+    if (sp.looks && (sp.looks[0].length || sp.looks[1].length)) { V.looks = sp.looks; if (CL && A.MODE === 'student') CL.looks = sp.looks; }
     if (sp.names && (sp.names[0].length || sp.names[1].length)) { V.names = sp.names; if (CL && A.MODE === 'student' && JSON.stringify(CL.names) !== JSON.stringify(sp.names)) { CL.names = sp.names; keep(); } }
     if (V.S) claimMine(V.S, sp.rej);
     shoutsFromSpot(sp, c);
@@ -663,8 +665,13 @@
     var vs = '<p class="lcvs2"><span style="color:' + TC[0] + '">' + T[0].e + ' ' + esc(T[0].name) + '</span> <b>VS</b> <span style="color:' + TC[1] + '">' + T[1].e + ' ' + esc(T[1].name) + '</span></p>';
     var pics = function (ws) { return '<div class="lcpics">' + ws.map(function (w) { return '<img alt="" src="' + thumb(w) + '">'; }).join('') + '</div>'; };
     var bans = ['<span class="lcbig">⚔️</span><h2>Lane Clash</h2>' + vs + (me >= 0 ? '<p>You\'re on <b style="color:' + TC[me] + '">' + T[me].e + ' ' + esc(T[me].name) + '</b>!</p>' : '')];
-    var NM = clashSpot(A.live()).names || (CL && CL.names);
-    if (NM && (NM[0].length || NM[1].length)) bans.push('<b class="lckick">👥 The teams</b><div class="lcrost">' + [0, 1].map(function (t) { return '<div class="t' + t + (t === me ? ' mine' : '') + '"><b style="color:' + TC[t] + '">' + T[t].e + ' ' + esc(T[t].name) + '</b><p>' + NM[t].map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</p></div>'; }).join('') + '</div>');
+    var SPn = clashSpot(A.live()), NM = SPn.names || (CL && CL.names), LK = SPn.looks || V.looks || (CL && CL.looks), AVc = window.SFA_AVATAR;
+    if (NM && (NM[0].length || NM[1].length)) {
+      var many = NM[0].length + NM[1].length, asz = many > 24 ? 34 : many > 14 ? 44 : 56;
+      bans.push('<b class="lckick">👥 The teams</b><div class="lcrost">' + [0, 1].map(function (t) { return '<div class="t' + t + (t === me ? ' mine' : '') + '"><b style="color:' + TC[t] + '">' + T[t].e + ' ' + esc(T[t].name) + '</b><p>' + NM[t].map(function (n, i) {
+        var lk = LK && LK[t] && LK[t][i], av = AVc && lk ? '<i class="lcav" style="animation-delay:' + (0.15 * i).toFixed(2) + 's">' + AVc.svg(lk, { size: asz, walk: true }) + '</i>' : '';
+        return '<span' + (av ? ' class="hasav"' : '') + '>' + av + '<em class="' + (AVc && lk ? AVc.nameCls(lk) : '') + '">' + esc(n) + '</em></span>'; }).join('') + '</p></div>'; }).join('') + '</div>');
+    }
     if (CL && A.MODE === 'student') bans.push('<span class="lcbig">🎁</span><b class="lckick">Your lesson bonus</b><p class="lcyours">You start with <b>' + CL.bonus + ' coins</b>' + (CL.boost ? ' at <b>hero level ' + (1 + CL.boost) + '</b>' : '') + ' for your work in today\'s lesson. Effort counts most!</p>');
     bans.push('<span class="lcbig">🧠</span><b class="lckick">Answer to earn coins</b><p class="lcyours">Five quick integer warm-ups first (1 coin each), then the lesson questions: a right first try earns <b>3 coins</b>. Three in a row earns a bonus. Every 3 right levels up your hero and unlocks new characters.</p>');
     bans.push(pics(['gus', 'rita', 'one', 'max', 'undef']) + '<b class="lckick">Send attackers</b><p class="lcyours">Pick a card, then a lane. Attackers march to the other fort and grab its gold. The bigger ones cost more but grab far more: worth saving up for!</p>');
@@ -898,6 +905,7 @@
       if (top) named[top.name + top.team] = 1;
       return top ? { k: k, name: top.name, team: top.team, n: top[k] } : null;
     }).filter(Boolean);
+    if (A.trophy) { var TN = teamNames(K.id), sc = K.S.score || [0, 0], wt = sc[0] === sc[1] ? -1 : sc[0] > sc[1] ? 0 : 1; A.trophy({ k: 'clash', id: K.id, win: wt, teams: TN.map(function (t) { return t.e + ' ' + t.name; }), score: sc.slice(0, 2), n: Object.keys(K.hero).length }); }
     K.mvp = [0, 1].map(function (t) { return Object.keys(K.hero).map(function (s) { return K.hero[s]; }).filter(function (h) { return h.team === t; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); })[0] || null; });
     A.pushLive(); A.consolePanel();
   }
@@ -906,6 +914,11 @@
     out.zcid = A.encRun(K.id); out.zcst = A.encRun(K.id + (A.console_().skew || 0));
     Object.assign(out, L.encode(K.S, K.state, 48));
     out.zcs.push(briefLeft(K));   // zcs[6]: seconds of rules left
+  }
+  function looksBySid() {
+    var out = {}, t = {};
+    (A.consoleAnswers() || []).forEach(function (a) { if (a.q !== 'zlookx1') return; var m = String(a.answer).match(/^lk1;([0-9a-z]{1,12})/); if (m && (!t[a.sid] || String(a.time) >= t[a.sid])) { t[a.sid] = String(a.time); out[a.sid] = m[1]; } });
+    return out;
   }
   function teamLists(K) {
     var R = A.rosterIn().filter(function (r) { return K.team && K.team[r.sid] != null; }), cnt = {};
@@ -930,9 +943,11 @@
     var RJ = (K.rej || []).map(function (r) { return r[0] + '~' + r[1]; }).join(';');
     var txt = '#E:' + E + (RJ ? '#R:' + RJ : '') + (M ? '#M:' + M : '') + (AW ? '#A:' + AW : '') + (HS ? '#H:' + HS : '');
     // who is on which team, by name, whenever there's room (always during the rules)
-    var NL = teamLists(K).map(function (l) { return l.map(function (x) { return x.n.replace(/[~,#|;]/g, ''); }).join(','); }).join('|'), base = ('U:' + t0).slice(0, 595 - txt.length) + txt;
+    var TLs = teamLists(K), NL = TLs.map(function (l) { return l.map(function (x) { return x.n.replace(/[~,#|;]/g, ''); }).join(','); }).join('|'), base = ('U:' + t0).slice(0, 595 - txt.length) + txt;
+    var LKs = looksBySid(), VL = TLs.map(function (l) { return l.map(function (x) { return LKs[x.sid] || (window.SFA_AVATAR ? SFA_AVATAR.defLook(x.sid) : ''); }).join(','); }).join('|');
     if (base.length + NL.length + 3 <= 598) base += '#N:' + NL;
     else if (K.state === 3) base = ('U:' + t0).slice(0, 595 - txt.length - NL.length - 3) + txt + '#N:' + NL;
+    if (K.state === 3 && base.indexOf('#N:') >= 0 && base.length + VL.length + 3 <= 598) base += '#V:' + VL;   // avatars for the team intro, when they fit
     return { q: 'zclash', text: base.slice(0, 600) };
   }
   function restore(Lv) {

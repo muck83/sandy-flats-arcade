@@ -83,6 +83,7 @@
     nav.appendChild(link('lessons.html?teach', '📚 Lessons', /^lessons?\.html$/.test(page)));
     nav.appendChild(link('class.html', '🏆 Class Results', page === 'class.html'));
     nav.appendChild(link('participation.html', '✋ Participation', page === 'participation.html'));
+    nav.appendChild(link('trophies.html', '🏆 Trophies', page === 'trophies.html'));
     nav.appendChild(link('climb-teacher.html', '🧗 Climb', page === 'climb-teacher.html'));
     nav.appendChild(link('day.html', '📅 Student day', page === 'day.html'));
     nav.appendChild(link('teacher.html', '🧭 Teacher guide', page === 'teacher.html'));
@@ -99,6 +100,7 @@
     }
     nav.appendChild(link('climb.html', '🧗 Climb', page === 'climb.html'));
     nav.appendChild(link('results.html', '⭐ My Results', page === 'results.html'));
+    nav.appendChild(link('avatar.html', '👕 Wardrobe', page === 'avatar.html'));
     // on a game page the top bar also holds the game's chips: show Arcade, Lessons and My Results as icons so it stays on one row
     if (LESSON_OF[page]) [].forEach.call(nav.children, function (a) {
       if (a.tagName !== 'A' || /^lesson\.html/.test(a.getAttribute('href'))) return;
