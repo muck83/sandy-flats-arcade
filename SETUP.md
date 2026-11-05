@@ -141,12 +141,13 @@ A class crossword that mixes hangman, Wheel of Fortune and a crossword. On the f
 
 The whole class against one giant boss on the class screen. The console offers it on the first slides of a live lesson (set to review) and on the exit ticket and last slides (set to exit ticket); press **👹 Start the Boss Raid**. The first menu picks the questions:
 
-- **📚 Review**: number and multiple-choice questions (extras included) from the five lessons before this one, after three easy warm-ups.
+- **📚 Review**: number and multiple-choice questions (extras included) from the five lessons before this one.
 - **🎟️ Exit ticket**: this lesson's own questions, the core ones first and then the ★ ones. Each student's first try at each question is recorded.
+- **Both modes** start with five quick integer warm-ups (−4 + 9, 3 − (−5), (−3) × (−5), −24 ÷ 6 and so on, different for each student). They only scratch the boss for 2 damage each and don't count for streaks or the exit ticket, then the real questions hit for 10.
 
 Pick a boss (🤖 Glitch Golem, 🐉 The Nonlinear Hydra, 🫧 Mega Slime, 🦑 Void Kraken, or random) and a length (4, 6 or 8 minutes; 6 by default). Go live and wait for students to join first, because the boss's health is set by how many are here (about 130 HP per student for 6 minutes). Students who arrive in the first half make it a little tougher.
 
-- **Attacking:** a right answer hits for 10 (5 on a second try), double for a streak of three or more, and half as much again for ★ questions. Every hit shows on the class screen with the student's name.
+- **Attacking:** a right answer to a real question hits for 10 (5 on a second try), double for a streak of three or more, and half as much again for ★ questions. Every hit shows on the class screen with the student's name.
 - **Boss attacks:** about every 80 seconds (sooner in its last stand) the boss charges. The same question appears on every screen for 20 seconds. If 70% of the answers are right, the class blocks it and everyone who got it right counter-attacks for 25. If not, the boss heals 10%. The class screen then shows the right answer and why. **⚠️ Boss attack now** on the console fires one whenever you like.
 - **Phases:** at half health the boss is enraged, and at a fifth it makes its last stand; it looks angrier each time.
 - **The end:** bring it to zero for a big win with an MVP podium. If time runs out it gets away, with its health left on screen. Every student sees their own damage, and in exit-ticket mode also their score ("5 of 6 right first time").

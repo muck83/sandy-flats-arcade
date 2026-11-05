@@ -1,7 +1,8 @@
 /* 👹 Boss Raid: the whole class against one giant boss. Loaded by sfa-lesson.js when the teacher starts one.
 
    Two modes:
-   - Review (at the start of a lesson): spiral review questions from the five lessons before this one, three warm-ups first.
+   Both start with five integer warm-ups (−4 + 9, (−3) × (−5)…) that only scratch the boss (2 damage each); then the real questions.
+   - Review (at the start of a lesson): spiral review questions from the five lessons before this one.
    - Exit ticket (at the end): this lesson's own questions. Every student's first try at each question is recorded, so the
      console shows who got what and which questions the class missed, like an exit ticket.
 
@@ -19,7 +20,7 @@
   var A = window.SFA_LESSON_API, SFA = window.SFA;
   if (!A || !SFA) return;
   var H = A.H, el = A.el, esc = SFA.esc;
-  var QID = 'zraidx1', ATK_WIN = 20, ATK_GRACE = 6, ATK_SHOW = 8, ATK_FIRST = 45, ATK_EVERY = 80, BLOCK = 0.7, PER = 130, COUNTER = 25, EASY_N = 3;
+  var QID = 'zraidx1', ATK_WIN = 20, ATK_GRACE = 6, ATK_SHOW = 8, ATK_FIRST = 45, ATK_EVERY = 80, BLOCK = 0.7, PER = 130, COUNTER = 25, EASY_N = 5, EASY_D = 2;
   var BOSSES = [
     { id: 'golem', name: 'Glitch Golem', e: '🤖', atk: 'BIT CRUSHER', col: ['#53E0FF', '#5B4BD6', '#1d2a6b'] },
     { id: 'hydra', name: 'The Nonlinear Hydra', e: '🐉', atk: 'TRIPLE BITE', col: ['#4FD97A', '#9B4BE0', '#16402a'] },
@@ -83,13 +84,18 @@
   function atkQ(b) { var pool = POOLS[b.mode]; if (!pool || !pool.length) return null; var L = atkList(pool); return L[b.atk.q % L.length]; }
   function easyQs() {
     var r = rng((A.S.me ? parseInt(sh3(A.S.me.sid), 36) * 31 : 7) + Math.round((ST.id || 0) / 1000) % 9973), n = function (a, b) { return a + Math.floor(r() * (b - a + 1)); };
+    // integer operations: one step each, small numbers, negatives in every one
+    var m = function (v) { return v < 0 ? '(−' + (-v) + ')' : String(v); }, w = function (v) { return v < 0 ? '−' + (-v) : String(v); };
     var T = [
-      function () { var a = n(2, 9), b = n(2, 9); return { k: 'number', q: 'What is *' + a + ' × ' + b + '*?', ans: a * b, why: a + ' × ' + b + ' = ' + a * b + '.' }; },
-      function () { var a = n(2, 12); return { k: 'number', q: 'A machine *doubles* its input. What comes out for *' + a + '*?', ans: 2 * a, why: 'Double ' + a + ' is ' + 2 * a + '.' }; },
-      function () { var a = n(1, 9), b = n(2, 12); return { k: 'number', q: 'In the pair *(' + a + ', ' + b + ')*, what is the *output*?', ans: b, why: 'Input first, output second: the output is ' + b + '.' }; },
-      function () { var a = n(2, 6), x = n(1, 5); return { k: 'number', q: 'The rule is *add ' + a + '*. What comes out for *' + x + '*?', ans: x + a, why: x + ' + ' + a + ' = ' + (x + a) + '.' }; },
-      function () { var a = n(3, 9); return { k: 'number', q: 'What is *half of ' + 2 * a + '*?', ans: a, why: 'Half of ' + 2 * a + ' is ' + a + '.' }; }
-    ];
+      function () { var a = -n(2, 9), b = n(2, 9); return { q: w(a) + ' + ' + b, ans: a + b, why: 'Start at ' + w(a) + ' and go up ' + b + ': ' + w(a + b) + '.' }; },
+      function () { var a = n(1, 6), b = a + n(2, 7); return { q: a + ' − ' + b, ans: a - b, why: 'From ' + a + ', going down ' + b + ' passes zero: ' + w(a - b) + '.' }; },
+      function () { var a = -n(2, 8), b = n(2, 7); return { q: w(a) + ' − ' + b, ans: a - b, why: 'Going down from a negative goes further below zero: ' + w(a - b) + '.' }; },
+      function () { var a = n(1, 8), b = n(2, 7); return { q: a + ' − ' + m(-b), ans: a + b, why: 'Taking away a negative is the same as adding: ' + a + ' + ' + b + ' = ' + (a + b) + '.' }; },
+      function () { var a = n(2, 9), b = n(2, 6); return { q: w(-a) + ' × ' + b, ans: -a * b, why: 'Negative times positive is negative: ' + w(-a * b) + '.' }; },
+      function () { var a = n(2, 6), b = n(2, 6); return { q: m(-a) + ' × ' + m(-b), ans: a * b, why: 'Negative times negative is positive: ' + a * b + '.' }; },
+      function () { var a = n(2, 6), b = n(2, 9); return { q: w(-a * b) + ' ÷ ' + a, ans: -b, why: 'Negative divided by positive is negative: ' + w(-b) + '.' }; },
+      function () { var a = n(2, 6), b = n(2, 9); return { q: w(-a * b) + ' ÷ ' + m(-a), ans: b, why: 'Negative divided by negative is positive: ' + b + '.' }; }
+    ].map(function (f) { return function () { var o = f(); return { k: 'number', q: 'What is *' + o.q + '*?', ans: o.ans, why: o.why }; }; });
     return shuffle(T, r).slice(0, EASY_N).map(function (f) { return Object.assign(f(), { from: 'warm-up', easy: true }); });
   }
 
@@ -312,7 +318,8 @@
   // the question to answer next: warm-ups (review only), then the pool in this student's own order
   function nextQ() {
     var b = V.b, pool = POOLS[b.mode]; if (!pool) return null;
-    if (b.mode === 0) { if (!ST.easy) { ST.easy = easyQs(); ST.ei = 0; keep(); } if (ST.ei < ST.easy.length) return ST.easy[ST.ei]; }
+    if (!ST.easy) { ST.easy = easyQs(); ST.ei = 0; keep(); }   // both modes: five integer warm-ups first
+    if (ST.ei < ST.easy.length) return ST.easy[ST.ei];
     if (!pool.length) return null;
     if (!V.order) {
       var r = rng((A.S.me ? parseInt(sh3(A.S.me.sid), 36) * 977 : 1) + Math.round(ST.id / 1000) % 100000), core = [], star = [];
@@ -329,26 +336,31 @@
     if (!POOLS[b.mode]) { box.appendChild(H('p', 'q', 'Loading questions…')); return; }
     var q = nextQ(); if (!q) { box.appendChild(H('p', 'q', 'No questions found.')); return; }
     var warm = q.easy, exitN = b.mode === 1 && !warm ? (ST.qi % V.order.length) + 1 : 0;
-    box.appendChild(H('p', 'kick', (warm ? '🌱 Warm-up ' + (ST.ei + 1) + ' of ' + ST.easy.length : b.mode === 1 ? 'Exit ticket · question ' + exitN + (ST.qi >= V.order.length ? ' (round 2: for damage only)' : '') : 'From ' + esc(q.from || 'earlier')) + (q.star ? ' · ★ bonus damage' : '') + ' · answer to attack'));
+    box.appendChild(H('p', 'kick', (warm ? '🌱 Warm-up ' + (ST.ei + 1) + ' of ' + ST.easy.length + ' · integers · ' + EASY_D + ' damage' : b.mode === 1 ? 'Exit ticket · question ' + exitN + (ST.qi >= V.order.length ? ' (round 2: for damage only)' : '') : 'From ' + esc(q.from || 'earlier')) + (q.star ? ' · ★ bonus damage' : '') + ' · answer to attack'));
     box.appendChild(H('p', 'q', A.fmt(q.q)));
     if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (e) { } }
     if (ST.fb) {
       box.appendChild(H('div', ST.fb.ok ? 'fb good' : 'fb try', ST.fb.html));
       var wait = Math.max(0, ST.cool - Date.now()), nx = el('button', { type: 'button', 'class': 'btn primary', text: wait ? 'Next in ' + Math.ceil(wait / 1000) : 'Next question ▶' });
       if (wait) { nx.disabled = true; setTimeout(function () { if (root) draw(); }, 1000); }
-      nx.onclick = function () { ST.fb = null; if (q.easy) ST.ei++; else ST.qi++; ST.tries = 0; keep(); draw(); };
+      nx.onclick = function () { ST.fb = null; if (q.easy) { ST.ei++; if (ST.ei === ST.easy.length) SFA.toast('⚔️ Warmed up! Now the real questions: 10 damage each, double for three in a row.', 4500); } else ST.qi++; ST.tries = 0; keep(); draw(); };
       box.appendChild(nx); return;
     }
     // the first time a student meets a question counts for the exit ticket: 1 right first try, 2 right second try, 0 wrong
     function mark(v) { if (q.easy || q.ci == null || ST.qi >= V.order.length || ST.res[q.ci] != null) return; ST.res[q.ci] = v; }
     function right() {
-      var first = !ST.tries; ST.streak = first ? ST.streak + 1 : 0; ST.best = Math.max(ST.best, ST.streak); ST.hits++; ST.n++;
+      var first = !ST.tries; ST.hits++; ST.n++;
+      if (q.easy) {   // warm-ups: a tiny scratch; streaks and critical hits are for the real questions
+        ST.dmg += EASY_D; ST.fb = { ok: true, html: '<b>🗡️ Scratch! ' + EASY_D + ' damage.</b> Warm-ups are small hits; the real questions hit much harder.' };
+        hitFx('You', EASY_D, 0); sendSoon(); keep(); draw(); return;
+      }
+      ST.streak = first ? ST.streak + 1 : 0; ST.best = Math.max(ST.best, ST.streak);
       var crit = first && ST.streak >= 3, d = first ? 10 : 5; if (crit) d *= 2; if (q.star) d = Math.round(d * 1.5);
       ST.dmg += d; mark(first ? 1 : 2);
       ST.fb = { ok: true, html: '<b>' + (crit ? '💥 CRITICAL HIT! ' : '⚔️ Hit! ') + d + ' damage.</b>' + (crit ? ' 🔥 ' + ST.streak + ' in a row.' : first && ST.streak === 2 ? ' One more in a row for a critical hit.' : '') };
       hitFx('You', d, crit); sendSoon(); keep(); draw();
     }
-    function wrong() { ST.streak = 0; ST.n++; mark(0); ST.cool = Date.now() + 4000; ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') }; sendSoon(); keep(); draw(); }
+    function wrong() { if (!q.easy) ST.streak = 0; ST.n++; mark(0); ST.cool = Date.now() + (q.easy ? 2000 : 4000); ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') }; sendSoon(); keep(); draw(); }
     if (q.k === 'number') {
       var inp = el('input', { type: 'text', inputmode: 'decimal', placeholder: 'Type a number', 'aria-label': 'Answer', autocomplete: 'off' }), go = el('button', { type: 'button', 'class': 'btn primary', text: '⚔️ Attack' }), row = H('div', 'row');
       row.appendChild(inp); row.appendChild(go); box.appendChild(row);
