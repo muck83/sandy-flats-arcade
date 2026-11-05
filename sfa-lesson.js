@@ -782,7 +782,7 @@
   }
   function boardSection(p) {
     if (window.SFA_BOARD && console_.board) return SFA_BOARD.section(p);
-    if (cur > 3 || console_.clash) return;   // it's a starter: offered on the first slides of the lesson
+    if (cur > 3 || console_.clash || console_.raid) return;   // it's a starter: offered on the first slides of the lesson
     var sec = H('div', 'sect');
     sec.appendChild(H('h3', '', '🔠 Start with the Big Board? (optional, about 6 minutes)'));
     sec.appendChild(H('p', 'muted', 'A class crossword: every student here gets their own word. Right answers to quick review questions from earlier lessons earn letter guesses (a vowel costs two). Solved words fill the crossword on the class screen and give free letters to the words that cross them. If every word is found, the whole class celebrates.'));
@@ -801,6 +801,7 @@
     if (MODE === 'teach') return;
     noteSkew();
     boardSync();
+    raidSync();
     if (window.SFA_CLASH) return SFA_CLASH.sync();
     if ((isLive() || MODE === 'screen') && freshClash(live) && !(MODE === 'student' && saving && !S.me)) clashAssets(function () { SFA_CLASH.sync(); });
   }
@@ -809,7 +810,7 @@
     if (window.SFA_CLASH && console_.clash) return SFA_CLASH.section(p);
     var sl = LES.slides[cur];
     if (!(sl && (sl.k === 'exit' || sl.k === 'end'))) return;   // an optional finale: it shows up at the end of the lesson
-    if (console_.board) return;   // one game at a time: the Big Board is still on
+    if (console_.board || console_.raid) return;   // one game at a time: the Big Board or a Boss Raid is still on
     var sec = H('div', 'sect');
     sec.appendChild(H('h3', '', '⚔️ Finish with a Lane Clash? (optional, 5 minutes)'));
     sec.appendChild(H('p', 'muted', 'Plants vs Zombies, team against team, with the Sandy Flats characters. Fair teams (balanced on what each student did in today\'s lesson), then 30 seconds of rules on every screen. Students answer this lesson\'s questions for coins, send characters down 5 lanes and plant defenders, and grab the other team\'s gold. Good lesson participation starts them with more coins and a higher hero level. The class screen shows the whole battle.'));
@@ -820,6 +821,52 @@
     if (!console_.on) { sb.disabled = true; sec.appendChild(H('p', 'state', 'Go live first.')); }
     sb.onclick = function () { sb.disabled = true; sb.textContent = 'Loading the characters and picking fair teams…'; clashAssets(function () { SFA_CLASH.start(+len.value).then(function () { SFA.toast('Lane Clash on! Students\' screens switch within a few seconds.', 3500); }); }); };
     var rowc = H('div', 'row'); rowc.appendChild(len); rowc.appendChild(sb); sec.appendChild(rowc); p.appendChild(sec);
+  }
+
+  // 👹 Boss Raid (sfa-raid.js): the whole class against one boss; review at the start, exit ticket at the end
+  var RAID_V = '20261104c', raidLoading = null;
+  function raidAssets(cb) {
+    if (window.SFA_RAID) return cb();
+    if (raidLoading) { raidLoading.push(cb); return; }
+    raidLoading = [cb];
+    var files = ['sfa-raid.js'], k = 0;
+    (function next() {
+      if (k >= files.length) { var q = raidLoading; raidLoading = null; q.forEach(function (f) { try { f(); } catch (e) { console.warn(e); } }); return; }
+      var sc4 = document.createElement('script'); sc4.src = files[k++] + '?v=' + RAID_V; sc4.onload = next;
+      sc4.onerror = function () { raidLoading = null; SFA.toast('The Boss Raid couldn\'t load. Check the connection.', 4000); };
+      document.head.appendChild(sc4);
+    })();
+  }
+  function hasRaid(L) { return !!(L && L.lesson === LID && L.counts && Array.isArray(L.counts.zrs)); }
+  function freshRaid(L) {
+    if (!hasRaid(L)) return false;
+    var st = MODE === 'screen' ? decRun(L.counts.zrid) : decRun(L.counts.zrst) || decRun(L.counts.zrid), dur = L.counts.zrs[3] || 360;
+    return MODE === 'teach' || (Date.now() + (MODE === 'screen' ? 0 : srvSkewV || 0)) - st <= dur * 1000 + 150000;
+  }
+  function raidSync() {
+    if (window.SFA_RAID) return SFA_RAID.sync();
+    if ((isLive() || MODE === 'screen') && freshRaid(live) && !(MODE === 'student' && saving && !S.me)) raidAssets(function () { SFA_RAID.sync(); });
+  }
+  function raidSection(p) {
+    if (window.SFA_RAID && console_.raid) return SFA_RAID.section(p);
+    if (console_.board || console_.clash) return;   // one game at a time
+    var sl = LES.slides[cur], atEnd = !!(sl && (sl.k === 'exit' || sl.k === 'end'));
+    if (!(cur <= 3 || atEnd)) return;   // a review at the start of the lesson, an exit ticket at the end
+    var sec = H('div', 'sect');
+    sec.appendChild(H('h3', '', atEnd ? '👹 Finish with a Boss Raid exit ticket? (optional, about 6 minutes)' : '👹 Start with a Boss Raid review? (optional, about 6 minutes)'));
+    sec.appendChild(H('p', 'muted', 'The whole class against one giant boss on the class screen. Every right answer hits it; streaks land critical hits. Every 80 seconds the boss charges an attack: one question on every screen, and if 70% of the answers are right the class blocks it and counter-attacks, otherwise it heals. Review uses questions from the five lessons before this one (three easy warm-ups first). Exit ticket uses this lesson\'s questions and records every student\'s first try, so you see who got what and which questions the class missed.'));
+    var md = el('select', { 'aria-label': 'Raid questions' });
+    [['0', '📚 Review (earlier lessons)'], ['1', '🎟️ Exit ticket (this lesson)']].forEach(function (o) { var op = el('option', { value: o[0], text: o[1] }); if ((o[0] === '1') === atEnd) op.selected = true; md.appendChild(op); });
+    var bs = el('select', { 'aria-label': 'Boss' }), b0 = SFA.store.get('teacher.raid.boss', -1);
+    [['-1', '🎲 Random boss'], ['0', '🤖 Glitch Golem'], ['1', '🐉 The Nonlinear Hydra'], ['2', '🫧 Mega Slime'], ['3', '🦑 Void Kraken']].forEach(function (o) { var op = el('option', { value: o[0], text: o[1] }); if (+o[0] === b0) op.selected = true; bs.appendChild(op); });
+    bs.onchange = function () { SFA.store.set('teacher.raid.boss', +bs.value); };
+    var len = el('select', { 'aria-label': 'Raid length' }), m0 = SFA.store.get('teacher.raid.mins', 6);
+    [4, 6, 8].forEach(function (m) { var o = el('option', { value: String(m), text: m + ' minutes' }); if (m === m0) o.selected = true; len.appendChild(o); });
+    len.onchange = function () { SFA.store.set('teacher.raid.mins', +len.value); };
+    var sb = el('button', { type: 'button', 'class': 'btn primary', text: '👹 Start the Boss Raid' });
+    if (!console_.on) { sb.disabled = true; sec.appendChild(H('p', 'state', 'Go live first, and wait for students to join: the boss\'s health is set by how many are here.')); }
+    sb.onclick = function () { sb.disabled = true; sb.textContent = 'Summoning the boss…'; raidAssets(function () { SFA_RAID.start(+md.value, +len.value, +bs.value); SFA.toast('Boss Raid on! Students\' screens switch within a few seconds.', 3500); }); };
+    var rowr = H('div', 'row'); rowr.appendChild(md); rowr.appendChild(bs); rowr.appendChild(len); rowr.appendChild(sb); sec.appendChild(rowr); p.appendChild(sec);
   }
 
   /* ---------------- deck ---------------- */
@@ -1033,7 +1080,7 @@
     }, 15000);
     if (!console_.offline) tpost('live').then(function (j) {
       console_.climb = j.climb || null;
-      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard')) console_.spot = null; if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
+      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid')) console_.spot = null; if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
       // opened from the Climb dashboard ("End Climb → Lesson N"): go live straight away, so students' pages move into this lesson
       else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
       else consolePanel();
@@ -1053,7 +1100,7 @@
       if (my < applied) return;   // only an older reply than one already shown is dropped
       applied = my; console_.got = Date.now(); var js = JSON.stringify(j), wasErr = !!console_.err;
       console_.err = ''; if (js === lastData && !wasErr) return; lastData = js;
-      console_.data = j; computeFeed(); clashAgg(); if (window.SFA_BOARD && console_.board) SFA_BOARD.agg(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
+      console_.data = j; computeFeed(); clashAgg(); if (window.SFA_BOARD && console_.board) SFA_BOARD.agg(); if (window.SFA_RAID && console_.raid) SFA_RAID.agg(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
     },
       function (e) {
         if (my === fetchSeq) fetching = 0;
@@ -1119,7 +1166,8 @@
     var counts = {}, spot = console_.spot;
     if (console_.run) counts.zrun = encRun(console_.run);
     if (console_.lock) counts.zlock = [1];
-    if (console_.board && window.SFA_BOARD) { SFA_BOARD.counts(counts); spot = SFA_BOARD.spot(); }   // the Big Board: the crossword, who has which word, what's solved
+    if (console_.board && window.SFA_BOARD) { SFA_BOARD.counts(counts); spot = SFA_BOARD.spot(); }
+    if (console_.raid && window.SFA_RAID) { SFA_RAID.counts(counts); spot = SFA_RAID.spot(); }   // the boss, its health, the attack, the top five and the latest hits   // the Big Board: the crossword, who has which word, what's solved
     if (console_.clash && window.SFA_CLASH) { SFA_CLASH.counts(counts); spot = SFA_CLASH.spot(); }   // the battle board, the teams, shout-outs and MVPs
     Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length && Object.keys(counts).length < 60) counts[q] = feed.per[q].counts; });
     return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: spot, timer: console_.timer, lock: console_.lock, auto: console_.auto };
@@ -1241,6 +1289,7 @@
     p.appendChild(top);
     freshTick();
     boardSection(p);
+    raidSection(p);
     clashSection(p);
 
     // this slide

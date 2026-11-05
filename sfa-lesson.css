@@ -489,3 +489,55 @@ body.boarding{overflow:hidden}
 .bbside{display:flex;flex-direction:column;gap:10px}
 .bbpict{margin:0;font-weight:700;color:#FFE14D}.bbpic{width:100%;max-width:480px;border-radius:14px;border:3px solid #FFE14D}
 @media (prefers-reduced-motion:reduce){.bbban,.bbtogo,.bbcount.beat{animation:none}}
+/* 👹 Boss Raid */
+.br{position:fixed;inset:0;z-index:90;overflow:auto;background:radial-gradient(ellipse at top,#3a1f4f,#120a1c 70%);color:#F3EFE7;padding:12px 16px 24px;display:flex;flex-direction:column;gap:12px}
+.brtop{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.brtitle{font:400 clamp(20px,3vw,30px) "Luckiest Guy",system-ui;color:#FF6B6B;letter-spacing:.02em}.brtitle small{font:700 12px var(--ui,system-ui);color:#1b1a22;background:#FFE14D;border-radius:99px;padding:2px 8px;margin-left:8px;letter-spacing:0;vertical-align:middle}
+.brname{font:400 clamp(16px,2.2vw,22px) "Luckiest Guy",system-ui;color:#fff}
+.brhp{position:relative;flex:1 1 220px;height:26px;border-radius:99px;background:#2a1020;border:3px solid #141428;overflow:hidden}
+.brhp i,.brhp u{position:absolute;left:0;top:0;bottom:0;display:block}
+.brhp u{background:#fff;opacity:.55;transition:width 1.4s ease .3s}.brhp i{background:linear-gradient(90deg,#3ee07a,#9cf06a);transition:width .35s}
+.brhp.p2 i{background:linear-gradient(90deg,#ffb020,#ffd84a)}.brhp.p3 i{background:linear-gradient(90deg,#ff3b3b,#ff7a59);animation:brpulse .6s ease-in-out infinite alternate}
+.brhp span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 14px var(--ui,system-ui);color:#fff;text-shadow:0 1px 2px #000}
+@keyframes brpulse{from{filter:brightness(1)}to{filter:brightness(1.35)}}
+.brclock{font:400 28px "Luckiest Guy",system-ui;color:#fff;min-width:70px;text-align:right}
+.brbody{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
+.br.screen .brbody{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+@media (max-width:820px){.brbody,.br.screen .brbody{grid-template-columns:1fr}}
+.brstage{position:relative;background:radial-gradient(ellipse at 50% 70%,rgba(255,255,255,.07),rgba(0,0,0,.25));border:2px solid rgba(255,107,107,.35);border-radius:18px;padding:6px;overflow:hidden}
+.brstage.charging{border-color:#FF3B3B;box-shadow:0 0 0 3px rgba(255,59,59,.35),0 0 40px rgba(255,59,59,.35)}
+.brboss{display:block;width:100%;height:auto}
+.brme{margin:4px 8px 6px;font-size:16px}.brme b{color:#FFE14D;font-size:20px}
+.brdmg{position:absolute;transform:translate(-50%,-50%);font:400 clamp(22px,3.2vw,34px) "Luckiest Guy",system-ui;color:#fff;text-shadow:0 3px 0 #141428,0 0 10px rgba(0,0,0,.6);pointer-events:none;animation:brfloat 1.5s ease-out forwards;text-align:center;line-height:1}
+.brdmg small{display:block;font:800 13px var(--ui,system-ui);color:#9CFBFF;text-shadow:0 1px 2px #000}
+.brdmg.crit{color:#FFE14D;font-size:clamp(30px,4.4vw,48px)}
+.br.screen .brdmg{font-size:44px}.br.screen .brdmg.crit{font-size:60px}.br.screen .brdmg small{font-size:20px}
+@keyframes brfloat{0%{opacity:0;transform:translate(-50%,-30%) scale(.5)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-160%) scale(1)}}
+.brq,.brlead{background:rgba(20,10,30,.8);border:2px solid rgba(255,225,77,.35);border-radius:16px;padding:12px 14px}
+.brq .kick{margin:0 0 6px;font-size:13px;color:#FFE14D;text-transform:uppercase;letter-spacing:.04em}.brq .q{font-size:18px;margin:0 0 10px}
+.brq.atk{border-color:#FF3B3B;background:rgba(60,8,16,.88);animation:brshake .5s ease 1}
+.brq.atk .kick{color:#FF8A8A;font-size:16px}.bratkt{display:inline-block;min-width:44px;padding:1px 8px;border-radius:99px;background:#FF3B3B;color:#fff}
+.brrule{margin:0 0 8px;font-size:14px;opacity:.85}
+@keyframes brshake{0%,100%{transform:none}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.bropts p{margin:0 0 6px;font-size:18px}.bropts b{display:inline-block;width:28px;color:#FFE14D}
+.brcnt{font-size:18px;margin:6px 0 0}.brcnt b{color:#FFE14D;font-size:26px}
+.brside{display:flex;flex-direction:column;gap:12px}
+.brlead h3{margin:0 0 8px;color:#FFE14D;font-family:"Luckiest Guy",system-ui;font-weight:400}
+.brlead p{margin:0 0 6px;font-size:17px;display:flex;gap:8px;align-items:baseline}.brlead p i{margin-left:auto;font-style:normal;color:#FF8A8A;font-weight:800}
+.brlead p.muted{display:block;font-size:14px}
+.br.screen .brq .q,.br.screen .bropts p{font-size:24px}.br.screen .brlead p{font-size:22px}
+.brban{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:96;padding:12px 22px;border-radius:999px;background:#2a1030;border:3px solid #FF6B6B;font-size:clamp(16px,2.4vw,24px);box-shadow:0 10px 30px rgba(0,0,0,.5);animation:bbin .35s cubic-bezier(.2,1.6,.4,1) both;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+.brban.block{border-color:#7CF2A2}.brban.alarm{border-color:#FF3B3B;background:#4a0c14}.brban.phase{border-color:#FFB020}.brban.out{opacity:0;transition:opacity .35s}
+.brban.big{font-size:30px;top:90px}
+.brcount{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:94;font:400 clamp(120px,24vw,260px) "Luckiest Guy",system-ui;color:#FF5B5B;text-shadow:0 8px 0 #5a1c22;pointer-events:none;opacity:.85}
+.brend{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;background:rgba(14,6,22,.84);text-align:center;padding:20px}
+.brend .in{animation:bbpop .7s ease;max-width:980px}
+.brend h1{font:400 clamp(40px,8vw,96px) "Luckiest Guy",system-ui;color:#FF8A8A;margin:0;text-shadow:0 6px 0 #5a1c22}
+.brend.win h1{color:#FFE14D;text-shadow:0 6px 0 #a5520e}
+.brend p{font-size:clamp(18px,2.6vw,26px)}
+.brmvps{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin:18px 0}
+.brmvp{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 20px;border-radius:18px;background:#2a1838;border:3px solid #FFE14D;min-width:150px;animation:bbpop .6s ease both}
+.brmvp:nth-child(2){animation-delay:.25s}.brmvp:nth-child(3){animation-delay:.5s}
+.brmvp span{font-size:40px}.brmvp b{font:400 28px "Luckiest Guy",system-ui;color:#fff}.brmvp i{font-style:normal;color:#FFC94A;font-weight:700}
+.brmine{background:rgba(255,255,255,.08);border-radius:14px;padding:10px 14px}
+@media (prefers-reduced-motion:reduce){.brdmg,.brq.atk,.brhp.p3 i,.brban,.brend .in,.brmvp{animation:none}}

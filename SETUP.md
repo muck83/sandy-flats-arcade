@@ -137,6 +137,23 @@ A class crossword that mixes hangman, Wheel of Fortune and a crossword. On the f
 - **The console** shows time left, words found, and who is stuck (letters showing out of the word's length); **👁 Show the board**, **⏰ +1 minute**, **End it now** and **Back to the lesson**. Students who join late get a spare word (or share one if none are left) and start with 3 bonus letter guesses; in the last minute no new words are handed out, and latecomers become helpers straight away, sending gift letters to classmates. If you reload the console mid-game, it picks up the same board and who has which word.
 - Progress saves as the answer `zboardx1`, which the results script treats as a go-further extra, so it never counts as a lesson answer or in participation.
 
+## 👹 Boss Raid (an optional review or exit ticket, any live lesson)
+
+The whole class against one giant boss on the class screen. The console offers it on the first slides of a live lesson (set to review) and on the exit ticket and last slides (set to exit ticket); press **👹 Start the Boss Raid**. The first menu picks the questions:
+
+- **📚 Review**: number and multiple-choice questions (extras included) from the five lessons before this one, after three easy warm-ups.
+- **🎟️ Exit ticket**: this lesson's own questions, the core ones first and then the ★ ones. Each student's first try at each question is recorded.
+
+Pick a boss (🤖 Glitch Golem, 🐉 The Nonlinear Hydra, 🫧 Mega Slime, 🦑 Void Kraken, or random) and a length (4, 6 or 8 minutes; 6 by default). Go live and wait for students to join first, because the boss's health is set by how many are here (about 130 HP per student for 6 minutes). Students who arrive in the first half make it a little tougher.
+
+- **Attacking:** a right answer hits for 10 (5 on a second try), double for a streak of three or more, and half as much again for ★ questions. Every hit shows on the class screen with the student's name.
+- **Boss attacks:** about every 80 seconds (sooner in its last stand) the boss charges. The same question appears on every screen for 20 seconds. If 70% of the answers are right, the class blocks it and everyone who got it right counter-attacks for 25. If not, the boss heals 10%. The class screen then shows the right answer and why. **⚠️ Boss attack now** on the console fires one whenever you like.
+- **Phases:** at half health the boss is enraged, and at a fifth it makes its last stand; it looks angrier each time.
+- **The end:** bring it to zero for a big win with an MVP podium. If time runs out it gets away, with its health left on screen. Every student sees their own damage, and in exit-ticket mode also their score ("5 of 6 right first time").
+- **On the console:** health, raiders and each boss attack's result (with the question). Below that, every student's first-try score, lowest first (🟢 80%+, 🟡 50%+, 🔴 below), and the questions the class found hardest. **📋 Copy results** puts it all on the clipboard to paste into a spreadsheet. The console picks the raid back up if it's reloaded.
+
+One game at a time: the Big Board, the Boss Raid and the Lane Clash don't run together.
+
 ## ⏪ The Rewind arc (catch-up before Lesson 12)
 
 Lesson 12 leans on slope, graphing lines and solving. The Rewind arc revisits them inside the story: Gus is frozen mid-word after *The Undoer*, and the team rides Effie's Rewinder back through time to hear the rest of his sentence. Each Rewind is a full lesson with its own film, listed between Lesson 11 and Lesson 12.
