@@ -360,7 +360,8 @@ body.clashing{overflow:hidden}
 .lc.screen .lcshout{top:20%}.lc.screen .lcshout img{width:96px;height:96px}
 .lcintro{position:fixed;inset:0;z-index:97;display:flex;align-items:center;justify-content:center;background:rgba(10,8,16,.82);animation:lcfade .4s}
 .lcintro.out{animation:lcfadeout .6s forwards}
-.lcintro-in{text-align:center;max-width:820px;padding:20px;animation:boomIn .5s cubic-bezier(.2,1.6,.4,1) both;transform:translate(0,0)}
+.lcintro-in{text-align:center;max-width:820px;padding:20px;animation:lcpopin .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes lcpopin{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
 .lcintro h1{font:400 clamp(44px,8vw,96px) "Luckiest Guy",system-ui;color:#FFC94A;margin:0;text-shadow:0 6px 0 #6a3d00}
 .lcvs{display:flex;align-items:center;justify-content:center;gap:18px;font:400 clamp(22px,3.4vw,38px) "Luckiest Guy",system-ui;margin:8px 0}.lcvs b{color:#E0463C;font-size:1.3em}
 .lcbonus{font-size:19px;background:rgba(255,201,74,.15);border:2px solid #FFC94A;border-radius:14px;padding:8px 14px}
@@ -541,3 +542,17 @@ body.boarding{overflow:hidden}
 .brmvp span{font-size:40px}.brmvp b{font:400 28px "Luckiest Guy",system-ui;color:#fff}.brmvp i{font-style:normal;color:#FFC94A;font-weight:700}
 .brmine{background:rgba(255,255,255,.08);border-radius:14px;padding:10px 14px}
 @media (prefers-reduced-motion:reduce){.brdmg,.brq.atk,.brhp.p3 i,.brban,.brend .in,.brmvp{animation:none}}
+/* Lane Clash: who is on which team */
+.lcban .lcrost{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;text-align:center}
+.lcban .lcrost>div{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.15);border-radius:14px;padding:10px}
+.lcban .lcrost>div.mine{border-color:#7CF2A2;box-shadow:0 0 0 3px rgba(124,242,162,.25)}
+.lcban .lcrost b{font:400 clamp(16px,2.2vw,22px) "Luckiest Guy",system-ui;overflow-wrap:anywhere}
+.lcban .lcrost p{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:8px;font-size:clamp(14px,1.9vw,19px)}
+.lcban .lcrost span{padding:2px 9px;border-radius:99px;background:rgba(255,255,255,.12);font-weight:700}
+.lcmates{font-size:14px;line-height:1.35;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.07)}
+.lcmates b{font-family:"Luckiest Guy",system-ui;font-weight:400;margin-right:4px}
+.lcrosters{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;font-size:16px;padding:0 6px}.lcrosters p{margin:0}.lcrosters b{font-family:"Luckiest Guy",system-ui;font-weight:400}
+.lc.screen .lcrosters{font-size:19px}
+.lcteamsc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}
+.lcteamsc>div{display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start;padding:8px;border-radius:10px;border:1px solid var(--line,#ccc)}
+.lcteamsc>div>b{width:100%;margin-bottom:2px}.lcteamsc span{padding:1px 8px;border-radius:99px;background:rgba(127,127,127,.15);font-size:14px}

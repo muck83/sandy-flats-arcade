@@ -34,7 +34,7 @@
   // the spotlight slot: "U:fingerprint,…#E:seq~kind~name~team~lane~type~n;…#R:placement id~why;…#M:name~gold~right;…"
   // (U: is team 0 as sh3 fingerprints of the student ids; T: is the same list as plain ids, from before)
   function clashSpot(Lv) {
-    var o = { t0: null, ev: [], mvp: [], awards: [], heroes: [], rej: {} }, sp = Lv && Lv.spot && Lv.spot.q === 'zclash' ? String(Lv.spot.text || '') : '';
+    var o = { t0: null, ev: [], mvp: [], awards: [], heroes: [], rej: {}, names: null }, sp = Lv && Lv.spot && Lv.spot.q === 'zclash' ? String(Lv.spot.text || '') : '';
     sp.split('#').forEach(function (part) {
       var k = part.slice(0, 2), v = part.slice(2);
       if (k === 'T:') { o.t0 = {}; v.split(',').forEach(function (x) { if (x) o.t0[x] = 1; }); }
@@ -43,6 +43,7 @@
       else if (k === 'M:') o.mvp = v.split(';').map(function (x) { var p = x.split('~'); return p[0] ? { name: p[0], gold: +p[1] || 0, right: +p[2] || 0 } : null; });
       else if (k === 'A:') o.awards = v.split(';').map(function (x) { var p = x.split('~'); return { k: p[0], name: p[1], team: +p[2], n: +p[3] }; }).filter(function (a) { return a.name; });
       else if (k === 'R:') v.split(';').forEach(function (x) { var p = x.split('~'); if (+p[0]) o.rej[+p[0]] = p[1] || 'g'; });
+      else if (k === 'N:') o.names = v.split('|').slice(0, 2).map(function (x) { return x ? x.split(',') : []; });
       else if (k === 'H:') o.heroes = v.split(';').map(function (x) { var p = x.split('~'); return { name: p[0], team: +p[1], gold: +p[2], right: +p[3], lv: +p[4] || 1 }; }).filter(function (a) { return a.name; });
     });
     return o;
@@ -90,6 +91,7 @@
       V.S = snap;
     }
     V.c = c; V.sp = sp;
+    if (sp.names && (sp.names[0].length || sp.names[1].length)) { V.names = sp.names; if (CL && A.MODE === 'student' && JSON.stringify(CL.names) !== JSON.stringify(sp.names)) { CL.names = sp.names; keep(); } }
     if (V.S) claimMine(V.S, sp.rej);
     shoutsFromSpot(sp, c);
     if (c.state === 2 && !V.over && (sp.mvp.length || sp.awards.length || Date.now() - (V.endSeen || (V.endSeen = Date.now())) > 4000)) showEnd(c, sp);
@@ -99,7 +101,7 @@
   function watch() {
     var K = C(); if (!K) return;
     open({ id: K.id, start: K.id, state: K.state, t: K.S.t, score: K.S.score, dur: K.S.dur, brief: briefLeft(K) }); V.briefEnd = performance.now() + briefLeft(K) * 1000;
-    V.watch = true; V.S = K.S; root.classList.add('watch');
+    V.watch = true; V.S = K.S; root.classList.add('watch'); V.names = teamLists(K).map(function (l) { return l.map(function (x) { return x.n; }); });
     var x = el('button', { type: 'button', 'class': 'btn lcback', text: '✕ Back to the console' }); x.onclick = function () { close(); };
     root.querySelector('.lctop').appendChild(x);
   }
@@ -133,6 +135,7 @@
       var low = H('div', 'lclow'); root.appendChild(low);
       hud.q = H('div', 'lcq'); low.appendChild(hud.q);
       var side = H('div', 'lcside'); low.appendChild(side);
+      hud.mates = H('div', 'lcmates'); side.appendChild(hud.mates);
       hud.hero = H('div', 'lchero'); side.appendChild(hud.hero);
       hud.cards = H('div', 'lccards'); side.appendChild(hud.cards);
       hud.lanes = H('div', 'lclanes'); side.appendChild(hud.lanes);
@@ -141,6 +144,7 @@
       drawCards(); drawQ();
     } else {
       hud.heroes = H('div', 'lcheroes'); root.appendChild(hud.heroes);
+      hud.rosters = H('div', 'lcrosters'); root.appendChild(hud.rosters);
       var leg = H('div', 'lclegend'); L.ORDER.forEach(function (t) { var U = L.UNITS[t]; leg.appendChild(H('span', '', '<img alt="" src="' + thumb(U.who) + '"><b>' + esc(U.name) + '</b> ' + esc(U.role))); }); root.appendChild(leg);
     }
     document.body.appendChild(root);
@@ -615,6 +619,12 @@
     if (wave > V.wave && c.state === 1) { V.wave = wave; sfx('wave'); shout({ e: wave === 2 ? 'max' : 'one', who: wave === 2 ? 'THE FINAL WAVE!' : 'A WAVE IS COMING!', text: wave === 2 ? 'Everyone moves faster. <b>Double gold</b> (triple for the team behind)!' : 'Halfway! Defend your lanes.', team: -1, mine: true, gold: true }); }
     if (S && me >= 0 && c.state === 1) { var cb = L.comeback(S, me); if (cb && !V.cb) shout({ e: 'one', who: '⚡ COMEBACK!', text: 'Your team is behind: <b>bonus coins</b> on every right answer, tougher characters and a faster Mux!', team: me, mine: true }); V.cb = cb; }
     if (A.MODE === 'student') laneButtons();
+    var NMs = V.names || (CL && CL.names), nk = NMs ? JSON.stringify(NMs) + me : '';
+    if (nk && nk !== V.namesShown) {
+      V.namesShown = nk;
+      if (hud.mates && me >= 0) hud.mates.innerHTML = '<b style="color:' + TC[me] + '">' + T[me].e + ' Your team</b> ' + NMs[me].map(function (n) { return esc(n); }).join(', ');
+      if (hud.rosters) hud.rosters.innerHTML = [0, 1].map(function (t) { return '<p><b style="color:' + TC[t] + '">' + T[t].e + ' ' + esc(T[t].name) + ':</b> ' + NMs[t].map(function (n) { return esc(n); }).join(', ') + '</p>'; }).join('');
+    }
     if (V.watch && V.sp) shoutsFromSpot(V.sp, V.c);
     if (hud.heroes && V.sp) hud.heroes.innerHTML = V.sp.heroes.length ? '<b>Top heroes</b>' + V.sp.heroes.map(function (h, i) { return '<span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + ' ' + T[h.team].e + ' ' + esc(h.name) + ' <small>Lv ' + h.lv + ' · ' + h.gold + ' gold · ' + h.right + ' right</small></span>'; }).join('') : '';
   }
@@ -625,20 +635,26 @@
     var vs = '<p class="lcvs2"><span style="color:' + TC[0] + '">' + T[0].e + ' ' + esc(T[0].name) + '</span> <b>VS</b> <span style="color:' + TC[1] + '">' + T[1].e + ' ' + esc(T[1].name) + '</span></p>';
     var pics = function (ws) { return '<div class="lcpics">' + ws.map(function (w) { return '<img alt="" src="' + thumb(w) + '">'; }).join('') + '</div>'; };
     var bans = ['<span class="lcbig">⚔️</span><h2>Lane Clash</h2>' + vs + (me >= 0 ? '<p>You\'re on <b style="color:' + TC[me] + '">' + T[me].e + ' ' + esc(T[me].name) + '</b>!</p>' : '')];
+    var NM = clashSpot(A.live()).names || (CL && CL.names);
+    if (NM && (NM[0].length || NM[1].length)) bans.push('<b class="lckick">👥 The teams</b><div class="lcrost">' + [0, 1].map(function (t) { return '<div class="t' + t + (t === me ? ' mine' : '') + '"><b style="color:' + TC[t] + '">' + T[t].e + ' ' + esc(T[t].name) + '</b><p>' + NM[t].map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</p></div>'; }).join('') + '</div>');
     if (CL && A.MODE === 'student') bans.push('<span class="lcbig">🎁</span><b class="lckick">Your lesson bonus</b><p class="lcyours">You start with <b>' + CL.bonus + ' coins</b>' + (CL.boost ? ' at <b>hero level ' + (1 + CL.boost) + '</b>' : '') + ' for your work in today\'s lesson. Effort counts most!</p>');
     bans.push('<span class="lcbig">🧠</span><b class="lckick">Answer to earn coins</b><p class="lcyours">A right first try earns <b>3 coins</b>. Three in a row earns a bonus. Every 3 right levels up your hero and unlocks new characters.</p>');
     bans.push(pics(['gus', 'rita', 'one', 'max', 'undef']) + '<b class="lckick">Send attackers</b><p class="lcyours">Pick a card, then a lane. Attackers march to the other fort and grab its gold. The bigger ones cost more but grab far more: worth saving up for!</p>');
     bans.push(pics(['sam', 'dunmore', 'pigeon', 'priya', 'zero']) + '<b class="lckick">Defend your lanes</b><p class="lcyours">Each lane has 3 planting spots. <b>Sam</b> and <b>Mr. Dunmore</b> block, <b>Pea Pigeon</b> and <b>Priya</b> shoot, and <b>Zero</b> erases every enemy in a lane.</p>');
     bans.push('<span class="lcbig">🏰</span><b class="lckick">Watch your fort</b><p class="lcyours">A red <b>!</b> at a gate means enemies are close. <b>Mux</b> charges the first one to reach a gate. 📣 Call your team for help.</p>');
     bans.push('<span class="lcbig">🔥</span><b class="lckick">Never give up</b><p class="lcyours">The last minute is the <b>final wave</b>: double gold. A team that falls behind gets bonus coins and tougher characters.</p>');
-    var words = bans.map(function (h) { return h.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length; });
+    var words = bans.map(function (h) { return /lcrost/.test(h) ? 14 : h.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length; });
     var b = H('div', 'lcend lcbrief'), box = H('div', 'lcban'), dots = H('div', 'lcdots'), tmr = 0, cdT = 0;
     b.appendChild(box); b.appendChild(dots); root.appendChild(b);
     var left = function () { return Math.max(0, ((V && V.briefEnd) || 0) - performance.now()); };
     // fit the banners into the time left (4 s kept for the countdown): drop the first ones if each would be too quick
-    var from = 0, room = function () { return left() - 4000; };
-    while (from < bans.length - 1 && room() / words.slice(from).reduce(function (a, n) { return a + n; }, 0) * Math.min.apply(null, words.slice(from)) < 3000) from++;
-    var list = bans.slice(from), wl = words.slice(from); list.push('<b class="lckick">Get ready…</b><h2 class="lccount">3</h2>' + vs);
+    // the teams banner is never skipped: it comes out first and goes back in at the front
+    var ri = -1; bans.forEach(function (h, i) { if (/lcrost/.test(h)) ri = i; });
+    var rost = ri >= 0 ? bans.splice(ri, 1)[0] : null, rw = ri >= 0 ? words.splice(ri, 1)[0] : 0;
+    var from = 0, room = function () { return left() - 4000; }, room0 = function () { return room() - (rost ? 4500 : 0); };
+    while (from < bans.length - 1 && room0() / words.slice(from).reduce(function (a, n) { return a + n; }, 0) * Math.min.apply(null, words.slice(from)) < 3000) from++;
+    var list = bans.slice(from), wl = words.slice(from);
+    if (rost) { if (from === 0 && ri > 0) { list.splice(ri, 0, rost); wl.splice(ri, 0, rw); } else { list.unshift(rost); wl.unshift(rw); } } list.push('<b class="lckick">Get ready…</b><h2 class="lccount">3</h2>' + vs);
     list.forEach(function () { dots.appendChild(H('i')); });
     function show(i) {
       clearTimeout(tmr); clearInterval(cdT); if (!b.isConnected) return;
@@ -862,6 +878,18 @@
     Object.assign(out, L.encode(K.S, K.state, 48));
     out.zcs.push(briefLeft(K));   // zcs[6]: seconds of rules left
   }
+  function teamLists(K) {
+    var R = A.rosterIn().filter(function (r) { return K.team && K.team[r.sid] != null; }), cnt = {};
+    var fn = function (r) { return String(A.first(r.name) || '').replace(/[^A-Za-zÀ-ÿ' -]/g, ''); };
+    R.forEach(function (r) { var f = fn(r); cnt[f] = (cnt[f] || 0) + 1; });
+    var out = [[], []];
+    R.forEach(function (r) {
+      var f = fn(r), last = String(A.nice(r.name) || '').split(' ').slice(1).join(' ');
+      out[K.team[r.sid]].push({ sid: r.sid, n: (cnt[f] > 1 && last ? f + ' ' + last[0] + '.' : f).slice(0, 12) });
+    });
+    out.forEach(function (l) { l.sort(function (a, b) { return a.n.localeCompare(b.n); }); });
+    return out;
+  }
   function spot() {
     // team 0 as short fingerprints of the student ids (U:), so the list fits whatever ids the roster uses
     var K = C(), t0 = Object.keys(K.team || {}).filter(function (sid) { return K.team[sid] === 0; }).map(sh3).join(',');
@@ -872,7 +900,11 @@
     var HS = K.state === 1 ? Object.keys(K.hero).map(function (s) { return K.hero[s]; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); }).slice(0, 5).map(function (h) { return [h.name, h.team, h.gold, h.right, h.lv].join('~'); }).join(';') : '';
     var RJ = (K.rej || []).map(function (r) { return r[0] + '~' + r[1]; }).join(';');
     var txt = '#E:' + E + (RJ ? '#R:' + RJ : '') + (M ? '#M:' + M : '') + (AW ? '#A:' + AW : '') + (HS ? '#H:' + HS : '');
-    return { q: 'zclash', text: ('U:' + t0).slice(0, 595 - txt.length) + txt };
+    // who is on which team, by name, whenever there's room (always during the rules)
+    var NL = teamLists(K).map(function (l) { return l.map(function (x) { return x.n.replace(/[~,#|;]/g, ''); }).join(','); }).join('|'), base = ('U:' + t0).slice(0, 595 - txt.length) + txt;
+    if (base.length + NL.length + 3 <= 598) base += '#N:' + NL;
+    else if (K.state === 3) base = ('U:' + t0).slice(0, 595 - txt.length - NL.length - 3) + txt + '#N:' + NL;
+    return { q: 'zclash', text: base.slice(0, 600) };
   }
   function restore(Lv) {
     var c = clashOf(Lv); if (!c) return false;
@@ -894,7 +926,7 @@
     var heroes = Object.keys(K.hero).map(function (s) { return K.hero[s]; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); }).slice(0, 6);
     if (heroes.length) sec.appendChild(H('p', 'muted', 'Top heroes: ' + heroes.map(function (h) { return esc(h.name) + ' ' + T[h.team].e + ' ' + h.gold + 'g/' + h.right + '✓'; }).join(', ')));
     if (K.power) sec.appendChild(H('p', 'muted', '⚖️ Teams balanced on today\'s lesson: ' + [0, 1].map(function (t) { return T[t].e + ' ' + K.hereN[t] + ' taking part, strength ' + K.power[t]; }).join(' · ') + '.'));
-    if (K.team) { var d = el('details'); d.appendChild(el('summary', { text: 'The teams' })); [0, 1].forEach(function (t) { d.appendChild(H('p', 'muted', T[t].e + ' <b>' + esc(T[t].name) + ':</b> ' + A.rosterIn().filter(function (r) { return K.team[r.sid] === t; }).map(function (r) { return esc(A.nice(r.name)); }).join(', '))); }); sec.appendChild(d); }
+    if (K.team) { var TL = teamLists(K), tw = H('div', 'lcteamsc'); [0, 1].forEach(function (t) { tw.appendChild(H('div', 't' + t, '<b>' + T[t].e + ' ' + esc(T[t].name) + ' (' + TL[t].length + ')</b>' + TL[t].map(function (x) { return '<span>' + esc(x.n) + '</span>'; }).join(''))); }); sec.appendChild(tw); }
     var r = H('div', 'row');
     if (K.state === 3) r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: '⏭ Skip the rules', title: 'Start the battle now', onclick: function () { K.go = Date.now(); tick(); } }));
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: '👁 Watch the battle', title: 'The whole board, live, on this screen', onclick: function () { watch(); } }));
