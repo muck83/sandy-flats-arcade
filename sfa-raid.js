@@ -7,7 +7,7 @@
      console shows who got what and which questions the class missed, like an exit ticket.
 
    Every right answer hits the boss (10, half for a second try, double for a streak of three, more for ★ go-further questions).
-   Every 80 seconds or so the boss charges an attack: one multiple-choice question on every screen for 20 seconds. If 70% of
+   Every 80 seconds or so the boss charges an attack: one multiple-choice question on every screen for 20 seconds. If 60% of
    the answers are right, the class blocks it and everyone who got it right counter-attacks; if not, the boss heals.
    At half health the boss is enraged, at a fifth it makes its last stand. Bring it to zero before the time runs out.
 
@@ -30,7 +30,7 @@
   var A = window.SFA_LESSON_API, SFA = window.SFA;
   if (!A || !SFA) return;
   var H = A.H, el = A.el, esc = SFA.esc;
-  var QID = 'zraidx1', ATK_WIN = 20, ATK_GRACE = 6, ATK_SHOW = 8, ATK_FIRST = 45, ATK_EVERY = 80, BLOCK = 0.7, PER = 450, COUNTER = 25, EASY_N = 5, EASY_D = 2;
+  var QID = 'zraidx1', ATK_WIN = 20, ATK_GRACE = 6, ATK_SHOW = 8, ATK_FIRST = 45, ATK_EVERY = 80, BLOCK = 0.6, PER = 300, HEAL = 0.06, COUNTER = 25, EASY_N = 5, EASY_D = 2;
   var CMUL = [1, 1, 1.5, 2];   // the class combo: level 2 is x1.5, level 3 is x2
   var CHARGE = 4, DODGE = 30, STUN_MS = 6000, TG_WIN = 15, SONG = 15;
   var AIM_MS = 1700, EMO = ['🔥', '👏', '😱', '💪', '🎉'], CHEER_MS = 10000;   // the weak spot's life; the cheers; one cheer every 10 s
@@ -235,7 +235,9 @@
   }
   // what a classmate did, on every screen: hits float up, specials fill the stage, dodges and stuns get a banner
   function evFx(e) {
-    if (e.k >= 10) { var h = HEROES[(e.k - 10) % HEROES.length]; spFx(h, e.n, e.d); banner(h.e + ' <b>' + esc(e.n) + '</b>: ' + h.sp + '! −' + e.d, 'special'); }
+    if (e.k === 20) { banner('💚 <b>SECOND WIND!</b> ' + esc(bossOf(V.b).name) + ' healed ' + e.d + ' HP. It won\'t go down easy!', 'hurt'); snd('hurt'); V.shake = 1; }
+    else if (e.k >= 10) { var h = HEROES[(e.k - 10) % HEROES.length]; spFx(h, e.n, e.d); banner(h.e + ' <b>' + esc(e.n) + '</b>: ' + h.sp + '! −' + e.d, 'special'); }
+    else if (e.k === 2) { banner('😰 <b>' + esc(bossOf(V.b).name.toUpperCase()) + '</b> IS WEAKENING! Keep hitting!', 'combo'); V.hurt = 1; }
     else if (e.k === 3) { hitFx(e.n + ' dodged!', e.d, 1); }
     else if (e.k === 4) { banner('😵 <b>' + esc(e.n) + '</b> got stunned!', 'hurt'); }
     else if (e.k >= 5 && e.k <= 9) cheerFx(EMO[e.k - 5], e.n);
@@ -587,7 +589,7 @@
     box.classList.add('atk');
     if (a.st === 1) {
       box.appendChild(H('p', 'kick', '⚠️ BOSS ATTACK: ' + B.atk + ' · <span class="bratkt">' + atkLeft(b) + ' s</span>'));
-      box.appendChild(H('p', 'brrule', 'Everyone gets this one. If 70% of the answers are right, the class blocks it and everyone who got it right counter-attacks for ' + COUNTER + '.'));
+      box.appendChild(H('p', 'brrule', 'Everyone gets this one. If 60% of the answers are right, the class blocks it and everyone who got it right counter-attacks for ' + COUNTER + '.'));
       if (!q) { box.appendChild(H('p', 'q', 'Loading…')); return; }
       box.appendChild(H('p', 'q', A.fmt(q.q)));
       if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (e) { } }
@@ -618,7 +620,7 @@
       var q = atkQ(b), a = b.atk, box = H('div', 'brq atk'); side.appendChild(box);
       if (a.st === 1) {
         box.appendChild(H('p', 'kick', '⚠️ ' + bossOf(b).atk + ' · <span class="bratkt">' + atkLeft(b) + ' s</span>'));
-        box.appendChild(H('p', 'brrule', 'Answer on your device! 70% right blocks it.'));
+        box.appendChild(H('p', 'brrule', 'Answer on your device! 60% right blocks it.'));
         if (q) { box.appendChild(H('p', 'q', A.fmt(q.q))); if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (e) { } } if (q.k === 'poll') { var ol = H('div', 'bropts'); q.opts.forEach(function (o, k) { ol.appendChild(H('p', '', '<b>' + A.letter(k) + '</b> ' + A.fmt(o))); }); box.appendChild(ol); } }
         box.appendChild(H('p', 'brcnt', '<b>' + a.of + '</b> answered'));
       } else {
@@ -721,6 +723,7 @@
     if (fresh.length) { K.ev = K.ev.concat(fresh).slice(-8); K.seq += fresh.length; changed = true; }
     if (comboNow(K)) changed = true;
     if (K.atk.st === 1 && (ao !== K.atk.of || ar !== K.atk.right)) { K.atk.of = ao; K.atk.right = ar; changed = true; }
+    K.tot = tot;
     var hp = Math.max(0, Math.min(K.max, K.max - tot + K.heal));
     if (hp !== K.hp) { K.hp = hp; changed = true; }
     if (K.state === 1 && K.hp <= 0) { K.win = true; end(); return; }
@@ -757,13 +760,38 @@
   function resolveAttack() {
     var K = C(), a = K.atk;
     a.blocked = a.of > 0 && a.right / a.of >= BLOCK ? 1 : 0;
-    var heal = a.blocked ? 0 : Math.min(Math.round(K.max * 0.1), K.max - Math.max(0, K.hp));   // it can't heal past full
+    var heal = a.blocked ? 0 : Math.min(Math.round(K.max * HEAL), K.max - Math.max(0, K.hp));   // it can't heal past full
     a.shielded = 0; if (heal && K.shields > 0) { K.shields--; a.shielded = 1; heal = 0; }   // a knight's shield takes it
     if (heal) { K.heal += heal; K.hp = Math.min(K.max, K.hp + heal); }
     a.st = 2; K.hist.push({ no: a.no, q: a.q, right: a.right, of: a.of, blocked: a.blocked, heal: heal });
     (A.pushNow || A.pushLive)(); A.consolePanel();
   }
   function end() { var K = C(); if (!K) return; K.state = 2; if (K.atk.st) K.atk.st = 0; K.endedAt = Date.now(); A.pushLive(); A.consolePanel(); }
+  /* catch-up both ways. Crushing it: the boss gets a second wind and heals. Too slow: a class hitting too slowly to finish gets a weaker boss. From the last minute's damage rate, if the boss
+     wouldn't fall by 90% of the time, its health drops to what would (at most 35% at a time; never tougher). */
+  function catchUp(e, early) {
+    var K = C(), s = K.samp || [], tot = K.tot || 0, old = null;
+    for (var i = 0; i < s.length; i++) if (s[i][0] >= e - 60) { old = s[i]; break; }
+    if (!old || e - old[0] < 20) return;
+    var rate = (tot - old[1]) / (e - old[0]), proj = tot + rate * Math.max(0, K.dur * 0.9 - e) - K.heal;
+    var hpNow = Math.max(0, K.max - tot + K.heal), finish = rate > 0 ? e + hpNow / rate : 1e9;
+    // crushing it (on pace to win before three quarters of the clock): SECOND WIND, the boss heals so the finish
+    // lands near the end. At most twice a raid, never more than 35% at once
+    if ((finish < K.dur * 0.75 || early) && (K.winds || 0) < 2) {
+      var h = Math.min(Math.round(tot + rate * (K.dur * 0.92 - e) - K.heal - K.max), Math.round(K.max * 0.35), K.max - hpNow);
+      if (h < 30) return;
+      h = Math.round(h / 10) * 10; K.winds = (K.winds || 0) + 1;
+      K.heal += h; K.hp = Math.max(0, Math.min(K.max, K.max - tot + K.heal));
+      K.ev = K.ev.concat([{ n: '', d: h, k: 20 }]).slice(-8); K.seq++;
+      (A.pushNow || A.pushLive)(); A.consolePanel(); return;
+    }
+    if (early || proj >= K.max) return;
+    var nm = Math.round(Math.max(proj, K.max * 0.65, tot - K.heal + 40) / 10) * 10;
+    if (nm >= K.max) return;
+    K.max = nm; K.hp = Math.max(0, Math.min(K.max, K.max - tot + K.heal));
+    K.ev = K.ev.concat([{ n: '', d: 0, k: 2 }]).slice(-8); K.seq++;
+    (A.pushNow || A.pushLive)(); A.consolePanel();
+  }
   function tick() {
     var K = C(); if (!K) return;
     var e = elapsed(K);
@@ -776,6 +804,10 @@
       if (K.tg.st === 1 && e >= K.tg.at + TG_WIN + 4) { K.tg.st = 0; (A.pushNow || A.pushLive)(); }
       else if (K.tg.st === 0 && K.atk.st === 0 && e >= K.nextTg && K.nextAtk - e > TG_WIN + 6 && K.dur - e > TG_WIN + 8) startTarget();
       if (comboNow(K)) (A.pushNow || A.pushLive)();
+      K.samp = K.samp || []; if (!K.samp.length || e - K.samp[K.samp.length - 1][0] >= 5) { K.samp.push([e, K.tot || 0]); if (K.samp.length > 40) K.samp.shift(); }
+      if (!K.adj1 && e >= K.dur * 0.4) { K.adj1 = 1; catchUp(e); }
+      else if (!K.adj2 && e >= K.dur * 0.65) { K.adj2 = 1; catchUp(e); }
+      else if ((K.winds || 0) < 2 && K.hp < K.max * 0.25 && e < K.dur * 0.7 && e - (K.windAt || -99) > 20) { K.windAt = e; catchUp(e, true); }   // nearly down far too early
     }
     if (Date.now() - K.lastPush >= 6000) { K.lastPush = Date.now(); (A.pushNow || A.pushLive)(); if (K.state === 1) A.consolePanel(); }
     if (root && V && V.watch) apply(watchState());
