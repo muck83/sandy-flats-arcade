@@ -640,3 +640,16 @@ body:has(.lc) .toast{top:84px;bottom:auto}
   .brloot span,.xplvup span{font-size:30px}.brloot b,.xplvup b{font-size:20px}.brloot p,.xplvup p{width:100%;font-size:14px;margin:0}
   .xpchip{top:auto;bottom:auto;top:122px;right:8px;left:auto;padding:3px 9px;font-size:12px}
 }
+/* Boss Raid: spell boxes */
+.brboxbtn{padding:8px 14px;border-radius:14px;border:3px solid #FFE14D;background:linear-gradient(160deg,#7b3fe4,#3b1f8a);color:#fff;font:400 18px "Luckiest Guy",system-ui;cursor:pointer;animation:brglow .6s ease-in-out infinite alternate}
+.brbox{position:fixed;left:50%;top:16%;transform:translateX(-50%);z-index:97;pointer-events:none}
+.brbox .card{pointer-events:auto;cursor:pointer;user-select:none;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(88vw,380px);box-sizing:border-box;padding:16px 20px;border-radius:20px;background:linear-gradient(160deg,#4a2a8b,#1d1438);border:4px solid #FFE14D;box-shadow:0 0 40px rgba(167,111,255,.6);color:#fff;text-align:center;animation:brflipin .5s cubic-bezier(.2,1.6,.4,1) both}
+.brbox small{font:800 14px var(--ui,system-ui);color:#FFE14D;letter-spacing:.08em}.brbox b{font:400 24px "Luckiest Guy",system-ui}.brbox span{font-size:64px;line-height:1}.brbox p{margin:0;font-size:15px}
+.brmeter{position:relative;width:100%;height:34px;border-radius:10px;background:#5a1f2a;border:2px solid #fff;overflow:hidden}
+.brmeter span{position:absolute;top:0;bottom:0}.brmeter .z1{left:20%;right:20%;background:#3d6b3a}.brmeter .z2{left:37%;right:37%;background:#4FD97A}.brmeter .z3{left:46%;right:46%;background:#FFE14D}
+.brmeter i{position:absolute;top:-4px;bottom:-4px;width:6px;margin-left:-3px;background:#fff;box-shadow:0 0 8px #fff;border-radius:3px}
+.brbox.out{opacity:0;transition:opacity .4s}
+.brsp.spell{background:radial-gradient(circle,rgba(167,111,255,.7),rgba(90,40,200,.15) 60%,transparent 75%)}
+@media (min-width:821px){body.boarding .brbox{left:27%;top:24%}}
+@media (max-width:820px){.brbox{top:6px}.brbox span{font-size:40px}}
+@media (prefers-reduced-motion:reduce){.brboxbtn,.brbox .card{animation:none}}

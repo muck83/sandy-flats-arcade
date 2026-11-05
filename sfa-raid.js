@@ -46,6 +46,16 @@
     { k: 'crit', e: '🎯', name: 'Sure crits', txt: 'Your next 2 hits are critical hits.' },
     { k: 'bomb', e: '💣', name: 'Loot bomb', txt: '40 damage, right now!' }
   ];
+  // 🎁 spell boxes: a random spell, its damage scaled by how well the student stops the needle
+  var SPELLS = [
+    { e: '⚡', name: 'CHAIN LIGHTNING', lo: 20, hi: 35, w: 22 },
+    { e: '☄️', name: 'METEOR', lo: 35, hi: 55, w: 14 },
+    { e: '❄️', name: 'BLIZZARD', lo: 15, hi: 30, w: 22 },
+    { e: '🌪️', name: 'TORNADO', lo: 25, hi: 40, w: 20 },
+    { e: '🐸', name: 'FROG CURSE', lo: 1, hi: 1, w: 8, dud: 'The spell backfired: you turned into a frog. Ribbit. 1 damage.' },
+    { e: '🎲', name: 'CHAOS ORB', lo: 0, hi: 90, w: 14 }
+  ];
+  var BOX_CHANCE = 0.15;
   var BOSSES = [
     { id: 'golem', name: 'Glitch Golem', e: '🤖', atk: 'BIT CRUSHER', col: ['#53E0FF', '#5B4BD6', '#1d2a6b'] },
     { id: 'hydra', name: 'The Nonlinear Hydra', e: '🐉', atk: 'TRIPLE BITE', col: ['#4FD97A', '#9B4BE0', '#16402a'] },
@@ -235,7 +245,8 @@
   }
   // what a classmate did, on every screen: hits float up, specials fill the stage, dodges and stuns get a banner
   function evFx(e) {
-    if (e.k === 20) { banner('💚 <b>SECOND WIND!</b> ' + esc(bossOf(V.b).name) + ' healed ' + e.d + ' HP. It won\'t go down easy!', 'hurt'); snd('hurt'); V.shake = 1; }
+    if (e.k >= 30 && e.k < 30 + SPELLS.length) { var S = SPELLS[e.k - 30]; spFx({ id: 'spell', e: S.e, sp: S.name }, e.n, e.d); banner('🎁 <b>' + esc(e.n) + '</b> opened a spell box: ' + S.e + ' ' + S.name + '! −' + e.d, 'special'); }
+    else if (e.k === 20) { banner('💚 <b>SECOND WIND!</b> ' + esc(bossOf(V.b).name) + ' healed ' + e.d + ' HP. It won\'t go down easy!', 'hurt'); snd('hurt'); V.shake = 1; }
     else if (e.k >= 10) { var h = HEROES[(e.k - 10) % HEROES.length]; spFx(h, e.n, e.d); banner(h.e + ' <b>' + esc(e.n) + '</b>: ' + h.sp + '! −' + e.d, 'special'); }
     else if (e.k === 2) { banner('😰 <b>' + esc(bossOf(V.b).name.toUpperCase()) + '</b> IS WEAKENING! Keep hitting!', 'combo'); V.hurt = 1; }
     else if (e.k === 3) { hitFx(e.n + ' dodged!', e.d, 1); }
@@ -369,7 +380,7 @@
     var b = V.b, B = bossOf(b);
     var typed = {}, focus = document.activeElement && root.contains(document.activeElement) ? document.activeElement.getAttribute('aria-label') : null;
     [].forEach.call(root.querySelectorAll('input'), function (x) { typed[x.getAttribute('aria-label')] = x.value; });
-    var floats = root.querySelectorAll('.brdmg,.brcheerfx');
+    var floats = root.querySelectorAll('.brdmg,.brcheerfx,.brsp');
     root.innerHTML = '';
     setTimeout(function () { if (!root) return; [].forEach.call(root.querySelectorAll('input'), function (x) { var k = x.getAttribute('aria-label'); if (typed[k]) x.value = typed[k]; if (k === focus) x.focus({ preventScroll: true }); }); nextBanner(); }, 0);
     var top = H('div', 'brtop', '<span class="brtitle">👹 BOSS RAID <small>' + esc(MODES[b.mode]) + '</small></span><span class="brname">' + B.e + ' ' + esc(B.name) + '</span><span class="brhp"><u></u><i></i><span></span></span><span class="brbuffs"></span><span class="brclock"></span><button type="button" class="bbsnd" title="Sound effects">' + (soundOn() ? '🔊' : '🔇') + '</button>');
@@ -410,6 +421,7 @@
       var go = el('button', { type: 'button', 'class': 'brspbtn', text: h.e + ' ' + h.sp + '!' }); go.style.setProperty('--hc', h.col);
       go.title = h.txt; go.onclick = special; bar.appendChild(go);
     }
+    if (ST.box && V.b.state === 1) { var bx = el('button', { type: 'button', 'class': 'brboxbtn', text: '🎁 Open spell box!' }); bx.onclick = openBox; bar.appendChild(bx); }
     return bar;
   }
   function special() {
@@ -423,7 +435,7 @@
   function charge(n) { var was = ST.charge; ST.charge = Math.min(CHARGE, ST.charge + n); if (was < CHARGE && ST.charge >= CHARGE && ST.hero != null) { snd('loot'); SFA.toast(HEROES[ST.hero].e + ' Your ' + HEROES[ST.hero].sp + ' is ready! Press the glowing button.', 3500); } }
   // loot: critical hits drop it often, normal hits now and then. It opens with a little reveal.
   function maybeLoot(crit) {
-    if (Math.random() > (crit ? 0.35 : 0.12) * hinfo().perks.loot) return;
+    if (Math.random() > (crit ? 0.35 : 0.12) * hinfo().perks.loot) return false;
     var L = LOOT[Math.floor(Math.random() * LOOT.length)];
     if (L.k === 'charge') charge(CHARGE); if (L.k === 'dbl') ST.buffs.dbl += 3; if (L.k === 'crit') ST.buffs.crit += 2;
     if (L.k === 'bomb') { ST.dmg += 40; hitFx('Loot bomb', 40, 1); }
@@ -431,6 +443,43 @@
     var pop = H('div', 'brloot', '<div class="card"><small>🎁 LOOT!</small><span>' + L.e + '</span><b>' + L.name + '</b><p>' + L.txt + '</p></div>');
     document.body.appendChild(pop); pop.onclick = function () { pop.remove(); };
     setTimeout(function () { pop.classList.add('out'); }, 2200); setTimeout(function () { pop.remove(); }, 2700);
+    return true;
+  }
+  function maybeBox() {
+    if (ST.box || Math.random() > BOX_CHANCE) return false;
+    ST.box = 1; snd('loot');
+    if (ST.fb && ST.fb.ok) ST.fb.html += ' <b>🎁 A spell box dropped!</b> Open it from your hero bar.';
+    return true;
+  }
+  // open a box: a needle sweeps the meter; stop it in the gold for the biggest spell
+  function openBox() {
+    if (!ST.box || V.boxing || V.b.state !== 1) return;
+    V.boxing = true;
+    var o = H('div', 'brbox'), t0 = performance.now(), P = 1000, done = false, raf = 0;
+    o.innerHTML = '<div class="card"><small>🎁 SPELL BOX</small><b>Stop it in the gold!</b><div class="brmeter"><span class="z1"></span><span class="z2"></span><span class="z3"></span><i></i></div><p>Tap here or press Space</p></div>';
+    document.body.appendChild(o);
+    var card = o.querySelector('.card'), needle = o.querySelector('i');
+    var pos = function () { var u = ((performance.now() - t0) % (2 * P)) / P; return u <= 1 ? u : 2 - u; };
+    (function anim() { if (done) return; needle.style.left = (pos() * 100) + '%'; raf = requestAnimationFrame(anim); })();
+    var key = function (e) { if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); stop(); } };
+    document.addEventListener('keydown', key, true);
+    var auto = setTimeout(stop, 4500);
+    card.onclick = stop;
+    function stop() {
+      if (done) return; done = true; clearTimeout(auto); cancelAnimationFrame(raf); document.removeEventListener('keydown', key, true);
+      var x = pos(), dx = Math.abs(x - 0.5); needle.style.left = (x * 100) + '%';
+      var tier = dx <= 0.04 ? [2.5, '🌟 PERFECT! ×2.5'] : dx <= 0.13 ? [1.6, '✨ GREAT! ×1.6'] : dx <= 0.3 ? [1, 'GOOD'] : [0.4, '😬 Missed the zone ×0.4'];
+      var tw = 0, r = Math.random() * SPELLS.reduce(function (a, b) { return a + b.w; }, 0), si = 0;
+      for (var i = 0; i < SPELLS.length; i++) { tw += SPELLS[i].w; if (r < tw) { si = i; break; } }
+      var S = SPELLS[si], d = S.dud ? 1 : Math.max(1, Math.round((S.lo + Math.random() * (S.hi - S.lo)) * tier[0]));
+      ST.box = 0; ST.bxN = (ST.bxN || 0) + 1; ST.bxS = si; ST.bxD = d; ST.dmg += d; keep(); send(); xp(3);
+      setTimeout(function () {
+        card.innerHTML = '<small>' + tier[1] + '</small><span>' + S.e + '</span><b>' + S.name + '!</b><p>' + (S.dud ? S.dud : '−' + d + ' damage') + '</p>';
+        if (root) { spFx({ id: 'spell', e: S.e, sp: S.name }, 'You', d); draw(); }
+      }, 450);
+      setTimeout(function () { o.classList.add('out'); }, 2600);
+      setTimeout(function () { o.remove(); if (V) V.boxing = false; }, 3000);
+    }
   }
   // 🎯 the weak spot: after a right answer it glows somewhere on the boss for a moment. Tap it in time: the hit lands twice.
   function aim(d) {
@@ -569,7 +618,7 @@
       ST.dmg += d; mark(first ? 1 : 2); charge(1); xp(first ? 10 : 5);
       var extra = [crit && !sure ? '🔥 ' + ST.streak + ' in a row' : '', sure ? '🎯 sure crit' : '', dbl ? '💥 double' : '', song ? '🎸 +5' : '', combo > 1 ? '⚡ combo x' + combo : ''].filter(Boolean).join(' · ');
       ST.fb = { ok: true, html: '<b>' + (crit ? '💥 CRITICAL HIT! ' : '⚔️ Hit! ') + d + ' damage.</b>' + (extra ? ' ' + extra + '.' : first && ST.streak === 2 ? ' One more in a row for a critical hit.' : '') };
-      hitFx('You', d, crit); maybeLoot(crit); aim(d); sendSoon(); keep(); draw();
+      hitFx('You', d, crit); if (!maybeLoot(crit)) maybeBox(); aim(d); sendSoon(); keep(); draw();
     }
     function wrong() { xp(1); if (!q.easy) ST.streak = 0; ST.n++; mark(0); ST.cool = Date.now() + (q.easy ? 2000 : 4000); ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') }; sendSoon(); keep(); draw(); }
     if (q.k === 'number') {
@@ -662,7 +711,7 @@
     clearTimeout(sendT); if (A.MODE !== 'student' || !V) return;
     var x = ''; Object.keys(ST.res || {}).forEach(function (k) { k = +k; while (x.length < k) x += '.'; x = x.slice(0, k) + ST.res[k] + x.slice(k + 1); });
     var at = Object.keys(ST.atk || {}).slice(-12).map(function (k) { return k + '.' + ST.atk[k]; }).join(',');
-    A.record({ id: QID, k: 'open' }, 'r1;id:' + Math.round(V.id / 1000) + ';d:' + ST.dmg + ';h:' + ST.hits + ';n:' + ST.n + ';b:' + ST.best + (at ? ';a:' + at : '') + (ST.hero != null ? ';hr:' + ST.hero : '') + ';sp:' + (ST.spUsed || 0) + ';dg:' + (ST.dg || 0) + ';sn:' + (ST.sn || 0) + ';lv:' + hinfo().lv + (ST.em ? ';em:' + ST.em + '.' + ST.emi : '') + (x ? ';x:' + x.slice(0, 340) : ''), null);
+    A.record({ id: QID, k: 'open' }, 'r1;id:' + Math.round(V.id / 1000) + ';d:' + ST.dmg + ';h:' + ST.hits + ';n:' + ST.n + ';b:' + ST.best + (at ? ';a:' + at : '') + (ST.hero != null ? ';hr:' + ST.hero : '') + ';sp:' + (ST.spUsed || 0) + ';dg:' + (ST.dg || 0) + ';sn:' + (ST.sn || 0) + ';lv:' + hinfo().lv + (ST.em ? ';em:' + ST.em + '.' + ST.emi : '') + (ST.bxN ? ';bx:' + ST.bxN + '.' + ST.bxS + '.' + ST.bxD : '') + (x ? ';x:' + x.slice(0, 340) : ''), null);
   }
   function sendSoon() { clearTimeout(sendT); sendT = setTimeout(send, 2000); }
 
@@ -696,9 +745,10 @@
       var atks = {}; ((s.match(/;a:([0-9.,]*)/) || [, ''])[1]).split(',').filter(Boolean).forEach(function (p) { var q = p.split('.'); atks[q[0]] = +q[1]; });
       var row = { d: get('d'), h: get('h'), n: get('n'), b: get('b'), a: atks, x: (s.match(/;x:([0-2.]*)/) || [, ''])[1], hr: /;hr:\d/.test(s) ? get('hr') : -1, sp: get('sp'), dg: get('dg'), sn: get('sn'), lv: get('lv') || 1, em: 0, emi: 0 };
       var emm = s.match(/;em:(\d+)\.(\d)/); if (emm) { row.em = +emm[1]; row.emi = +emm[2]; }
+      row.bx = 0; var bxm = s.match(/;bx:(\d+)\.(\d)\.(\d+)/); if (bxm) { row.bx = +bxm[1]; row.bxs = +bxm[2]; row.bxd = +bxm[3]; }
       // someone who arrived after the start: in the first half the boss gets tougher, so a bigger class still has a fight
       if (!K.seen[sid]) { K.seen[sid] = 1; if (K.state === 1 && !quiet && Date.now() - K.id < K.dur * 500) { var add = Math.min(9999 - K.max, K.per || PER); K.max += add; changed = true; } }
-      var old = K.rows[sid] || (quiet ? row : { d: 0, sp: 0, dg: 0, sn: 0, em: 0 }), was = old.d, nm = nameOf(sid), e0 = elapsed(K);
+      var old = K.rows[sid] || (quiet ? row : { d: 0, sp: 0, dg: 0, sn: 0, em: 0, bx: 0 }), was = old.d, nm = nameOf(sid), e0 = elapsed(K);
       if (K.state === 1) {
         // specials, dodges and stuns first (each with its own banner), then whatever damage is left as an ordinary hit
         var h = HEROES[row.hr] || HEROES[0], hd = h.d + spBonus(row.lv), dsp = Math.max(0, row.sp - (old.sp || 0)), ddg = Math.max(0, row.dg - (old.dg || 0)), dsn = Math.max(0, row.sn - (old.sn || 0));
@@ -709,7 +759,9 @@
         }
         for (var j = 0; j < Math.min(ddg, 2); j++) fresh.push({ n: nm, d: DODGE, k: 3 });
         if (dsn) fresh.push({ n: nm, d: 0, k: 4 });
-        var dd = row.d - was - dsp * hd - ddg * DODGE;
+        var nbx = row.bx > (old.bx || 0) && row.bxs < SPELLS.length;
+        if (nbx) fresh.push({ n: nm, d: row.bxd, k: 30 + row.bxs });
+        var dd = row.d - was - dsp * hd - ddg * DODGE - (nbx ? row.bxd : 0);
         if (dd > 0) fresh.push({ n: nm, d: dd, k: dd >= 20 ? 1 : 0 });
         if (row.d > was) K.lastHit[sid] = Date.now();
       }

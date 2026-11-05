@@ -878,7 +878,7 @@
   }
   var HERO = { add: heroAdd, info: heroInfo, need: heroNeed, unlock: HERO_UNLOCK, title: heroTitle };
 
-  var RAID_V = '20261105g', raidLoading = null;
+  var RAID_V = '20261105h', raidLoading = null;
   function raidAssets(cb) {
     if (window.SFA_RAID) return cb();
     if (raidLoading) { raidLoading.push(cb); return; }
