@@ -911,7 +911,8 @@
     var left = Math.max(0, Math.round(K.dur - elapsed(K))), raiders = Object.keys(K.rows).length;
     sec.appendChild(H('p', '', (K.state === 1 ? '<b>' + Math.floor(left / 60) + ':' + ('0' + left % 60).slice(-2) + '</b> left · ' : K.win ? '<b>🏆 Boss defeated!</b> · ' : '<b>Time: it got away.</b> ') + 'HP <b>' + Math.max(0, K.hp) + ' / ' + K.max + '</b> · ' + raiders + ' raider' + (raiders === 1 ? '' : 's') + (K.atk.st === 1 ? ' · ⚠️ attack on: ' + K.atk.right + ' of ' + K.atk.of + ' right so far' : '')));
     var hc = [0, 0, 0, 0]; Object.keys(K.rows).forEach(function (sid) { if (K.rows[sid].hr >= 0) hc[K.rows[sid].hr % 4]++; });
-    sec.appendChild(H('p', 'muted', 'Heroes: ' + HEROES.map(function (h, i) { return h.e + ' ' + hc[i]; }).join(' · ') + (K.combo > 1 ? ' · ⚡ combo x' + CMUL[K.combo] : '') + (K.shields ? ' · 🛡️ ' + K.shields + ' shield' + (K.shields > 1 ? 's' : '') : '') + (K.tg.st === 1 ? ' · 🎯 targeting ' + K.tg.sids.map(nameOf).join(', ') : '')));
+    var dd = dfold('g-raid', '📋 Details · heroes, attacks' + (K.mode === 1 ? ', exit ticket' : ', first tries'), K.state === 2);
+    dd.appendChild(H('p', 'muted', 'Heroes: ' + HEROES.map(function (h, i) { return h.e + ' ' + hc[i]; }).join(' · ') + (K.combo > 1 ? ' · ⚡ combo x' + CMUL[K.combo] : '') + (K.shields ? ' · 🛡️ ' + K.shields + ' shield' + (K.shields > 1 ? 's' : '') : '') + (K.tg.st === 1 ? ' · 🎯 targeting ' + K.tg.sids.map(nameOf).join(', ') : '')));
     var r = H('div', 'row');
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: '👁 Show the boss', title: 'The boss on this screen', onclick: function () { watch(); } }));
     if (K.state === 1 && K.atk.st === 0 && K.dur - elapsed(K) > ATK_WIN + 10) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: '⚠️ Boss attack now', onclick: function () { startAttack(); } }));
@@ -920,11 +921,11 @@
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: 'Back to the lesson', onclick: function () { A.console_().raid = null; if (root) close(); A.pushLive(); A.consolePanel(); } }));
     sec.appendChild(r);
     var pool = POOLS[K.mode];
-    if (K.hist.length) sec.appendChild(H('p', 'muted', '<b>Boss attacks:</b> ' + K.hist.map(function (h) { var q = pool ? atkList(pool)[h.q % atkList(pool).length] : null; return (h.blocked ? '🛡️ ' : '💥 ') + h.right + '/' + h.of + (h.of ? ' (' + Math.round(100 * h.right / h.of) + '%)' : '') + (q ? ' “' + esc(plain(q.q).slice(0, 60)) + '”' : ''); }).join(' · ')));
+    if (K.hist.length) dd.appendChild(H('p', 'muted', '<b>Boss attacks:</b> ' + K.hist.map(function (h) { var q = pool ? atkList(pool)[h.q % atkList(pool).length] : null; return (h.blocked ? '🛡️ ' : '💥 ') + h.right + '/' + h.of + (h.of ? ' (' + Math.round(100 * h.right / h.of) + '%)' : '') + (q ? ' “' + esc(plain(q.q).slice(0, 60)) + '”' : ''); }).join(' · ')));
     var rep = report(K);
     if (rep && rep.studs.length) {
-      sec.appendChild(H('p', 'muted', '<b>' + (K.mode === 1 ? 'Exit ticket' : 'Review') + ', first tries (lowest first):</b> ' + rep.studs.map(function (s) { var pc = s.of ? s.got / s.of : 0; return (!s.of ? '⚪ ' : pc >= 0.8 ? '🟢 ' : pc >= 0.5 ? '🟡 ' : '🔴 ') + esc(s.name) + ' ' + s.got + '/' + s.of; }).join(' · ')));
-      if (rep.hard.length) sec.appendChild(H('p', 'muted', '<b>Hardest for the class:</b> ' + rep.hard.map(function (h) { return Math.round(100 * h.r / h.n) + '% right on “' + esc(plain(rep.pool[h.i].q).slice(0, 80)) + '”'; }).join(' · ')));
+      dd.appendChild(H('p', 'muted', '<b>' + (K.mode === 1 ? 'Exit ticket' : 'Review') + ', first tries (lowest first):</b> ' + rep.studs.map(function (s) { var pc = s.of ? s.got / s.of : 0; return (!s.of ? '⚪ ' : pc >= 0.8 ? '🟢 ' : pc >= 0.5 ? '🟡 ' : '🔴 ') + esc(s.name) + ' ' + s.got + '/' + s.of; }).join(' · ')));
+      if (rep.hard.length) dd.appendChild(H('p', 'muted', '<b>Hardest for the class:</b> ' + rep.hard.map(function (h) { return Math.round(100 * h.r / h.n) + '% right on “' + esc(plain(rep.pool[h.i].q).slice(0, 80)) + '”'; }).join(' · ')));
       var cp = el('button', { type: 'button', 'class': 'btn small', text: '📋 Copy results' });
       cp.onclick = function () {
         var lines = ['Name\tRight first time\tAnswered\tDamage'].concat(rep.studs.map(function (s) { return s.name + '\t' + s.got + '\t' + s.of + '\t' + s.d; }));
@@ -932,10 +933,12 @@
         rep.pool.forEach(function (q, i) { var n = 0, g = 0; rep.studs.forEach(function (s) { var x = (K.rows[s.sid].x || '')[i]; if (x && x !== '.') { n++; if (x === '1') g++; } }); if (n) lines.push(plain(q.q).replace(/\s+/g, ' ') + '\t' + g + '\t' + n); });
         try { navigator.clipboard.writeText(lines.join('\n')).then(function () { SFA.toast('Copied. Paste it into a spreadsheet.', 2500); }); } catch (e) { SFA.toast('Couldn\'t copy here.', 2500); }
       };
-      sec.appendChild(cp);
+      dd.appendChild(cp);
     }
+    sec.appendChild(dd);
     p.appendChild(sec);
   }
+  function dfold(key, title, open) { if (A.fold) return A.fold(key, title, open); var d = el('details', { 'class': 'sect fold' }); d.appendChild(el('summary', {}, [H('h3', '', title)])); d.open = !!open; return d; }
   (A.every || function (f, ms) { setInterval(f, ms); })(function () { if (A.MODE === 'teach' && A.console_() && C()) tick(); }, 1000);
 
   window.SFA_RAID = { sync: sync, agg: agg, section: section, start: start, counts: counts, spot: spot, restore: restore, raidOf: raidOf, BOSSES: BOSSES, drawBoss: boss };

@@ -733,9 +733,8 @@
     d._upd();
   }
 
-
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261105j', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261108a', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }
@@ -758,7 +757,7 @@
   // the server's clock as seen from here: live.at is server time when the console last updated; the closest sample wins
   function noteSkew() { if (MODE !== 'student' || !live || !live.at) return; var k = live.at - Date.now(); if (srvSkewV == null || k > srvSkewV || k < srvSkewV - 30000) srvSkewV = k; }
   // 🔠 the Big Board (sfa-board.js): the class crossword at the start of a lesson, loaded and synced like the Clash
-  var BOARD_V = '20261105j', boardLoading = null;
+  var BOARD_V = '20261108a', boardLoading = null;
   function boardAssets(cb) {
     if (window.SFA_BOARD) return cb();
     if (boardLoading) { boardLoading.push(cb); return; }
@@ -781,23 +780,7 @@
     if (window.SFA_BOARD) return SFA_BOARD.sync();
     if ((isLive() || MODE === 'screen') && freshBoard(live) && !(MODE === 'student' && saving && !S.me)) boardAssets(function () { SFA_BOARD.sync(); });
   }
-  function boardSection(p) {
-    if (window.SFA_BOARD && console_.board) return SFA_BOARD.section(p);
-    if (cur > 3 || console_.clash || console_.raid || console_.show) return;   // it's a starter: offered on the first slides of the lesson
-    var sec = H('div', 'sect');
-    sec.appendChild(H('h3', '', '🔠 Start with the Big Board? (optional, about 6 minutes)'));
-    sec.appendChild(H('p', 'muted', 'A class crossword: every student here gets their own word. Right answers to quick review questions from earlier lessons earn letter guesses (a vowel costs two). Solved words fill the crossword on the class screen and give free letters to the words that cross them. If every word is found, the whole class celebrates.'));
-    var th = el('select', { 'aria-label': 'Theme' }), t0 = SFA.store.get('teacher.board.theme', 0);
-    ['⚡ Pokémon', '⚽ Sport and football', '🎮 Games and food', '📐 Maths words', '🦁 Animals', '🚀 Space', '🦸 Superheroes', '🍥 Anime', '🎵 Music', '🔬 Science lab', '🌍 Around the world', '🌊 Under the sea', '💻 Tech and the internet', '🏎️ Cars and racing'].forEach(function (t, i) { var o = el('option', { value: String(i), text: t }); if (i === t0) o.selected = true; th.appendChild(o); });
-    th.onchange = function () { SFA.store.set('teacher.board.theme', +th.value); };
-    var len = el('select', { 'aria-label': 'Length' }), m0 = SFA.store.get('teacher.board.mins', 6);
-    [4, 6, 8].forEach(function (m) { var o = el('option', { value: String(m), text: m + ' minutes' }); if (m === m0) o.selected = true; len.appendChild(o); });
-    len.onchange = function () { SFA.store.set('teacher.board.mins', +len.value); };
-    var sb = el('button', { type: 'button', 'class': 'btn primary', text: '🔠 Start the Big Board' });
-    if (!console_.on) { sb.disabled = true; sec.appendChild(H('p', 'state', 'Go live first, and wait for students to join: everyone here gets a word.')); }
-    sb.onclick = function () { sb.disabled = true; sb.textContent = 'Building the crossword…'; boardAssets(function () { SFA_BOARD.start(+th.value, +len.value); SFA.toast('The Big Board is on. Students\' screens switch within a few seconds.', 3500); }); };
-    var rowb = H('div', 'row'); rowb.appendChild(th); rowb.appendChild(len); rowb.appendChild(sb); sec.appendChild(rowb); p.appendChild(sec);
-  }
+
   function clashSync() {
     if (MODE === 'teach') return;
     noteSkew();
@@ -811,22 +794,6 @@
     if ((isLive() || MODE === 'screen') && freshClash(live) && !(MODE === 'student' && saving && !S.me)) clashAssets(function () { SFA_CLASH.sync(); });
   }
   function clashAgg() { if (window.SFA_CLASH && console_ && console_.clash) SFA_CLASH.agg(); }
-  function clashSection(p) {
-    if (window.SFA_CLASH && console_.clash) return SFA_CLASH.section(p);
-    var sl = LES.slides[cur];
-    if (!(sl && (sl.k === 'exit' || sl.k === 'end'))) return;   // an optional finale: it shows up at the end of the lesson
-    if (console_.board || console_.raid || console_.show) return;   // one game at a time: the Big Board or a Boss Raid is still on
-    var sec = H('div', 'sect');
-    sec.appendChild(H('h3', '', '⚔️ Finish with a Lane Clash? (optional, 5 minutes)'));
-    sec.appendChild(H('p', 'muted', 'Plants vs Zombies, team against team, with the Sandy Flats characters. Fair teams (balanced on what each student did in today\'s lesson), then 30 seconds of rules on every screen. Students answer this lesson\'s questions for coins, send characters down 5 lanes and plant defenders, and grab the other team\'s gold. Good lesson participation starts them with more coins and a higher hero level. The class screen shows the whole battle.'));
-    var len = el('select', { 'aria-label': 'Battle length' }), lv0 = SFA.store.get('teacher.clash.mins', 5);
-    [3, 5, 8].forEach(function (m) { var o = el('option', { value: String(m), text: m + ' minutes' }); if (m === lv0) o.selected = true; len.appendChild(o); });
-    len.onchange = function () { SFA.store.set('teacher.clash.mins', +len.value); };
-    var sb = el('button', { type: 'button', 'class': 'btn primary', text: '⚔️ Start a Lane Clash' });
-    if (!console_.on) { sb.disabled = true; sec.appendChild(H('p', 'state', 'Go live first.')); }
-    sb.onclick = function () { sb.disabled = true; sb.textContent = 'Loading the characters and picking fair teams…'; clashAssets(function () { SFA_CLASH.start(+len.value).then(function () { SFA.toast('Lane Clash on! Students\' screens switch within a few seconds.', 3500); }); }); };
-    var rowc = H('div', 'row'); rowc.appendChild(len); rowc.appendChild(sb); sec.appendChild(rowc); p.appendChild(sec);
-  }
 
   // 👹 Boss Raid (sfa-raid.js): the whole class against one boss; review at the start, exit ticket at the end
   /* ⭐ Arcade level: XP from every Boss Raid, Lane Clash and Big Board, kept for the whole term. It saves with the
@@ -913,7 +880,6 @@
   }
   var HERO = { add: heroAdd, info: heroInfo, need: heroNeed, unlock: HERO_UNLOCK, title: heroTitle };
 
-
   /* ---------- 👕 the lobby: the first slide while the class joins ----------
      Students dress their avatar (the Wardrobe, sfa-wardrobe.js) and can pay coins to strut across every screen.
      The class screen shows everyone who has joined as a line of avatars, so the teacher sees who's in.
@@ -970,6 +936,11 @@
     top.appendChild(x); ov.appendChild(top); var box = H('div'); ov.appendChild(box); document.body.appendChild(ov);
     x.onclick = function () { ov.remove(); lookKey = ''; lookSync(); if (slideEl && slideEl._upd) slideEl._upd(); };
     SFA_WARDROBE.mount(box, {});
+  }
+  function closeWardrobe() {
+    var ov = document.querySelector('.wdov'); if (!ov) return;
+    ov.remove(); lookKey = ''; lookSync();
+    if (MODE === 'student') SFA.toast('👕 The lesson moved on, so the Wardrobe closed. Your look is saved.', 3500);
   }
   function strut() {
     if (!window.SFA_WARDROBE || !isLive() || Date.now() - (lobby.strutAt || 0) < 20000) return;
@@ -1062,22 +1033,8 @@
     if (window.SFA_SHOW) return SFA_SHOW.sync();
     if ((isLive() || MODE === 'screen') && hasShow(live) && live.counts.zfs[0] === 1 && !(MODE === 'student' && saving && !S.me)) showAssets(function () { SFA_SHOW.sync(); });
   }
-  function showSection(p) {
-    if (console_.board || console_.clash || console_.raid) return;
-    if (window.SFA_SHOW && console_.show) return SFA_SHOW.section(p);
-    var sec = H('div', 'sect');
-    sec.appendChild(H('h3', '', '👗 Avatar fashion show (optional)'));
-    sec.appendChild(H('p', 'muted', 'Every student here walks the catwalk on the class screen (and on every device) in the avatar they built in the Wardrobe: their name, level and look, one after another. About 5 seconds each.'));
-    var len = el('select', { 'aria-label': 'Seconds each' }), s0 = SFA.store.get('teacher.show.secs', 5);
-    [4, 5, 7].forEach(function (m) { var o = el('option', { value: String(m), text: m + ' seconds each' }); if (m === s0) o.selected = true; len.appendChild(o); });
-    len.onchange = function () { SFA.store.set('teacher.show.secs', +len.value); };
-    var sb = el('button', { type: 'button', 'class': 'btn primary', text: '👗 Start the fashion show' });
-    if (!console_.on) { sb.disabled = true; sec.appendChild(H('p', 'state', 'Go live first, and wait for students to join.')); }
-    sb.onclick = function () { sb.disabled = true; showAssets(function () { SFA_SHOW.start(+len.value); }); };
-    var rw = H('div', 'row'); rw.appendChild(len); rw.appendChild(sb); rw.appendChild(el('a', { href: 'trophies.html', target: '_blank', 'class': 'btn', text: '🏆 Trophy shelf' })); sec.appendChild(rw); p.appendChild(sec);
-  }
 
-  var RAID_V = '20261105i', raidLoading = null;
+  var RAID_V = '20261108a', raidLoading = null;
   function raidAssets(cb) {
     if (window.SFA_RAID) return cb();
     if (raidLoading) { raidLoading.push(cb); return; }
@@ -1099,27 +1056,6 @@
   function raidSync() {
     if (window.SFA_RAID) return SFA_RAID.sync();
     if ((isLive() || MODE === 'screen') && freshRaid(live) && !(MODE === 'student' && saving && !S.me)) raidAssets(function () { SFA_RAID.sync(); });
-  }
-  function raidSection(p) {
-    if (window.SFA_RAID && console_.raid) return SFA_RAID.section(p);
-    if (console_.board || console_.clash || console_.show) return;   // one game at a time
-    var sl = LES.slides[cur], atEnd = !!(sl && (sl.k === 'exit' || sl.k === 'end'));
-    if (!(cur <= 3 || atEnd)) return;   // a review at the start of the lesson, an exit ticket at the end
-    var sec = H('div', 'sect');
-    sec.appendChild(H('h3', '', atEnd ? '👹 Finish with a Boss Raid exit ticket? (optional, about 6 minutes)' : '👹 Start with a Boss Raid review? (optional, about 6 minutes)'));
-    sec.appendChild(H('p', 'muted', 'The whole class against one giant boss on the class screen. Each student picks a hero (Fire Mage, Archer, Knight or Bard) whose special charges as they answer. Every right answer hits the boss; streaks land critical hits, crits drop loot, and hitting together builds a class combo (up to x2). The boss targets two or three students every half minute (answer to dodge, or get stunned), and every 80 seconds the boss charges an attack: one question on every screen, and if 60% of the answers are right the class blocks it and counter-attacks, otherwise it heals. Both start with five quick integer warm-ups that only scratch the boss (2 damage each); then the real questions hit for 10. Review uses questions from the five lessons before this one. Exit ticket uses this lesson\'s questions and records every student\'s first try, so you see who got what and which questions the class missed.'));
-    var md = el('select', { 'aria-label': 'Raid questions' });
-    [['0', '📚 Review (earlier lessons)'], ['1', '🎟️ Exit ticket (this lesson)']].forEach(function (o) { var op = el('option', { value: o[0], text: o[1] }); if ((o[0] === '1') === atEnd) op.selected = true; md.appendChild(op); });
-    var bs = el('select', { 'aria-label': 'Boss' }), b0 = SFA.store.get('teacher.raid.boss', -1);
-    [['-1', '🎲 Random boss'], ['0', '🤖 Glitch Golem'], ['1', '🐉 The Nonlinear Hydra'], ['2', '🫧 Mega Slime'], ['3', '🦑 Void Kraken']].forEach(function (o) { var op = el('option', { value: o[0], text: o[1] }); if (+o[0] === b0) op.selected = true; bs.appendChild(op); });
-    bs.onchange = function () { SFA.store.set('teacher.raid.boss', +bs.value); };
-    var len = el('select', { 'aria-label': 'Raid length' }), m0 = SFA.store.get('teacher.raid.mins', 6);
-    [4, 6, 8].forEach(function (m) { var o = el('option', { value: String(m), text: m + ' minutes' }); if (m === m0) o.selected = true; len.appendChild(o); });
-    len.onchange = function () { SFA.store.set('teacher.raid.mins', +len.value); };
-    var sb = el('button', { type: 'button', 'class': 'btn primary', text: '👹 Start the Boss Raid' });
-    if (!console_.on) { sb.disabled = true; sec.appendChild(H('p', 'state', 'Go live first, and wait for students to join: the boss\'s health is set by how many are here.')); }
-    sb.onclick = function () { sb.disabled = true; sb.textContent = 'Summoning the boss…'; raidAssets(function () { SFA_RAID.start(+md.value, +len.value, +bs.value); SFA.toast('Boss Raid on! Students\' screens switch within a few seconds.', 3500); }); };
-    var rowr = H('div', 'row'); rowr.appendChild(md); rowr.appendChild(bs); rowr.appendChild(len); rowr.appendChild(sb); sec.appendChild(rowr); p.appendChild(sec);
   }
 
   /* ---------------- deck ---------------- */
@@ -1158,6 +1094,7 @@
     i = Math.max(0, Math.min(LES.slides.length - 1, i));
     var old = slideEl;
     if (old && old.contains(document.getElementById('sfaAccount'))) document.getElementById('acctHold').appendChild(document.getElementById('sfaAccount'));
+    if (i !== 0) closeWardrobe();   // the Wardrobe belongs to the first slide: moving on closes it
     cur = i; slideEl = build(LES.slides[i], i);
     if (!quiet) slideEl.classList.add('in'); if (dir < 0) slideEl.classList.add('back');
     if (old) { if (quiet) old.remove(); else { old.classList.add('out'); if (dir < 0) old.classList.add('back'); setTimeout(function () { old.remove(); }, 380); } }
@@ -1483,40 +1420,26 @@
   }
 
   // a fold-away section whose open/closed state survives the console redrawing every few seconds
-  function fold(key, title, dflt) {
-    var o = console_.open || (console_.open = {}), d = el('details', { 'class': 'sect fold' }), sm = el('summary');
+  function fold(key, title, dflt, cls) {
+    var o = console_.open || (console_.open = SFA.store.get('teacher.console.open', {}) || {}), d = el('details', { 'class': 'sect fold' + (cls ? ' ' + cls : '') }), sm = el('summary');
     sm.innerHTML = '<h3>' + esc(title) + '</h3>'; d.appendChild(sm);
     var was = d.open = key in o ? o[key] : dflt;
-    d.addEventListener('toggle', function () { if (d.open !== was) { was = o[key] = d.open; } });   // only the teacher's own clicks are remembered
+    d.addEventListener('toggle', function () { if (d.open !== was) { was = o[key] = d.open; SFA.store.set('teacher.console.open', o); } });   // only the teacher's own clicks are remembered (on this computer)
     return d;
   }
-  // how old the answers on screen are, so a stalled connection to the Sheet is obvious
-  function freshTick() {
-    var e = document.getElementById('fresh'); if (!e) return;
-    var a = console_.got ? Math.round((Date.now() - console_.got) / 1000) : -1;
-    e.className = 'state ' + (a >= 0 && a < 20 ? 'ok' : 'bad');
-    e.textContent = a < 0 ? 'Waiting for answers from your Sheet…' : a < 20 ? '● Answers up to date (checked ' + a + ' s ago)' : '● Answers last arrived ' + a + ' s ago. Still trying; if this keeps growing, reload this page.';
-  }
-  setInterval(freshTick, 1000);
-  function consolePanel() {
-    var p = document.getElementById('tpanel'); if (!p || !LES) return;
-    var s = LES.slides[cur], keep = p.scrollTop, whoSec = null; p.innerHTML = '';
-    // what's needed mid-lesson comes first: live buttons, then this slide's controls and answers
-    // live controls
-    var top = H('div', 'sect');
-    var lb = el('button', { type: 'button', 'class': 'btn ' + (console_.on ? '' : 'primary'), text: console_.on ? 'End live lesson' : 'Go live' });
-    lb.onclick = function () {
-      console_.on = !console_.on;
-      if (console_.on) { console_.since = Date.now(); pushLive(); SFA.toast('Live. Students\' screens now follow your slides.'); }
-      else endLive();
-      consolePanel(); liveChip.hidden = !console_.on;
-    };
-    if (console_.offline) lb.disabled = true;
-    var sc = el('button', { type: 'button', 'class': 'btn', text: 'Open class screen' });
-    sc.onclick = function () { window.open('lesson.html?l=' + N + '&screen', 'sfa-screen-' + LID, 'width=1280,height=760'); };
-    var fr = el('button', { type: 'button', 'class': 'btn', text: 'Start fresh' });
-    fr.title = 'Back to slide 1, clear reveals, spotlight and timer, and start counting answers from now';
-    fr.onclick = function () {
+  /* ---------- the console: status bar, running game, games tray ---------- */
+  function statusBar(p) {
+    var bar = H('div', 'sect cbar'), line = H('div', 'cline'), ros = rosterIn(), inS = {};
+    ((console_.data && console_.data.answers) || []).forEach(function (a) { if (!beforeRun(a)) inS[a.sid] = 1; });
+    var nHere = ros.filter(function (r) { return inS[r.sid]; }).length;
+    line.appendChild(H('span', 'pill ' + (console_.on ? 'on' : 'off'), console_.on ? '🔴 Live · ' + Math.round((Date.now() - console_.since) / 60000) + ' min' : '⚪ Not live'));
+    if (console_.data) line.appendChild(H('span', 'pill', '👋 ' + nHere + ' of ' + ros.length + ' here'));
+    if (!console_.offline) { var fr2 = H('span', 'pill fresh'); fr2.id = 'fresh'; line.appendChild(fr2); }
+    bar.appendChild(line);
+    var row = H('div', 'row cbtns');
+    var golive = function () { console_.on = true; console_.since = Date.now(); pushLive(); SFA.toast('Live. Students\' screens now follow your slides.'); consolePanel(); liveChip.hidden = false; };
+    var endit = function () { console_.on = false; endLive(); consolePanel(); liveChip.hidden = true; };
+    var fresh = function () {
       if (!window.confirm('Start this lesson fresh?\n\nEveryone goes back to slide 1, reveals and the timer are cleared, and students\' earlier answers are hidden here and cleared on their devices. Nothing is deleted from your Sheet.')) return;
       console_.run = Date.now(); console_.showOld = false;
       console_.reveal = {}; console_.spot = null; console_.timer = null; console_.picked = ''; console_.peek = false;
@@ -1524,37 +1447,130 @@
       computeFeed(); render(0, -1); pushLive(); consolePanel();
       SFA.toast('Fresh start. Students\' screens reset within a few seconds.', 4000);
     };
-    if (console_.offline) fr.disabled = true;
-    var row = H('div', 'row'); row.appendChild(lb);
-    // end the lesson and send everyone straight into its game: no link for students to click
-    if (console_.on && LES.game && LES.game.file) {
-      var tg = el('button', { type: 'button', 'class': 'btn primary', text: 'End → everyone plays ' + LES.game.title });
-      tg.title = 'Ends the live lesson. Students\' pages open ' + LES.game.title + ' by themselves, signed in.';
-      tg.onclick = function () { console_.on = false; endLive(true); consolePanel(); liveChip.hidden = true; SFA.toast('Lesson ended. Students are moving into ' + LES.game.title + '.', 4000); };
-      row.appendChild(tg);
-    }
-    row.appendChild(sc); row.appendChild(fr); top.appendChild(row);
+    if (!console_.on) { var gl = el('button', { type: 'button', 'class': 'btn primary', text: 'Go live' }); gl.disabled = !!console_.offline; gl.onclick = golive; row.appendChild(gl); }
+    var sc = el('button', { type: 'button', 'class': 'btn', text: '📺 Class screen', title: 'Open the class screen window. Share that window, not this one.' });
+    sc.onclick = function () { window.open('lesson.html?l=' + N + '&screen', 'sfa-screen-' + LID, 'width=1280,height=760'); };
+    row.appendChild(sc);
+    // the rarer moves live in a menu
+    var mn = el('details', { 'class': 'cmenu' }), ms = el('summary', { text: console_.on ? 'End ▾' : 'More ▾' }), mb = H('div', 'cmenu-list');
+    mn.appendChild(ms); mn.appendChild(mb);
+    var add = function (txt, title, fn, cls) { var b2 = el('button', { type: 'button', 'class': 'btn' + (cls ? ' ' + cls : ''), text: txt, title: title }); b2.disabled = !!console_.offline; b2.onclick = function () { mn.open = false; fn(); }; mb.appendChild(b2); };
+    if (console_.on) add('End live lesson', 'Students\' screens stop following you', endit);
+    if (console_.on && LES.game && LES.game.file) add('End → everyone plays ' + LES.game.title, 'Ends the live lesson. Students\' pages open ' + LES.game.title + ' by themselves, signed in.', function () { console_.on = false; endLive(true); consolePanel(); liveChip.hidden = true; SFA.toast('Lesson ended. Students are moving into ' + LES.game.title + '.', 4000); }, 'primary');
+    add('Start fresh', 'Back to slide 1, clear reveals, spotlight and timer, and start counting answers from now', fresh);
+    row.appendChild(mn);
+    bar.appendChild(row);
+    // only what needs attention, one line each
     var hd = console_.hidden || {};
-    if (hd.fresh && !console_.showOld) { var hf = H('p', 'state bad', hd.fresh + ' answer' + (hd.fresh > 1 ? 's are' : ' is') + ' hidden because ' + (hd.fresh > 1 ? 'they' : 'it') + ' arrived before you pressed Start fresh. '); hf.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Show them', onclick: function () { console_.showOld = true; computeFeed(); consolePanel(); upd(); broadcast(); } })); top.appendChild(hf); }
-    if (hd.cls) top.appendChild(H('p', 'state bad', hd.cls + ' answer' + (hd.cls > 1 ? 's' : '') + ' in this lesson ' + (hd.cls > 1 ? 'are' : 'is') + ' from students outside Class ' + esc(console_.cls) + ', so they\'re hidden. Choose "All classes" under Settings to see them.'));
-    top.appendChild(H('p', 'muted', console_.on ? 'Live for ' + Math.round((Date.now() - console_.since) / 60000) + ' min. Share the class screen window, not this one.' : 'Share the class screen window. Go live so students\' devices follow you and the polls open.'));
-    if (console_.err) top.appendChild(H('p', 'state bad', esc(console_.err)));
-    if (console_.climb) top.appendChild(H('p', 'state', '🧗 Climb is ' + ({ open: 'open (waiting room)', running: 'running', paused: 'paused' }[console_.climb.state] || console_.climb.state) + (console_.climb.cls ? ' for Class ' + esc(console_.climb.cls) : '') + '. Students who finish it join this lesson by themselves' + (console_.climb.next && String(console_.climb.next) === String(N) ? '' : ' if it is set as the next lesson') + '. <a href="climb-teacher.html">Climb dashboard</a>'));
-    if (!console_.offline) { var fr2 = H('p', 'state' + (console_.got && Date.now() - console_.got < 20000 ? ' ok' : ' bad'), ''); fr2.id = 'fresh'; top.appendChild(fr2); }
-    p.appendChild(top);
+    if (hd.fresh && !console_.showOld) { var hf = H('p', 'state bad', hd.fresh + ' answer' + (hd.fresh > 1 ? 's' : '') + ' from before Start fresh hidden. '); hf.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Show them', onclick: function () { console_.showOld = true; computeFeed(); consolePanel(); upd(); broadcast(); } })); bar.appendChild(hf); }
+    if (hd.cls) bar.appendChild(H('p', 'state bad', hd.cls + ' answer' + (hd.cls > 1 ? 's' : '') + ' from outside Class ' + esc(console_.cls) + ' hidden (Settings: "All classes" shows them).'));
+    if (console_.err) bar.appendChild(H('p', 'state bad', esc(console_.err)));
+    if (console_.climb) bar.appendChild(H('p', 'state', '🧗 Climb ' + ({ open: 'is open', running: 'is running', paused: 'is paused' }[console_.climb.state] || console_.climb.state) + (console_.climb.cls ? ' (Class ' + esc(console_.climb.cls) + ')' : '') + ': finishers join this lesson. <a href="climb-teacher.html">Dashboard</a>'));
+    p.appendChild(bar);
     freshTick();
-    boardSection(p);
-    raidSection(p);
-    showSection(p);
-    clashSection(p);
+  }
+  // a game in progress takes the top slot
+  function runningGame(p) {
+    var n0 = p.children.length;
+    if (console_.board && window.SFA_BOARD) SFA_BOARD.section(p);
+    else if (console_.raid && window.SFA_RAID) SFA_RAID.section(p);
+    else if (console_.clash && window.SFA_CLASH) SFA_CLASH.section(p);
+    else if (console_.show && window.SFA_SHOW) SFA_SHOW.section(p);
+    else return false;
+    for (var i = n0; i < p.children.length; i++) p.children[i].classList.add('gamerun');
+    return true;
+  }
+  // the games: one row of tiles; a tile opens its options and a Start button. The ones that suit this slide glow.
+  var GAME_MORE = {
+    board: 'Every student here gets their own word in one class crossword. Right answers to review questions from earlier lessons earn letter guesses (a vowel costs two); harder questions earn more. Solved words fill in on the class screen and give free letters to the words that cross them. If every word is found, the whole class celebrates.',
+    raid: 'The whole class against one boss on the class screen. Students pick a hero whose special charges as they answer; right answers hit the boss, streaks crit, and hitting together builds a class combo. The boss targets a few students (answer to dodge) and charges attacks: one question on every screen, 60% right blocks it. Five integer warm-ups first. Review uses the five lessons before this one; Exit ticket uses this lesson and records every first try for you.',
+    clash: 'Team against team with the Sandy Flats characters. Fair teams from today\'s lesson, then the rules on every screen. Students answer this lesson\'s questions for coins, send characters down 5 lanes, plant defenders, send their own avatar hero once, and win free characters in team rallies.',
+    show: 'Every student here walks the catwalk on the class screen and every device in the avatar they built in the Wardrobe: name, level and outfit, one after another, then a group bow.'
+  };
+  function gamesTray(p, s) {
+    var atEnd = !!(s && (s.k === 'exit' || s.k === 'end')), early = cur <= 3;
+    var G = [
+      { id: 'board', e: '🔠', n: 'Big Board', len: SFA.store.get('teacher.board.mins', 6) + ' min', sug: early, one: 'Class crossword: right answers earn letters for each student\'s word.', build: buildBoard },
+      { id: 'raid', e: '👹', n: 'Boss Raid', len: SFA.store.get('teacher.raid.mins', 6) + ' min', sug: early || atEnd, one: atEnd ? 'Exit ticket: the class fights a boss with today\'s questions; you get every first try.' : 'Review: the whole class fights one boss with questions from earlier lessons.', build: buildRaid },
+      { id: 'clash', e: '⚔️', n: 'Lane Clash', len: SFA.store.get('teacher.clash.mins', 5) + ' min', sug: atEnd, one: 'Team battle: answer today\'s questions for coins and send characters down 5 lanes.', build: buildClash },
+      { id: 'show', e: '👗', n: 'Fashion show', len: '~' + Math.max(1, Math.ceil(Math.max(1, rosterIn().length) * SFA.store.get('teacher.show.secs', 5) / 60)) + ' min', sug: cur === 0, one: 'Every student\'s avatar walks the catwalk, one after another.', build: buildShow }
+    ];
+    var sec = H('div', 'sect games');
+    sec.appendChild(H('h3', '', '🎮 Games'));
+    var tiles = H('div', 'gtiles'); sec.appendChild(tiles);
+    G.forEach(function (g) {
+      var t = el('button', { type: 'button', 'class': 'gtile' + (g.sug ? ' sug' : '') + (console_.gamePick === g.id ? ' on' : ''), 'aria-expanded': console_.gamePick === g.id ? 'true' : 'false' });
+      t.innerHTML = '<span>' + g.e + '</span><b>' + g.n + '</b><small>' + g.len + (g.sug ? ' · ⭐ suggested' : '') + '</small>';
+      t.onclick = function () { console_.gamePick = console_.gamePick === g.id ? '' : g.id; consolePanel(); };
+      tiles.appendChild(t);
+    });
+    var pick = G.filter(function (g) { return g.id === console_.gamePick; })[0];
+    if (pick) {
+      var sh = H('div', 'gsheet');
+      sh.appendChild(H('p', 'gone', pick.one));
+      var how = el('details', { 'class': 'ghow' }); how.appendChild(el('summary', { text: 'ⓘ How it works' })); how.appendChild(H('p', 'muted', GAME_MORE[pick.id])); sh.appendChild(how);
+      pick.build(sh, atEnd);
+      if (!console_.on) sh.appendChild(H('p', 'state', 'Go live first, then wait for students to join.'));
+      sec.appendChild(sh);
+    }
+    p.appendChild(sec);
+  }
+  function startBtn(txt, busy, fn) {
+    var b = el('button', { type: 'button', 'class': 'btn primary', text: txt }); b.disabled = !console_.on;
+    b.onclick = function () { b.disabled = true; b.textContent = busy; console_.gamePick = ''; fn(); };
+    return b;
+  }
+  function pickSel(label, opts, val, key) {
+    var sl = el('select', { 'aria-label': label });
+    opts.forEach(function (o) { var op = el('option', { value: String(o[0]), text: o[1] }); if (String(o[0]) === String(val)) op.selected = true; sl.appendChild(op); });
+    if (key) sl.onchange = function () { SFA.store.set(key, +sl.value); };
+    return sl;
+  }
+  function buildBoard(box) {
+    var th = pickSel('Theme', ['⚡ Pokémon', '⚽ Sport and football', '🎮 Games and food', '📐 Maths words', '🦁 Animals', '🚀 Space', '🦸 Superheroes', '🍥 Anime', '🎵 Music', '🔬 Science lab', '🌍 Around the world', '🌊 Under the sea', '💻 Tech and the internet', '🏎️ Cars and racing'].map(function (t, i) { return [i, t]; }), SFA.store.get('teacher.board.theme', 0), 'teacher.board.theme');
+    var len = pickSel('Length', [[4, '4 minutes'], [6, '6 minutes'], [8, '8 minutes']], SFA.store.get('teacher.board.mins', 6), 'teacher.board.mins');
+    var sb = startBtn('🔠 Start the Big Board', 'Building the crossword…', function () { boardAssets(function () { SFA_BOARD.start(+th.value, +len.value); SFA.toast('The Big Board is on. Students\' screens switch within a few seconds.', 3500); }); });
+    var r = H('div', 'row'); r.appendChild(th); r.appendChild(len); r.appendChild(sb); box.appendChild(r);
+  }
+  function buildRaid(box, atEnd) {
+    var md = pickSel('Raid questions', [[0, '📚 Review (earlier lessons)'], [1, '🎟️ Exit ticket (this lesson)']], atEnd ? 1 : 0);
+    var bs = pickSel('Boss', [[-1, '🎲 Random boss'], [0, '🤖 Glitch Golem'], [1, '🐉 The Nonlinear Hydra'], [2, '🫧 Mega Slime'], [3, '🦑 Void Kraken']], SFA.store.get('teacher.raid.boss', -1), 'teacher.raid.boss');
+    var len = pickSel('Raid length', [[4, '4 minutes'], [6, '6 minutes'], [8, '8 minutes']], SFA.store.get('teacher.raid.mins', 6), 'teacher.raid.mins');
+    var sb = startBtn('👹 Start the Boss Raid', 'Summoning the boss…', function () { raidAssets(function () { SFA_RAID.start(+md.value, +len.value, +bs.value); SFA.toast('Boss Raid on! Students\' screens switch within a few seconds.', 3500); }); });
+    var r = H('div', 'row'); r.appendChild(md); r.appendChild(bs); r.appendChild(len); r.appendChild(sb); box.appendChild(r);
+  }
+  function buildClash(box) {
+    var len = pickSel('Battle length', [[3, '3 minutes'], [5, '5 minutes'], [8, '8 minutes']], SFA.store.get('teacher.clash.mins', 5), 'teacher.clash.mins');
+    var sb = startBtn('⚔️ Start a Lane Clash', 'Loading the characters and picking fair teams…', function () { clashAssets(function () { SFA_CLASH.start(+len.value).then(function () { SFA.toast('Lane Clash on! Students\' screens switch within a few seconds.', 3500); }); }); });
+    var r = H('div', 'row'); r.appendChild(len); r.appendChild(sb); box.appendChild(r);
+  }
+  function buildShow(box) {
+    var len = pickSel('Seconds each', [[4, '4 seconds each'], [5, '5 seconds each'], [7, '7 seconds each']], SFA.store.get('teacher.show.secs', 5), 'teacher.show.secs');
+    var sb = startBtn('👗 Start the fashion show', 'Starting…', function () { showAssets(function () { SFA_SHOW.start(+len.value); }); });
+    var r = H('div', 'row'); r.appendChild(len); r.appendChild(sb); box.appendChild(r);
+  }
+  // how old the answers on screen are, so a stalled connection to the Sheet is obvious
+  function freshTick() {
+    var e = document.getElementById('fresh'); if (!e) return;
+    var a = console_.got ? Math.round((Date.now() - console_.got) / 1000) : -1;
+    e.className = 'pill fresh ' + (a >= 0 && a < 20 ? 'ok' : 'bad');
+    e.textContent = a < 0 ? '… waiting for answers' : a < 20 ? '✓ answers ' + a + ' s' : '⚠ answers ' + a + ' s ago';
+    e.title = a >= 20 ? 'Answers last arrived ' + a + ' seconds ago. Still trying; if this keeps growing, reload this page.' : 'How long ago the answers on this page were checked with your Sheet';
+  }
+  setInterval(freshTick, 1000);
+  function consolePanel() {
+    var p = document.getElementById('tpanel'); if (!p || !LES) return;
+    var s = LES.slides[cur], keep = p.scrollTop, whoSec = null; p.innerHTML = '';
+    // what's needed mid-lesson comes first: the status bar, a running game, then this slide's controls and answers
+    statusBar(p);
+    var running = runningGame(p);
 
     // this slide
-    var sec = H('div', 'sect'); sec.appendChild(H('h3', '', 'This slide · planned ' + (s.min || 0) + ' min'));
+    var sec = H('div', 'sect now'); sec.appendChild(H('h3', '', '📍 This slide <small>· ' + (s.min || 0) + ' min planned</small>'));
     if (s.id && feed) {
       var f = feed.per[s.id], n = f ? f.n : 0, tot = feed.total || 0;
-      sec.appendChild(H('div', '', '<b>' + n + '</b> of ' + tot + ' answered'));
+      sec.appendChild(H('div', 'nowcount', '<b>' + n + '</b> of ' + tot + ' answered' + ((s.k === 'number' || s.k === 'machine') && f ? ' · <b>' + f.right + '</b> right' : '')));
       var pb = H('div', 'pbar'), bi = H('i'); bi.style.width = (tot ? 100 * n / tot : 0) + '%'; pb.appendChild(bi); sec.appendChild(pb);
-      if (s.k === 'number' || s.k === 'machine') sec.appendChild(H('p', 'muted', f.right + ' got it right'));
       if (s.more && s.more.length) sec.appendChild(H('p', 'muted', '⭐ Going further: ' + s.more.map(function (m, j) { var q = feed.per[xid(s, j)] || { n: 0, right: 0, list: [] }; return (j === 0 ? '★ ' : '★★ ') + q.n + (m.k === 'open' ? ' sent' : ' tried, ' + q.right + ' right') + (q.n && q.n <= 6 ? ' (' + q.list.map(function (r) { return first(r.name); }).join(', ') + ')' : ''); }).join(' · ')));
       var rv = console_.reveal[s.id] || 0, r2 = H('div', 'row');
       var canShow = true;
@@ -1564,7 +1580,7 @@
       r2.appendChild(el('button', { type: 'button', 'class': 'btn small', text: console_.peek ? 'Hide answer here' : 'Peek at answer (only here)', onclick: function () { console_.peek = !console_.peek; upd(); consolePanel(); } }));
       if (s.k === 'poll') r2.appendChild(el('button', { type: 'button', 'class': 'btn small', text: console_.names ? 'Hide names' : 'Show names', onclick: function () { console_.names = !console_.names; upd(); consolePanel(); } }));
       sec.appendChild(r2);
-      if (s.warm) sec.appendChild(H('p', 'muted', 'Connection check: anyone still under "Not answered yet" below isn\'t signed in or isn\'t on this slide. Help them before the lesson moves on.'));
+      if (s.warm) sec.appendChild(H('p', 'muted', 'Connection check: help anyone still under "Not answered yet".'));
       if (console_.spot && console_.spot.q === s.id) sec.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Stop spotlight', onclick: function () { console_.spot = null; pushLive(); consolePanel(); } }));
       // answers list
       if (f && f.list.length && s.k !== 'poll' && s.k !== 'conf') {
@@ -1591,15 +1607,15 @@
       rt.appendChild(el('button', { type: 'button', 'class': 'btn small primary', text: console_.timer ? 'Restart ' + mins + '-minute timer' : 'Start ' + mins + '-minute timer', onclick: function () { console_.timer = { end: Date.now() + mins * 60000, total: mins * 60 }; pushLive(); consolePanel(); } }));
       if (console_.timer) rt.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Stop timer', onclick: function () { console_.timer = null; pushLive(); consolePanel(); } }));
       sec.appendChild(rt);
-      sec.appendChild(H('p', 'muted', 'Students see the countdown on their own screens and on the class screen.'));
-    } else sec.appendChild(H('p', 'muted', s.k === 'film' ? 'Play film ' + esc((LES.film || {}).n || '') + ' on your shared screen. Students are told to watch it there; the Cinema link is their backup.' : 'Nothing to collect on this slide.'));
+    } else sec.appendChild(H('p', 'muted', s.k === 'film' ? 'Play film ' + esc((LES.film || {}).n || '') + ' on your shared screen.' : 'Nothing to collect on this slide.'));
 
     p.appendChild(sec);
+    if (!running) gamesTray(p, s);
     // who has signed in to this lesson (since "Start fresh")
     if (console_.data) {
       var inS = {}; ((console_.data.answers || [])).forEach(function (a) { if (beforeRun(a)) return; inS[a.sid] = 1; });
       var ros = rosterIn(), here = ros.filter(function (r) { return inS[r.sid]; }), out = ros.filter(function (r) { return !inS[r.sid]; });
-      var ws = fold('who', 'In the lesson: ' + here.length + ' of ' + ros.length + (out.length && here.length ? ' · not in yet: ' + out.length : ''), !!s.warm);
+      var ws = fold('who', '👋 In the lesson: ' + here.length + ' of ' + ros.length + (out.length && here.length ? ' · ' + out.length + ' not in yet' : ''), !!s.warm);
       var hw = H('div', 'who'); here.forEach(function (r) { hw.appendChild(H('span', 'in', esc(nice(r.name)))); }); if (here.length) ws.appendChild(hw);
       if (out.length && out.length < ros.length) { ws.appendChild(H('p', 'muted', 'Not in yet (' + out.length + ')')); var ow = H('div', 'who'); out.forEach(function (r) { ow.appendChild(H('span', '', esc(nice(r.name)))); }); ws.appendChild(ow); }
       else if (!here.length) ws.appendChild(H('p', 'muted', 'Nobody yet. Students appear here as soon as they type their code.'));
@@ -1608,7 +1624,7 @@
 
     if (whoSec) p.appendChild(whoSec);
     // pick someone
-    var pk = H('div', 'sect'); pk.appendChild(H('h3', '', 'Pick someone'));
+    var pk = fold('pick', '🎲 Pick someone' + (console_.picked ? ': ' + console_.picked : ''), false);
     var pr = H('div', 'row');
     pr.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Random student', onclick: function () { var r = rosterIn(); if (!r.length) return; var f2 = s.id && feed && feed.per[s.id], pool = f2 && f2.n ? r.filter(function (x) { return f2.sids[x.sid]; }) : r; console_.picked = nice(pool[Math.floor(Math.random() * pool.length)].name); consolePanel(); } }));
     pk.appendChild(pr);
@@ -1616,15 +1632,15 @@
     p.appendChild(pk);
 
     // AI-use alerts: logged, folded away until wanted
-    if (console_.data) { var fs = flagSection(), nfl = fs._n || 0, fd = fold('flags', 'AI-use alerts' + (nfl ? ' (' + nfl + ')' : ': none'), false); while (fs.firstChild) { if (fs.firstChild.tagName === 'H3') fs.removeChild(fs.firstChild); else fd.appendChild(fs.firstChild); } p.appendChild(fd); }
+    if (console_.data) { var fs = flagSection(), nfl = fs._n || 0, fd = fold('flags', (nfl ? '⚠️ AI-use alerts (' + nfl + ')' : 'AI-use alerts: none'), false, nfl ? 'alert' : 'quiet'); while (fs.firstChild) { if (fs.firstChild.tagName === 'H3') fs.removeChild(fs.firstChild); else fd.appendChild(fs.firstChild); } p.appendChild(fd); }
     // settings
-    var st = fold('set', 'Settings', false);
+    var st = fold('set', '⚙️ Settings', false);
     var lk = el('label', { style: 'display:flex;gap:8px;align-items:center' }), cb = el('input', { type: 'checkbox' }); cb.checked = console_.lock;
     cb.onchange = function () { console_.lock = cb.checked; SFA.store.set('teacher.lesson.lock', cb.checked); pushLive(); };
     lk.appendChild(cb); lk.appendChild(document.createTextNode('Keep everyone on my slide (students can\'t move ahead or back)')); st.appendChild(lk);
     var ak = el('label', { style: 'display:flex;gap:8px;align-items:center' }), acb = el('input', { type: 'checkbox' }); acb.checked = console_.auto;
     acb.onchange = function () { console_.auto = acb.checked; SFA.store.set('teacher.lesson.auto', acb.checked); pushLive(); consolePanel(); };
-    ak.appendChild(acb); ak.appendChild(document.createTextNode('Show answers on the class screen as they come in (no names; polls stay open and the right answer stays hidden until you reveal it)')); st.appendChild(ak);
+    ak.appendChild(acb); ak.appendChild(document.createTextNode('Show answers on the class screen as they come in (no names; the right answer stays hidden)')); st.appendChild(ak);
     // class filter
     var roster = (console_.data && console_.data.roster) || [], classes = [];
     roster.forEach(function (r) { if (r.cls && classes.indexOf(r.cls) < 0) classes.push(r.cls); });
@@ -1638,7 +1654,7 @@
     p.appendChild(st);
 
     // outline
-    var ol = H('div', 'sect'); ol.appendChild(H('h3', '', 'Lesson plan · ' + LES.slides.reduce(function (t, x) { return t + (x.min || 0); }, 0) + ' min'));
+    var ol = fold('plan', '🗺️ Lesson plan · slide ' + (cur + 1) + ' of ' + LES.slides.length + ' · ' + LES.slides.reduce(function (t, x) { return t + (x.min || 0); }, 0) + ' min', false);
     var ul = H('ul', 'outline'), at = 0;
     LES.slides.forEach(function (x, i) {
       var b = el('button', { type: 'button', 'class': i === cur ? 'cur' : '', onclick: function () { go(i, true); } });
@@ -1650,7 +1666,7 @@
       var li = H('li'); li.appendChild(b); ul.appendChild(li);
     });
     ol.appendChild(ul); p.appendChild(ol);
-    var links = H('p', 'muted', '<a href="participation.html">Participation across all lessons</a> · <a href="lessons.html">All lessons</a> · <a href="climb-teacher.html">Climb</a>');
+    var links = H('p', 'muted plinks', '<a href="participation.html">Participation</a> · <a href="lessons.html">All lessons</a> · <a href="climb-teacher.html">Climb</a> · <a href="trophies.html" target="_blank">🏆 Trophies</a>');
     p.appendChild(links);
     p.scrollTop = keep;
   }
@@ -1708,7 +1724,7 @@
   window.SFA_LESSON_API = {
     LID: LID, MODE: MODE, TEACHER: TEACHER, S: S, every: every, pushNow: function () { clearTimeout(pushT); var L = liveObj(); live = L; broadcast(); if (!console_.on || console_.offline) return; lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) console_.skew = j.live.at - Math.round((t0 + Date.now()) / 2); }).catch(function () { }); }, H: H, el: el, fmt: fmt, figure: figure, confetti: confetti, numOf: numOf, numTxt: numTxt, letter: letter, first: first, nice: nice, xid: xid,
     decRun: decRun, encRun: encRun, record: record, beforeRun: beforeRun, tpost: tpost, pushLive: pushLive, consolePanel: consolePanel, rosterIn: rosterIn,
-    hero: HERO, trophy: trophy, live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
+    hero: HERO, trophy: trophy, fold: fold, live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
     srvSkew: function () { return MODE === 'screen' ? 0 : srvSkewV || 0; }, console_: function () { return console_; }, consoleAnswers: function () { return console_ && console_.data && console_.data.answers; }
   };
   window.SFA_LESSON = function (L) { LES = L; };

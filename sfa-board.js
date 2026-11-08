@@ -804,14 +804,17 @@
     var rows = [];
     K.owners.forEach(function (o, i) { o.forEach(function (sid) { var pr = (K.prog || {})[sid] || { k: 0, r: 0 }; rows.push({ n: nameOf(sid), sid: sid, w: B.words[i], done: !!K.solved[i], k: pr.k, r: pr.r }); }); });
     rows.sort(function (a, b) { return (a.done ? 1 : 0) - (b.done ? 1 : 0) || a.k / a.w.len - b.k / b.w.len; });
-    if (rows.length) sec.appendChild(H('p', 'muted', rows.map(function (x) { return (x.done ? '✅ ' : '🔤 ') + esc(x.n) + (x.done ? '' : ' ' + x.k + '/' + x.w.len + (x.r ? ' · ' + x.r + '✓' : '')); }).join(' · ')));
+    var who = rows.length ? H('p', 'muted', rows.map(function (x) { return (x.done ? '✅ ' : '🔤 ') + esc(x.n) + (x.done ? '' : ' ' + x.k + '/' + x.w.len + (x.r ? ' · ' + x.r + '✓' : '')); }).join(' · ')) : null;
     var r = H('div', 'row');
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: '👁 Show the board', title: 'The whole crossword on this screen', onclick: function () { watch(); } }));
     if (K.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: '⏰ +1 minute', onclick: function () { K.dur += 60; A.pushLive(); A.consolePanel(); } }));
     if (K.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'End it now', onclick: function () { end(); } }));
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: 'Back to the lesson', onclick: function () { A.console_().board = null; if (root) close(); A.pushLive(); A.consolePanel(); } }));
-    sec.appendChild(r); p.appendChild(sec);
+    sec.appendChild(r);
+    if (who) { var stuck = rows.filter(function (x) { return !x.done; }).length, dw = dfold('g-board', '🔤 Who' + "'" + 's where · ' + stuck + ' still working', false); dw.appendChild(who); sec.appendChild(dw); }
+    p.appendChild(sec);
   }
+  function dfold(key, title, open) { if (A.fold) return A.fold(key, title, open); var d = el('details', { 'class': 'sect fold' }); d.appendChild(el('summary', {}, [H('h3', '', title)])); d.open = !!open; return d; }
   (A.every || function (f, ms) { setInterval(f, ms); })(function () { if (A.MODE === 'teach' && A.console_() && C()) tick(); }, 1000);
 
   window.SFA_BOARD = { sync: sync, agg: agg, section: section, start: start, counts: counts, spot: spot, restore: restore, boardOf: boardOf, build: build, THEMES: THEMES };

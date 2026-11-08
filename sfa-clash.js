@@ -89,7 +89,22 @@
     if (snap && (!V.snapT || snap.t !== V.snapT || V.c.state !== c.state)) {
       V.snapT = snap.t; V.base = { t: snap.t, at: performance.now() }; claimMine(snap, sp.rej);
       L.advance(snap, nowT(c), onFx);
-      if (V.S) { var keepIds = {}; snap.units.forEach(function (u) { keepIds[u.id] = 1; }); V.S.units.forEach(function (u) { if (!keepIds[u.id] && !V.fxKeys['die:' + u.id] && !V.fxKeys['grab:' + u.id]) { V.fxKeys['die:' + u.id] = 1; die(u, false); } }); }
+      // characters this screen still had that the console's board no longer has: an attacker near the enemy fort whose team's
+      // gold went up grabbed it (the grab happened between snapshots, so this screen never played it); anyone else died
+      if (V.S) {
+        var keepIds = {}, gain = [Math.max(0, snap.score[0] - V.S.score[0]), Math.max(0, snap.score[1] - V.S.score[1])];
+        snap.units.forEach(function (u) { keepIds[u.id] = 1; });
+        // a screen running a little behind still has them partway down the lane, so the closest to the fort get the gold first
+        var gone = V.S.units.filter(function (u) { return !keepIds[u.id] && !V.fxKeys['die:' + u.id] && !V.fxKeys['grab:' + u.id]; });
+        gone.sort(function (a, b) { return (a.team ? a.x : L.LEN - a.x) - (b.team ? b.x : L.LEN - b.x); });
+        gone.forEach(function (u) {
+          var U = L.UNITS[u.type], foe = 1 - u.team, mowed = !!(V.S.mow && snap.mow && V.S.mow[foe][u.lane] && !snap.mow[foe][u.lane]);
+          if (U.kind === 'a' && gain[u.team] > 0) {
+            var g = Math.max(1, Math.min(gain[u.team], Math.round(U.gold * L.mul(u.lv)))); gain[u.team] -= g;
+            V.fxKeys['grab:' + u.id] = 1; grab(u, g); delete V.units[u.id];
+          } else { V.fxKeys['die:' + u.id] = 1; die(u, mowed && U.kind === 'a'); }
+        });
+      }
       V.S = snap;
     }
     V.c = c; V.sp = sp;
@@ -1083,21 +1098,26 @@
     var on = [0, 1].map(function (t) { return K.S.units.concat(K.S.pend).filter(function (u) { return u.team === t; }).length; });
     var size = [0, 0]; Object.keys(K.team || {}).forEach(function (s) { size[K.team[s]]++; });
     sec.appendChild(H('p', '', (K.state === 3 ? '<b>Rules on screen:</b> the battle starts in ' + briefLeft(K) + ' s. ' : K.state === 2 ? '<b>Over.</b> ' : '<b>' + Math.floor(left / 60) + ':' + ('0' + Math.floor(left % 60)).slice(-2) + '</b> left' + (L.frenzy(K.S.t, K.S.dur) ? ' · 🔥 final wave' : '') + '. ') + [0, 1].map(function (t) { return T[t].e + ' ' + esc(T[t].name) + ': <b>' + K.S.score[t] + ' gold</b> · ' + on[t] + ' on the board' + (size[t] ? ' · team of ' + size[t] : ''); }).join(' · ')));
-    // diagnostics: are students' placements arriving, and are any being turned away?
-    var D = K.diag || { students: {}, placed: 0, turned: {}, last: 0 }, nStu = Object.keys(D.students).length, turned = Object.keys(D.turned).map(function (k) { return D.turned[k] + ' ' + k; }).join(', ');
-    sec.appendChild(H('p', 'state' + (K.S.t > 300 && !D.placed ? ' bad' : ''), '📡 ' + (nStu ? nStu + ' student' + (nStu === 1 ? '' : 's') + ' sending · ' + D.placed + ' character' + (D.placed === 1 ? '' : 's') + ' placed' + (turned ? ' · turned away: ' + esc(turned) : '') + (D.last ? ' · newest ' + Math.max(0, Math.round((Date.now() - D.last) / 1000)) + ' s ago' : '') : K.S.t > 200 ? 'No placements have arrived from students yet. Their answers reach this console every few seconds; if this stays empty, check they\'re signed in and on this lesson.' : 'Waiting for the first placements…') + ' · battle clock ' + Math.floor(K.S.t / 10) + ' s'));
-    var heroes = Object.keys(K.hero).map(function (s) { return K.hero[s]; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); }).slice(0, 6);
-    if (heroes.length) sec.appendChild(H('p', 'muted', 'Top heroes: ' + heroes.map(function (h) { return esc(h.name) + ' ' + T[h.team].e + ' ' + h.gold + 'g/' + h.right + '✓'; }).join(', ')));
-    if (K.power) sec.appendChild(H('p', 'muted', '⚖️ Teams balanced on today\'s lesson: ' + [0, 1].map(function (t) { return T[t].e + ' ' + K.hereN[t] + ' taking part, strength ' + K.power[t]; }).join(' · ') + '.'));
-    if (K.team) { var TL = teamLists(K), tw = H('div', 'lcteamsc'); [0, 1].forEach(function (t) { tw.appendChild(H('div', 't' + t, '<b>' + T[t].e + ' ' + esc(T[t].name) + ' (' + TL[t].length + ')</b>' + TL[t].map(function (x) { return '<span>' + esc(x.n) + '</span>'; }).join(''))); }); sec.appendChild(tw); }
     var r = H('div', 'row');
     if (K.state === 3) r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: '⏭ Skip the rules', title: 'Start the battle now', onclick: function () { K.go = Date.now(); tick(); } }));
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: '👁 Watch the battle', title: 'The whole board, live, on this screen', onclick: function () { watch(); } }));
     if (K.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: '⏰ +1 minute', title: 'Add a minute to the battle (the final wave moves with it)', onclick: function () { K.S.dur = Math.min(9999, K.S.dur + 600); ev(K, 't', '', 0, 0, 0, 1); A.pushLive(); A.consolePanel(); } }));
     if (K.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'End the battle now', onclick: function () { end(); } }));
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: 'Back to the lesson', onclick: function () { A.console_().clash = null; A.pushLive(); A.consolePanel(); } }));
-    sec.appendChild(r); p.appendChild(sec);
+    sec.appendChild(r);
+    // diagnostics: are students' placements arriving, and are any being turned away?
+    var dd = H('div');
+    var D = K.diag || { students: {}, placed: 0, turned: {}, last: 0 }, nStu = Object.keys(D.students).length, turned = Object.keys(D.turned).map(function (k) { return D.turned[k] + ' ' + k; }).join(', ');
+    dd.appendChild(H('p', 'state' + (K.S.t > 300 && !D.placed ? ' bad' : ''), '📡 ' + (nStu ? nStu + ' student' + (nStu === 1 ? '' : 's') + ' sending · ' + D.placed + ' character' + (D.placed === 1 ? '' : 's') + ' placed' + (turned ? ' · turned away: ' + esc(turned) : '') + (D.last ? ' · newest ' + Math.max(0, Math.round((Date.now() - D.last) / 1000)) + ' s ago' : '') : K.S.t > 200 ? 'No placements have arrived from students yet. Their answers reach this console every few seconds; if this stays empty, check they\'re signed in and on this lesson.' : 'Waiting for the first placements…') + ' · battle clock ' + Math.floor(K.S.t / 10) + ' s'));
+    var heroes = Object.keys(K.hero).map(function (s) { return K.hero[s]; }).sort(function (a, b) { return (b.gold + 3 * b.right) - (a.gold + 3 * a.right); }).slice(0, 6);
+    if (heroes.length) dd.appendChild(H('p', 'muted', 'Top heroes: ' + heroes.map(function (h) { return esc(h.name) + ' ' + T[h.team].e + ' ' + h.gold + 'g/' + h.right + '✓'; }).join(', ')));
+    if (K.power) dd.appendChild(H('p', 'muted', '⚖️ Teams balanced on today\'s lesson: ' + [0, 1].map(function (t) { return T[t].e + ' ' + K.hereN[t] + ' taking part, strength ' + K.power[t]; }).join(' · ') + '.'));
+    if (K.team) { var TL = teamLists(K), tw = H('div', 'lcteamsc'); [0, 1].forEach(function (t) { tw.appendChild(H('div', 't' + t, '<b>' + T[t].e + ' ' + esc(T[t].name) + ' (' + TL[t].length + ')</b>' + TL[t].map(function (x) { return '<span>' + esc(x.n) + '</span>'; }).join(''))); }); dd.appendChild(tw); }
+    var bad = dd.querySelector('.state.bad'); if (bad) sec.appendChild(bad);   // a connection problem stays in view
+    var dt = dfold('g-clash', '📋 Details · teams, top heroes, connection', false); while (dd.firstChild) dt.appendChild(dd.firstChild); sec.appendChild(dt);
+    p.appendChild(sec);
   }
+  function dfold(key, title, open) { if (A.fold) return A.fold(key, title, open); var d = el('details', { 'class': 'sect fold' }); d.appendChild(el('summary', {}, [H('h3', '', title)])); d.open = !!open; return d; }
   (A.every || function (f, ms) { setInterval(f, ms); })(function () { if (A.MODE === 'teach' && A.console_() && C()) tick(); }, 500);
 
   // what this screen's board shows right now (read only; the practice simulator in climb/dev compares it with the referee)

@@ -669,3 +669,37 @@ body:has(.lc) .toast{top:84px;bottom:auto}
 .lcrallyp .q{font-size:clamp(16px,2.2vw,24px);margin:6px 0}.lcrallyp .bropts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px;text-align:left}.lcrallyp .bropts p{margin:0}
 .lcrallys{margin:6px 0 0;font-weight:800}
 @media (max-width:760px){.lccards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+/* ---------- the teacher console, tidied: status bar, this slide, games tray, folds ---------- */
+.panel{gap:10px}
+.panel .sect+.sect{border-top:1px solid var(--line);padding-top:10px}
+.panel h3 small{font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted)}
+.cbar{gap:8px}
+.cline{display:flex;flex-wrap:wrap;gap:6px}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);font:700 12px var(--ui);white-space:nowrap}
+.pill.on{background:rgba(232,88,76,.16);border-color:#E8584C;color:#FFB4AD}.pill.off{color:var(--muted)}
+.pill.fresh.ok{color:#7CF2A2;border-color:rgba(124,242,162,.4)}.pill.fresh.bad{color:#FFB020;border-color:#FFB020;background:rgba(255,176,32,.12)}
+.cbtns{align-items:center}
+.cmenu{position:relative}
+.cmenu>summary{list-style:none;cursor:pointer;padding:8px 14px;border-radius:999px;border:2px solid var(--line);font:700 14px var(--ui);background:var(--panel2)}
+.cmenu>summary::-webkit-details-marker{display:none}
+.cmenu[open]>summary{border-color:var(--teal)}
+.cmenu-list{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:flex;flex-direction:column;gap:6px;min-width:250px;padding:8px;border-radius:14px;background:var(--panel);border:2px solid var(--line);box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.cmenu-list .btn{justify-content:flex-start;text-align:left;width:100%}
+.sect.now{background:rgba(92,224,184,.06);border:1px solid rgba(92,224,184,.3);border-radius:12px;padding:10px 12px}
+.panel .sect.now+.sect{border-top:0}
+.nowcount{font-size:15px}.nowcount b{font-size:20px;color:var(--teal)}
+.gamerun{background:rgba(255,201,74,.07);border:1px solid rgba(255,201,74,.4)!important;border-radius:12px;padding:10px 12px!important}
+.gamerun .fold{border-top:0!important;padding-top:0!important}
+.gtiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
+.gtile{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:8px 10px;border-radius:12px;border:2px solid var(--line);background:var(--panel2);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.gtile span{font-size:20px;line-height:1}.gtile b{font-size:13px}.gtile small{font-size:11px;color:var(--muted)}
+.gtile.sug{border-color:rgba(255,201,74,.6);box-shadow:0 0 12px rgba(255,201,74,.18)}.gtile.sug small{color:#FFC94A}
+.gtile.on{border-color:var(--teal);background:rgba(92,224,184,.1)}
+.gtile:hover{border-color:var(--teal)}
+.gsheet{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+.gsheet .gone{margin:0;font-weight:600}
+.ghow>summary{cursor:pointer;color:var(--teal);font:700 13px var(--ui)}
+.ghow p{margin:6px 0 0}
+.panel details.fold.alert h3{color:#FF8A7A}
+.panel details.fold.quiet h3{color:var(--muted)}
+.plinks{font-size:12px}
