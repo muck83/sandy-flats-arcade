@@ -42,7 +42,8 @@
   var BOT_LOOK = AV ? AV.encode({ b: 2, e: 1, m: 1, h: 0, a: 0, t: 0, n: 0, k: 9, p: 0 }) : '';
   var TX = 'translateX(-50%) ';
 
-  function rng(seed) { var s = (seed >>> 0) || 1; return function () { s = (Math.imul(s, 1103515245) + 12345) >>> 0; return ((s >>> 8) & 0xffff) / 65536; }; }
+  function mix32(h) { h = h >>> 0; h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return h >>> 0; }
+  function rng(seed) { var s = mix32(seed) || 1; return function () { s = (Math.imul(s, 1103515245) + 12345) >>> 0; return ((s >>> 8) & 0xffff) / 65536; }; }
   function hash(t) { var h = 5381; t = String(t); for (var i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return h; }
   function sh3(sid) { return (hash(sid) % 46656).toString(36); }
   function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
@@ -85,10 +86,10 @@
     var r = rng(seed), ri = function (a, b) { return a + Math.floor(r() * (b - a + 1)); }, pick = function (a) { return a[Math.floor(r() * a.length)]; };
     for (var t = 0; t < 300; t++) {
       var mn, md = 1, b, xs, form = 0;
-      if (lvl <= 1) { mn = ri(1, 3); b = ri(-3, 4); xs = [0, 1, 2]; }
-      else if (lvl === 2) { mn = pick([-3, -2, -1, 1, 2, 3]); b = ri(-5, 5); xs = pick([[-1, 0, 1], [-2, 0, 2], [1, 2, 3], [-2, -1, 0]]); }
-      else if (lvl === 3 || r() < 0.5) { var fr = pick([[1, 2], [-1, 2], [1, 3], [-1, 3], [2, 3], [-2, 3], [3, 2], [-3, 2]]); mn = fr[0]; md = fr[1]; b = ri(-4, 4); xs = [-md, 0, md]; }
-      else { mn = pick([-3, -2, -1, 2, 3]); b = ri(-6, 6); xs = pick([[-2, 0, 2], [-1, 1, 3], [-3, -1, 1]]); }
+      if (lvl <= 1) { mn = ri(1, 5); b = ri(-7, 7); xs = pick([[0, 1, 2], [1, 2, 3], [0, 2, 4], [-1, 0, 1], [2, 3, 4], [0, 1, 3], [-2, 0, 2]]); }
+      else if (lvl === 2) { mn = pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]); b = ri(-8, 8); xs = pick([[-1, 0, 1], [-2, 0, 2], [1, 2, 3], [-2, -1, 0], [-3, -1, 1], [0, 2, 3], [-1, 1, 2], [2, 4, 5], [-4, -2, 0]]); }
+      else if (lvl === 3 || r() < 0.5) { var fr = pick([[1, 2], [-1, 2], [1, 3], [-1, 3], [2, 3], [-2, 3], [3, 2], [-3, 2], [1, 4], [-1, 4], [3, 4], [-3, 4], [5, 2], [-5, 2], [4, 3], [-4, 3]]); mn = fr[0]; md = fr[1]; b = ri(-6, 6); xs = pick([[-md, 0, md], [0, md, 2 * md], [-2 * md, -md, 0], [-md, md, 2 * md]]); }
+      else { mn = pick([-5, -4, -3, -2, -1, 2, 3, 4, 5]); b = ri(-8, 8); xs = pick([[-2, 0, 2], [-1, 1, 3], [-3, -1, 1], [1, 2, 4], [-4, -3, -1], [0, 3, 4]]); }
       if (lvl >= 4) form = pick([1, 2, 3, 0]); else if (lvl === 2 && r() < 0.25) form = 1;
       if (form === 3 && !(mn === -1 && md === 1)) form = 1;
       if ((form === 1 || form === 2) && b === 0) form = 0;
@@ -615,7 +616,10 @@
   function newProblem() {
     var o = V.o; ST.n++;
     var lvl = Math.min(4, (o.round || 1) + (ST.k >= 2 ? 1 : 0));
-    sendSoon(); ST.pr = { seed: hash((A.S.me ? A.S.me.sid : 'x') + ':' + V.id + ':' + ST.n), lvl: lvl, round: o.round, stage: 0, tv: [null, null, null], act: 0, buf: '', tm: [0, 0, 0], pm: [], pmiss: 0, sel: null, lmiss: 0, fmiss: 0, miss: 0, got: 0, msg: '', good: false };
+    var seen = SFA.store.get('sumo.seen', []) || [], seed = 0, k0;
+    for (var k = 0; k < 30; k++) { seed = hash((A.S.me ? A.S.me.sid : 'x') + ':' + V.id + ':' + ST.n + ':' + k + ':' + Date.now()); var g = gen(seed, lvl); k0 = g.mn + '/' + g.md + '/' + g.b; if (seen.indexOf(k0) < 0) break; }
+    seen.push(k0); SFA.store.set('sumo.seen', seen.slice(-40));
+    sendSoon(); ST.pr = { seed: seed, lvl: lvl, round: o.round, stage: 0, tv: [null, null, null], act: 0, buf: '', tm: [0, 0, 0], pm: [], pmiss: 0, sel: null, lmiss: 0, fmiss: 0, miss: 0, got: 0, msg: '', good: false };
     keep();
   }
   function Q_() { return gen(ST.pr.seed, ST.pr.lvl); }

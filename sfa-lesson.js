@@ -1060,7 +1060,7 @@
   }
 
   // 🤼 Sumo Graphing (sfa-sumo.js): teams of two graph lines; every 30 s their work becomes a sumo bout on every screen
-  var SUMO_V = '20261109a', sumoLoading = null;
+  var SUMO_V = '20261109b', sumoLoading = null;
   function sumoAssets(cb) {
     if (window.SFA_SUMO) return cb();
     if (sumoLoading) { sumoLoading.push(cb); return; }
