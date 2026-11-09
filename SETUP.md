@@ -178,6 +178,19 @@ Pick a boss (🤖 Glitch Golem, 🐉 The Nonlinear Hydra, 🫧 Mega Slime, 🦑 
 
 One game at a time: the Big Board, the Boss Raid and the Lane Clash don't run together.
 
+## 🤼 Sumo Graphing (graphing practice, any live lesson)
+
+Teams of two wrestle with straight-line graphs. Tap **🤼 Sumo Graphing** in the console's **🎮 Games** tray, pick the fight length (1½, 2 or 3 minutes; 2 by default), the two options below, then **Start Sumo Graphing**. Go live and wait for students to join first: everyone who has answered something today is paired up, the most sure with the less sure (from today's answers). An odd student joins a pair to make a three, and late arrivals join the smallest team.
+
+- **Each problem:** a rule (y = 2x − 3), then ① fill a table of three x values (on-screen keypad, with a hint after a miss), ② tap two of those points on the grid, ③ drag a line through them, ④ use the line to find a point off the table (when x = 6, y = ?, or when y = −5, x = ?) by tapping it. Every step right earns power, half on a second try.
+- **Every 30 seconds** each pair's power against their opponents' turns into a sumo move, a short film on every screen with the four avatars in sumo belts: slaps, pushes, throws, a comeback from the edge, a tag-team charge, the Yokozuna Rumble. A bigger gap is a bigger push, and pushing them out of the ring scores a point.
+- **Three fights.** After each, the bell, then rematches: winners meet winners, the rest meet each other. An odd team out meets the 🤖 Sumo-Bot, which fights like the middle of the class. Problems get harder each fight: positive slopes, then negative slopes and finding x, then fraction slopes and rearranged rules (y − 3 = 2x, x + y = 4). A hot streak moves a student up early.
+- **At the end:** the highlight reel (the five best moves, counting down to the 🥇 move of the day) on every screen, then the standings.
+- **👀 Worked example (option):** before the first bout, every screen shows y = 2x − 3 worked out step by step: the table, two points, the line, then the guides from x = 4 up to the line and across to y = 5. It loops for about 45 seconds so you can talk it through. **⏭ Start the fight now** begins early.
+- **🥇 Grand final (option):** 40 seconds after the results (or straight away with the **🥇 Grand final** button), the two students with the most power wrestle 1 v 1. Everyone else's screen shows the match and both finalists' rule, table and graph, updated with every step. Their problems are the hardest level. The winner gets a trophy.
+
+The console shows the fight, the bout timer and **Details**: every match, each student's graphs, their percentage of steps right first time, and their misses by step (table / plotting / line / finding), plus the step the class missed most. **📋 Copy results** gives a spreadsheet, and **👁 Show the arena** shows the class-screen view. Sound (taiko drums, boings, the crowd) is on for the class screen and the arena view, and off on student devices unless they tap 🔊. Each film is about 7 seconds: the salt throw, the stomp, the referee's call, a slow-motion zoom as the bellies collide, the move, then sunglasses for the winner and dizzy eyes for the loser.
+
 ## ⭐ Arcade level (all three live games)
 
 Every Boss Raid, Lane Clash and Big Board earns XP that adds up over the term. Effort counts: 1 XP for any try, 4 for a right warm-up, 10 for a right answer (5 on a second try), 10 for a dodge or a right boss-attack answer, 20 for cracking your Big Board word, and 30 for finishing a game (60 if the class won). One game can give at most 600, plus its finishing bonus. Each gain shows as a small chip in the corner, and each new level gets a card.

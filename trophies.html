@@ -44,6 +44,8 @@ body.projector .tro .ic{font-size:72px}body.projector .tro b{font-size:24px}
     if (t.k === 'raid') return { win: t.win, ic: t.win ? '🏆' : '💨', title: t.win ? 'Beat ' + t.boss : t.boss + ' got away', sub: (t.mode || 'Boss Raid') + ' · ' + t.n + ' raiders' + (t.win ? '' : ' · ' + t.left + '% health left') };
     if (t.k === 'board') return { win: t.win, ic: t.win ? '🔠' : '🧩', title: t.win ? 'Cleared the Big Board' : 'Big Board: ' + t.found + ' of ' + t.of + ' words', sub: (t.theme || 'Big Board') + ' · ' + t.of + ' words' };
     if (t.k === 'clash') return { win: t.win >= 0, ic: t.win >= 0 ? '⚔️' : '🤝', title: t.win >= 0 ? t.teams[t.win] + ' won' : 'Lane Clash: a draw', sub: t.teams.join(' vs ') + ' · ' + (t.score || []).join(' to ') + ' gold' };
+    if (t.k === 'sumof') return { win: true, ic: '🥇', title: t.champ + ': Sumo grand champion', sub: 'Beat ' + t.vs + ' in the grand final' };
+    if (t.k === 'sumo') return { win: true, ic: '🤼', title: t.champ + ' won Sumo Graphing', sub: (t.who ? t.who + ' · ' : '') + t.rec + ' · ' + t.n + ' wrestlers' };
     return { ic: '🏅', title: t.k, sub: '' };
   }
   function draw() {
@@ -59,7 +61,7 @@ body.projector .tro .ic{font-size:72px}body.projector .tro b{font-size:24px}
       '<div class="sum"><b>' + clashes.length + '</b><span>Lane Clash battles' + (champ ? ' · most wins: ' + esc(champ) + ' (' + wins[champ] + ')' : '') + '</span></div></div>' +
       '<div class="goal"><b>Class goal: ' + got + ' of ' + goal + ' class wins</b> (bosses beaten and boards cleared)<i><u style="width:' + Math.min(100, Math.round(100 * got / goal)) + '%"></u></i></div>' +
       (L.length ? '<div class="shelf">' + L.map(function (t) { var c = card(t); return '<div class="tro' + (c.win ? ' win' : '') + '"><div class="ic">' + c.ic + '</div><b>' + esc(c.title) + '</b><p>' + esc(c.sub) + '</p><small>' + esc(day(t.t)) + ' · ' + esc(t.label || t.lesson || '') + (t.cls ? ' · Class ' + esc(t.cls) : '') + '</small></div>'; }).join('') + '</div>'
-        : '<div class="shelf"><p class="empty">No trophies yet. Run a Boss Raid, a Big Board or a Lane Clash in a live lesson and they appear here.</p></div>');
+        : '<div class="shelf"><p class="empty">No trophies yet. Run a Boss Raid, a Big Board, a Lane Clash or Sumo Graphing in a live lesson and they appear here.</p></div>');
   }
   document.getElementById('csv').onclick = function () {
     var rows = [['When', 'Class', 'Lesson', 'Game', 'Result', 'Detail']].concat(T.map(function (t) { var c = card(t); return [new Date(t.t).toLocaleString(), t.cls || '', t.label || t.lesson || '', t.k, c.title, c.sub]; }));
