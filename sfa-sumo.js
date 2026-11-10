@@ -35,7 +35,10 @@
     { n: 'UTCHARI', en: 'comeback throw from the edge', e: '🔄' },
     { n: 'YORIKIRI', en: 'force out', e: '🚪' },
     { n: 'TAG-TEAM CHARGE', en: 'both partners charge', e: '👊' },
-    { n: 'YOKOZUNA RUMBLE', en: 'grand champion super move', e: '⚡' }
+    { n: 'YOKOZUNA RUMBLE', en: 'grand champion super move', e: '⚡' },
+    { n: 'PANCAKE PRESS', en: 'flying belly flop: flat as a pancake', e: '🥞' },
+    { n: 'SUMO TORNADO', en: 'spun round and round and flung', e: '🌪️' },
+    { n: 'BOWLING BALL', en: 'rolled up and bowled a strike', e: '🎳' }
   ];
   var STA = ['Thunder', 'Mochi', 'Volcano', 'Tsunami', 'Noodle', 'Iron', 'Dumpling', 'Typhoon', 'Wasabi', 'Boulder', 'Sushi', 'Quake', 'Ramen', 'Avalanche', 'Tofu', 'Meteor', 'Panda', 'Blizzard', 'Teriyaki', 'Dragon'];
   var STB = ['Bellies', 'Crushers', 'Stompers', 'Titans', 'Bumpers', 'Mountains', 'Rumblers', 'Wobblers'];
@@ -276,6 +279,7 @@
   var ANN = { hit: ['OH, THE BELLY!', 'WHAT A SHOVE!', 'THEY FELT THAT IN THE CHEAP SEATS!', 'BELLY TO BELLY!', 'SOMEBODY CALL A DOCTOR!', 'THE CROWD GOES WILD!'],
     0: ['AWKWARD…', 'THE STAREDOWN… SOMEBODY SOLVE SOMETHING!'], 1: ['NOBODY BUDGES!', 'A BATTLE OF THE BELLIES!'], 2: ['SLAP CITY!', 'THE HANDS ARE A BLUR!'], 4: ['WE HAVE LIFT-OFF!', 'AIRBORNE!'],
     5: ['FACE PLANT!', 'RIGHT INTO THE SAND!'], 6: ['FROM THE EDGE! UNBELIEVABLE!', 'WHAT A COMEBACK!'], 8: ['DOUBLE TROUBLE!', 'TEAMWORK!'], 9: ['THE YOKOZUNA RUMBLE!!!', 'ORBIT ACHIEVED!'],
+    10: ['FLAT AS A PANCAKE!', 'WHO ORDERED BREAKFAST?', 'EXTRA SYRUP!'], 11: ['A HUMAN TORNADO!', 'THEY ARE SPINNING!', 'GET THE MOP, THEY ARE DIZZY!'], 12: ['STRIKE!', 'A PERFECT GAME!', 'ROLLING THUNDER!'],
     ro: ['INTO THE CROWD!', 'SEE YOU LATER!', 'BYE BYE!', 'SOMEBODY CATCH THEM!'] };
 
   /* the film of one bout: o = { L, R (members), p0, p1 (ring position before and after; ±110 is out), mv, ws (0 east won,
@@ -404,6 +408,59 @@
         later(A0 + 1600, function () { dust(cam, loT); dust(cam, loT - 6); snd('thud'); });
         an_(st, [{ transform: 'none' }, { transform: 'translate(1.8%,-1.6%)' }, { transform: 'translate(-1.4%,1.2%)' }, { transform: 'none' }], { delay: A0 + 1600, duration: 400, fill: 'none' });
         dizzy(A0 + 1650); tumble(A0 + 1700);
+      } else if (o.mv === 10) {
+        // PANCAKE PRESS: up, up, up… and a belly flop that flattens them, butter and syrup on top, then they peel off the floor
+        W.style.zIndex = 4;
+        later(A0, function () { snd('whoosh'); fx(cam, '😨', loF, 24, 900); });
+        slide(W, wF, loF, A0, 1000, 'ease-in-out');
+        an_(W, [{ transform: TX + 'translateY(0) rotate(0deg)' }, { transform: TX + 'translateY(-170%) rotate(' + (-dir * 25) + 'deg)', offset: 0.55 }, { transform: TX + 'translateY(-14%) rotate(0deg)' }], { delay: A0, duration: 1000, easing: 'cubic-bezier(.5,0,.9,.6)' });
+        squash(W, [sc(1, 1), sc(0.8, 1.25), sc(1.2, 0.85)], { delay: A0, duration: 1000, fill: 'forwards' });
+        squash(Lo, [sc(1, 1), sc(2.3, 0.1)], { delay: A0 + 1000, duration: 110, fill: 'forwards', easing: 'ease-in' });
+        later(A0 + 1000, function () {
+          snd('splat'); flash(st, loF); dust(cam, loF - 6); dust(cam, loF + 6);
+          fx(cam, 'PANCAKE!', loF, 26, 1300, 'smword'); fx(cam, '🥞', loF, 50, 1300);
+        });
+        an_(st, [{ transform: 'none' }, { transform: 'translate(0,2%)' }, { transform: 'translate(0,-1.2%)' }, { transform: 'none' }], { delay: A0 + 1000, duration: 350, fill: 'none' });
+        later(A0 + 1250, function () { fx(cam, '🧈', loF - 2, 50, 1100); }); later(A0 + 1400, function () { fx(cam, '🍯', loF + 3, 48, 1100); snd('boing'); });
+        // the winner bounces off the pancake and lands
+        an_(W, [{ transform: TX + 'translateY(-14%)' }, { transform: TX + 'translateY(-70%)' }, { transform: TX + 'translateY(0)' }], { delay: A0 + 1150, duration: 600, easing: 'ease-in-out' });
+        slide(W, loF, wT, A0 + 1150, 600);
+        squash(W, [sc(1.2, 0.85), sc(1, 1)], { delay: A0 + 1150, duration: 400, fill: 'forwards' });
+        if (o.ro) { later(A0 + 1500, function () { fx(cam, '🍳', loF, 30, 900); }); tumble(A0 + 1600); }
+        else {
+          squash(Lo, [sc(2.3, 0.1), sc(2.3, 0.1), sc(0.8, 1.3), sc(1.12, 0.9), sc(1, 1)], { delay: A0 + 1550, duration: 700, fill: 'forwards' });
+          slide(Lo, loF, loT, A0 + 1650, 500); dizzy(A0 + 1900);
+        }
+      } else if (o.mv === 11) {
+        // SUMO TORNADO: the winner spins like a top, the rival gets caught in it and is flung away spinning
+        later(A0, function () { snd('whoosh'); fx(cam, '🌪️', wF, 30, 1300); }); later(A0 + 450, function () { snd('whoosh'); fx(cam, '💨', loF, 40, 800); fx(cam, '🌀', wF, 46, 900); });
+        squash(W, [{ transform: 'rotateY(0deg)' }, { transform: 'rotateY(1800deg)' }], { delay: A0, duration: 1500, easing: 'ease-in-out' });
+        an_(W, [{ transform: TX + 'translateY(0)' }, { transform: TX + 'translateY(-10%)' }, { transform: TX + 'translateY(0)' }], { delay: A0, duration: 300, iterations: 5, fill: 'none' });
+        squash(Lo, [{ transform: 'rotateY(0deg)' }, { transform: 'rotateY(1080deg)' }], { delay: A0 + 350, duration: 1150, easing: 'ease-in' });
+        an_(Lo, [{ transform: TX + 'translateY(0) rotate(0deg)' }, { transform: TX + 'translateY(-45%) rotate(' + (dir * 360) + 'deg)', offset: 0.6 }, { transform: TX + 'translateY(0) rotate(' + (dir * 720) + 'deg)' }], { delay: A0 + 450, duration: 1100, easing: 'ease-in-out' });
+        slide(Lo, loF, loT, A0 + 450, 1100, 'ease-in'); slide(W, wF, wT, A0 + 300, 1200, 'ease-in-out');
+        later(A0 + 1150, function () { fx(cam, 'WHEEEE!', loT, 22, 1100, 'smword'); fx(cam, '😵‍💫', loT, 30, 1000); });
+        later(A0 + 1550, function () { dust(cam, loT); snd('thud'); }); dizzy(A0 + 1500); tumble(A0 + 1600);
+      } else if (o.mv === 12) {
+        // BOWLING BALL: a run-up, curl into a ball, roll… STRIKE! The rival goes flying like a pin
+        slide(W, wF, wF - 12 * dir, A0, 400, 'ease-out');
+        squash(W, [sc(1, 1), sc(0.78, 0.72)], { delay: A0 + 200, duration: 200, fill: 'forwards' });
+        later(A0 + 250, function () { fx(cam, '🎳', wF - 12 * dir, 30, 800); snd('whoosh'); });
+        slide(W, wF - 12 * dir, loF - 6 * dir, A0 + 450, 600, 'ease-in');
+        an_(W, [{ transform: TX + 'translateY(6%) rotate(0deg)' }, { transform: TX + 'translateY(6%) rotate(' + (dir * 900) + 'deg)' }], { delay: A0 + 450, duration: 600, easing: 'ease-in' });
+        later(A0 + 1050, function () {
+          snd('strike'); flash(st, loF); fx(cam, 'STRIKE!', loF, 24, 1400, 'smword');
+          for (var i = 0; i < 5; i++) fx(cam, ['💥', '⭐', '✨'][i % 3], loF + (i - 2) * 4, 34 + (i % 2) * 10, 900);
+        });
+        an_(Lo, [{ transform: TX + 'translateY(0) rotate(0deg)' }, { transform: TX + 'translateY(-40%) rotate(' + (dir * 70) + 'deg)', offset: 0.4 }, { transform: TX + 'translateY(8%) rotate(' + (dir * 95) + 'deg)' }], { delay: A0 + 1050, duration: 650, easing: 'ease-out' });
+        slide(Lo, loF, loT, A0 + 1050, 650);
+        later(A0 + 1650, function () { dust(cam, loT); snd('thud'); });
+        // the ball rolls on to its spot and unrolls into a wrestler again
+        an_(W, [{ transform: TX + 'translateY(6%) rotate(' + (dir * 900) + 'deg)' }, { transform: TX + 'translateY(0) rotate(' + (dir * 1080) + 'deg)' }], { delay: A0 + 1050, duration: 450, easing: 'ease-out' });
+        slide(W, loF - 6 * dir, wT, A0 + 1050, 450);
+        squash(W, [sc(0.78, 0.72), sc(1.15, 0.9), sc(1, 1)], { delay: A0 + 1500, duration: 400, fill: 'forwards' });
+        if (o.ro) tumble(A0 + 1700);
+        else { an_(Lo, [{ transform: TX + 'translateY(8%) rotate(' + (dir * 95) + 'deg)' }, { transform: TX + 'translateY(0) rotate(0deg)' }], { delay: A0 + 1900, duration: 450, easing: 'cubic-bezier(.3,1.6,.6,1)' }); dizzy(A0 + 1800); }
       }
       // the winner: sunglasses on, a flex and a little victory hop; the referee's fan points their way
       if (W) {
@@ -866,6 +923,16 @@
         g4.gain.setValueAtTime(0.001, t); g4.gain.exponentialRampToValueAtTime(k === 'ooh' ? 0.35 : 0.06, t + (k === 'ooh' ? 0.25 : 0.02)); g4.gain.exponentialRampToValueAtTime(0.001, t + du);
         sr.connect(fl); fl.connect(g4); g4.connect(AC.destination); sr.start(t);
       }
+      if (k === 'splat' || k === 'whoosh' || k === 'strike') {
+        var n = k === 'whoosh' ? 0.45 : k === 'strike' ? 0.6 : 0.35, bs = AC.createBuffer(1, Math.floor(AC.sampleRate * n), AC.sampleRate), ds = bs.getChannelData(0);
+        for (var q = 0; q < ds.length; q++) ds[q] = (Math.random() * 2 - 1) * (k === 'strike' ? (Math.sin(q / 90) > 0.2 ? 1 : 0.15) : 1);
+        var ss = AC.createBufferSource(), fs = AC.createBiquadFilter(), gs = AC.createGain(); ss.buffer = bs;
+        fs.type = k === 'splat' ? 'lowpass' : 'bandpass'; fs.Q.value = k === 'whoosh' ? 1.2 : 0.9;
+        fs.frequency.setValueAtTime(k === 'splat' ? 900 : k === 'whoosh' ? 300 : 2600, t); fs.frequency.exponentialRampToValueAtTime(k === 'splat' ? 140 : k === 'whoosh' ? 2400 : 1200, t + n);
+        gs.gain.setValueAtTime(0.001, t); gs.gain.exponentialRampToValueAtTime(k === 'whoosh' ? 0.22 : 0.45, t + (k === 'whoosh' ? 0.2 : 0.01)); gs.gain.exponentialRampToValueAtTime(0.001, t + n);
+        ss.connect(fs); fs.connect(gs); gs.connect(AC.destination); ss.start(t);
+        if (k === 'splat') { var op = AC.createOscillator(), gp = AC.createGain(); op.type = 'sine'; op.frequency.setValueAtTime(220, t); op.frequency.exponentialRampToValueAtTime(45, t + 0.3); gp.gain.setValueAtTime(0.5, t); gp.gain.exponentialRampToValueAtTime(0.001, t + 0.35); op.connect(gp); gp.connect(AC.destination); op.start(t); op.stop(t + 0.36); }
+      }
       if (k === 'bell') { [880, 1320].forEach(function (fq, j) { var o2 = AC.createOscillator(), g3 = AC.createGain(); o2.type = 'triangle'; o2.frequency.value = fq; g3.gain.setValueAtTime(0.12 / (j + 1), t); g3.gain.exponentialRampToValueAtTime(0.001, t + 1.2); o2.connect(g3); g3.connect(AC.destination); o2.start(t); o2.stop(t + 1.25); }); }
     } catch (e) { }
   }
@@ -965,18 +1032,19 @@
       var p1 = p0 + dir * push; ro = Math.abs(p1) >= 100 ? 1 : 0;
       if (edge && push >= 35) mv = 6;
       else if (push >= 72 && W.p >= 3 * Math.max(1, Lo.p) && W.p >= 25) mv = 9;
-      else if (ro) mv = 7;
+      else if (ro) mv = pickOne([7, 10, 11, 12]);
+      else if (W.p >= 2 * Math.max(1, Lo.p) && push >= 45) mv = Math.random() < 0.7 ? 10 : 12;
       else if (W.both && push >= 40) mv = 8;
-      else if (W.f > 0) mv = 4;
-      else if (W.c >= 2 || W.steps >= 6) mv = 2;
+      else if (W.f > 0) mv = Math.random() < 0.6 ? 4 : 11;
+      else if (W.c >= 2 || W.steps >= 6) mv = Math.random() < 0.6 ? 2 : 11;
       else if (Lo.w > W.w + 1) mv = 5;
-      else mv = 3;
+      else mv = pickOne([3, 3, 10, 11, 12]);
       m.pos = ro ? 0 : p1;
       if (ro) { if (ws) m.sb++; else m.sa++; }
     }
     m.seq++; m.mv = mv; m.ws = ws; m.ac = ws === 2 ? 0 : (ws ? PB : PA).both ? 3 : Math.max(0, (ws ? PB : PA).best);
     m.ta += a; m.tb += b; m.la = 0; m.lb = 0;
-    if (ws !== 2) K.hl.push({ r: K.round, mv: mv, a: m.a, b: m.b, ws: ws, ac: m.ac, p0: p0, p1: ro ? (ws ? -110 : 110) : m.pos, ro: ro, sc: push + ro * 40 + (mv === 6 ? 60 : mv === 9 ? 50 : mv === 8 ? 20 : mv === 4 ? 10 : 0) + Math.random() });
+    if (ws !== 2) K.hl.push({ r: K.round, mv: mv, a: m.a, b: m.b, ws: ws, ac: m.ac, p0: p0, p1: ro ? (ws ? -110 : 110) : m.pos, ro: ro, sc: push + ro * 40 + (mv === 6 ? 60 : mv === 9 ? 50 : mv === 10 ? 45 : mv === 12 ? 35 : mv === 11 ? 30 : mv === 8 ? 20 : mv === 4 ? 10 : 0) + Math.random() });
   }
   // the bell: who won each match (ring-outs, then where they stand, then power)
   function bell(K) {
@@ -1228,6 +1296,7 @@
     '.smban span b{color:#B0281F}.smban span{display:inline-block;margin-top:1.2cqi;font:800 2.7cqi/1.25 system-ui;color:#2a1a0a;background:#FFE14D;padding:.7cqi 1.8cqi;border-radius:2cqi;max-width:94%}.smban em{font-style:normal;margin-left:.6cqi;padding:0 1cqi;border-radius:1cqi}.smyay{background:#7CF2A2}.smboo{background:#fff}',
     '.smstamp{position:absolute;top:13%;right:6%;font:900 6cqi/1 Impact,system-ui;color:#E8323A;border:.6cqi solid #E8323A;padding:.4cqi 1.4cqi;opacity:0;z-index:7;background:rgba(255,255,255,.9);border-radius:1cqi}',
     '.smfx{position:absolute;font-size:6cqi;z-index:6;pointer-events:none;line-height:1}',
+    '.smfx.smword{font:900 7cqi/1 Impact,system-ui;color:#FFE14D;-webkit-text-stroke:.3cqi #141428;text-shadow:.5cqi .5cqi 0 #E8323A;white-space:nowrap;z-index:7}',
     '.smv{position:fixed;inset:0;z-index:96;background:rgba(5,3,10,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:10px}.smvbox{width:min(96vw,calc(84vh * 1.7778))}.smskip{opacity:.6;color:#fff}',
     '.smreelbox{width:100%;max-width:820px;margin:0 auto}.smreelbox.smrw{max-width:none}',
     '.smsplit{display:grid;grid-template-columns:1fr;gap:14px;align-items:start}@media (min-width:821px){.smsplit{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}}',
