@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stand on the Line maths test · Sandy Flats</title>
+<style>body { font: 14px/1.4 system-ui, sans-serif; margin: 12px; background: #14161c; color: #e8e8ea; } pre { background: #0c0d11; padding: 8px; border-radius: 6px; white-space: pre-wrap; font-size: 12px; }</style>
+</head><body>
+<h1>Stand on the Line: the maths, over many seeds</h1>
+<p>Every line has at least six lattice points in the grid; every table, pair of points and slope-and-point really lies on its line; no line repeats; every stack of constraints keeps at least four lattice points; strict and non-strict boundaries are right. Checked against separate whole-number fraction arithmetic. <code>?seeds=3000</code></p>
+<pre id="out">running…</pre>
+<script>document.write('<script src="../../sfa-stand.js?t=' + Date.now() + '"><\/script>');   // always the newest (a dev page)</script>
+<script>
+var M = window.SFA_STAND_MATH, out = [], t0 = Date.now();
+var fails = 0, checks = 0;
+function ok(c, msg) { checks++; if (!c) { fails++; if (fails < 30) out.push('FAIL ' + msg); } }
+// independent arithmetic with exact fractions (num/den as integers)
+function yAt(mn, md, b, x) { return { n: mn * x + b * md, d: md }; }           // y = n/d
+function isInt(f) { return f.n % f.d === 0; }
+var stats = { lines: 0, minPts: 99, forms: {}, slopes: {}, cons: 0, minReg: 999, strictEdge: 0, looseEdge: 0, stacks: 0, six: 0, nullAt: {}, softMiss: 0 };
+var SEEDS = +(new URLSearchParams(location.search).get('seeds') || 3000);
+for (var seed = 1; seed <= SEEDS; seed++) {
+  for (var n = 3; n <= 7; n++) {
+    var L = M.genLines(seed * 7 + n, n), seen = {}, zero = 0, half = 0, neg = 0;
+    ok(L.length === n, 'count ' + n);
+    ok(JSON.stringify(L.map(function (q) { return q.form; })) === JSON.stringify(M.FORMS[n]), 'forms in order');
+    L.forEach(function (Q, k) {
+      stats.lines++; stats.forms[Q.form] = (stats.forms[Q.form] || 0) + 1; stats.slopes[Q.mn + '/' + Q.md] = (stats.slopes[Q.mn + '/' + Q.md] || 0) + 1;
+      var key = Q.mn + '/' + Q.md + ':' + Q.b; ok(!seen[key], 'repeat line ' + key + ' seed ' + seed); seen[key] = 1;
+      if (Q.mn === 0) zero++; if (Q.md === 2) half++; if (Q.mn < 0) neg++;
+      // lattice points in the grid, counted independently
+      var cnt = 0;
+      for (var x = -6; x <= 6; x++) for (var y = -6; y <= 6; y++) { var f = yAt(Q.mn, Q.md, Q.b, x), on = isInt(f) && f.n / f.d === y; if (on) cnt++; ok(M.onLine(Q, x, y) === on, 'onLine disagrees ' + key + ' ' + x + ',' + y); }
+      ok(cnt >= 6, 'only ' + cnt + ' points on ' + key); stats.minPts = Math.min(stats.minPts, cnt);
+      ok(M.linePts(Q).length === cnt, 'linePts count');
+      // the description's points really are on the line and in the grid
+      var need = [0, 0, 3, 2, 1][Q.form]; ok(Q.xs.length === need, 'xs length form ' + Q.form);
+      Q.xs.forEach(function (x) { var f = yAt(Q.mn, Q.md, Q.b, x); ok(isInt(f) && Math.abs(f.n / f.d) <= 6 && Math.abs(x) <= 6, 'given point off line/grid ' + key + ' x=' + x); ok(M.lineY(Q, x) === f.n / f.d, 'lineY'); });
+      if (Q.form === 2) { ok(Q.xs[0] < Q.xs[1] && Q.xs[1] < Q.xs[2], 'table sorted'); ok(Q.xs[1] - Q.xs[0] !== Q.xs[2] - Q.xs[1], 'table steps even ' + Q.xs); }
+      if (Q.form === 3) ok(Q.xs[0] !== Q.xs[1], 'two points same');
+      if (Q.form === 1) ok(Math.abs(Q.b) <= 6, 'start in grid');
+      var fe = yAt(Q.mn, Q.md, Q.b, Q.ex); ok(isInt(fe) && Math.abs(fe.n / fe.d) <= 6 && Math.abs(Q.ex) <= 6, 'worked x off grid');
+      // the working out ends on a true point
+      var w = M.workLine(Q); ok(w.indexOf(M.pt(Q.ex, fe.n / fe.d) + ' is on the line') >= 0, 'working ' + w);
+      if (k === 0) ok(Q.mn !== 0 && Q.md === 1, 'first line friendly');
+    });
+    ok(zero === 1, 'zero slopes ' + zero); ok(half === 1, 'half slopes ' + half); ok(neg >= 1, 'no negative slope');
+  }
+  // constraint stacks, as the console builds them (soft target first, then the floor of 4)
+  if (seed % 5 === 0) [3, 8, 20, 30].forEach(function (alive) {
+    var R = M.rng(seed * 31 + alive), cons = [], k;
+    for (k = 0; k < 6; k++) {
+      var o = { strict: (k + seed) % 2 === 0, kind: k === 2 ? 1 : 0 };
+      var room = k + 1 >= 4 && M.region(cons).length > alive + 2;
+      var soft = room ? M.genCon(R, cons, alive + 2, o) || M.genCon(R, cons, alive + 2, { gentle: true }) : null;
+      if (k + 1 >= 4 && !soft) stats.softMiss++;
+      var C = soft || M.genCon(R, cons, 4, k + 1 >= 4 && !room ? { gentle: true } : o);
+      if (!C) { stats.nullAt[k] = (stats.nullAt[k] || 0) + 1; break; }
+      var before = M.region(cons).length;
+      cons.push(C); stats.cons++;
+      // the region, counted independently with fractions
+      var cnt = 0;
+      for (var x = -6; x <= 6; x++) for (var y = -6; y <= 6; y++) {
+        var all = true;
+        cons.forEach(function (c) {
+          var lhs, r;   // compare lhs with r = n/d
+          if (c.k === 1) { lhs = x; r = { n: c.c, d: 1 }; } else { lhs = y; r = yAt(M.SL[c.si][0], M.SL[c.si][1], c.b, x); }
+          var diff = lhs * r.d - r.n;   // sign of lhs - r (d > 0)
+          var edge = diff === 0, sat = c.op === 0 ? diff < 0 : c.op === 1 ? diff <= 0 : c.op === 2 ? diff > 0 : diff >= 0;
+          ok(M.sat(c, x, y) === sat, 'sat disagrees'); ok(M.onEdge(c, x, y) === edge, 'edge disagrees');
+          if (edge) { if (c.op === 0 || c.op === 2) { stats.strictEdge++; ok(!M.sat(c, x, y), 'strict boundary point counted in'); } else { stats.looseEdge++; ok(M.sat(c, x, y), 'solid boundary point counted out'); } }
+          if (!sat) all = false;
+        });
+        if (all) cnt++;
+      }
+      ok(cnt === M.region(cons).length, 'region count'); ok(cnt >= 4, 'region only ' + cnt + ' after ' + cons.length); ok(cnt < before, 'constraint cut nothing');
+      stats.minReg = Math.min(stats.minReg, cnt);
+      ok(JSON.stringify(M.decCon(M.encCon(C))) === JSON.stringify(C), 'constraint coding ' + JSON.stringify(C));
+      ok(M.encCon(C) >= 0 && M.encCon(C) <= 9999, 'constraint number range');
+      ok(typeof M.conWork(cons) === 'string', 'conWork');
+    }
+    stats.stacks++; if (cons.length === 6) stats.six++;
+  });
+}
+// scoring
+var Q = M.mkLine(3, -1);   // y = 2x - 1
+var r = M.scoreLine(Q, { a: M.PT(-2, -5), b: M.PT(1, 1), c: M.PT(1, 1), d: M.PT(0, 0), e: 169 });
+ok(r.a === 2 && r.b === 1 && r.c === 1 && r.d === 3 && r.e === 0, 'scoreLine ' + JSON.stringify(r));
+var cons = [{ k: 0, si: 1, b: 1, op: 2 }, { k: 0, si: 2, b: 4, op: 1 }, { k: 1, c: -2, op: 3 }];   // y > x + 1, y <= -x + 4, x >= -2
+ok(!M.sat(cons[0], 1, 2) && M.sat(cons[0], 1, 3) && M.sat(cons[1], 1, 3) && !M.sat(cons[1], 1, 4) && M.sat(cons[2], -2, 0) && !M.sat(cons[2], -3, 0), 'the example rules');
+ok(M.conTxt(cons[0]) === 'y > x + 1' && M.conTxt(cons[1]) === 'y ≤ −x + 4' && M.conTxt(cons[2]) === 'x ≥ −2', 'rule words ' + cons.map(M.conTxt));
+var e = M.resolveElim(cons, ['a', 'b', 'c'], { a: M.PT(0, 2), b: M.PT(1, 2), c: 169, g: M.PT(0, 3) }, false);
+ok(e.res.a === 1 && e.res.b === 3 && e.res.c === 0 && e.res.g === 1 && e.out.join() === 'b,c' && !e.spared, 'elim ' + JSON.stringify(e));
+e = M.resolveElim(cons, ['a', 'b'], { a: M.PT(1, 2), b: 169 }, false); ok(e.spared && e.out.length === 0, 'everyone wrong: nobody goes');
+e = M.resolveElim(cons, ['a', 'b', 'c'], { a: M.PT(0, 2), b: M.PT(0, 2), c: M.PT(0, 3), g: M.PT(0, 2) }, true);
+ok(e.res.a === 2 && e.res.b === 2 && e.res.c === 1 && e.res.g === 1 && e.out.join() === 'a,b', 'shared point ' + JSON.stringify(e));
+e = M.resolveElim(cons, ['a', 'b'], { a: M.PT(0, 2), b: M.PT(0, 2) }, true); ok(e.spared && !e.out.length, 'shared by all: nobody goes');
+e = M.resolveElim(cons, ['a', 'b'], { a: M.PT(0, 2), b: M.PT(0, 2) }, false); ok(!e.out.length && !e.spared && e.res.a === 1, 'sharing before rule 4 is fine');
+var wl = M.workLine({ form: 0, si: 3, mn: 2, md: 1, b: -1, ex: -2 });
+ok(wl === 'x = −2: 2 × (−2) − 1 = −5, so (−2, −5) is on the line.', wl);
+out.push(JSON.stringify(stats, null, 1));
+out.push(checks + ' checks, ' + fails + ' failures · ' + SEEDS + ' seeds · ' + (Date.now() - t0) + ' ms');
+window.STAND_TEST = { checks: checks, fails: fails, stats: stats, text: out.join('\n') };
+document.getElementById('out').textContent = window.STAND_TEST.text;
+document.title = (fails ? 'FAILED' : 'passed') + ' · Stand on the Line maths';
+
+</script>
+</body></html>

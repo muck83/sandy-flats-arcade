@@ -8,7 +8,7 @@
   var SFA = window.SFA, el = SFA.el, esc = SFA.esc, CFG = window.SFA_CONFIG || {}, S = SFA.sync;
   var Q = new URLSearchParams(location.search);
   var MODE = Q.has('teach') ? 'teach' : Q.has('screen') ? 'screen' : 'student';
-  var N = Math.max(1, Math.min(20, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
+  var N = Math.max(1, Math.min(21, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
   var TEACHER = 'Mr. Crowell';
   var LIVE_FRESH = 10 * 60 * 1000;   // a live session counts as running while the console has checked in within 10 minutes
   document.body.classList.add('lesson', 'm-' + MODE);
@@ -791,6 +791,7 @@
     boardSync();
     raidSync();
     sumoSync();
+    standSync();
     if (window.SFA_CLASH) return SFA_CLASH.sync();
     if ((isLive() || MODE === 'screen') && freshClash(live) && !(MODE === 'student' && saving && !S.me)) clashAssets(function () { SFA_CLASH.sync(); });
   }
@@ -1009,7 +1010,7 @@
     if (K.cur) { K.cur = null; }
     if (K.q.length && !lobbyBusy()) { K.cur = K.q.shift(); K.seq++; K.at = Date.now(); strutFx(K.cur.n, K.cur.look); pushLive(); }
   }
-  function lobbyBusy() { return !!(console_.board || console_.clash || console_.raid || console_.show || console_.sumo || console_.spot); }
+  function lobbyBusy() { return !!(console_.board || console_.clash || console_.raid || console_.show || console_.sumo || console_.stand || console_.spot); }
   function lobbySpot() {
     var K = console_.lobby; if (!K || lobbyBusy()) return null;
     var S2 = K.cur ? '#S:' + K.seq + '~' + K.cur.n + '~' + K.cur.look : '#S:' + K.seq, J = '';
@@ -1079,6 +1080,28 @@
   function sumoSync() {
     if (window.SFA_SUMO) return SFA_SUMO.sync();
     if ((isLive() || MODE === 'screen') && freshSumo(live) && !(MODE === 'student' && saving && !S.me)) sumoAssets(function () { SFA_SUMO.sync(); });
+  }
+
+  // 🐐 Stand on the Line (sfa-stand.js): the whole class on one grid; stand on the line, then survive the inequalities
+  var STAND_V = '20261111a', standLoading = null;
+  function standAssets(cb) {
+    if (window.SFA_STAND) return cb();
+    if (standLoading) { standLoading.push(cb); return; }
+    standLoading = [cb];
+    var sc7 = document.createElement('script'); sc7.src = 'sfa-stand.js?v=' + STAND_V;
+    sc7.onload = function () { var q = standLoading; standLoading = null; q.forEach(function (f) { try { f(); } catch (e) { console.warn(e); } }); };
+    sc7.onerror = function () { standLoading = null; SFA.toast('Stand on the Line couldn\'t load. Check the connection.', 4000); };
+    document.head.appendChild(sc7);
+  }
+  function hasStand(L) { return !!(L && L.lesson === LID && L.counts && Array.isArray(L.counts.zks)); }
+  function freshStand(L) {
+    if (!hasStand(L)) return false;
+    var z = L.counts.zks, st = MODE === 'screen' ? decRun(L.counts.zkid) : decRun(L.counts.zkst) || decRun(L.counts.zkid), age = Date.now() + (MODE === 'screen' ? 0 : srvSkewV || 0) - st - (z[4] || 0) * 1000;
+    return MODE === 'teach' || z[6] > 0 || (z[0] === 7 ? age <= 6 * 60000 : age <= ((z[3] || 25) + 300) * 1000);
+  }
+  function standSync() {
+    if (window.SFA_STAND) return SFA_STAND.sync();
+    if ((isLive() || MODE === 'screen') && freshStand(live) && !(MODE === 'student' && saving && !S.me)) standAssets(function () { SFA_STAND.sync(); });
   }
 
   /* ---------------- deck ---------------- */
@@ -1293,7 +1316,7 @@
     }, 15000);
     if (!console_.offline) tpost('live').then(function (j) {
       console_.climb = j.climb || null;
-      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid' || console_.spot.q === 'zshow' || console_.spot.q === 'zsumo')) console_.spot = null; if (hasSumo(j.live)) { var js2 = j.live; sumoAssets(function () { if (!SFA_SUMO.restore(js2)) pushLive(); consolePanel(); }); } if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
+      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid' || console_.spot.q === 'zshow' || console_.spot.q === 'zsumo' || console_.spot.q === 'zstand')) console_.spot = null; if (hasStand(j.live)) { var jt = j.live; standAssets(function () { if (!SFA_STAND.restore(jt)) pushLive(); consolePanel(); }); } if (hasSumo(j.live)) { var js2 = j.live; sumoAssets(function () { if (!SFA_SUMO.restore(js2)) pushLive(); consolePanel(); }); } if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
       // opened from the Climb dashboard ("End Climb → Lesson N"): go live straight away, so students' pages move into this lesson
       else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
       else consolePanel();
@@ -1313,7 +1336,7 @@
       if (my < applied) return;   // only an older reply than one already shown is dropped
       applied = my; console_.got = Date.now(); var js = JSON.stringify(j), wasErr = !!console_.err;
       console_.err = ''; if (js === lastData && !wasErr) return; lastData = js;
-      console_.data = j; computeFeed(); clashAgg(); if (window.SFA_BOARD && console_.board) SFA_BOARD.agg(); if (window.SFA_RAID && console_.raid) SFA_RAID.agg(); if (window.SFA_SUMO && console_.sumo) SFA_SUMO.agg(); lobbyAgg(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
+      console_.data = j; computeFeed(); clashAgg(); if (window.SFA_BOARD && console_.board) SFA_BOARD.agg(); if (window.SFA_RAID && console_.raid) SFA_RAID.agg(); if (window.SFA_SUMO && console_.sumo) SFA_SUMO.agg(); if (window.SFA_STAND && console_.stand) SFA_STAND.agg(); lobbyAgg(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
     },
       function (e) {
         if (my === fetchSeq) fetching = 0;
@@ -1385,6 +1408,7 @@
     if (console_.raid && window.SFA_RAID) { SFA_RAID.counts(counts); spot = SFA_RAID.spot(); }   // the boss, its health, the attack, the top five and the latest hits   // the Big Board: the crossword, who has which word, what's solved
     if (console_.clash && window.SFA_CLASH) { SFA_CLASH.counts(counts); spot = SFA_CLASH.spot(); }   // the battle board, the teams, shout-outs and MVPs
     if (console_.sumo && window.SFA_SUMO) { SFA_SUMO.counts(counts); spot = SFA_SUMO.spot(); }   // the matches, the ring, the roster; at the end the highlight reel
+    if (console_.stand && window.SFA_STAND) { SFA_STAND.counts(counts); spot = SFA_STAND.spot(); }   // the grid: the line or the rules, where everyone stands, the scores
     Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length && Object.keys(counts).length < 60) counts[q] = feed.per[q].counts; });
     return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: spot, timer: console_.timer, lock: console_.lock, auto: console_.auto };
   }
@@ -1501,6 +1525,7 @@
     else if (console_.clash && window.SFA_CLASH) SFA_CLASH.section(p);
     else if (console_.show && window.SFA_SHOW) SFA_SHOW.section(p);
     else if (console_.sumo && window.SFA_SUMO) SFA_SUMO.section(p);
+    else if (console_.stand && window.SFA_STAND) SFA_STAND.section(p);
     else return false;
     for (var i = n0; i < p.children.length; i++) p.children[i].classList.add('gamerun');
     return true;
@@ -1511,6 +1536,7 @@
     raid: 'The whole class against one boss on the class screen. Students pick a hero whose special charges as they answer; right answers hit the boss, streaks crit, and hitting together builds a class combo. The boss targets a few students (answer to dodge) and charges attacks: one question on every screen, 60% right blocks it. Five integer warm-ups first. Review uses the five lessons before this one; Exit ticket uses this lesson and records every first try for you.',
     clash: 'Team against team with the Sandy Flats characters. Fair teams from today\'s lesson, then the rules on every screen. Students answer this lesson\'s questions for coins, send characters down 5 lanes, plant defenders, send their own avatar hero once, and win free characters in team rallies.',
     sumo: 'Students are paired into teams of two (the most sure with the less sure, from today\'s answers) and their avatars put on sumo belts. Each problem: a rule like y = 2x − 3, fill a table, plot two points, draw the line, then use the line to find a point off the table. Every step earns power (half for a second try). Every 30 seconds each pair\'s power against their opponents\' becomes a sumo move on every screen: a bigger gap is a bigger push, out of the ring is a point. Three fights; after each, winners meet winners and the rest meet each other (an odd team out meets the Sumo-Bot). Problems get harder each fight: negative slopes and finding x, then fractions and rearranged rules. At the end, a highlight reel of the best moves. Options: a worked example on every screen before the first bout (y = 2x − 3 worked out step by step, for the class to watch together; it loops until the fights start, and ⏭ starts them early), and a grand final after the reel: the two students with the most power wrestle 1 v 1 while everyone else watches the match and both of their graphs live. Details shows who missed which step.',
+    stand: 'Under the Pond. A coordinate grid from −6 to 6 fills the class screen and every avatar mills about on it. Line rounds: the Voice gives a line (an equation, then a start and a step in words, a table, two points, a slope and a point) and each student taps one lattice point on their own device; their avatar walks there. When time is up the line is drawn: on the line is 1 point, on a point of the line nobody else chose is 3, so it pays to look left of the y-axis and at the edges. Then the elimination: inequalities stack one at a time (solid boundary: points on it are in; dashed: out) and the region is shaded when time is up. Anyone still in who is outside it, or nowhere, is butted off the grid by a goat; from the fourth rule two survivors on one point both go; if everyone would go, nobody does. It ends at three or fewer survivors or after six rules. Eliminated students play on as ghosts for 1 point a correct round. Podium, then everyone by points. You see who has not answered yet in each round, and can pause, close a round early, skip a round or end it.',
     show: 'Every student here walks the catwalk on the class screen and every device in the avatar they built in the Wardrobe: name, level and outfit, one after another, then a group bow.'
   };
   function gamesTray(p, s) {
@@ -1520,6 +1546,7 @@
       { id: 'raid', e: '👹', n: 'Boss Raid', len: SFA.store.get('teacher.raid.mins', 6) + ' min', sug: early || atEnd, one: atEnd ? 'Exit ticket: the class fights a boss with today\'s questions; you get every first try.' : 'Review: the whole class fights one boss with questions from earlier lessons.', build: buildRaid },
       { id: 'clash', e: '⚔️', n: 'Lane Clash', len: SFA.store.get('teacher.clash.mins', 5) + ' min', sug: atEnd, one: 'Team battle: answer today\'s questions for coins and send characters down 5 lanes.', build: buildClash },
       { id: 'sumo', e: '🤼', n: 'Sumo Graphing', len: '~' + Math.round(SFA.store.get('teacher.sumo.mins', 2) * 3 + 1.5) + ' min', sug: false, one: 'Pairs graph lines from rules; every 30 s their work becomes a sumo bout. Three fights, then a highlight reel.', build: buildSumo },
+      { id: 'stand', e: '🐐', n: 'Stand on the Line', len: '~' + Math.round((SFA.store.get('teacher.stand.rounds', 5) * (SFA.store.get('teacher.stand.secs', 25) + 20) + (SFA.store.get('teacher.stand.elim', 1) ? 5 * (SFA.store.get('teacher.stand.secs', 25) + 22) + 11 : 0) + 10) / 60) + ' min', sug: false, one: 'The whole class on one grid: tap a point to stand on the line, then stay inside the inequalities or meet a goat.', build: buildStand },
       { id: 'show', e: '👗', n: 'Fashion show', len: '~' + Math.max(1, Math.ceil(Math.max(1, rosterIn().length) * SFA.store.get('teacher.show.secs', 5) / 60)) + ' min', sug: cur === 0, one: 'Every student\'s avatar walks the catwalk, one after another.', build: buildShow }
     ];
     var sec = H('div', 'sect games');
@@ -1578,6 +1605,13 @@
     var fn = pickSel('Grand final', [[1, '🥇 Grand final: top two, 1 v 1'], [0, 'No grand final']], SFA.store.get('teacher.sumo.fin', 1), 'teacher.sumo.fin');
     var sb = startBtn('🤼 Start Sumo Graphing', 'Pairing up the wrestlers…', function () { sumoAssets(function () { if (SFA_SUMO.start(parseFloat(len.value), +dm.value === 1, +fn.value === 1)) SFA.toast('Sumo Graphing on! Students\' screens switch within a few seconds.', 3500); else consolePanel(); }); });
     var r = H('div', 'row'); r.appendChild(len); r.appendChild(dm); r.appendChild(fn); r.appendChild(sb); box.appendChild(r);
+  }
+  function buildStand(box) {
+    var rd = pickSel('Line rounds', [3, 4, 5, 6, 7].map(function (n) { return [n, n + ' line rounds']; }), SFA.store.get('teacher.stand.rounds', 5), 'teacher.stand.rounds');
+    var len = pickSel('Round length', [15, 20, 25, 30, 35, 40].map(function (n) { return [n, n + ' seconds a round']; }), SFA.store.get('teacher.stand.secs', 25), 'teacher.stand.secs');
+    var em = pickSel('Elimination round', [[1, '🐐 Elimination: shade when time is up'], [2, '🐐 Elimination: shade each new rule at once (easier)'], [0, 'No elimination round']], SFA.store.get('teacher.stand.elim', 1), 'teacher.stand.elim');
+    var sb = startBtn('🐐 Start Stand on the Line', 'Opening the grid…', function () { standAssets(function () { if (SFA_STAND.start(+rd.value, +len.value, +em.value > 0, +em.value === 2)) SFA.toast('Stand on the Line is on. Students\' screens switch within a few seconds.', 3500); else consolePanel(); }); });
+    var r = H('div', 'row'); r.appendChild(rd); r.appendChild(len); r.appendChild(em); r.appendChild(sb); box.appendChild(r);
   }
   function buildShow(box) {
     var len = pickSel('Seconds each', [[4, '4 seconds each'], [5, '5 seconds each'], [7, '7 seconds each']], SFA.store.get('teacher.show.secs', 5), 'teacher.show.secs');

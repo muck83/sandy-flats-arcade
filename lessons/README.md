@@ -74,6 +74,34 @@ At the end of a lesson the console can start a 5-minute team battle (sfa-clash.j
 `number` slide, every `poll` slide with an `ans` (not warm-ups), and every `number`/`poll` extra in `more`. So a lesson
 with good extras has a good Clash.
 
+## Stand on the Line
+
+A whole-class game from the console's games tray (sfa-stand.js). It needs nothing from the lesson file: the lines and the
+inequalities are made up fresh each game, so it works in any lesson once the class can read a line.
+
+- **Lobby (10 s).** A grid from −6 to 6 on the class screen; every avatar mills about.
+- **Line rounds (3 to 7, default 5; 15 to 40 s each, default 25).** The Voice gives a line and each student taps one
+  lattice point on their own device; their avatar walks there on the class screen. The forms come in this order: an
+  equation, a start and a step in words, a table with uneven x-steps, two points, a slope and one point (6 rounds: two
+  points twice; 7: the table twice as well). Slopes are 0, ±1, ±2 and ±½, so every line has at least six lattice points on
+  the grid; every game has a zero slope, a negative slope and exactly one ±½; no line repeats. On the line: 1 point. On a
+  point of the line nobody else chose: 3 points. When time is up the line is drawn with one line of working.
+- **Elimination (optional).** Inequalities stack one at a time: solid boundary for ≤ and ≥ (points on it are in), dashed
+  for < and > (points on it are out). The region is shaded when time is up (or straight away, with the easier setting).
+  Anyone still in who stands outside it, or nowhere, is butted off the grid by a goat. From the fourth rule, two survivors
+  on one point both go. If everyone still in would go, nobody does. It ends at three or fewer survivors or after six
+  rules. The region always keeps at least four lattice points. A correct point is 1 point for anyone, and eliminated
+  students play on as ghosts.
+- **End.** A podium of the survivors (the top three by points if there was no elimination), then everyone by points.
+  Students earn class-game XP like the Boss Raid (10 a correct round, 15 for a point of their own, 30 for finishing, 30
+  more for the podium), which the Wardrobe turns into coins.
+
+The console shows who has not answered yet, and has Pause, Time's up now, Skip round (not scored), End it now. It
+survives a console reload, and late joiners get a place (as a ghost once the elimination has begun).
+
+To try it without a class: `climb/dev/stand-sim.html` (the real console, class screen and two student pages with 22
+pretend classmates on the practice backend) and `climb/dev/stand-test.html` (the maths over thousands of seeds).
+
 ## Figures (`fig`)
 
 ```js
