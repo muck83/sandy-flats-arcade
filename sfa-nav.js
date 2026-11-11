@@ -6,7 +6,7 @@
   'use strict';
   var CFG = window.SFA_CONFIG || {}, Q = location.search, page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   if (/[?&]screen/.test(Q)) return;   // the class screen stays clean for screen sharing
-  var teach = /^(class|participation|teacher|climb-teacher|day)\.html$/.test(page) || (/^lessons?\.html$/.test(page) && /[?&]teach/.test(Q));
+  var teach = /^(class|participation|teacher|climb-teacher|day|report)\.html$/.test(page) || (/^lessons?\.html$/.test(page) && /[?&]teach/.test(Q));
   var PLAN = [   // film order: lesson file number, the number students see (= film), its game
     { l: 10, n: 1, game: 'g9-try-zero-first.html' },
     { l: 1, n: 2, game: 'g1-crack-the-fair.html' },
@@ -86,6 +86,7 @@
     nav.appendChild(link('trophies.html', '🏆 Trophies', page === 'trophies.html'));
     nav.appendChild(link('climb-teacher.html', '🧗 Climb', page === 'climb-teacher.html'));
     nav.appendChild(link('day.html', '📅 Student day', page === 'day.html'));
+    nav.appendChild(link('report.html', '🧾 Report', page === 'report.html'));
     nav.appendChild(link('teacher.html', '🧭 Teacher guide', page === 'teacher.html'));
     nav.appendChild(link('index.html', '👀 Student view', false));
     nav.appendChild(studentLink());

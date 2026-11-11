@@ -21,8 +21,10 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
      Logger.log('climbClass ok: ' + c.ok + ', students: ' + c.roster.length + ', climb rows: ' + c.rows.length + ', questions today: ' + c.asks.length);
      var s = c.roster[0];
      if (s) { var d = route({ op: 'studentDay', teacherKey: key, sid: s.sid }); Logger.log('studentDay ok: ' + d.ok + ' for ' + s.name + ' on ' + d.date); }
+     var r = route({ op: 'report', teacherKey: key, cls: s ? s.cls : '', lessons: 3 });
+     Logger.log('report ok: ' + r.ok + ', students: ' + r.roster.length + ', lessons: ' + r.lessons.map(function (x) { return x.lesson + ' on ' + x.day; }).join(', ') + ', answers: ' + r.responses.length + ', climb: ' + r.climb.length + ', arcade: ' + r.events.length);
    }
-   Expected: {"ok":true,...}, then "climbClass ok: true ... questions today: 0" and "studentDay ok: true".
+   Expected: {"ok":true,...}, then "climbClass ok: true ... questions today: 0", "studentDay ok: true" and "report ok: true".
    (If it says "questions today: undefined", the old code is still in Code.gs.)
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
@@ -30,7 +32,8 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
 
 5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
 
-Latest change: the Participation and Student day reports leave out the new go-further extra answers (ids ending x1/x2) and the Clash game totals (q "zclash"). Also: the teacher picks a check-in (one lesson, or mixed) and the Climb length in minutes (climbControl open accepts quiz.les and mins). Also: the teacher can see a student's current Climb screen (climbPing stores it; climbClass accepts watch). Also: Climb can start with a 5-minute check-in (the same questions for everyone); climbControl open accepts a quiz, and ClimbLog accepts mode "quiz".
+Latest change: a new operation "report" for the teacher's Report page (report.html): it finds the last few lessons a class ran and returns every student's answers to them, plus their Climb answers and arcade events from those days. Nothing to set up.
+Before that: the Participation and Student day reports leave out the new go-further extra answers (ids ending x1/x2) and the Clash game totals (q "zclash"). Also: the teacher picks a check-in (one lesson, or mixed) and the Climb length in minutes (climbControl open accepts quiz.les and mins). Also: the teacher can see a student's current Climb screen (climbPing stores it; climbClass accepts watch). Also: Climb can start with a 5-minute check-in (the same questions for everyone); climbControl open accepts a quiz, and ClimbLog accepts mode "quiz".
 Before that: the lesson console reads only the current lesson's rows of the Responses tab, and saving an answer no longer waits for the script lock (appendRow is atomic). Nothing to set up.
 Before that: students can press "Ask Mr. Crowell" in Climb; new operations climbAsk and climbReply, and a "ClimbAsk" tab that creates itself.
 Before that: Climb skills 22-25 (function notation, domain and range, graphing from an equation, systems). Earlier operations in this version: climbHello, climbPing, climbSave, climbControl, climbClass, climbCheck, climbStudent,

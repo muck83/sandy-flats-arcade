@@ -99,6 +99,7 @@ function route(req) {
     case 'climbAsk': return climbAsk(auth(req), req);
     case 'climbReply': teacher(req); return climbReply(req);
     case 'studentDay': teacher(req); return studentDay(req);
+    case 'report': teacher(req); return reportFor(req);
     default: throw new Error('unknown op');
   }
 }
@@ -600,4 +601,41 @@ function studentDay(req) {
     if (dkey(r[0]) === day) events.push({ time: r[0] instanceof Date ? r[0].toISOString() : String(r[0]), game: String(r[2]), type: String(r[3]), detail: String(r[4]) });
   });
   return { ok: true, student: publicStudent(s), date: day, today: dkey(new Date()), days: days, climb: climb, climbRow: climbRows(sid)[0] || null, lessons: lessons, events: events, games: mine(s).games };
+}
+
+/* ---------------- report: a class's last few lessons, with the Climb and arcade work from the same days ---------------- */
+// For the teacher's Report page. Finds the lessons this class ran most recently (a lesson counts as run on the last day
+// at least two of the class's students answered in it), then returns every student's answers to those lessons, and
+// their Climb answers and arcade events from the first of those days onwards. Dates are in the script's time zone.
+function reportFor(req) {
+  var cls = String(req.cls || ''), want = Math.max(1, Math.min(6, Number(req.lessons) || 3)), tz = Session.getScriptTimeZone();
+  var roster = rosterRows().filter(function (r) { return !cls || r.cls === cls; }), ids = {};
+  roster.forEach(function (r) { ids[r.sid] = 1; });
+  function dkey(t) { return Utilities.formatDate(t instanceof Date ? t : new Date(t), tz, 'yyyy-MM-dd'); }
+  var rows = responseRows().filter(function (r) { return ids[r.sid] && LESSON.test(r.lesson); });
+  var seen = {};   // lesson -> day -> { sid: 1 }
+  rows.forEach(function (r) { var ms = Date.parse(r.time); if (!ms) return; var d = dkey(new Date(ms)), L = seen[r.lesson] || (seen[r.lesson] = {}); (L[d] || (L[d] = {}))[r.sid] = 1; });
+  var need = Math.min(2, roster.length), ran = [];
+  Object.keys(seen).forEach(function (lesson) {
+    var days = Object.keys(seen[lesson]).sort().reverse();
+    for (var i = 0; i < days.length; i++) { var n = Object.keys(seen[lesson][days[i]]).length; if (n >= need) { ran.push({ lesson: lesson, day: days[i], students: n }); break; } }
+  });
+  ran.sort(function (a, b) { return a.day < b.day ? 1 : a.day > b.day ? -1 : 0; });
+  var picked = ran.slice(0, want), pick = {}, from = dkey(new Date());
+  picked.forEach(function (x) { pick[x.lesson] = 1; if (x.day < from) from = x.day; });
+  var fromMs = Utilities.parseDate(from, tz, 'yyyy-MM-dd').getTime();
+  var climb = [], ls = climbSheet('ClimbLog'), n1 = ls.getLastRow();
+  if (n1 > 1) ls.getRange(2, 1, n1 - 1, 12).getValues().forEach(function (r) {
+    var sid = String(r[1]); if (!ids[sid]) return;
+    var ms = r[0] instanceof Date ? r[0].getTime() : Date.parse(r[0]); if (!(ms >= fromMs)) return;
+    climb.push({ time: new Date(ms).toISOString(), sid: sid, sess: String(r[2]), skill: String(r[3]), tid: String(r[4]), seed: Number(r[5]) || 0, mode: String(r[6]), answer: String(r[7]), result: String(r[8]), tag: String(r[9]) });
+  });
+  var events = [], es = SpreadsheetApp.getActive().getSheetByName('Events'), n2 = es.getLastRow();
+  if (n2 > 1) es.getRange(2, 1, n2 - 1, 5).getValues().forEach(function (r) {
+    var sid = String(r[1]); if (!ids[sid]) return;
+    var ms = r[0] instanceof Date ? r[0].getTime() : Date.parse(r[0]); if (!(ms >= fromMs)) return;
+    events.push({ time: new Date(ms).toISOString(), sid: sid, game: String(r[2]), type: String(r[3]), detail: String(r[4]) });
+  });
+  return { ok: true, cls: cls, roster: roster.map(publicStudent), lessons: picked.reverse(), from: from, today: dkey(new Date()),
+    responses: latest(rows.filter(function (r) { return pick[r.lesson]; })), climb: climb, events: events };
 }

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Report · Sandy Flats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css?v=20261024">
+<style>
+.bar1{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.bar1 select{font:600 14px var(--ui);padding:7px 10px;border-radius:10px;border:2px solid var(--line);background:#0E0C14;color:var(--ink)}
+.stu{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:16px}
+.stu h2{margin:0;font-family:var(--display);font-weight:400;font-size:26px;color:var(--marquee);letter-spacing:.02em}
+.stu .sum{margin:4px 0 0;color:var(--muted)}
+.part{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+.part h3{margin:0;font:700 16px var(--ui)}
+.part h3 small{font-weight:600;color:var(--muted)}
+.part p{margin:4px 0 0}
+.part ul{margin:6px 0 0;padding-left:20px}
+.part li{margin:3px 0}
+.k{font:700 12px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ok{color:#5CE0B8}.no{color:#FF8A80}.mid{color:#FFC94A}
+.q{color:var(--ink)}.their{font-family:var(--mono);font-size:13px}
+.none{color:var(--muted)}
+.demo{margin-top:14px;padding:10px 14px;border-radius:12px;border:2px solid #FFC94A;background:#2a2410;color:#FFC94A;font-weight:700}
+@media print{
+  body{background:#fff;color:#000}
+  header .chips,.bar1,.sfanav-strip,.sfanav,.demo{display:none!important}
+  .stu{background:#fff;border:1px solid #999;break-inside:avoid;break-after:page;color:#000}
+  .stu h2{color:#000}.stu .sum,.part h3 small,.k,.none{color:#444}
+  .ok{color:#0a6b4a}.no{color:#a61b12}.mid{color:#7a5a00}.q{color:#000}
+  .part{border-top:1px solid #bbb}
+}
+</style>
+</head><body>
+<div class="wrap">
+  <header class="topbar"><a class="brand" href="lessons.html?teach">Sandy Flats Lessons</a><h1 class="gtitle">Report</h1><div class="chips" id="chips"></div></header>
+  <div id="body"><p class="muted" style="margin-top:16px">Loading…</p></div>
+</div>
+<script src="config.js?v=20261024"></script>
+<script src="sfa-kit.js?v=20261024"></script>
+<script src="climb/core.js?v=20261024"></script>
+<script src="climb/bank-f.js?v=20261024"></script>
+<script src="climb/bank-a.js?v=20261024"></script>
+<script src="climb/bank-b.js?v=20261024"></script>
+<script src="climb/bank-rc.js?v=20261024"></script>
+<script src="climb/bank-d.js?v=20261024"></script>
+<script src="climb/bank-e.js?v=20261024"></script>
+<script src="climb/bank-ln.js?v=20261024"></script>
+<script src="climb/bank-cp.js?v=20261024"></script>
+<script src="climb/bank-qg.js?v=20261024"></script>
+<script src="climb/bank-x.js?v=20261024"></script>
+<script src="climb/bank-fx.js?v=20261024"></script>
+<script src="climb/bank-dr.js?v=20261024"></script>
+<script src="climb/bank-gl.js?v=20261024"></script>
+<script src="climb/bank-sy.js?v=20261024"></script>
+<script>
+/* One short report per student for a class's last three lessons: what they did, what they got right and what they
+   missed, across the lesson slides, the class games run in those lessons, the Climb check-in and the arcade.
+   Data comes from the results script's "report" action. report.html?demo shows made-up students, for trying the page. */
+(function () {
+  'use strict';
+  var SFA = window.SFA, el = SFA.el, CFG = window.SFA_CONFIG || {}, C = window.CLIMB || window.Climb || window.C || null, body = document.getElementById('body');
+  var DEMO = /[?&]demo/.test(location.search), MAXL = 21;
+  var LES = {}, data = null, roster = null, cls = SFA.store.get('teacher.lesson.cls', ''), count = 3;
+  var KEY = 'sfa.classkey';
+  var Key = {
+    get: function () { try { var s = sessionStorage.getItem(KEY); if (s) return s; var r = JSON.parse(localStorage.getItem(KEY) || 'null'); if (r && r.until > Date.now()) return r.k; } catch (e) { } return ''; },
+    set: function (k, remember) { try { sessionStorage.setItem(KEY, k); if (remember) { var d = new Date(); d.setHours(23, 59, 59, 0); localStorage.setItem(KEY, JSON.stringify({ k: k, until: d.getTime() })); } } catch (e) { } },
+    del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
+  };
+  function api(op, b) {
+    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ op: op, teacherKey: Key.get() }, b || {})) })
+      .then(function (r) { return r.text(); }).then(function (t) { var j; try { j = JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly.'); } if (!j.ok) throw new Error(j.error); return j; });
+  }
+  function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
+  function plain(s) { return String(s == null ? '' : s).replace(/[*_]/g, ''); }
+  function clip(s, n) { s = plain(s); return s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : s; }
+  function askKey(msg) {
+    var inp = el('input', { type: 'password', 'class': 'num', style: 'width:22em;max-width:100%', autocomplete: 'off', 'aria-label': 'Teacher key' }), rem = el('input', { type: 'checkbox', id: 'rk' });
+    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Open', onclick: function () { Key.set(inp.value.trim(), rem.checked); load(); } });
+    inp.onkeydown = function (e) { if (e.key === 'Enter') go.click(); };
+    body.innerHTML = '';
+    body.appendChild(el('div', { 'class': 'card', style: 'margin-top:16px;max-width:640px' }, [el('h2', { text: 'Teacher key' }), el('p', { 'class': 'muted', text: msg || 'Paste the teacher key from the results script (Script properties > TEACHER_KEY). Same key as Class Results.' }), el('div', { 'class': 'row' }, [inp, go]), el('label', { 'for': 'rk', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' }, [rem, el('span', { text: 'Remember on this computer until tonight' })])]));
+    inp.focus();
+  }
+  function fail(e) {
+    if (/teacher key/.test(e.message)) { Key.del(); return askKey('That key didn\'t work. Check it and try again.'); }
+    body.innerHTML = ''; body.appendChild(el('p', { 'class': 'say bad', style: 'margin-top:16px', text: /unknown op/.test(e.message) ? 'The results script needs updating first: paste the new Code.gs into Apps Script and deploy a new version (Deploy > Manage deployments > Edit > New version). The Report page uses a new "report" action.' : 'Couldn\'t reach the results sheet. ' + e.message }));
+  }
+  function load() {
+    if (DEMO) { data = demo(); roster = data.roster; return draw(); }
+    if (!CFG.endpoint) { body.textContent = 'Results saving isn\'t switched on for this copy of the arcade.'; return; }
+    if (!Key.get()) return askKey();
+    body.innerHTML = '<p class="muted" style="margin-top:16px">Loading…</p>';
+    (roster ? Promise.resolve() : api('roster').then(function (j) { roster = j.roster; var cs = classes(); if (cls && cs.indexOf(cls) < 0) cls = ''; if (!cls && cs.length) cls = cs[0]; }))
+      .then(function () { return api('report', { cls: cls, lessons: count }); }).then(function (j) { data = j; draw(); }, fail);
+  }
+  function classes() { var out = []; (roster || []).forEach(function (r) { if (r.cls && out.indexOf(r.cls) < 0) out.push(r.cls); }); return out.sort(); }
+
+  /* ---------- reading the saved rows ---------- */
+  function slideOf(L, q) {   // a slide's own question, or one of its go-further extras (id + x1..x3)
+    var s = L.slides.filter(function (x) { return x.id === q; })[0]; if (s) return { s: s, extra: false };
+    var m = /^(.*)x([1-3])$/.exec(q); if (!m) return null;
+    var p = L.slides.filter(function (x) { return x.id === m[1]; })[0]; return p && p.more && p.more[+m[2] - 1] ? { s: p.more[+m[2] - 1], extra: true } : null;
+  }
+  function shown(s, a) { return s && s.opts && /^\d+$/.test(a) && s.opts[+a] != null ? plain(s.opts[+a]) : plain(a); }
+  function rightAnswer(s) { if (!s || s.ans == null) return s && s.rule ? s.rule : ''; return s.opts ? plain(s.opts[s.ans]) : String(s.ans); }
+  function kv(str) { var o = {}; String(str).split(';').forEach(function (p) { var i = p.indexOf(':'); if (i > 0) o[p.slice(0, i)] = p.slice(i + 1); }); return o; }
+  var GAMEROW = {
+    zclash: function (o) { return 'Lane Clash: ' + (+o.r || 0) + ' right, ' + (+o.w || 0) + ' wrong'; },
+    zraidx1: function (o) { var n = +o.n || 0, h = +o.h || 0; return 'Boss Raid: ' + h + ' right of ' + n + ' answered'; },
+    zsumox1: function (o) { return 'Sumo Graphing: ' + (+o.c || 0) + ' lines graphed, ' + (+o.f || 0) + ' right first time, ' + (+o.w || 0) + ' wrong tries'; },
+    zboardx1: function (o) { return 'Big Board: ' + (+o.r || 0) + ' right, ' + (+o.m || 0) + ' missed'; }
+  };
+  function lessonPart(L, rows) {
+    var main = L.slides.filter(function (s) { return s.id && !s.warm; }), joined = rows.length > 0;
+    var by = {}; rows.forEach(function (r) { by[r.q] = r; });
+    var o = { L: L, joined: joined, total: main.length, answered: 0, checked: 0, right: 0, missed: [], skipped: [], written: [], extras: { done: 0, right: 0, missed: [] }, games: [], conf: '' };
+    if (!joined) return o;
+    main.forEach(function (s) {
+      var r = by[s.id]; if (!r || !r.answer) { if (s.k !== 'conf') o.skipped.push(s); return; }
+      o.answered++;
+      if (s.k === 'conf') { o.conf = ['', 'lost', 'getting there', 'got it', 'could teach it'][+r.answer] || ''; return; }
+      if (r.correct === 'yes') { o.checked++; o.right++; }
+      else if (r.correct === 'no') { o.checked++; o.missed.push({ s: s, a: shown(s, r.answer) }); }
+      else if (s.k === 'open' || s.k === 'exit') o.written.push({ s: s, a: plain(r.answer) });
+    });
+    Object.keys(by).forEach(function (q) {
+      var r = by[q]; if (GAMEROW[q]) return o.games.push(GAMEROW[q](kv(r.answer)));
+      var x = slideOf(L, q); if (!x || !x.extra) return;
+      o.extras.done++; if (r.correct === 'yes') o.extras.right++; else if (r.correct === 'no') o.extras.missed.push({ s: x.s, a: shown(x.s, r.answer) });
+    });
+    return o;
+  }
+  function skillName(k) { var lab = C && C.label ? C.label(k) : k, nm = C && C.SKILL && C.SKILL[k] ? C.SKILL[k].name : ''; return nm ? lab + ' ' + nm : lab; }
+  function climbPart(rows) {
+    var sc = rows.filter(function (r) { return r.result === 'yes' || r.result === 'no' || r.result === 'time'; }), sess = {}, miss = {}, okBy = {};
+    rows.forEach(function (r) { sess[r.sess] = 1; });
+    sc.forEach(function (r) { if (r.result === 'yes') okBy[r.skill] = (okBy[r.skill] || 0) + 1; else miss[r.skill] = (miss[r.skill] || 0) + 1; });
+    return { n: sc.length, right: sc.filter(function (r) { return r.result === 'yes'; }).length, sessions: Object.keys(sess).length,
+      missed: Object.keys(miss).sort(function (a, b) { return miss[b] - miss[a]; }).map(function (k) { return { name: skillName(k), wrong: miss[k], right: okBy[k] || 0 }; }) };
+  }
+  function gameTitle(g) { var p = (window.SFA_PLAN || []).filter(function (x) { return x.game.indexOf(g + '-') === 0; })[0]; return p ? p.game.replace(/^g\d+-/, '').replace(/\.html$/, '').split('-').map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ') : g; }
+  function arcadePart(rows) {
+    var by = {};
+    rows.forEach(function (e) { var o = by[e.game] || (by[e.game] = { game: gameTitle(e.game), levels: [], certs: [] }), d = String(e.detail).split(' ');
+      if (e.type === 'certificate') o.certs.push(e.detail === 'standard' ? 'standard certificate' : e.detail); else if (e.type === 'level') o.levels.push(d.slice(2).join(' ') || d[0]); });
+    return Object.keys(by).map(function (k) { return by[k]; });
+  }
+  function build() {
+    var lessons = data.lessons.map(function (x) { return { L: LES[x.lesson], id: x.lesson, day: x.day }; });
+    return data.roster.slice().sort(function (a, b) { return a.name < b.name ? -1 : 1; }).map(function (st) {
+      var mine = function (r) { return r.sid === st.sid; };
+      var parts = lessons.filter(function (x) { return x.L; }).map(function (x) { var p = lessonPart(x.L, data.responses.filter(function (r) { return r.sid === st.sid && r.lesson === x.id; })); p.day = x.day; return p; });
+      return { st: st, lessons: parts, climb: climbPart(data.climb.filter(mine)), arcade: arcadePart(data.events.filter(mine)) };
+    });
+  }
+
+  /* ---------- the page ---------- */
+  function lname(L) { return (L.label || 'Lesson ' + L.n) + ': ' + L.title; }
+  function qline(m, withRight) { var li = el('li'); li.appendChild(el('span', { 'class': 'q', text: clip(m.s.q || m.s.name || '', 130) })); if (m.a !== undefined) { li.appendChild(el('br')); li.appendChild(el('span', { 'class': 'their', text: 'They answered: ' + clip(m.a, 90) })); var ra = withRight ? rightAnswer(m.s) : ''; if (ra) li.appendChild(el('span', { 'class': 'their ok', text: '   Answer: ' + clip(ra, 60) })); } return li; }
+  function draw() {
+    body.innerHTML = '';
+    if (DEMO) body.appendChild(el('div', { 'class': 'demo', text: 'Demo: these students and answers are made up, to show what the report looks like. Open report.html without ?demo for your classes.' }));
+    var bar = el('div', { 'class': 'bar1' }), cs = classes();
+    if (cs.length > 1 && !DEMO) { var sel = el('select', { 'aria-label': 'Class' }); cs.forEach(function (c) { var o = el('option', { value: c, text: 'Class ' + c }); if (c === cls) o.selected = true; sel.appendChild(o); }); sel.onchange = function () { cls = sel.value; SFA.store.set('teacher.lesson.cls', cls); load(); }; bar.appendChild(sel); }
+    if (!DEMO) { var nsel = el('select', { 'aria-label': 'How many lessons' }); [1, 2, 3, 4, 5].forEach(function (n) { var o = el('option', { value: n, text: 'Last ' + n + (n === 1 ? ' lesson' : ' lessons') }); if (n === count) o.selected = true; nsel.appendChild(o); }); nsel.onchange = function () { count = +nsel.value; load(); }; bar.appendChild(nsel);
+      bar.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Refresh', onclick: load })); }
+    bar.appendChild(el('button', { type: 'button', 'class': 'btn small primary', text: 'Print, one student per page', onclick: function () { window.print(); } }));
+    bar.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Download CSV', onclick: csv }));
+    body.appendChild(bar);
+    if (!data.lessons.length) { body.appendChild(el('p', { 'class': 'muted', style: 'margin-top:14px', text: 'No lesson answers yet for this class.' })); return; }
+    var names = data.lessons.map(function (x) { return LES[x.lesson] ? lname(LES[x.lesson]) + ' (' + x.day + ')' : x.lesson; });
+    body.appendChild(el('p', { 'class': 'muted', style: 'margin-top:10px', text: 'The last ' + data.lessons.length + (data.lessons.length === 1 ? ' lesson' : ' lessons') + ' this class ran: ' + names.join('; ') + '. Climb and arcade work is from ' + data.from + ' to ' + data.today + '.' }));
+    build().forEach(function (R) {
+      var box = el('section', { 'class': 'stu' }), tot = { a: 0, t: 0, c: 0, r: 0 };
+      R.lessons.forEach(function (p) { tot.a += p.answered; tot.t += p.total; tot.c += p.checked; tot.r += p.right; });
+      box.appendChild(el('h2', { text: nice(R.st.name) }));
+      box.appendChild(el('p', { 'class': 'sum', text: (R.st.cls ? 'Class ' + R.st.cls + ' · ' : '') + 'Lessons: answered ' + tot.a + ' of ' + tot.t + ' questions' + (tot.c ? ', ' + tot.r + ' of ' + tot.c + ' checked answers right' : '') + '.' }));
+      R.lessons.forEach(function (p) {
+        var d = el('div', { 'class': 'part' }); d.appendChild(el('h3', {}, [document.createTextNode('📺 ' + lname(p.L) + ' '), el('small', { text: p.day })]));
+        if (!p.joined) { d.appendChild(el('p', { 'class': 'no', text: 'Did not join this lesson.' })); box.appendChild(d); return; }
+        d.appendChild(el('p', { text: 'Answered ' + p.answered + ' of ' + p.total + ' questions' + (p.checked ? '. Got ' + p.right + ' of ' + p.checked + ' checked answers right' : '') + (p.conf ? '. Said they felt: ' + p.conf : '') + '.' }));
+        if (p.missed.length) { d.appendChild(el('p', { 'class': 'k no', text: 'Missed (' + p.missed.length + ')' })); var u = el('ul'); p.missed.forEach(function (m) { u.appendChild(qline(m, true)); }); d.appendChild(u); }
+        else if (p.checked) d.appendChild(el('p', { 'class': 'ok', text: 'Missed nothing that was checked.' }));
+        if (p.skipped.length) { d.appendChild(el('p', { 'class': 'k mid', text: 'Did not answer (' + p.skipped.length + ')' })); var u2 = el('ul'); p.skipped.forEach(function (s) { u2.appendChild(qline({ s: s })); }); d.appendChild(u2); }
+        if (p.written.length) { d.appendChild(el('p', { 'class': 'k', text: 'Wrote' })); var u3 = el('ul'); p.written.forEach(function (m) { var li = el('li'); li.appendChild(el('span', { 'class': 'q', text: (m.s.k === 'exit' ? 'Exit ticket: ' : '') + clip(m.s.q, 110) })); li.appendChild(el('br')); li.appendChild(el('span', { 'class': 'their', text: '"' + clip(m.a, 220) + '"' })); u3.appendChild(li); }); d.appendChild(u3); }
+        if (p.extras.done) { d.appendChild(el('p', { text: 'Go-further extras: did ' + p.extras.done + ', ' + p.extras.right + ' right' + (p.extras.missed.length ? ', ' + p.extras.missed.length + ' missed:' : '.') })); if (p.extras.missed.length) { var u4 = el('ul'); p.extras.missed.forEach(function (m) { u4.appendChild(qline(m, true)); }); d.appendChild(u4); } }
+        p.games.forEach(function (g) { d.appendChild(el('p', { text: '🎮 ' + g + '.' })); });
+        box.appendChild(d);
+      });
+      var c = el('div', { 'class': 'part' }); c.appendChild(el('h3', { text: '🧗 Climb check-in' }));
+      if (!R.climb.n) c.appendChild(el('p', { 'class': 'none', text: 'No Climb questions in these days.' }));
+      else { c.appendChild(el('p', { text: R.climb.n + ' questions in ' + R.climb.sessions + (R.climb.sessions === 1 ? ' session' : ' sessions') + ', ' + R.climb.right + ' right.' }));
+        if (R.climb.missed.length) { c.appendChild(el('p', { 'class': 'k no', text: 'Skills with wrong answers' })); var u5 = el('ul'); R.climb.missed.forEach(function (m) { u5.appendChild(el('li', { text: m.name + ': ' + m.wrong + ' wrong' + (m.right ? ', ' + m.right + ' right' : '') })); }); c.appendChild(u5); }
+        else c.appendChild(el('p', { 'class': 'ok', text: 'Missed nothing.' })); }
+      box.appendChild(c);
+      var a = el('div', { 'class': 'part' }); a.appendChild(el('h3', { text: '🕹️ Arcade' }));
+      if (!R.arcade.length) a.appendChild(el('p', { 'class': 'none', text: 'No arcade levels in these days.' }));
+      else { var u6 = el('ul'); R.arcade.forEach(function (g) { u6.appendChild(el('li', { text: g.game + ': cleared ' + g.levels.length + (g.levels.length === 1 ? ' level' : ' levels') + (g.levels.length ? ' (' + clip(g.levels.join(', '), 120) + ')' : '') + (g.certs.length ? '; earned ' + g.certs.join(', ') : '') })); }); a.appendChild(u6);
+        a.appendChild(el('p', { 'class': 'none', text: 'The arcade saves the levels a student finishes, not each wrong answer.' })); }
+      box.appendChild(a);
+      body.appendChild(box);
+    });
+  }
+  function csv() {
+    var q = function (v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+    var rows = build(), head = ['Student', 'Class'];
+    data.lessons.forEach(function (x) { var n = LES[x.lesson] ? lname(LES[x.lesson]) : x.lesson; head.push(n + ': answered', n + ': right', n + ': checked', n + ': missed', n + ': not answered', n + ': games'); });
+    head.push('Climb questions', 'Climb right', 'Climb skills missed', 'Arcade');
+    var lines = [head.map(q).join(',')];
+    rows.forEach(function (R) {
+      var line = [nice(R.st.name), R.st.cls];
+      R.lessons.forEach(function (p) { line.push(p.joined ? p.answered + ' of ' + p.total : 'did not join', p.right, p.checked, p.missed.map(function (m) { return clip(m.s.q, 80); }).join(' | '), p.skipped.map(function (s) { return clip(s.q || s.name || '', 60); }).join(' | '), p.games.join(' | ')); });
+      line.push(R.climb.n, R.climb.right, R.climb.missed.map(function (m) { return m.name + ' (' + m.wrong + ')'; }).join(' | '), R.arcade.map(function (g) { return g.game + ': ' + g.levels.length + ' levels' + (g.certs.length ? ', ' + g.certs.join(', ') : ''); }).join(' | '));
+      lines.push(line.map(q).join(','));
+    });
+    var a = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: 'sandy-flats-report' + (cls ? '-' + cls : '') + '.csv' }); document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  /* ---------- made-up data for report.html?demo ---------- */
+  function demo() {
+    var ids = Object.keys(LES).sort(function (a, b) { return LES[a].n - LES[b].n; }).slice(-3), seed = 7;
+    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    var ro = [['d1', 'Okafor, Amara'], ['d2', 'Lindqvist, Tove'], ['d3', 'Haddad, Sami'], ['d4', 'Reyes, Paloma'], ['d5', 'Nakamura, Ren'], ['d6', 'Bianchi, Luca']].map(function (r) { return { sid: r[0], name: r[1], cls: '8A' }; });
+    var res = [], climb = [], ev = [], skills = C && C.SKILL ? Object.keys(C.SKILL).slice(0, 6) : ['s1', 's2', 's3'];
+    ro.forEach(function (st, si) {
+      var skill = 0.35 + si * 0.11;
+      ids.forEach(function (lid, li) {
+        if (si === 2 && li === 0) return;   // one student missed one lesson
+        LES[lid].slides.forEach(function (s) {
+          if (!s.id) return; if (rnd() < 0.12 && !s.warm) return;
+          var a = '', c = '';
+          if (s.k === 'poll') { var ok = s.ans != null && rnd() < skill; a = String(s.ans != null ? (ok ? s.ans : (s.ans + 1) % s.opts.length) : Math.floor(rnd() * s.opts.length)); c = s.ans == null ? '' : ok ? 'yes' : 'no'; }
+          else if (s.k === 'number') { var ok2 = rnd() < skill; a = String(ok2 ? s.ans : -s.ans || 1); c = ok2 ? 'yes' : 'no'; }
+          else if (s.k === 'conf') a = String(1 + Math.floor(rnd() * 4));
+          else if (s.k === 'machine') { var ok3 = rnd() < skill; a = ok3 ? s.rule : 'x+1'; c = ok3 ? 'yes' : 'no'; }
+          else a = 'I think it is because the order was backwards.';
+          res.push({ time: '', sid: st.sid, lesson: lid, q: s.id, kind: s.k, answer: a, correct: c });
+          if (s.more && s.more[0] && rnd() < 0.4 && s.more[0].ans != null) { var ok4 = rnd() < skill; res.push({ time: '', sid: st.sid, lesson: lid, q: s.id + 'x1', kind: s.more[0].k, answer: String(ok4 ? s.more[0].ans : 0), correct: ok4 ? 'yes' : 'no' }); }
+        });
+        if (li === 2) res.push({ time: '', sid: st.sid, lesson: lid, q: 'zclash', kind: 'open', answer: 'c3;id:1;r:' + Math.round(4 + skill * 10) + ';w:' + Math.round(6 - skill * 5), correct: '' });
+        if (li === 1) res.push({ time: '', sid: st.sid, lesson: lid, q: 'zraidx1', kind: 'open', answer: 'r1;id:1;d:140;h:' + Math.round(3 + skill * 8) + ';n:' + 12, correct: '' });
+      });
+      if (si !== 4) for (var k = 0; k < 9; k++) { var sk = skills[Math.floor(rnd() * skills.length)]; climb.push({ time: '', sid: st.sid, sess: 'S1', skill: sk, tid: '', seed: 0, mode: 'new', answer: '', result: rnd() < skill ? 'yes' : 'no', tag: '' }); }
+      if (si % 2 === 0) { ev.push({ time: '', sid: st.sid, game: 'g5', type: 'level', detail: 'L1 core Read the Stones' }, { time: '', sid: st.sid, game: 'g5', type: 'level', detail: 'L2 core Rise Over Run' }); if (si === 0) ev.push({ time: '', sid: st.sid, game: 'g5', type: 'certificate', detail: 'standard' }); }
+    });
+    return { ok: true, cls: '8A', roster: ro, lessons: ids.map(function (id, i) { return { lesson: id, day: '2026-11-0' + (3 + i * 2), students: 6 }; }), from: '2026-11-03', today: '2026-11-11', responses: res, climb: climb, events: ev };
+  }
+
+  var left = MAXL;
+  window.SFA_LESSON = function (L) { LES[L.id] = L; };
+  for (var i = 1; i <= MAXL; i++) { var s = document.createElement('script'); s.src = 'lessons/L' + i + '.js'; s.onload = s.onerror = function () { if (--left === 0) load(); }; document.head.appendChild(s); }
+})();
+</script>
+<script src="sfa-nav.js?v=20261111a"></script>
+</body></html>
