@@ -15,10 +15,15 @@ VOICES = {
     'one':     ('en-US-AndrewNeural', '+1%', '+8Hz'),
     'sam':     ('en-US-RogerNeural', '+1%', '-7Hz'),
     'gus':     ('en-US-BrianNeural', '-15%', '+25Hz'),   # the nearest match to Gus's whisper
+    'ines':    ('en-IE-EmilyNeural', '+14%', '-4Hz'),     # Switchback: the station master
+    'tavi':    ('en-GB-MaisieNeural', '+10%', '+0Hz'),    # Switchback: the junior mechanic
+    'voice':   ('en-GB-LibbyNeural', '-4%', '-2Hz'),      # Under the Pond: the Voice (options in voice-samples/the-voice)
+    'pigeon':  ('en-GB-ThomasNeural', '+6%', '+8Hz'),     # Under the Pond: Doug when he speaks (options in voice-samples/doug)
 }
 FPS = 12
 BPS = 48000 / 8
 def spoken(t): return re.sub(r'\s{2,}', ' ', re.sub(r'\s*\([^)]*\)\s*', ' ', t)).strip()
+def is_coo(b): return b.get('s') == 'pigeon' and re.fullmatch(r'(coo[.!?, ]*)+', spoken(b.get('t', '')).lower()) is not None   # a plain "Coo." uses Doug's own clip; anything else is voiced
 def envelope(words, n):
     e = ['0'] * n
     for a, b in words:
@@ -27,9 +32,10 @@ def envelope(words, n):
     return ''.join(e)
 
 beats = json.load(open(os.path.join(EPD, 'beats.json'), encoding='utf-8'))
-# Doug's own "Coo", from an earlier film
+# Doug's own "Coo", from an earlier film (any film in which he speaks)
 cs = open(COOF, encoding='utf-8').read()
-cb = json.loads(re.search(r'var BEATS=(\[.*?\]);', cs).group(1))
+cbm = re.search(r'var BEATS=(\[.*?\]);', cs) or re.search(r'BEATS:(\[.*?\])\n\};', cs, re.S)   # an original film, or one this script built
+cb = json.loads(cbm.group(1))
 csrc = json.loads(re.search(r'var AUDSRC=(\{.*?\});', cs).group(1))
 coo = next(str(i) for i, b in enumerate(cb) if b.get('s') == 'pigeon' and str(i) in csrc and 'Coo' in b.get('t', ''))
 COO = csrc[coo]
@@ -52,11 +58,11 @@ async def main():
     sem = asyncio.Semaphore(6)
     async def one(i, b):
         async with sem: return i, await voice(i, b['s'], spoken(b['t']))
-    jobs = [one(i, b) for i, b in enumerate(beats) if b.get('t') and b.get('s') in VOICES]
+    jobs = [one(i, b) for i, b in enumerate(beats) if b.get('t') and b.get('s') in VOICES and not is_coo(b)]
     got = dict(await asyncio.gather(*jobs))
     for i, b in enumerate(beats):
         if b.get('title'): DUR.append(b.get('d', 3.0)); continue
-        if b.get('s') == 'pigeon':
+        if is_coo(b):
             SRC[str(i)] = COO; d = 1.1; AUD[str(i)] = {'d': d, 'e': '0110110'}
         elif i in got:
             audio, words = got[i]; d = round(len(audio) / BPS, 2)
@@ -66,6 +72,8 @@ async def main():
             d = None
         DUR.append(round(max(b.get('d') or 0, (d + 0.45 + b.get('hold', 0)) if d else 0) or 2.0, 2))
     ep = open(os.path.join(EPD, 'episode.js'), encoding='utf-8').read()
+    if '__WORLD__' in ep:   # Switchback films share their sets with the arcade games: sfa-switchback.js at the repo root
+        ep = ep.replace('__WORLD__', open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'sfa-switchback.js'), encoding='utf-8').read())
     ep = ep.replace('__DUR__', json.dumps(DUR)).replace('__BEATS__', json.dumps(beats, ensure_ascii=False, indent=0))
     s = open(TPL, encoding='utf-8').read()
     a = s.index('var DUR=[')

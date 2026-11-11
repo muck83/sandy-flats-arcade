@@ -20,3 +20,10 @@ Audio is cached in `DIR/audio/`, so a rebuild only re-voices changed lines.
 - `rewind/`: Rewind 1, *Rewind* (slope), before Lesson 12. Its `build.py` builds every film here.
 - `linehome/`: Rewind 2, *The Line Home* (graphing lines from start and step). Build it with `../rewind/build.py`.
 - `momentbefore/`: Rewind 3, *The Moment Before* (solving two-step equations). Build it with `../rewind/build.py`.
+
+## Switchback
+
+`switchback/` holds the next season (Units 2 to 4, Marcus on a mountain cable-car line). `switchback/BIBLE.md` is the
+series bible: world, cast, running jokes, season plan, arcade games and production notes. `switchback/f1/` is Film 1,
+*End Minus Start* (signed change and slope), built with `rewind/build.py`; its sets come from `sfa-switchback.js` at
+the repo root, which the arcade game `g18-log-book.html` also draws from. `switchback/f0/` is a script only.
