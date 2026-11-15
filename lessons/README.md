@@ -82,11 +82,11 @@ a line. Under the Pond: the grid is lava and only the points that satisfy the ru
 
 - **Lobby (16 s).** The floor on the class screen, every avatar milling about, and the scoring table.
 - **Line rounds (3 to 10, 10 to 60 s each).** The Voice gives a line and each student taps a point on their own device, or
-  types one (1.5, 1/2, −3/2 and 2 1/2 all work, so a fraction on the line is possible); their avatar walks there. Forms,
-  tick any: slope-intercept, standard form, point-slope, start and step, a table with uneven x-steps, two points, a slope
-  and a point, horizontal or vertical. Order: easiest first, as listed, or random. Slopes, tick any: positive whole,
+  types one (1.5, 1/2, −3/2 and 2 1/2 all work, so a fraction on the line is possible); their avatar walks there. The line is
+  always given as a rule, never as points (a student could just stand on a given point). Forms, tick any:
+  slope-intercept, standard form, point-slope, horizontal or vertical. Order: easiest first, as listed, or random. Slopes, tick any: positive whole,
   negative whole, zero, fractions, undefined. Grid −6 to 6 or −10 to 10. Every made-up line has at least six safe points
-  on the grid and no line repeats. You can also type your own lines in any of the forms (the panel draws each one and
+  on the grid and no line repeats. You can also type your own lines (two points, or a slope and a point, are shown to the class as y = …) (the panel draws each one and
   refuses one with fewer than four safe points); they come first. At the reveal the safe points rise as stepping stones,
   everyone on lava melts into a puddle and comes back as a ghost, and the working is shown in one line.
 - **Inequality round (off, points only, or elimination).** Rules stack one at a time (slope-intercept, standard form,

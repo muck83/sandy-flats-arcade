@@ -1,8 +1,7 @@
 /* 🌋 The Floor Is Lava ("Under the Pond"; code id: stand). Loaded by sfa-lesson.js when the teacher starts it.
 
-   The grid is lava. Only the points that satisfy the rule are safe. Line rounds: the Voice gives a line (slope-intercept,
-   standard form, point-slope, a start and a step, a table, two points, a slope and a point, or a horizontal or vertical
-   line) and each student taps a lattice point, or types any point (fractions allowed), on their own device; their avatar
+   The grid is lava. Only the points that satisfy the rule are safe. Line rounds: the Voice gives a line as a rule (slope-intercept,
+   standard form, point-slope, or a horizontal or vertical line; never as points, which students could just copy) and each student taps a lattice point, or types any point (fractions allowed), on their own device; their avatar
    walks there on the class screen. At the reveal the safe points rise as stepping stones and everyone on lava melts.
    Then an inequality round: rules stack one at a time and the safe region cools to rock (points only, or elimination).
 
@@ -37,6 +36,7 @@
   var FORMS = ['Slope-intercept', 'Standard form', 'Point-slope', 'Start and step', 'Table', 'Two points', 'Slope and a point', 'Horizontal or vertical'];
   var FORM_EX = ['y = 2x − 1', '2x + 3y = 6', 'y − 3 = 2(x − 1)', 'start at (0, 1), up 2 each step', 'a table, uneven x-steps', '(−2, 1) and (4, 4)', 'slope ½ through (2, 3)', 'y = 3, x = −2'];
   var EASY = [7, 0, 3, 6, 2, 5, 4, 1];   // easiest first
+  var RULES = [0, 1, 2, 7];   // the forms a game uses: each one a rule, so the line never comes with points to copy (3 to 6 stay readable for old games)
   var CATS = ['pw', 'nw', 'z', 'f', 'u'], CAT_N = { pw: 'positive whole', nw: 'negative whole', z: 'zero', f: 'fractions', u: 'undefined (vertical)' };
   var CAT_OK = { 0: ['pw', 'nw', 'z', 'f'], 1: ['pw', 'nw', 'z', 'f', 'u'], 2: ['pw', 'nw', 'f'], 3: ['pw', 'nw', 'z', 'f'], 4: ['pw', 'nw', 'z', 'f', 'u'], 5: ['pw', 'nw', 'z', 'f', 'u'], 6: ['pw', 'nw', 'z', 'f', 'u'], 7: ['z', 'u'] };
   var IFORMS = ['Slope-intercept (y > x + 1)', 'Standard form (2x − y ≤ 4)', 'Horizontal or vertical (x ≥ −2)'];
@@ -128,7 +128,7 @@
   function genLines(seed, o) {
     var R = rng(seed), G = o.G === 10 ? 10 : 6, n = Math.max(1, Math.min(10, o.n || 5)), used = {}, out = [], useC = {};
     (o.custom || []).slice(0, n).forEach(function (L) { var c = clone(L); if (!used[lkey(c)]) { used[lkey(c)] = 1; c.src = 'own'; out.push(c); } });
-    var forms = (o.forms && o.forms.length ? o.forms : [0]).filter(function (f) { return f >= 0 && f <= 7; }), cats = o.cats && o.cats.length ? o.cats : ['pw', 'nw'];
+    var forms = (o.forms && o.forms.some(function (f) { return RULES.indexOf(f) >= 0; }) ? o.forms : [0]).filter(function (f) { return RULES.indexOf(f) >= 0; }), cats = o.cats && o.cats.length ? o.cats : ['pw', 'nw'];
     var seq = formSeq(R, forms, n - out.length, o.order | 0);
     seq.forEach(function (form) {
       var ok = catsFor(form, cats);
@@ -328,6 +328,7 @@
     if (Math.abs(L.A) > 49 || Math.abs(L.B) > 999 || Math.abs(L.C) > 4999) return { err: 'The numbers in that rule are too big for this game.' };
     var n = latticePts(L, G).length;
     if (n < min) return { err: 'Only ' + n + ' safe point' + (n === 1 ? '' : 's') + ' on the −' + G + ' to ' + G + ' grid. It needs at least ' + min + '.' };
+    if (form >= 3 && form <= 6) { form = !L.A || !L.B ? 7 : 0; xs = []; }   // points the teacher typed: the class sees the rule, not the points
     var out = { form: form, A: L.A, B: L.B, C: L.C, xs: xs, ex: 0, src: 'own' };
     var co = function (p) { return out.B ? p[0] : p[1]; }, free = latticePts(L, G).filter(function (p) { return xs.indexOf(co(p)) < 0 && !(form === 3 && p[0] === 0); });
     out.ex = co(free.filter(function (p) { return co(p) < 0; })[0] || free[0] || latticePts(L, G)[0]);
@@ -475,7 +476,7 @@
   function encQ(q) { return q ? q[0] + '/' + q[1] : '-'; }
   function decQ(s) { var m = /^(-?\d+)\/(\d+)$/.exec(String(s || '')); return m ? Q(+m[1], +m[2]) : null; }
 
-  var M = { OPS: OPS, FORMS: FORMS, FORM_EX: FORM_EX, EASY: EASY, CATS: CATS, CAT_N: CAT_N, CAT_OK: CAT_OK, IFORMS: IFORMS, rng: rng, hash: hash, gcd: gcd, Q: Q, qadd: qadd, qsub: qsub, qmul: qmul, qdiv: qdiv, qeq: qeq, qcmp: qcmp, qint: qint, qnum: qnum,
+  var M = { OPS: OPS, FORMS: FORMS, FORM_EX: FORM_EX, EASY: EASY, RULES: RULES, CATS: CATS, CAT_N: CAT_N, CAT_OK: CAT_OK, IFORMS: IFORMS, rng: rng, hash: hash, gcd: gcd, Q: Q, qadd: qadd, qsub: qsub, qmul: qmul, qdiv: qdiv, qeq: qeq, qcmp: qcmp, qint: qint, qnum: qnum,
     nm: nm, fq: fq, ptq: ptq, parseNum: parseNum, vert: vert, slopeQ: slopeQ, bQ: bQ, yAt: yAt, onLine: onLine, onLineQ: onLineQ, latticePts: latticePts, normL: normL, lkey: lkey, fromSlope: fromSlope, catOf: catOf, candidates: candidates,
     genLines: genLines, givenPt: givenPt, eqTxt: eqTxt, stdTxt: stdTxt, psTxt: psTxt, linTxt: linTxt, slopeTxt: slopeTxt, stepTxt: stepTxt, taskLines: taskLines, workLine: workLine, scafLine: scafLine,
     parseLinear: parseLinear, parseRule: parseRule, sat: sat, satQ: satQ, onEdge: onEdge, strict: strict, region: region, edgePts: edgePts, genCon: genCon, conTxt: conTxt, conSub: conSub, conSides: conSides, conWork: conWork, scafIneq: scafIneq,
@@ -515,8 +516,8 @@
   }
 
   var QID = 'zstandx1', MAXS = 60, LOBBY = 16, LEAD = 3, GRACE = 7, REVEAL = 12, EINTRO = 11, EREVEAL = 13, DUP_FROM = 4, PUSH_MS = 4000;
-  var DEF = { forms: [0, 3, 4, 5, 6], order: 2, cats: ['pw', 'nw', 'z', 'f'], G: 6, rounds: 5, secs: 25, ineq: 2, iforms: [0, 2], strict: 0, ncon: 6, dup: 1, speed: 1, uniq: 1, mult: 1, scaf: 1, custom: [] };
-  function settings() { var s = SFA.store.get('teacher.lava', null) || {}, o = {}; Object.keys(DEF).forEach(function (k) { o[k] = s[k] == null ? (Array.isArray(DEF[k]) ? DEF[k].slice() : DEF[k]) : s[k]; }); return o; }
+  var DEF = { forms: [0, 1, 2, 7], order: 2, cats: ['pw', 'nw', 'z', 'f'], G: 6, rounds: 5, secs: 25, ineq: 2, iforms: [0, 2], strict: 0, ncon: 6, dup: 1, speed: 1, uniq: 1, mult: 1, scaf: 1, custom: [] };
+  function settings() { var s = SFA.store.get('teacher.lava', null) || {}, o = {}; Object.keys(DEF).forEach(function (k) { o[k] = s[k] == null ? (Array.isArray(DEF[k]) ? DEF[k].slice() : DEF[k]) : s[k]; }); o.forms = (o.forms || []).filter(function (f) { return RULES.indexOf(f) >= 0; }); if (!o.forms.length) o.forms = DEF.forms.slice(); return o; }
   function saveSettings(o) { SFA.store.set('teacher.lava', o); }
   function sh3(sid) { return (hash(sid) % 46656).toString(36); }
   function clean(n) { return String(n || '').replace(/[~,#|.;]/g, '').slice(0, 12); }
@@ -1317,7 +1318,7 @@
     var grp = function (title) { var f = el('fieldset'); f.appendChild(el('legend', { text: title })); sec.appendChild(f); return f; };
     var tog = function (arr, v, on) { var i = arr.indexOf(v); if (on && i < 0) arr.push(v); if (!on && i >= 0) arr.splice(i, 1); };
     var f1 = grp('Line forms');
-    FORMS.forEach(function (n, i) { f1.appendChild(chk(n + ' (' + FORM_EX[i] + ')', o.forms.indexOf(i) >= 0, function (on) { tog(o.forms, i, on); })); });
+    RULES.forEach(function (i) { var n = FORMS[i]; f1.appendChild(chk(n + ' (' + FORM_EX[i] + ')', o.forms.indexOf(i) >= 0, function (on) { tog(o.forms, i, on); })); });
     f1.appendChild(sel('Order', [[2, 'Easiest first'], [1, 'In the order listed'], [0, 'Random']], o.order, function (v) { o.order = v; }));
     var f2 = grp('Slopes allowed');
     CATS.forEach(function (c) { f2.appendChild(chk(CAT_N[c], o.cats.indexOf(c) >= 0, function (on) { tog(o.cats, c, on); })); });

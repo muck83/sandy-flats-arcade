@@ -30,8 +30,8 @@ function subsets(R, all) { var o = all.filter(function () { return R() < 0.5; })
 
 /* ---------- typed rules ---------- */
 [['y = 2x - 1', '-2,1,-1', 0], ['y = -x/2 + 3', '1,2,6', 0], ['y = 1/2x + 3', '-1,2,6', 0], ['y = (2/3)x − 1', '-2,3,-3', 0], ['2x + 3y = 6', '2,3,6', 1], ['y − 3 = 2(x − 1)', '-2,1,1', 2], ['y + 1 = -½(x + 4)', '1,2,-6', 2],
- ['y = 3', '0,1,3', 7], ['x = -2', '1,0,-2', 7], ['(1, 2) and (3, 6)', '-2,1,0', 5], ['(−2, −5), (0, −1), (3, 5)', '-2,1,-1', 4], ['slope 2 through (1, 3)', '-2,1,1', 6], ['slope -1/2 through (2, 0)', '1,2,2', 6],
- ['start (0, 1), up 2 each step', '-2,1,1', 3], ['start (0, 4), down 1 for each 2 steps right', '1,2,8', 3], ['3y - 2x = 6', '-2,3,6', 1], ['slope undefined through (4, 1)', '1,0,4', 6], ['(2, -3) (2, 5)', '1,0,2', 5]]
+ ['y = 3', '0,1,3', 7], ['x = -2', '1,0,-2', 7], ['(1, 2) and (3, 6)', '-2,1,0', 0], ['(−2, −5), (0, −1), (3, 5)', '-2,1,-1', 0], ['slope 2 through (1, 3)', '-2,1,1', 0], ['slope -1/2 through (2, 0)', '1,2,2', 0],
+ ['start (0, 1), up 2 each step', '-2,1,1', 0], ['start (0, 4), down 1 for each 2 steps right', '1,2,8', 0], ['3y - 2x = 6', '-2,3,6', 1], ['slope undefined through (4, 1)', '1,0,4', 7], ['(2, -3) (2, 5)', '1,0,2', 7]]
   .forEach(function (c) { st.parse++; [6, 10].forEach(function (G) { var r = M.parseRule(c[0], G); ok(r.L && M.lkey(r.L) === c[1] && r.L.form === c[2], 'parseRule "' + c[0] + '" → ' + JSON.stringify(r)); if (!r.L) return;
     var L = r.L, ep = L.B ? [Q(L.ex), M.yAt(L, L.ex)] : [Q(L.C, L.A), Q(L.ex)]; ok(M.qint(ep[0]) && M.qint(ep[1]) && Math.abs(M.qnum(ep[0])) <= G && Math.abs(M.qnum(ep[1])) <= G && M.onLineQ(L, ep[0], ep[1]), 'typed rule worked point not a whole grid point: "' + c[0] + '" ' + M.workLine(L));
     (L.xs || []).forEach(function (x) { var gp = M.givenPt(L, x); ok(M.onLineQ(L, gp[0], gp[1]) && M.qint(gp[0]) && M.qint(gp[1]), 'typed rule given point'); }); }); });
@@ -40,8 +40,9 @@ function subsets(R, all) { var o = all.filter(function () { return R() < 0.5; })
 ok(/Only \d safe point/.test(M.parseRule('y = 5x + 9', 6).err), 'refusal gives the count');
 
 /* ---------- lines in every form and setting ---------- */
+M.genLines(5, { n: 8, G: 6, forms: [3, 4, 5, 6], cats: M.CATS }).concat(M.genLines(9, { n: 8, G: 10, forms: [0, 3, 5], cats: M.CATS })).forEach(function (L) { ok(M.RULES.indexOf(L.form) >= 0 && !L.xs.length || L.form === 2, 'a line came as points (form ' + L.form + ')'); });
 for (var seed = 1; seed <= SEEDS; seed++) {
-  var R = M.rng(seed * 101), G = seed % 2 ? 6 : 10, forms = subsets(R, [0, 1, 2, 3, 4, 5, 6, 7]), cats = subsets(R, M.CATS), n = 3 + seed % 8, order = seed % 3;
+  var R = M.rng(seed * 101), G = seed % 2 ? 6 : 10, forms = subsets(R, M.RULES), cats = subsets(R, M.CATS), n = 3 + seed % 8, order = seed % 3;
   var Ls = M.genLines(seed * 7, { n: n, G: G, forms: forms, cats: cats, order: order }), seen = {};
   ok(Ls.length === n, 'count');
   var compat = forms.filter(function (f) { return M.CAT_OK[f].some(function (c) { return cats.indexOf(c) >= 0; }) || f === 7; });
