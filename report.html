@@ -108,7 +108,8 @@
     zclash: function (o) { return 'Lane Clash: ' + (+o.r || 0) + ' right, ' + (+o.w || 0) + ' wrong'; },
     zraidx1: function (o) { var n = +o.n || 0, h = +o.h || 0; return 'Boss Raid: ' + h + ' right of ' + n + ' answered'; },
     zsumox1: function (o) { return 'Sumo Graphing: ' + (+o.c || 0) + ' lines graphed, ' + (+o.f || 0) + ' right first time, ' + (+o.w || 0) + ' wrong tries'; },
-    zboardx1: function (o) { return 'Big Board: ' + (+o.r || 0) + ' right, ' + (+o.m || 0) + ' missed'; }
+    zboardx1: function (o) { return 'Big Board: ' + (+o.r || 0) + ' right, ' + (+o.m || 0) + ' missed'; },
+    zstandx1: function (o) { var lo = +o.o || 0, io = +o.f || 0, h = +o.h || 0; if (!lo && !io) return o.p != null ? 'Stand on the Line: played' : 'The Floor Is Lava: joined, no rounds finished'; return 'The Floor Is Lava: ' + (lo ? (+o.r || 0) + ' of ' + lo + ' line' + (lo === 1 ? '' : 's') + ' right' : '') + (io ? (lo ? ', ' : '') + (+o.e || 0) + ' of ' + io + ' inequality round' + (io === 1 ? '' : 's') + ' safe' : '') + (h ? ', ' + h + ' with a hint step' : ''); }
   };
   function lessonPart(L, rows) {
     var main = L.slides.filter(function (s) { return s.id && !s.warm; }), joined = rows.length > 0;

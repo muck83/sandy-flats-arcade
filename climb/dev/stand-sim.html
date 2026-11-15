@@ -1,30 +1,34 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stand on the Line simulator · Sandy Flats</title>
+<title>The Floor Is Lava simulator · Sandy Flats</title>
 <style>
   body { font: 14px/1.4 system-ui, sans-serif; margin: 8px; background: #14161c; color: #e8e8ea; }
   h1 { font-size: 16px; margin: 0 0 4px; display: inline-block; }
-  pre { background: #0c0d11; padding: 8px; border-radius: 6px; white-space: pre-wrap; max-height: 240px; overflow: auto; font-size: 12px; margin: 6px 0; }
-  #tabs button { margin-right: 4px; } #tabs button.on { background: #ffe14d; }
+  pre { background: #0c0d11; padding: 8px; border-radius: 6px; white-space: pre-wrap; max-height: 260px; overflow: auto; font-size: 12px; margin: 6px 0; }
+  #tabs button { margin-right: 4px; } #tabs button.on { background: #ffb347; }
   #frames { position: relative; height: 700px; }
   iframe { border: 1px solid #333; background: #fff; position: absolute; left: 0; top: 0; width: 1240px; height: 698px; visibility: hidden; }
   iframe.on { visibility: visible; z-index: 2; }
   iframe.s { width: 420px; } iframe.s.wide { width: 1100px; }
 </style>
 <script>
-  // a whole class in one browser: the real teacher console, the real class screen and a few real student pages (each in
-  // a frame with its own sign-in), plus pretend classmates who send the same running row a student's page would. The
-  // practice backend (mock.js) keeps the real results script's limits and a pretend Sheet delay. Settings ride in the
-  // address: ?bots=22&lag=1500&l=5&rounds=5&secs=25&elim=1&real=2&late=2 (elim: 0 none, 1 shade when time is up, 2 shade at once;
-  // late: how many pretend classmates turn up late, the first during line 2, the rest once the elimination is under way)
-  var P = new URLSearchParams(location.search), CFG = { bots: +(P.get('bots') || 22), lag: +(P.get('lag') || 1500), l: +(P.get('l') || 5), rounds: +(P.get('rounds') || 5), secs: +(P.get('secs') || 25), elim: P.get('elim') == null ? 1 : +P.get('elim'), real: Math.min(3, P.get('real') == null ? 2 : +P.get('real')), auto: P.get('auto') !== '0', late: +(P.get('late') || 0) };
+  // a whole class in one browser: the real teacher console, the real class screen and up to three real student pages
+  // (each in a frame with its own sign-in), plus pretend classmates who send the same running row a student page would.
+  // The practice backend (mock.js) keeps the real results script's limits and a pretend Sheet delay. Settings ride in
+  // the address: ?bots=27&lag=1500&l=5&G=6&rounds=8&secs=20&ineq=2&forms=01234567&cats=pw,nw,z,f,u&scaf=1&real=3&late=2
+  //   ineq: 0 off, 1 points only, 2 elimination · iforms=012 · strict: 0 both, 1 non-strict, 2 strict · ncon=1..6
+  //   real pages: student1 is quick and right, student2 is right but slower (the speed check), student3 types fractions:
+  //   one right, one wrong, then taps. idle bots score nothing at first, so the hint step comes on by itself.
+  var P = new URLSearchParams(location.search), num = function (k, d) { return P.get(k) == null ? d : +P.get(k); };
+  var CFG = { bots: num('bots', 27), lag: num('lag', 1500), l: num('l', 5), G: num('G', 6), rounds: num('rounds', 8), secs: num('secs', 20), ineq: num('ineq', 2), forms: (P.get('forms') || '01234567').split('').map(Number), order: num('order', 1),
+    cats: (P.get('cats') || 'pw,nw,z,f,u').split(','), iforms: (P.get('iforms') || '012').split('').map(Number), strict: num('strict', 0), ncon: num('ncon', 6), scaf: num('scaf', 1), real: Math.min(3, num('real', 3)), late: num('late', 0), own: P.get('own') || '', auto: P.get('auto') !== '0' };
   Object.keys(localStorage).forEach(function (k) { if (/^sfamock\.|^climbmock/.test(k)) localStorage.removeItem(k); });
   localStorage.setItem('climbmock.bots', CFG.bots); localStorage.setItem('climbmock.lag', CFG.lag);
 </script>
 <script src="mock.js"></script>
 <script>document.write('<script src="../../sfa-stand.js?t=' + Date.now() + '"><\/script>');   // the game's maths only (no lesson page here)</script>
 </head><body>
-<h1>🐐 Stand on the Line simulator</h1> <span id="cfg"></span>
+<h1>🌋 The Floor Is Lava simulator</h1> <span id="cfg"></span>
 <div id="tabs"></div>
 <div id="frames"></div>
 <pre id="log"></pre>
@@ -32,27 +36,21 @@
 <script>
 (function () {
   'use strict';
-  var M = window.SFA_STAND_MATH, EP = 'https://mock.invalid/exec', log = document.getElementById('log'), NONE = M.NONE;
+  var M = window.SFA_STAND_MATH, EP = 'https://mock.invalid/exec', log = document.getElementById('log'), Q = M.Q;
   document.getElementById('cfg').textContent = JSON.stringify(CFG);
   function say(s) { log.textContent += new Date().toISOString().slice(11, 19) + ' ' + s + '\n'; log.scrollTop = 1e9; }
   function post(b) { return fetch(EP, { method: 'POST', body: JSON.stringify(b) }).then(function (r) { return r.json(); }); }
   function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
   function until(f, ms) { var t0 = Date.now(); return new Promise(function (res, rej) { (function go() { var v; try { v = f(); } catch (e) { } if (v) return res(v); if (Date.now() - t0 > (ms || 20000)) return rej(new Error('timed out')); setTimeout(go, 200); })(); }); }
   function decRun(a) { return Array.isArray(a) && a.length === 3 ? ((a[0] * 1e4 + a[1]) * 1e4 + a[2]) * 1000 : 0; }
-  // a ticker that keeps going when this tab is in the background (timers in hidden tabs are slowed down)
   function every(f, ms) { try { var w = new Worker(URL.createObjectURL(new Blob(['setInterval(function(){postMessage(0)},' + ms + ')']))); w.onmessage = f; return; } catch (e) { } setInterval(f, ms); }
   function pickOne(a) { return a[Math.floor(Math.random() * a.length)]; }
 
-  var R = { setLive: { n: 0, maxKeys: 0, dropped: {}, maxSpot: 0, maxBytes: 0 }, rounds: [], errors: [], delays: [], rowMax: 0 };
+  var R = { setLive: { n: 0, maxKeys: 0, dropped: {}, maxSpot: 0, maxBytes: 0 }, rounds: [], errors: [], delays: [], rowMax: 0, scaf: [], speed: [], typed: [], agree: 0 };
   window.SIM_RESULT = R;
-  window.SIM_HOOK = function (k, o) {
-    if (k !== 'setLive') return;
-    var s = R.setLive; s.n++; s.maxKeys = Math.max(s.maxKeys, o.keys); s.maxSpot = Math.max(s.maxSpot, o.spot); s.maxBytes = Math.max(s.maxBytes, o.bytes);
-    o.dropped.forEach(function (k2) { s.dropped[k2] = (s.dropped[k2] || 0) + 1; });
-  };
+  window.SIM_HOOK = function (k, o) { if (k !== 'setLive') return; var s = R.setLive; s.n++; s.maxKeys = Math.max(s.maxKeys, o.keys); s.maxSpot = Math.max(s.maxSpot, o.spot); s.maxBytes = Math.max(s.maxBytes, o.bytes); o.dropped.forEach(function (k2) { s.dropped[k2] = (s.dropped[k2] || 0) + 1; }); };
   function bad(msg) { R.errors.push(msg); say('❌ ' + msg); }
 
-  /* ---------- the frames ---------- */
   var F = {}, tabs = document.getElementById('tabs');
   function frame(name, src, cls) {
     var f = document.createElement('iframe'); f.className = cls || ''; f.src = src; document.getElementById('frames').appendChild(f); F[name] = f;
@@ -60,139 +58,176 @@
     return f;
   }
   function show(name) { Object.keys(F).forEach(function (k) { F[k].classList.toggle('on', k === name); document.getElementById('tab-' + k).classList.toggle('on', k === name); }); }
-  window.SIM = { show: show, F: F, R: R, CFG: CFG };
+  window.SIM = { show: show, F: F, R: R, CFG: CFG, M: M };
 
-  /* ---------- pretend classmates: they poll the live state like a student page and send the same row ---------- */
-  var B = { id: 0, state: 0, g: 0, Q: null, cons: [], len: 25, seen: 0 };
-  function Bot(st, i) { return { st: st, skill: i % 7 === 3 ? 0.25 : 0.45 + Math.random() * 0.5, idle: i % 9 === 5 ? 0.5 : 0.06, edge: Math.random() < 0.4, g: -1, at: 0, again: 0, hello: false, p: NONE, busy: false, dirty: false }; }
+  /* ---------- the live state as a pretend classmate sees it ---------- */
+  var B = { id: 0, state: 0, g: 0, L: null, cons: [], len: 20, G: 6, seen: 0, scaf: {}, slot: {} };
+  function readLive(c) {
+    var id = decRun(c.zvid), z = c.zvs; if (id && id !== B.id) { B.id = id; say('game ' + id + ' seen by the bots'); }
+    if (z[1] !== B.g || z[0] !== B.state) { if (z[1] !== B.g) B.seen = Date.now(); B.state = z[0]; B.g = z[1]; }
+    B.len = z[3]; B.G = z[10]; B.deadline = decRun(c.zvst) + z[4] * 1000 + (3 + z[3]) * 1000 - 500;
+    B.L = M.decLine(c.zvq);
+    var cc = (c.zvc0 || []).concat(c.zvc1 || []); B.cons = []; for (var i = 0; i < z[8]; i++) B.cons.push(M.decCon(cc, 1 + 3 * i));
+    B.n = z[5]; B.raw = c;
+  }
+  function slotScaf(i) { var c = B.raw; return c ? Math.floor((((c['zvr' + Math.floor(i / 12)] || [])[i % 12]) || 0) / 1000) % 2 : 0; }
+  // bots: skill decides right or wrong; idle bots are wrong until the hint step comes; some type a fraction
+  function Bot(st, i) { return { st: st, skill: 0.45 + Math.random() * 0.5, idle: i % 9 === 4, frac: i % 5 === 2, g: -1, at: 0, hello: false, busy: false, dirty: false, row: { g: 0, x: null, y: null, t: -1, s: 0 } }; }
   function sendBot(b) {
     if (b.busy) { b.dirty = true; return; }
-    b.busy = true; b.dirty = false;
-    var txt = 't1;id:' + Math.round(B.id / 1000) + ';g:' + b.g0 + ';p:' + b.p; R.rowMax = Math.max(R.rowMax, txt.length);
+    b.busy = true; b.dirty = false; var r = b.row;
+    var txt = 't2;id:' + Math.round(B.id / 1000) + ';g:' + r.g + ';x:' + M.encQ(r.x) + ';y:' + M.encQ(r.y) + ';t:' + Math.round(r.t) + ';s:' + r.s + ';r:0;o:0;n:0;h:0;e:0;f:0'; R.rowMax = Math.max(R.rowMax, txt.length);
     post({ op: 'answer', code: b.st.code, lesson: 'L' + CFG.l, q: 'zstandx1', kind: 'open', answer: txt }).then(function () { b.busy = false; if (b.dirty) sendBot(b); });
   }
-  function choose(b) {
-    var right = Math.random() < b.skill, all = [], p;
-    for (p = 0; p < NONE; p++) all.push(p);
-    if (B.state === 2) {
-      var pts = M.linePts(B.Q).map(function (q) { return M.PT(q[0], q[1]); });
-      if (right) { var given = (B.Q.xs || []).map(function (x) { return M.PT(x, M.lineY(B.Q, x)); }); return !b.edge && given.length && Math.random() < 0.6 ? pickOne(given) : b.edge ? pts[Math.random() < 0.5 ? 0 : pts.length - 1 - Math.floor(Math.random() * 2)] : pickOne(pts); }
-      // a near miss: one step off a point of the line
-      var q0 = pickOne(pts), x = M.PX(q0) + pickOne([-1, 0, 1]), y = M.PY(q0) + pickOne([-1, 1]);
-      return Math.abs(x) <= 6 && Math.abs(y) <= 6 ? M.PT(x, y) : pickOne(all);
+  function slotOf(b) { var K = F.console.contentWindow.SFA_LESSON_API.console_().stand; return K ? K.slots.indexOf(b.st.sid) : -1; }
+  function choose(b, scaf) {
+    var G = B.G, line = B.state === 2, right = !b.idle && Math.random() < b.skill;
+    if (scaf) {   // the hint step: right four times in five
+      var ok = Math.random() < 0.8, seed = b.st.sid + ':' + B.g;
+      if (line) { var sc = M.scafLine(B.L, G, seed); return ok ? { x: Q(sc.x), y: Q(sc.y), s: 1 } : { x: null, y: null, s: 2 }; }
+      var si = M.scafIneq(B.cons, G, seed); return ok ? { x: Q(si.ax), y: Q(si.ay), s: 1 } : { x: null, y: null, s: 2 };
     }
-    var reg = M.region(B.cons);
-    if (right) return pickOne(reg);
-    // the usual mistakes: on the newest dashed line, or just anywhere
-    var C = B.cons[B.cons.length - 1], edge = M.edgePts(C);
-    return M.strict(C) && Math.random() < 0.6 ? pickOne(edge) : pickOne(all);
+    if (line) {
+      var pts = M.latticePts(B.L, G);
+      if (right && b.frac && B.L.B && Math.random() < 0.6) {   // a fraction that is really on the line
+        var s = M.slopeQ(B.L); for (var k = 0; k < 6; k++) { var xq = Q(2 * Math.floor(Math.random() * G) - G + 1, 2), yq = M.yAt({ A: B.L.A * 2, B: B.L.B * 2, C: B.L.C * 2 }, 0); yq = M.qdiv(M.qsub(Q(B.L.C), M.qmul(Q(B.L.A), xq)), Q(B.L.B)); if (!M.qint(yq) && Math.abs(M.qnum(yq)) <= G) return { x: xq, y: yq, s: 0 }; }
+      }
+      if (right) { var p = pickOne(pts); return { x: Q(p[0]), y: Q(p[1]), s: 0 }; }
+      var q0 = pickOne(pts), x = q0[0] + pickOne([-1, 0, 1]), y = q0[1] + pickOne([-1, 1]);
+      return Math.abs(x) <= G && Math.abs(y) <= G ? { x: Q(x), y: Q(y), s: 0 } : { x: Q(0), y: Q(G), s: 0 };
+    }
+    var reg = M.region(B.cons, G);
+    if (right) { var r = pickOne(reg); return { x: Q(r[0]), y: Q(r[1]), s: 0 }; }
+    var C = B.cons[B.cons.length - 1], e = M.edgePts(C, G), w = M.strict(C) && e.length && Math.random() < 0.6 ? pickOne(e) : [Math.floor(Math.random() * (2 * G + 1)) - G, Math.floor(Math.random() * (2 * G + 1)) - G];
+    return { x: Q(w[0]), y: Q(w[1]), s: 0 };
   }
   function botStep(b) {
     if (!B.id) return;
     var now = Date.now();
-    if (!b.hello) { if (b.late === 1 && B.g < 2) return; if (b.late === 2 && !(B.state === 5 && now - B.seen > 4000) && B.state !== 6) return; b.hello = true; b.g0 = 0; b.p = NONE; if (b.late) { say(b.st.sid + ' arrives late (state ' + B.state + ', round ' + B.g + ')'); post({ op: 'answer', code: b.st.code, lesson: 'L' + CFG.l, q: 'here', kind: 'open', answer: 'joined' }); } sendBot(b); return; }
+    if (!b.hello) { if (b.late === 1 && B.g < 2) return; if (b.late === 2 && !(B.state === 5 && now - B.seen > 4000) && B.state !== 6) return; b.hello = true; b.row = { g: 0, x: null, y: null, t: -1, s: 0 }; if (b.late) { say(b.st.sid + ' arrives late (state ' + B.state + ', round ' + B.g + ')'); post({ op: 'answer', code: b.st.code, lesson: 'L' + CFG.l, q: 'here', kind: 'open', answer: 'joined' }); } sendBot(b); return; }
     if (B.state !== 2 && B.state !== 5) return;
-    if (b.g !== B.g) { b.g = B.g; b.at = Math.random() < b.idle ? 0 : B.seen + 1500 + Math.random() * Math.max(2000, (B.len - 6) * 1000); b.again = b.at && Math.random() < 0.2 ? b.at + 3000 : 0; }
-    if (b.at && now >= b.at && now < B.deadline) { b.at = 0; b.g0 = B.g; b.p = choose(b); sendBot(b); }
-    if (b.again && now >= b.again && now < B.deadline) { b.again = 0; b.g0 = B.g; b.p = choose(b); sendBot(b); }
+    if (b.g !== B.g) { b.g = B.g; b.at = B.seen + 1500 + Math.random() * Math.max(2000, (B.len - 6) * 1000); b.t0 = B.seen; }
+    if (b.at && now >= b.at && now < B.deadline) {
+      b.at = 0; var i = slotOf(b), sc = i >= 0 && slotScaf(i), c = choose(b, sc);
+      b.row = { g: B.g, x: c.x, y: c.y, t: now - b.t0, s: c.s }; sendBot(b);
+      if (sc) R.scaf.push({ sid: b.st.sid, g: B.g, s: c.s });
+    }
   }
   function pollBots() {
-    post({ op: 'live' }).then(function (j) {
-      var c = j.live && j.live.counts;
-      if (c && c.zks) {
-        var id = decRun(c.zkid), z = c.zks; if (id && id !== B.id) { B.id = id; say('game ' + id + ' seen by the bots'); }
-        if (z[1] !== B.g || z[0] !== B.state) { if (z[1] !== B.g) B.seen = Date.now(); B.state = z[0]; B.g = z[1]; }
-        B.len = z[3]; B.deadline = decRun(c.zkst) + z[4] * 1000 + (3 + z[3]) * 1000 - 400;   // the mock's clock is this clock
-        if (c.zkq) { var Q = M.mkLine(c.zkq[1], c.zkq[2] - 20); Q.xs = [c.zkq[3] - 10, c.zkq[4] - 10, c.zkq[5] - 10].slice(0, [0, 0, 3, 2, 1][c.zkq[0]]); B.Q = Q; }
-        B.cons = (c.zkc || []).slice(0, z[8]).map(M.decCon);
-      }
-      setTimeout(pollBots, 3000 + Math.random() * 1000);
-    });
+    post({ op: 'live' }).then(function (j) { var c = j.live && j.live.counts; if (c && c.zvs) readLive(c); setTimeout(pollBots, 3000 + Math.random() * 1000); });
   }
 
-  /* ---------- the real student pages: tap a point (right most of the time for the first, not for the second) ---------- */
-  function driveStudent(f, skill) {
-    var w = f.contentWindow, T = w.SFA_STAND, pk = T && T.peek && T.peek(); if (!pk || !pk.o) return;
-    var o = pk.o; if ((o.state !== 2 && o.state !== 5) || pk.canTap === false) return;
-    f._g = f._g || {}; if (f._g[o.g]) return;
-    if (Math.random() < 0.35) return;   // not yet
-    f._g[o.g] = 1;
-    var right = Math.random() < skill, p;
-    if (o.state === 2) { var pts = M.linePts(o.Q).map(function (q) { return M.PT(q[0], q[1]); }); p = right ? pickOne(pts) : (pts[0] + 1) % NONE; }
-    else { var reg = M.region(o.cons); p = right ? pickOne(reg) : pickOne(M.edgePts(o.cons[o.cons.length - 1])); }
-    var hit = w.document.querySelector('.sghit[data-p="' + p + '"]'); if (!hit) return bad('student page has no point to tap');
-    hit.dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-    f._tap = { g: o.g, p: p, at: Date.now() };
+  /* ---------- the real student pages ---------- */
+  var plan = { student1: { when: 0.15, skill: 1 }, student2: { when: 0.65, skill: 1 }, student3: { when: 0.3, skill: 0.85, typed: 0 } };
+  function driveStudent(name) {
+    var f = F[name], w = f && f.contentWindow, T = w && w.SFA_STAND, pk = T && T.peek && T.peek(); if (!pk || !pk.o) return;
+    var o = pk.o, d = w.document, pl = plan[name]; if ((o.state !== 2 && o.state !== 5) || pk.canTap === false) return;
+    f._g = f._g || {}; if (f._g[o.g] === 'done') return;
+    if (!f._g[o.g]) f._g[o.g] = { seen: Date.now() };
+    var gg = f._g[o.g]; if (Date.now() - gg.seen < pl.when * o.len * 1000) return;
+    // the hint step, when it is on for this page
+    if (pk.scaf && pk.s !== 1) {
+      var yes = d.querySelector('.lavayes'), ia = d.querySelector('.lavasa');
+      if (ia) { var sc = M.scafLine(o.L, o.G, w.SFA_LESSON_API.S.me.sid + ':' + o.g), wrong = name === 'student3' && !R.scafWrong; if (wrong) R.scafWrong = 1; ia.value = wrong ? '99' : M.fq(sc.ans).replace('−', '-'); d.querySelector('.lavasgo').click(); R.typed.push({ who: name, g: o.g, kind: 'hint step ' + (wrong ? 'wrong' : 'right') }); f._g[o.g] = 'done'; return; }
+      if (yes) { var si = M.scafIneq(o.cons, o.G, w.SFA_LESSON_API.S.me.sid + ':' + o.g); d.querySelector(si.safe ? '.lavayes' : '.lavano').click(); R.typed.push({ who: name, g: o.g, kind: 'hint step yes/no right' }); f._g[o.g] = 'done'; return; }
+    }
+    var p = null, typed = null;
+    if (o.state === 2) {
+      var pts = M.latticePts(o.L, o.G);
+      if (name === 'student3' && pl.typed < 2 && o.L.B) {   // type a fraction: the first right, the second wrong
+        var xq = null, yq = null; for (var k = -o.G; k < o.G; k++) { var xt = Q(2 * k + 1, 2), yt = M.qdiv(M.qsub(Q(o.L.C), M.qmul(Q(o.L.A), xt)), Q(o.L.B)); if (!M.qint(yt) && Math.abs(M.qnum(yt)) <= o.G) { xq = xt; yq = yt; break; } }
+        if (xq) { if (pl.typed === 1) yq = M.qadd(yq, Q(1, 4)); typed = [xq, yq]; R.typed.push({ who: name, g: o.g, kind: 'typed ' + (pl.typed ? 'wrong' : 'right') + ' ' + M.ptq(xq, yq) + ' on ' + M.eqTxt(o.L) }); pl.typed++; }
+      }
+      if (!typed) p = Math.random() < pl.skill ? pickOne(pts) : [pts[0][0], pts[0][1] + 1 > o.G ? pts[0][1] - 1 : pts[0][1] + 1];
+    } else { var reg = M.region(o.cons, o.G); p = Math.random() < pl.skill ? pickOne(reg) : pickOne(M.edgePts(o.cons[o.cons.length - 1], o.G)); }
+    if (typed) {
+      d.querySelector('.lavax').value = M.fq(typed[0]).replace('−', '-').replace('½', ' 1/2').trim(); d.querySelector('.lavay').value = typed[1][0] + '/' + typed[1][1];
+      d.querySelector('.lavago').click();
+    } else {
+      var hit = d.querySelector('.lavahit[data-p="' + p[0] + ',' + p[1] + '"]'); if (!hit) return bad(name + ': no point to tap');
+      hit.dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+    }
+    f._g[o.g] = 'done'; f._tap = { g: o.g, at: Date.now(), x: typed ? typed[0] : Q(p[0]), y: typed ? typed[1] : Q(p[1]) };
   }
 
   /* ---------- watching: is every result right, and does every screen show what the referee decided? ---------- */
-  var seenKey = '', prevAlive = null;
+  var seenKey = '', prevAlive = null, prevScaf = {};
   function check() {
-    var tw = F.console.contentWindow, A = tw.SFA_LESSON_API, K = A && A.console_() && A.console_().stand; if (!K) return;
-    // how long a tap takes to reach the referee
-    Object.keys(F).forEach(function (n) { var f = F[n], t = f._tap; if (t && !t.got && K.g === t.g && K.pos['s' + n.slice(-1)] === t.p) { t.got = Date.now(); R.delays.push(t.got - t.at); } });
-    if (K.state === 5 && K.cons.length && M.region(K.cons).length < 4) bad('region under 4 lattice points at rule ' + K.cons.length);
+    var tw = F.console.contentWindow, A = tw.SFA_LESSON_API, K = A && A.console_() && A.console_().stand; if (!K || K.v !== 2) return;
+    Object.keys(F).forEach(function (n) { var f = F[n], t = f._tap, sid = 's' + n.slice(-1); if (t && !t.got && K.g === t.g && K.pos[sid] && M.qeq(K.pos[sid].x, t.x) && M.qeq(K.pos[sid].y, t.y)) { t.got = Date.now(); R.delays.push(t.got - t.at); } });
+    if (K.state === 5 && K.cons.length && M.region(K.cons, K.G).length < 4) bad('region under 4 safe points at rule ' + K.cons.length);
+    // the hint step switching on and off
+    K.slots.forEach(function (s) { var on = !!K.scaf[s]; if (prevScaf[s] !== undefined && prevScaf[s] !== on) R.scaf.push({ sid: s, g: K.g, turned: on ? 'on' : 'off' }); prevScaf[s] = on; });
     if (K.state !== 3 && K.state !== 6 && K.state !== 7) { if (K.state === 4 || K.state === 5) prevAlive = prevAlive || K.slots.filter(function (s) { return !K.ghost[s]; }); return; }
     var key = K.state + ':' + K.g; if (key === seenKey) return; seenKey = key;
-    var picks = {}; K.slots.forEach(function (s) { picks[s] = K.pos[s] == null ? NONE : K.pos[s]; });
+    var picks = {}; K.slots.forEach(function (s) { var p = K.pos[s]; picks[s] = p && p.x ? { x: p.x, y: p.y } : null; });
+    var O = { speed: !!K.o.speed, uniq: !!K.o.uniq, mult: !!K.o.mult }, mx = 3 + K.o.len + 7 + 5;
+    var expectPts = function (s, r) { var p = K.pos[s]; if (p && p.s === 1 && (r === 1 || r === 2)) r = 4; return { r: r, pt: M.points(O, r, picks[s], p ? p.t : -1, K.o.len, mx) }; };
     if (K.state === 3) {
-      var Q = K.lines[K.li], want = M.scoreLine(Q, picks), n = [0, 0, 0, 0];
-      K.slots.forEach(function (s) { n[want[s]]++; if (want[s] !== (K.res[s] || 0)) bad('line ' + K.g + ': ' + s + ' got ' + K.res[s] + ', should be ' + want[s]); });
-      // nobody marked alone shares a point; everybody marked on the line is on it
-      K.slots.forEach(function (s) { if (K.res[s] === 2 && K.slots.some(function (t) { return t !== s && picks[t] === picks[s]; })) bad('line ' + K.g + ': ' + s + ' marked alone but shares a point'); if ((K.res[s] === 1 || K.res[s] === 2) && !M.onLine(Q, M.PX(picks[s]), M.PY(picks[s]))) bad('line ' + K.g + ': ' + s + ' marked on the line but is off it'); });
-      R.rounds.push({ g: K.g, what: 'LINE ' + ['equation', 'words', 'table', 'two points', 'slope+point'][Q.form] + '  ' + M.eqTxt(Q) + '  (' + M.linePts(Q).length + ' points)', on: n[1] + n[2], uni: n[2], off: n[3], none: n[0], work: M.workLine(Q) });
-      say('line ' + K.g + ' ' + M.eqTxt(Q) + ': ' + (n[1] + n[2]) + ' on (' + n[2] + ' alone), ' + n[3] + ' off, ' + n[0] + ' no answer');
+      var L = K.lines[K.li], want = M.judgeLine(L, picks), n = [0, 0, 0, 0, 0];
+      K.slots.forEach(function (s) { var e = expectPts(s, want[s]); n[e.r]++; if (e.r !== (K.res[s] || 0)) bad('line ' + (K.li + 1) + ': ' + s + ' got ' + K.res[s] + ', should be ' + e.r); if (e.pt.total !== K.rs[s]) bad('line ' + (K.li + 1) + ': ' + s + ' scored ' + K.rs[s] + ', should be ' + e.pt.total); });
+      // the speed check: two real pages, both right, the quicker one gets more
+      var a = K.pos.s1, b = K.pos.s2; if (a && b && (K.res.s1 === 1 || K.res.s1 === 2) && (K.res.s2 === 1 || K.res.s2 === 2)) R.speed.push({ g: K.g, t1: a.t, t2: b.t, b1: M.speedBonus(a.t, K.o.len, mx), b2: M.speedBonus(b.t, K.o.len, mx), ok: M.speedBonus(a.t, K.o.len, mx) > M.speedBonus(b.t, K.o.len, mx) });
+      R.rounds.push({ g: K.g, what: 'LINE ' + (K.li + 1) + ' ' + M.FORMS[L.form] + '  ' + M.taskLines(L).join(' ').replace('TABLE', L.xs.map(function (c) { var p = M.givenPt(L, c); return M.ptq(p[0], p[1]); }).join(' ')) + '  =  ' + M.eqTxt(L) + '  (' + M.latticePts(L, K.G).length + ' safe points, ' + M.catOf(L) + ')', safe: n[1] + n[2] + n[4], uni: n[2], hint: n[4], lava: n[3], none: n[0], work: M.workLine(L) });
+      say('line ' + (K.li + 1) + ' ' + M.eqTxt(L) + ' (' + M.FORMS[L.form] + '): ' + (n[1] + n[2] + n[4]) + ' safe (' + n[2] + ' alone, ' + n[4] + ' hint), ' + n[3] + ' lava, ' + n[0] + ' none');
     } else if (K.state === 6) {
-      var before = prevAlive || [], r = M.resolveElim(K.cons, before, picks, K.cons.length >= 4), now = K.slots.filter(function (s) { return !K.ghost[s]; });
-      var wantNow = before.filter(function (s) { return r.out.indexOf(s) < 0; });
-      if (wantNow.slice().sort().join() !== now.slice().sort().join()) bad('rule ' + K.cons.length + ': survivors are ' + now.join() + ', should be ' + wantNow.join());
-      if (!now.length) bad('rule ' + K.cons.length + ': nobody left');
-      K.slots.forEach(function (s) { if ((r.res[s] || 0) !== (K.res[s] || 0)) bad('rule ' + K.cons.length + ': ' + s + ' got ' + K.res[s] + ', should be ' + r.res[s]); });
-      R.rounds.push({ g: K.g, what: 'RULE ' + K.cons.length + '  ' + K.cons.map(M.conTxt).join(' , ') + '  (' + M.region(K.cons).length + ' points allowed)', in0: before.length, out: r.out.length, spared: r.spared, shared: before.filter(function (s) { return r.res[s] === 2; }).length, left: now.length, work: M.conWork(K.cons) });
-      say('rule ' + K.cons.length + ' ' + M.conTxt(K.cons[K.cons.length - 1]) + ': ' + before.length + ' in, ' + (r.spared ? 'all wrong, nobody out' : r.out.length + ' out') + ', ' + now.length + ' left');
+      var before = prevAlive || [], elim = K.o.ineq === 2, now = K.slots.filter(function (s) { return !K.ghost[s]; });
+      if (elim) {
+        var r = M.resolveElim(K.cons, before, picks, K.o.dup && K.cons.length >= 4), wantNow = before.filter(function (s) { return r.out.indexOf(s) < 0; });
+        if (wantNow.slice().sort().join() !== now.slice().sort().join()) bad('rule ' + K.cons.length + ': survivors are ' + now.join() + ', should be ' + wantNow.join());
+        if (!now.length) bad('rule ' + K.cons.length + ': nobody left');
+        K.slots.forEach(function (s) { var e = expectPts(s, r.res[s] || 0), tot = r.out.indexOf(s) >= 0 ? 0 : e.pt.total; if (tot !== K.rs[s]) bad('rule ' + K.cons.length + ': ' + s + ' scored ' + K.rs[s] + ', should be ' + tot); });
+        R.rounds.push({ g: K.g, what: 'RULE ' + K.cons.length + '  ' + K.cons.map(M.conTxt).join(' , ') + '  (' + M.region(K.cons, K.G).length + ' safe points)', in0: before.length, out: r.out.length, spared: r.spared, shared: Object.keys(r.shared).length, left: now.length, work: M.conWork(K.cons, K.G) });
+        say('rule ' + K.cons.length + ' ' + M.conTxt(K.cons[K.cons.length - 1]) + ': ' + before.length + ' in, ' + (r.spared ? 'all on lava, nobody out' : r.out.length + ' out') + ', ' + now.length + ' left');
+      } else {
+        var res = M.judgeRegion(K.cons, picks), ns = 0; K.slots.forEach(function (s) { var e = expectPts(s, res[s]); if (e.pt.total > 0) ns++; if (e.pt.total !== K.rs[s]) bad('rule ' + K.cons.length + ': ' + s + ' scored ' + K.rs[s] + ', should be ' + e.pt.total); });
+        R.rounds.push({ g: K.g, what: 'RULE ' + K.cons.length + ' (points only)  ' + K.cons.map(M.conTxt).join(' , ') + '  (' + M.region(K.cons, K.G).length + ' safe points)', in0: K.slots.length, out: 0, left: K.slots.length, safe: ns, work: M.conWork(K.cons, K.G) });
+        say('rule ' + K.cons.length + ' ' + M.conTxt(K.cons[K.cons.length - 1]) + ' (points only): ' + ns + ' safe');
+      }
       prevAlive = now;
     }
-    // every screen, a few seconds later (after its next poll): the same points, results, ghosts and scores as the referee
-    var snap = { state: K.state, g: K.g, sl: K.slots.map(function (s) { return { p: K.state === 7 ? null : picks[s], res: K.state === 7 ? null : K.res[s] || 0, ghost: K.ghost[s] ? 1 : 0, sc: K.sc[s] || 0 }; }) };
+    var snap = { state: K.state, g: K.g, sl: K.slots.map(function (s) { var p = K.pos[s]; return { x: K.state === 7 ? undefined : p && p.x ? M.posDec(M.posEnc(p.x, K.G), K.G) : null, res: K.state === 7 ? undefined : K.res[s] || 0, sc: Math.min(9999, K.sc[s] || 0), rs: K.state === 7 ? undefined : K.rs[s] || 0 }; }) };
     setTimeout(function () {
       Object.keys(F).forEach(function (n) {
         if (n === 'console') return;
         var T = F[n].contentWindow.SFA_STAND, pk = T && T.peek && T.peek();
         if (!pk || !pk.o) return bad(n + ': no game on screen at ' + key);
-        if (pk.o.state !== snap.state || pk.o.g !== snap.g) return;   // already moved on (a late poll): nothing to compare
-        snap.sl.forEach(function (x, i) { var y = pk.o.sl[i]; if (!y) return bad(n + ': slot ' + i + ' missing at ' + key); if ((x.p != null && y.p !== x.p) || (x.res != null && y.res !== x.res) || y.ghost !== x.ghost || y.sc !== x.sc) bad(n + ' disagrees with the referee at ' + key + ' slot ' + i + ': ' + JSON.stringify(y) + ' vs ' + JSON.stringify(x)); });
-        R.agree = (R.agree || 0) + 1;
+        if (pk.o.state !== snap.state || pk.o.g !== snap.g) return;
+        snap.sl.forEach(function (x, i) { var y = pk.o.sl[i]; if (!y) return bad(n + ': slot ' + i + ' missing at ' + key); if ((x.x !== undefined && y.x !== x.x) || (x.res !== undefined && y.res !== x.res) || y.sc !== x.sc || (x.rs !== undefined && y.rs !== x.rs)) bad(n + ' disagrees with the referee at ' + key + ' slot ' + i + ': ' + JSON.stringify(y) + ' vs ' + JSON.stringify(x)); });
+        R.agree++;
       });
-    }, 6500);
+    }, 7000);
     if (K.state === 7 && !R.done) { R.done = Date.now(); say('game over'); setTimeout(function () { report(K); R.final = true; say('report ready'); }, 9000); }
   }
   function report(K) {
-    var out = [], A = F.console.contentWindow.SFA_LESSON_API;
-    out.push('RESULT  ' + (K.state === 7 ? 'game ended' : 'game NOT ended') + ' · ' + K.slots.length + ' students · ' + (R.errors.length ? R.errors.length + ' ERRORS' : 'no errors'));
-    R.rounds.forEach(function (r) { out.push(('  ' + r.g).slice(-2) + '  ' + r.what + '\n      ' + (r.on != null ? r.on + ' on the line (' + r.uni + ' alone), ' + r.off + ' off, ' + r.none + ' no answer' : r.in0 + ' in → ' + (r.spared ? 'everyone wrong, nobody out' : r.out + ' out' + (r.shared ? ' (' + r.shared + ' for sharing)' : '')) + ' → ' + r.left + ' left') + '\n      ' + r.work); });
-    var al = K.slots.filter(function (s) { return !K.ghost[s]; });
-    out.push('PODIUM  ' + (K.er ? 'survivors: ' + al.join(', ') : 'no elimination: top three by points'));
+    var out = [], al = K.slots.filter(function (s) { return !K.ghost[s]; });
+    out.push('RESULT  ' + (K.state === 7 ? 'game ended' : 'game NOT ended') + ' · ' + K.slots.length + ' students · grid ±' + K.G + ' · ' + (R.errors.length ? R.errors.length + ' ERRORS' : 'no errors'));
+    R.rounds.forEach(function (r) { out.push(('  ' + r.g).slice(-2) + '  ' + r.what + '\n      ' + (r.lava != null ? r.safe + ' safe (' + r.uni + ' alone, ' + r.hint + ' with the hint step), ' + r.lava + ' lava, ' + r.none + ' no answer' : r.in0 + ' in → ' + (r.spared ? 'everyone on lava, nobody out' : r.out + ' out' + (r.shared ? ' (' + r.shared + ' for sharing)' : '')) + ' → ' + r.left + ' left' + (r.safe != null ? ' · ' + r.safe + ' safe' : '')) + '\n      ' + r.work); });
+    out.push('PODIUM  ' + (K.o.ineq === 2 && K.er ? 'survivors: ' + al.join(', ') : 'top three by points'));
     out.push('SCORES  ' + K.slots.map(function (s) { return s + ' ' + (K.sc[s] || 0); }).sort(function (a, b) { return +b.split(' ')[1] - +a.split(' ')[1]; }).join(' · '));
-    out.push('SCREENS agreed with the referee ' + (R.agree || 0) + ' times');
-    out.push('DELAY   a real page\'s tap → the referee: ' + (R.delays.length ? 'avg ' + Math.round(R.delays.reduce(function (a, b) { return a + b; }, 0) / R.delays.length / 100) / 10 + ' s, max ' + Math.round(Math.max.apply(null, R.delays) / 100) / 10 + ' s (' + R.delays.length + ' taps)' : 'none measured'));
+    out.push('SPEED   ' + (R.speed.length ? R.speed.map(function (x) { return 'round ' + x.g + ': s1 ' + (x.t1 / 1000).toFixed(1) + ' s → +' + x.b1 + ', s2 ' + (x.t2 / 1000).toFixed(1) + ' s → +' + x.b2 + (x.ok ? ' ✓' : ' ✗'); }).join(' · ') : 'no round with both right'));
+    out.push('HINT    ' + R.scaf.filter(function (x) { return x.turned; }).map(function (x) { return x.sid + ' ' + x.turned + ' (round ' + x.g + ')'; }).join(' · '));
+    out.push('TYPED   ' + R.typed.map(function (x) { return x.who + ' round ' + x.g + ': ' + x.kind; }).join(' · '));
+    out.push('SCREENS agreed with the referee ' + R.agree + ' times');
+    out.push('DELAY   a real page\'s tap → the referee: ' + (R.delays.length ? 'avg ' + (R.delays.reduce(function (a, b) { return a + b; }, 0) / R.delays.length / 1000).toFixed(1) + ' s, max ' + (Math.max.apply(null, R.delays) / 1000).toFixed(1) + ' s (' + R.delays.length + ' taps)' : 'none measured'));
     out.push('LIVE    pushes ' + R.setLive.n + ' · most keys ' + R.setLive.maxKeys + ' (limit 60) · dropped ' + JSON.stringify(R.setLive.dropped) + ' · spot ' + R.setLive.maxSpot + '/600 · ' + R.setLive.maxBytes + ' bytes');
     out.push('ROWS    longest running row ' + R.rowMax + ' chars (cut at 600)');
+    var sp = F.screen && F.screen.contentWindow.SFA_STAND && F.screen.contentWindow.SFA_STAND.peek(); if (R.fps) out.push('FPS     ' + R.fps);
     if (R.errors.length) out.push('ERRORS\n  ' + R.errors.slice(0, 40).join('\n  '));
     document.getElementById('report').textContent = out.join('\n'); R.text = out.join('\n');
   }
-  window.SIM.report = function () { var A = F.console.contentWindow.SFA_LESSON_API; report(A.console_().stand); return R.text; };
+  window.SIM.report = function () { report(F.console.contentWindow.SFA_LESSON_API.console_().stand); return R.text; };
 
   /* ---------- the run ---------- */
   post({ op: 'roster', teacherKey: 'test' }).then(function (j) {
     var ros = j.roster, LID = 'L' + CFG.l;
     var real = ros.filter(function (r) { return /^s/.test(r.sid); }).slice(0, CFG.real), bots = ros.filter(function (r) { return /^b/.test(r.sid); }).map(function (r, i) { return Bot(r, i); });
-    say('Lesson ' + LID + ' · ' + (real.length + bots.length) + ' students (' + real.length + ' real pages) · Sheet delay ~' + CFG.lag + ' ms');
     bots.forEach(function (b, i) { var k = bots.length - 1 - i; if (k < CFG.late) b.late = k === CFG.late - 1 ? 1 : 2; });
+    say('Lesson ' + LID + ' · ' + (real.length + bots.length) + ' students (' + real.length + ' real pages) · Sheet delay ~' + CFG.lag + ' ms');
     window.SIM.bots = bots;
-    // everyone has joined the lesson
     return Promise.all(real.concat(bots.filter(function (b) { return !b.late; }).map(function (b) { return b.st; })).map(function (st) { return post({ op: 'answer', code: st.code, lesson: LID, q: 'here', kind: 'open', answer: 'joined' }); })).then(function () {
       localStorage.setItem('sfamock.t.classkey', JSON.stringify({ k: 'test', until: Date.now() + 864e5 }));
-      localStorage.setItem('sfamock.t.teacher.stand.rounds', String(CFG.rounds)); localStorage.setItem('sfamock.t.teacher.stand.secs', String(CFG.secs)); localStorage.setItem('sfamock.t.teacher.stand.elim', String(CFG.elim));
+      localStorage.setItem('sfamock.t.teacher.lava', JSON.stringify({ forms: CFG.forms, order: CFG.order, cats: CFG.cats, G: CFG.G, rounds: CFG.rounds, secs: CFG.secs, ineq: CFG.ineq, iforms: CFG.iforms, strict: CFG.strict, ncon: CFG.ncon, dup: 1, speed: 1, uniq: 1, mult: 1, scaf: CFG.scaf, custom: CFG.own ? CFG.own.split('|') : [] }));
       var tf = frame('console', '../../lesson-practice.html?l=' + CFG.l + '&teach&as=t'); show('console');
       return until(function () { var d = tf.contentWindow.document; return [].filter.call(d.querySelectorAll('button'), function (b) { return b.textContent === 'Go live'; })[0]; }).then(function (go) {
         go.click(); say('console: Go live');
@@ -200,23 +235,23 @@
         real.forEach(function (r, i) {
           localStorage.setItem('sfamock.' + r.sid + '.sync.cred', JSON.stringify({ kind: 'code', code: r.code }));
           localStorage.setItem('sfamock.' + r.sid + '.sync.me', JSON.stringify({ sid: r.sid, name: r.name, cls: r.cls }));
-          frame('student' + (i + 1), '../../lesson-practice.html?l=' + CFG.l + '&as=' + r.sid, 's' + (i === 0 ? ' wide' : ''));
+          frame('student' + (i + 1), '../../lesson-practice.html?l=' + CFG.l + '&as=' + r.sid, 's wide');
         });
-        if (!CFG.auto) { say('auto=0: start the game from the console yourself'); }
+        if (!CFG.auto) say('auto=0: start the game from the console yourself');
         return wait(7000).then(function () {
           var tw = tf.contentWindow, d = tw.document;
           if (!CFG.auto) return until(function () { return tw.SFA_LESSON_API.console_().stand; }, 600000);
-          var tile = [].filter.call(d.querySelectorAll('.gtile'), function (b) { return /Stand on the Line/.test(b.textContent); })[0];
-          if (!tile) throw new Error('no Stand on the Line tile in the games tray');
+          var tile = [].filter.call(d.querySelectorAll('.gtile'), function (b) { return /Floor Is Lava/.test(b.textContent); })[0];
+          if (!tile) throw new Error('no Floor Is Lava tile in the games tray');
           tile.click();
-          return until(function () { return [].filter.call(d.querySelectorAll('button'), function (b) { return /Start Stand on the Line/.test(b.textContent) && !b.disabled; })[0]; }, 15000).then(function (sb) {
-            sb.click(); say('console: Start Stand on the Line (' + CFG.rounds + ' lines, ' + CFG.secs + ' s, elimination ' + CFG.elim + ')');
+          return until(function () { return [].filter.call(d.querySelectorAll('button'), function (b) { return /Start The Floor Is Lava/.test(b.textContent) && !b.disabled; })[0]; }, 15000).then(function (sb) {
+            sb.click(); say('console: Start The Floor Is Lava (' + CFG.rounds + ' lines, ' + CFG.secs + ' s, grid ±' + CFG.G + ', inequality ' + ['off', 'points only', 'elimination'][CFG.ineq] + ')');
             return until(function () { return tw.SFA_LESSON_API.console_().stand; });
           });
         }).then(function () {
           every(function () { bots.forEach(botStep); }, 500);
           every(function () { try { check(); } catch (e) { bad('check: ' + e.message); } }, 500);
-          var sk = [0.9, 0.3, 0.6]; every(function () { real.forEach(function (r, i) { try { driveStudent(F['student' + (i + 1)], sk[i]); } catch (e) { } }); }, 2500);
+          every(function () { real.forEach(function (r, i) { try { driveStudent('student' + (i + 1)); } catch (e) { bad('drive: ' + e.message); } }); }, 700);
           pollBots();
         });
       });

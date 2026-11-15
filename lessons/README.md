@@ -74,32 +74,44 @@ At the end of a lesson the console can start a 5-minute team battle (sfa-clash.j
 `number` slide, every `poll` slide with an `ans` (not warm-ups), and every `number`/`poll` extra in `more`. So a lesson
 with good extras has a good Clash.
 
-## Stand on the Line
+## The Floor Is Lava
 
-A whole-class game from the console's games tray (sfa-stand.js). It needs nothing from the lesson file: the lines and the
-inequalities are made up fresh each game, so it works in any lesson once the class can read a line.
+A whole-class game from the console's games tray (sfa-stand.js; it was Stand on the Line). It needs nothing from the
+lesson file: the lines and the inequalities are made up fresh each game, so it works in any lesson once the class can read
+a line. Under the Pond: the grid is lava and only the points that satisfy the rule are safe.
 
-- **Lobby (10 s).** A grid from −6 to 6 on the class screen; every avatar mills about.
-- **Line rounds (3 to 7, default 5; 15 to 40 s each, default 25).** The Voice gives a line and each student taps one
-  lattice point on their own device; their avatar walks there on the class screen. The forms come in this order: an
-  equation, a start and a step in words, a table with uneven x-steps, two points, a slope and one point (6 rounds: two
-  points twice; 7: the table twice as well). Slopes are 0, ±1, ±2 and ±½, so every line has at least six lattice points on
-  the grid; every game has a zero slope, a negative slope and exactly one ±½; no line repeats. On the line: 1 point. On a
-  point of the line nobody else chose: 3 points. When time is up the line is drawn with one line of working.
-- **Elimination (optional).** Inequalities stack one at a time: solid boundary for ≤ and ≥ (points on it are in), dashed
-  for < and > (points on it are out). The region is shaded when time is up (or straight away, with the easier setting).
-  Anyone still in who stands outside it, or nowhere, is butted off the grid by a goat. From the fourth rule, two survivors
-  on one point both go. If everyone still in would go, nobody does. It ends at three or fewer survivors or after six
-  rules. The region always keeps at least four lattice points. A correct point is 1 point for anyone, and eliminated
-  students play on as ghosts.
-- **End.** A podium of the survivors (the top three by points if there was no elimination), then everyone by points.
-  Students earn class-game XP like the Boss Raid (10 a correct round, 15 for a point of their own, 30 for finishing, 30
-  more for the podium), which the Wardrobe turns into coins.
+- **Lobby (16 s).** The floor on the class screen, every avatar milling about, and the scoring table.
+- **Line rounds (3 to 10, 10 to 60 s each).** The Voice gives a line and each student taps a point on their own device, or
+  types one (1.5, 1/2, −3/2 and 2 1/2 all work, so a fraction on the line is possible); their avatar walks there. Forms,
+  tick any: slope-intercept, standard form, point-slope, start and step, a table with uneven x-steps, two points, a slope
+  and a point, horizontal or vertical. Order: easiest first, as listed, or random. Slopes, tick any: positive whole,
+  negative whole, zero, fractions, undefined. Grid −6 to 6 or −10 to 10. Every made-up line has at least six safe points
+  on the grid and no line repeats. You can also type your own lines in any of the forms (the panel draws each one and
+  refuses one with fewer than four safe points); they come first. At the reveal the safe points rise as stepping stones,
+  everyone on lava melts into a puddle and comes back as a ghost, and the working is shown in one line.
+- **Inequality round (off, points only, or elimination).** Rules stack one at a time (slope-intercept, standard form,
+  horizontal or vertical; strict, non-strict or both; 1 to 6 rules): solid boundary for ≤ and ≥ (safe), dashed for < and
+  > (lava). The safe region cools to rock at the reveal and always keeps at least four safe points. In elimination,
+  anyone still in who is on lava, or nowhere, melts and is out (a ghost who keeps scoring); from rule 4 two survivors on
+  one point both go (a setting); if everyone still in would go, nobody does; it ends at three or fewer survivors.
+- **Scoring, accuracy first.** Safe 100; speed up to +50, falling over the round and timed on the student's own device
+  from when their page showed the round to their last tap, so a slow connection costs nothing; +25 for a safe point
+  nobody else chose; then ×1.5 for a negative coordinate, ×2 for a fraction, ×3 for both. Lava or no answer 0. Each can be
+  switched off. Every student sees their own breakdown after each round; the class screen shows the top movers.
+- **Hint step.** Automatic (a student on nothing for two rounds gets it; two right with it and it switches off: "You're
+  back on your own. Go."), for everyone, or off, and you can switch it on or off for one student from the list of who has
+  not answered. Only that student sees it: "When x = 2, what is y?" with one worked first step for the harder forms, or
+  "Is (1, 3) safe? Check: 3 > 1 + 1?" in the inequality round. A right answer puts them on a safe point for 60 points.
+- **End.** A podium of the survivors (the top three by points without an elimination), then everyone by points. Class-game
+  XP like the Boss Raid, which the Wardrobe turns into coins. report.html shows each student's lines right, inequality
+  rounds safe and rounds with the hint step.
 
-The console shows who has not answered yet, and has Pause, Time's up now, Skip round (not scored), End it now. It
-survives a console reload, and late joiners get a place (as a ghost once the elimination has begun).
+The console shows who has not answered, and has Pause, Time's up now, Skip round (not scored), End it now and the sound
+switch for the class screen's sizzle. It survives a console reload, and late joiners get a place (as a ghost once an
+elimination has begun). A lesson page that was open before this version went live keeps playing Stand on the Line
+(sfa-stand-v1.js) and never mixes with it.
 
-To try it without a class: `climb/dev/stand-sim.html` (the real console, class screen and two student pages with 22
+To try it without a class: `climb/dev/stand-sim.html` (the real console, class screen and three student pages with 27
 pretend classmates on the practice backend) and `climb/dev/stand-test.html` (the maths over thousands of seeds).
 
 ## Figures (`fig`)

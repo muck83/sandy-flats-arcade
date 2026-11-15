@@ -1082,21 +1082,21 @@
     if ((isLive() || MODE === 'screen') && freshSumo(live) && !(MODE === 'student' && saving && !S.me)) sumoAssets(function () { SFA_SUMO.sync(); });
   }
 
-  // 🐐 Stand on the Line (sfa-stand.js): the whole class on one grid; stand on the line, then survive the inequalities
-  var STAND_V = '20261111a', standLoading = null;
+  // 🌋 The Floor Is Lava (sfa-stand.js; it hands a version 1 Stand on the Line game, keys zk*, to sfa-stand-v1.js): the whole class on one grid
+  var STAND_V = '20261115a', standLoading = null;
   function standAssets(cb) {
     if (window.SFA_STAND) return cb();
     if (standLoading) { standLoading.push(cb); return; }
     standLoading = [cb];
     var sc7 = document.createElement('script'); sc7.src = 'sfa-stand.js?v=' + STAND_V;
     sc7.onload = function () { var q = standLoading; standLoading = null; q.forEach(function (f) { try { f(); } catch (e) { console.warn(e); } }); };
-    sc7.onerror = function () { standLoading = null; SFA.toast('Stand on the Line couldn\'t load. Check the connection.', 4000); };
+    sc7.onerror = function () { standLoading = null; SFA.toast('The Floor Is Lava couldn\'t load. Check the connection.', 4000); };
     document.head.appendChild(sc7);
   }
-  function hasStand(L) { return !!(L && L.lesson === LID && L.counts && Array.isArray(L.counts.zks)); }
+  function hasStand(L) { return !!(L && L.lesson === LID && L.counts && (Array.isArray(L.counts.zvs) || Array.isArray(L.counts.zks))); }
   function freshStand(L) {
     if (!hasStand(L)) return false;
-    var z = L.counts.zks, st = MODE === 'screen' ? decRun(L.counts.zkid) : decRun(L.counts.zkst) || decRun(L.counts.zkid), age = Date.now() + (MODE === 'screen' ? 0 : srvSkewV || 0) - st - (z[4] || 0) * 1000;
+    var c = L.counts, v = Array.isArray(c.zvs), z = v ? c.zvs : c.zks, id = v ? c.zvid : c.zkid, st = MODE === 'screen' ? decRun(id) : decRun(v ? c.zvst : c.zkst) || decRun(id), age = Date.now() + (MODE === 'screen' ? 0 : srvSkewV || 0) - st - (z[4] || 0) * 1000;
     return MODE === 'teach' || z[6] > 0 || (z[0] === 7 ? age <= 6 * 60000 : age <= ((z[3] || 25) + 300) * 1000);
   }
   function standSync() {
@@ -1536,7 +1536,7 @@
     raid: 'The whole class against one boss on the class screen. Students pick a hero whose special charges as they answer; right answers hit the boss, streaks crit, and hitting together builds a class combo. The boss targets a few students (answer to dodge) and charges attacks: one question on every screen, 60% right blocks it. Five integer warm-ups first. Review uses the five lessons before this one; Exit ticket uses this lesson and records every first try for you.',
     clash: 'Team against team with the Sandy Flats characters. Fair teams from today\'s lesson, then the rules on every screen. Students answer this lesson\'s questions for coins, send characters down 5 lanes, plant defenders, send their own avatar hero once, and win free characters in team rallies.',
     sumo: 'Students are paired into teams of two (the most sure with the less sure, from today\'s answers) and their avatars put on sumo belts. Each problem: a rule like y = 2x − 3, fill a table, plot two points, draw the line, then use the line to find a point off the table. Every step earns power (half for a second try). Every 30 seconds each pair\'s power against their opponents\' becomes a sumo move on every screen: a bigger gap is a bigger push, out of the ring is a point. Three fights; after each, winners meet winners and the rest meet each other (an odd team out meets the Sumo-Bot). Problems get harder each fight: negative slopes and finding x, then fractions and rearranged rules. At the end, a highlight reel of the best moves. Options: a worked example on every screen before the first bout (y = 2x − 3 worked out step by step, for the class to watch together; it loops until the fights start, and ⏭ starts them early), and a grand final after the reel: the two students with the most power wrestle 1 v 1 while everyone else watches the match and both of their graphs live. Details shows who missed which step.',
-    stand: 'Under the Pond. A coordinate grid from −6 to 6 fills the class screen and every avatar mills about on it. Line rounds: the Voice gives a line (an equation, then a start and a step in words, a table, two points, a slope and a point) and each student taps one lattice point on their own device; their avatar walks there. When time is up the line is drawn: on the line is 1 point, on a point of the line nobody else chose is 3, so it pays to look left of the y-axis and at the edges. Then the elimination: inequalities stack one at a time (solid boundary: points on it are in; dashed: out) and the region is shaded when time is up. Anyone still in who is outside it, or nowhere, is butted off the grid by a goat; from the fourth rule two survivors on one point both go; if everyone would go, nobody does. It ends at three or fewer survivors or after six rules. Eliminated students play on as ghosts for 1 point a correct round. Podium, then everyone by points. You see who has not answered yet in each round, and can pause, close a round early, skip a round or end it.',
+    stand: 'Under the Pond. The grid is lava and only the points that satisfy the rule are safe. Each line round the Voice gives a line (any of eight forms you tick: slope-intercept, standard form, point-slope, start and step, a table, two points, a slope and a point, horizontal or vertical) and each student taps a point, or types one (fractions allowed), on their own device; their avatar walks there. At the reveal the safe points rise as stepping stones and everyone on lava melts into a puddle and comes back as a ghost. Scoring is accuracy first: safe 100, speed up to +50 (timed on each student\'s own device), +25 for a point nobody else chose, then ×1.5 for a negative coordinate, ×2 for a fraction, ×3 for both. Then an optional inequality round: rules stack one at a time and the safe region cools to rock (points only, or elimination). A student on nothing for two rounds gets a quiet hint step on their own screen (60 points); two right with it and it switches off. You can type your own lines, and switch the hint step on or off for one student from the list of who has not answered.',
     show: 'Every student here walks the catwalk on the class screen and every device in the avatar they built in the Wardrobe: name, level and outfit, one after another, then a group bow.'
   };
   function gamesTray(p, s) {
@@ -1546,7 +1546,7 @@
       { id: 'raid', e: '👹', n: 'Boss Raid', len: SFA.store.get('teacher.raid.mins', 6) + ' min', sug: early || atEnd, one: atEnd ? 'Exit ticket: the class fights a boss with today\'s questions; you get every first try.' : 'Review: the whole class fights one boss with questions from earlier lessons.', build: buildRaid },
       { id: 'clash', e: '⚔️', n: 'Lane Clash', len: SFA.store.get('teacher.clash.mins', 5) + ' min', sug: atEnd, one: 'Team battle: answer today\'s questions for coins and send characters down 5 lanes.', build: buildClash },
       { id: 'sumo', e: '🤼', n: 'Sumo Graphing', len: '~' + Math.round(SFA.store.get('teacher.sumo.mins', 2) * 3 + 1.5) + ' min', sug: false, one: 'Pairs graph lines from rules; every 30 s their work becomes a sumo bout. Three fights, then a highlight reel.', build: buildSumo },
-      { id: 'stand', e: '🐐', n: 'Stand on the Line', len: '~' + Math.round((SFA.store.get('teacher.stand.rounds', 5) * (SFA.store.get('teacher.stand.secs', 25) + 20) + (SFA.store.get('teacher.stand.elim', 1) ? 5 * (SFA.store.get('teacher.stand.secs', 25) + 22) + 11 : 0) + 10) / 60) + ' min', sug: false, one: 'The whole class on one grid: tap a point to stand on the line, then stay inside the inequalities or meet a goat.', build: buildStand },
+      { id: 'stand', e: '🌋', n: 'The Floor Is Lava', len: '~' + (function (o) { o = o || {}; var n = o.rounds || 5, t = o.secs || 25; return Math.max(2, Math.round((16 + n * (t + 22) + (o.ineq === 0 ? 0 : 11 + (o.ncon || 6) * (t + 23))) / 60)); })(SFA.store.get('teacher.lava', null)) + ' min', sug: false, one: 'The whole class on one grid. The floor is lava: only points on the line are safe. Tap or type a point; everyone on lava melts.', build: buildStand },
       { id: 'show', e: '👗', n: 'Fashion show', len: '~' + Math.max(1, Math.ceil(Math.max(1, rosterIn().length) * SFA.store.get('teacher.show.secs', 5) / 60)) + ' min', sug: cur === 0, one: 'Every student\'s avatar walks the catwalk, one after another.', build: buildShow }
     ];
     var sec = H('div', 'sect games');
@@ -1607,11 +1607,8 @@
     var r = H('div', 'row'); r.appendChild(len); r.appendChild(dm); r.appendChild(fn); r.appendChild(sb); box.appendChild(r);
   }
   function buildStand(box) {
-    var rd = pickSel('Line rounds', [3, 4, 5, 6, 7].map(function (n) { return [n, n + ' line rounds']; }), SFA.store.get('teacher.stand.rounds', 5), 'teacher.stand.rounds');
-    var len = pickSel('Round length', [15, 20, 25, 30, 35, 40].map(function (n) { return [n, n + ' seconds a round']; }), SFA.store.get('teacher.stand.secs', 25), 'teacher.stand.secs');
-    var em = pickSel('Elimination round', [[1, '🐐 Elimination: shade when time is up'], [2, '🐐 Elimination: shade each new rule at once (easier)'], [0, 'No elimination round']], SFA.store.get('teacher.stand.elim', 1), 'teacher.stand.elim');
-    var sb = startBtn('🐐 Start Stand on the Line', 'Opening the grid…', function () { standAssets(function () { if (SFA_STAND.start(+rd.value, +len.value, +em.value > 0, +em.value === 2)) SFA.toast('Stand on the Line is on. Students\' screens switch within a few seconds.', 3500); else consolePanel(); }); });
-    var r = H('div', 'row'); r.appendChild(rd); r.appendChild(len); r.appendChild(em); r.appendChild(sb); box.appendChild(r);
+    var hold = H('p', 'muted', 'Loading the settings…'); box.appendChild(hold);
+    standAssets(function () { hold.remove(); if (SFA_STAND.setup) SFA_STAND.setup(box, startBtn); });
   }
   function buildShow(box) {
     var len = pickSel('Seconds each', [[4, '4 seconds each'], [5, '5 seconds each'], [7, '7 seconds each']], SFA.store.get('teacher.show.secs', 5), 'teacher.show.secs');
@@ -1791,7 +1788,7 @@
   }
 
   window.SFA_LESSON_API = {
-    LID: LID, MODE: MODE, TEACHER: TEACHER, S: S, every: every, pushNow: function () { clearTimeout(pushT); var L = liveObj(); live = L; broadcast(); if (!console_.on || console_.offline) return; lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) console_.skew = j.live.at - Math.round((t0 + Date.now()) / 2); }).catch(function () { }); }, H: H, el: el, fmt: fmt, figure: figure, confetti: confetti, numOf: numOf, numTxt: numTxt, letter: letter, first: first, nice: nice, xid: xid,
+    LID: LID, MODE: MODE, TEACHER: TEACHER, S: S, every: every, standV2: true, pushNow: function () { clearTimeout(pushT); var L = liveObj(); live = L; broadcast(); if (!console_.on || console_.offline) return; lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) console_.skew = j.live.at - Math.round((t0 + Date.now()) / 2); }).catch(function () { }); }, H: H, el: el, fmt: fmt, figure: figure, confetti: confetti, numOf: numOf, numTxt: numTxt, letter: letter, first: first, nice: nice, xid: xid,
     decRun: decRun, encRun: encRun, record: record, beforeRun: beforeRun, tpost: tpost, pushLive: pushLive, consolePanel: consolePanel, rosterIn: rosterIn,
     hero: HERO, trophy: trophy, fold: fold, live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
     srvSkew: function () { return MODE === 'screen' ? 0 : srvSkewV || 0; }, console_: function () { return console_; }, consoleAnswers: function () { return console_ && console_.data && console_.data.answers; }

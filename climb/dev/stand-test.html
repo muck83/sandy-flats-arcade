@@ -1,105 +1,152 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stand on the Line maths test · Sandy Flats</title>
+<title>The Floor Is Lava maths test · Sandy Flats</title>
 <style>body { font: 14px/1.4 system-ui, sans-serif; margin: 12px; background: #14161c; color: #e8e8ea; } pre { background: #0c0d11; padding: 8px; border-radius: 6px; white-space: pre-wrap; font-size: 12px; }</style>
 </head><body>
-<h1>Stand on the Line: the maths, over many seeds</h1>
-<p>Every line has at least six lattice points in the grid; every table, pair of points and slope-and-point really lies on its line; no line repeats; every stack of constraints keeps at least four lattice points; strict and non-strict boundaries are right. Checked against separate whole-number fraction arithmetic. <code>?seeds=3000</code></p>
+<h1>The Floor Is Lava: the maths, over many seeds</h1>
+<p>Every generated line, in every form and slope setting and on both grids, has at least six safe points; standard form,
+point-slope, tables, two points, start-and-step and slope-and-point all describe the line they claim (each is read back
+by the game's own rule reader and compared); the hint step's answer is right and on the grid; typed fractions are judged
+exactly; multipliers and the speed bonus never score a wrong answer; every stack of rules keeps at least four safe points;
+strict and non-strict boundaries are right in every inequality form. Checked against separate arithmetic. <code>?seeds=600</code></p>
 <pre id="out">running…</pre>
 <script>document.write('<script src="../../sfa-stand.js?t=' + Date.now() + '"><\/script>');   // always the newest (a dev page)</script>
 <script>
-var M = window.SFA_STAND_MATH, out = [], t0 = Date.now();
-var fails = 0, checks = 0;
-function ok(c, msg) { checks++; if (!c) { fails++; if (fails < 30) out.push('FAIL ' + msg); } }
-// independent arithmetic with exact fractions (num/den as integers)
-function yAt(mn, md, b, x) { return { n: mn * x + b * md, d: md }; }           // y = n/d
-function isInt(f) { return f.n % f.d === 0; }
-var stats = { lines: 0, minPts: 99, forms: {}, slopes: {}, cons: 0, minReg: 999, strictEdge: 0, looseEdge: 0, stacks: 0, six: 0, nullAt: {}, softMiss: 0 };
-var SEEDS = +(new URLSearchParams(location.search).get('seeds') || 3000);
+var M = window.SFA_STAND_MATH, out = [], t0 = Date.now(), fails = 0, checks = 0;
+function ok(c, msg) { checks++; if (!c) { fails++; if (fails < 40) out.push('FAIL ' + msg); } }
+var SEEDS = +(new URLSearchParams(location.search).get('seeds') || 600);
+var Q = M.Q, st = { lines: 0, byForm: {}, byCat: {}, minPts: 99, cons: 0, minReg: 999, strictEdge: 0, looseEdge: 0, stacks: 0, full: 0, nullAt: {}, parse: 0, frac: 0 };
+// separate arithmetic: y on the line, from A, B, C with plain whole-number cross-multiplying
+function onLineRaw(L, xn, xd, yn, yd) { return L.A * xn * yd + L.B * yn * xd - L.C * xd * yd === 0; }
+function sideRaw(C, xn, xd, yn, yd) { var v = M.qsub(M.qadd(M.qmul(Q(C.A), Q(xn, xd)), M.qmul(Q(C.B), Q(yn, yd))), Q(C.C)); return v[0] < 0 ? -1 : v[0] > 0 ? 1 : 0; }
+function satRaw(C, xn, xd, yn, yd) { var s = sideRaw(C, xn, xd, yn, yd); return C.op === 0 ? s < 0 : C.op === 1 ? s <= 0 : C.op === 2 ? s > 0 : s >= 0; }
+function sameLine(a, b) { return M.lkey(a) === M.lkey(b); }
+function subsets(R, all) { var o = all.filter(function () { return R() < 0.5; }); return o.length ? o : [all[Math.floor(R() * all.length)]]; }
+
+/* ---------- typed numbers ---------- */
+[['3', [3, 1]], ['-2', [-2, 1]], ['1.5', [3, 2]], ['1/2', [1, 2]], ['-3/2', [-3, 2]], ['1 1/2', [3, 2]], ['-2 1/2', [-5, 2]], ['−2 ½', [-5, 2]], ['0.333', [333, 1000]], ['4/8', [1, 2]], ['.5', [1, 2]], ['+4', [4, 1]], ['2½', [5, 2]]]
+  .forEach(function (c) { var v = M.parseNum(c[0]); ok(v && v[0] === c[1][0] && v[1] === c[1][1], 'parseNum ' + c[0] + ' → ' + v); });
+['', 'abc', '1/0', '2/', '1..5', '1 2', 'x', '1/2/3'].forEach(function (s) { ok(M.parseNum(s) === null, 'parseNum should refuse "' + s + '"'); });
+
+/* ---------- typed rules ---------- */
+[['y = 2x - 1', '-2,1,-1', 0], ['y = -x/2 + 3', '1,2,6', 0], ['y = 1/2x + 3', '-1,2,6', 0], ['y = (2/3)x − 1', '-2,3,-3', 0], ['2x + 3y = 6', '2,3,6', 1], ['y − 3 = 2(x − 1)', '-2,1,1', 2], ['y + 1 = -½(x + 4)', '1,2,-6', 2],
+ ['y = 3', '0,1,3', 7], ['x = -2', '1,0,-2', 7], ['(1, 2) and (3, 6)', '-2,1,0', 5], ['(−2, −5), (0, −1), (3, 5)', '-2,1,-1', 4], ['slope 2 through (1, 3)', '-2,1,1', 6], ['slope -1/2 through (2, 0)', '1,2,2', 6],
+ ['start (0, 1), up 2 each step', '-2,1,1', 3], ['start (0, 4), down 1 for each 2 steps right', '1,2,8', 3], ['3y - 2x = 6', '-2,3,6', 1], ['slope undefined through (4, 1)', '1,0,4', 6], ['(2, -3) (2, 5)', '1,0,2', 5]]
+  .forEach(function (c) { st.parse++; [6, 10].forEach(function (G) { var r = M.parseRule(c[0], G); ok(r.L && M.lkey(r.L) === c[1] && r.L.form === c[2], 'parseRule "' + c[0] + '" → ' + JSON.stringify(r)); if (!r.L) return;
+    var L = r.L, ep = L.B ? [Q(L.ex), M.yAt(L, L.ex)] : [Q(L.C, L.A), Q(L.ex)]; ok(M.qint(ep[0]) && M.qint(ep[1]) && Math.abs(M.qnum(ep[0])) <= G && Math.abs(M.qnum(ep[1])) <= G && M.onLineQ(L, ep[0], ep[1]), 'typed rule worked point not a whole grid point: "' + c[0] + '" ' + M.workLine(L));
+    (L.xs || []).forEach(function (x) { var gp = M.givenPt(L, x); ok(M.onLineQ(L, gp[0], gp[1]) && M.qint(gp[0]) && M.qint(gp[1]), 'typed rule given point'); }); }); });
+[['y = 5x + 9', 6], ['y = x^2', 6], ['2x + 3 = 6', 6], ['(1,1) (2,2) (3,5)', 6], ['(1, 1.5) and (3, 2)', 6], ['hello', 6], ['y = 7x', 6], ['(1,2) and (1,2)', 6]]
+  .forEach(function (c) { var r = M.parseRule(c[0], c[1]); ok(!!r.err, 'parseRule should refuse "' + c[0] + '" → ' + JSON.stringify(r)); });
+ok(/Only \d safe point/.test(M.parseRule('y = 5x + 9', 6).err), 'refusal gives the count');
+
+/* ---------- lines in every form and setting ---------- */
 for (var seed = 1; seed <= SEEDS; seed++) {
-  for (var n = 3; n <= 7; n++) {
-    var L = M.genLines(seed * 7 + n, n), seen = {}, zero = 0, half = 0, neg = 0;
-    ok(L.length === n, 'count ' + n);
-    ok(JSON.stringify(L.map(function (q) { return q.form; })) === JSON.stringify(M.FORMS[n]), 'forms in order');
-    L.forEach(function (Q, k) {
-      stats.lines++; stats.forms[Q.form] = (stats.forms[Q.form] || 0) + 1; stats.slopes[Q.mn + '/' + Q.md] = (stats.slopes[Q.mn + '/' + Q.md] || 0) + 1;
-      var key = Q.mn + '/' + Q.md + ':' + Q.b; ok(!seen[key], 'repeat line ' + key + ' seed ' + seed); seen[key] = 1;
-      if (Q.mn === 0) zero++; if (Q.md === 2) half++; if (Q.mn < 0) neg++;
-      // lattice points in the grid, counted independently
+  var R = M.rng(seed * 101), G = seed % 2 ? 6 : 10, forms = subsets(R, [0, 1, 2, 3, 4, 5, 6, 7]), cats = subsets(R, M.CATS), n = 3 + seed % 8, order = seed % 3;
+  var Ls = M.genLines(seed * 7, { n: n, G: G, forms: forms, cats: cats, order: order }), seen = {};
+  ok(Ls.length === n, 'count');
+  var compat = forms.filter(function (f) { return M.CAT_OK[f].some(function (c) { return cats.indexOf(c) >= 0; }) || f === 7; });
+  Ls.forEach(function (L, i) {
+    st.lines++; st.byForm[L.form] = (st.byForm[L.form] || 0) + 1; var cat = M.catOf(L); st.byCat[cat] = (st.byCat[cat] || 0) + 1;
+    if (compat.length) { ok(compat.indexOf(L.form) >= 0, 'form ' + L.form + ' not ticked ' + forms); ok(L.form === 7 ? (cat === 'z' || cat === 'u') : cats.indexOf(cat) >= 0, 'slope kind ' + cat + ' not ticked ' + cats + ' (form ' + L.form + ')'); }
+    ok(L.form !== 7 || cat === 'z' || cat === 'u', 'horizontal/vertical form with a slope');
+    ok(!seen[M.lkey(L)], 'repeat line'); seen[M.lkey(L)] = 1;
+    var cnt = 0; for (var x = -G; x <= G; x++) for (var y = -G; y <= G; y++) { var on = onLineRaw(L, x, 1, y, 1); if (on) cnt++; ok(M.onLine(L, x, y) === on, 'onLine disagrees'); }
+    ok(cnt >= 6, 'only ' + cnt + ' safe points on ' + M.eqTxt(L) + ' G' + G); st.minPts = Math.min(st.minPts, cnt);
+    ok(M.latticePts(L, G).length === cnt, 'latticePts count');
+    // every form's words describe this line: read them back with the game's own reader
+    var txt = M.taskLines(L), back;
+    if (L.form === 0 || L.form === 7) back = M.parseLinear(txt[0]);
+    else if (L.form === 1) { back = M.parseLinear(M.stdTxt(L)); ok(M.stdTxt(L).indexOf('/') < 0, 'standard form with a fraction ' + M.stdTxt(L)); ok(L.A >= 0, 'standard form x first'); }
+    else if (L.form === 2) { back = M.parseLinear(M.psTxt(L)); var p0 = M.givenPt(L, L.xs[0]); ok(M.qint(p0[0]) && M.qint(p0[1]), 'point-slope point not whole'); }
+    else if (L.form === 3) { var r3 = M.parseRule(txt.join(' ').replace('Each step right, stay at the same height.', 'level each step').replace(/For each (step|(\d+) steps) right, go (up|down) (\d+)\./, function (m, a, q, d, p) { return d + ' ' + p + ' for each ' + (q || 1) + ' steps right'; }), G); back = r3.L; ok(!!back, 'start/step unreadable ' + txt.join(' ') + JSON.stringify(r3)); }
+    else { var pts = L.xs.map(function (c) { return M.givenPt(L, c); });
+      pts.forEach(function (p) { ok(M.qint(p[0]) && M.qint(p[1]) && Math.abs(M.qnum(p[0])) <= G && Math.abs(M.qnum(p[1])) <= G && M.onLineQ(L, p[0], p[1]), 'given point off line/grid ' + M.eqTxt(L)); });
+      if (L.form === 4) { ok(pts.length === 3, 'table rows'); var c = L.xs; ok(c[1] - c[0] !== c[2] - c[1], 'table steps even ' + c); back = M.parseRule(pts.map(function (p) { return M.ptq(p[0], p[1]); }).join(' '), G).L; }
+      if (L.form === 5) { ok(pts.length === 2 && Math.abs(L.xs[1] - L.xs[0]) >= 1, 'two points'); back = M.parseRule(pts.map(function (p) { return M.ptq(p[0], p[1]); }).join(' and '), G).L; }
+      if (L.form === 6) { ok(pts.length === 1, 'slope and point'); back = M.parseRule('slope ' + M.slopeTxt(L).replace('½', '1/2').replace('⅓', '1/3').replace('⅔', '2/3').replace('¼', '1/4').replace('¾', '3/4') + ' through ' + M.ptq(pts[0][0], pts[0][1]), G).L; }
+    }
+    ok(back && sameLine(back, L), 'form ' + L.form + ' words "' + txt.join(' ') + '" are not ' + M.eqTxt(L));
+    // the worked example and the hint step
+    var w = M.workLine(L); ok(/is safe\.$/.test(w), 'working ' + w);
+    var ep = L.B ? [Q(L.ex), M.yAt(L, L.ex)] : [Q(L.C, L.A), Q(L.ex)]; ok(M.onLineQ(L, ep[0], ep[1]) && w.indexOf(M.ptq(ep[0], ep[1])) >= 0, 'worked point ' + w);
+    for (var k = 0; k < 3; k++) { var sc = M.scafLine(L, G, 'kid' + k + ':' + seed); ok(M.onLine(L, sc.x, sc.y) && Math.abs(sc.x) <= G && Math.abs(sc.y) <= G, 'hint point off line/grid'); ok(M.qint(sc.ans) && M.qnum(sc.ans) === (L.B ? sc.y : sc.x), 'hint answer'); ok((L.form === 1 || L.form === 2 || ((L.form >= 3 && L.form <= 6) && L.B)) ? !!sc.step : true, 'hint step missing for form ' + L.form); }
+    // typed fractions on this line are judged exactly
+    if (L.B) for (var d = 2; d <= 4; d++) { var xq = Q(1 + d * (seed % 3), d), yq = M.qdiv(M.qsub(Q(L.C), M.qmul(Q(L.A), xq)), Q(L.B)); st.frac++;
+      ok(M.onLineQ(L, xq, yq) && onLineRaw(L, xq[0], xq[1], yq[0], yq[1]), 'fraction point on line judged off');
+      var off = M.qadd(yq, Q(1, 1000)); ok(!M.onLineQ(L, xq, off), 'point 1/1000 off judged on');
+      var res = M.judgeLine(L, { a: { x: xq, y: yq }, b: { x: xq, y: off } }); ok((res.a === 1 || res.a === 2) && res.b === 3, 'judge fraction');
+      var pa = M.points({ speed: 1, uniq: 1, mult: 1 }, res.a, { x: xq, y: yq }, 0, 20, 30), pb = M.points({ speed: 1, uniq: 1, mult: 1 }, res.b, { x: xq, y: off }, 0, 20, 30);
+      ok(pa.m >= 2 && pa.total === Math.round((100 + 50 + (res.a === 2 ? 25 : 0)) * pa.m), 'fraction multiplier ' + JSON.stringify(pa)); ok(pb.total === 0, 'wrong fraction scored');
+    }
+  });
+  // encode and decode
+  Ls.forEach(function (L, i) { var d = M.decLine(M.encLine(L, i + 1)); ok(d && d.A === L.A && d.B === L.B && d.C === L.C && d.form === L.form && d.ex === L.ex && JSON.stringify(d.xs) === JSON.stringify(L.xs), 'line coding'); M.encLine(L).forEach(function (v) { ok(v >= 0 && v <= 9999, 'line number range'); }); });
+
+  /* ---------- rules ---------- */
+  if (seed % 3 === 0) [3, 12, 30].forEach(function (alive, ai) {
+    var R2 = M.rng(seed * 31 + alive), iforms = subsets(R2, [0, 1, 2]), stv = [null, true, false][(seed + ai) % 3], cons = [];
+    for (var k = 0; k < 6; k++) {
+      var o = { G: G, forms: iforms, strict: stv, kind: iforms[k % iforms.length], alt: stv === null ? (k + seed) % 2 === 0 : null };
+      var room = k + 1 >= 4 && M.region(cons, G).length > alive + 2;
+      var C = (room ? M.genCon(R2, cons, alive + 2, o) || M.genCon(R2, cons, alive + 2, { G: G, forms: iforms, strict: stv, gentle: true }) : null) || M.genCon(R2, cons, 4, k + 1 >= 4 && !room ? { G: G, forms: iforms, strict: stv, gentle: true } : o);
+      if (!C) { st.nullAt[k] = (st.nullAt[k] || 0) + 1; break; }
+      var before = M.region(cons, G).length; cons.push(C); st.cons++;
+      ok(iforms.indexOf(C.f) >= 0, 'rule form not ticked'); if (stv === true) ok(M.strict(C), 'non-strict rule in strict-only'); if (stv === false) ok(!M.strict(C), 'strict rule in non-strict-only');
+      if (C.f === 0) ok(C.B > 0, 'slope-intercept rule needs B > 0'); if (C.f === 2) ok((C.A === 0) !== (C.B === 0), 'horizontal/vertical rule');
       var cnt = 0;
-      for (var x = -6; x <= 6; x++) for (var y = -6; y <= 6; y++) { var f = yAt(Q.mn, Q.md, Q.b, x), on = isInt(f) && f.n / f.d === y; if (on) cnt++; ok(M.onLine(Q, x, y) === on, 'onLine disagrees ' + key + ' ' + x + ',' + y); }
-      ok(cnt >= 6, 'only ' + cnt + ' points on ' + key); stats.minPts = Math.min(stats.minPts, cnt);
-      ok(M.linePts(Q).length === cnt, 'linePts count');
-      // the description's points really are on the line and in the grid
-      var need = [0, 0, 3, 2, 1][Q.form]; ok(Q.xs.length === need, 'xs length form ' + Q.form);
-      Q.xs.forEach(function (x) { var f = yAt(Q.mn, Q.md, Q.b, x); ok(isInt(f) && Math.abs(f.n / f.d) <= 6 && Math.abs(x) <= 6, 'given point off line/grid ' + key + ' x=' + x); ok(M.lineY(Q, x) === f.n / f.d, 'lineY'); });
-      if (Q.form === 2) { ok(Q.xs[0] < Q.xs[1] && Q.xs[1] < Q.xs[2], 'table sorted'); ok(Q.xs[1] - Q.xs[0] !== Q.xs[2] - Q.xs[1], 'table steps even ' + Q.xs); }
-      if (Q.form === 3) ok(Q.xs[0] !== Q.xs[1], 'two points same');
-      if (Q.form === 1) ok(Math.abs(Q.b) <= 6, 'start in grid');
-      var fe = yAt(Q.mn, Q.md, Q.b, Q.ex); ok(isInt(fe) && Math.abs(fe.n / fe.d) <= 6 && Math.abs(Q.ex) <= 6, 'worked x off grid');
-      // the working out ends on a true point
-      var w = M.workLine(Q); ok(w.indexOf(M.pt(Q.ex, fe.n / fe.d) + ' is on the line') >= 0, 'working ' + w);
-      if (k === 0) ok(Q.mn !== 0 && Q.md === 1, 'first line friendly');
-    });
-    ok(zero === 1, 'zero slopes ' + zero); ok(half === 1, 'half slopes ' + half); ok(neg >= 1, 'no negative slope');
-  }
-  // constraint stacks, as the console builds them (soft target first, then the floor of 4)
-  if (seed % 5 === 0) [3, 8, 20, 30].forEach(function (alive) {
-    var R = M.rng(seed * 31 + alive), cons = [], k;
-    for (k = 0; k < 6; k++) {
-      var o = { strict: (k + seed) % 2 === 0, kind: k === 2 ? 1 : 0 };
-      var room = k + 1 >= 4 && M.region(cons).length > alive + 2;
-      var soft = room ? M.genCon(R, cons, alive + 2, o) || M.genCon(R, cons, alive + 2, { gentle: true }) : null;
-      if (k + 1 >= 4 && !soft) stats.softMiss++;
-      var C = soft || M.genCon(R, cons, 4, k + 1 >= 4 && !room ? { gentle: true } : o);
-      if (!C) { stats.nullAt[k] = (stats.nullAt[k] || 0) + 1; break; }
-      var before = M.region(cons).length;
-      cons.push(C); stats.cons++;
-      // the region, counted independently with fractions
-      var cnt = 0;
-      for (var x = -6; x <= 6; x++) for (var y = -6; y <= 6; y++) {
+      for (var x = -G; x <= G; x++) for (var y = -G; y <= G; y++) {
         var all = true;
-        cons.forEach(function (c) {
-          var lhs, r;   // compare lhs with r = n/d
-          if (c.k === 1) { lhs = x; r = { n: c.c, d: 1 }; } else { lhs = y; r = yAt(M.SL[c.si][0], M.SL[c.si][1], c.b, x); }
-          var diff = lhs * r.d - r.n;   // sign of lhs - r (d > 0)
-          var edge = diff === 0, sat = c.op === 0 ? diff < 0 : c.op === 1 ? diff <= 0 : c.op === 2 ? diff > 0 : diff >= 0;
-          ok(M.sat(c, x, y) === sat, 'sat disagrees'); ok(M.onEdge(c, x, y) === edge, 'edge disagrees');
-          if (edge) { if (c.op === 0 || c.op === 2) { stats.strictEdge++; ok(!M.sat(c, x, y), 'strict boundary point counted in'); } else { stats.looseEdge++; ok(M.sat(c, x, y), 'solid boundary point counted out'); } }
-          if (!sat) all = false;
-        });
+        cons.forEach(function (c) { var s = satRaw(c, x, 1, y, 1); ok(M.sat(c, x, y) === s, 'sat disagrees'); ok(M.satQ(c, Q(x), Q(y)) === s, 'satQ disagrees');
+          if (sideRaw(c, x, 1, y, 1) === 0) { if (M.strict(c)) { st.strictEdge++; ok(!s, 'strict boundary point counted safe'); } else { st.looseEdge++; ok(s, 'solid boundary point counted lava'); } }
+          if (!s) all = false; });
         if (all) cnt++;
       }
-      ok(cnt === M.region(cons).length, 'region count'); ok(cnt >= 4, 'region only ' + cnt + ' after ' + cons.length); ok(cnt < before, 'constraint cut nothing');
-      stats.minReg = Math.min(stats.minReg, cnt);
-      ok(JSON.stringify(M.decCon(M.encCon(C))) === JSON.stringify(C), 'constraint coding ' + JSON.stringify(C));
-      ok(M.encCon(C) >= 0 && M.encCon(C) <= 9999, 'constraint number range');
-      ok(typeof M.conWork(cons) === 'string', 'conWork');
+      // rational points on and next to the boundary
+      var E = M.edgePts(C, G);
+      if (E.length >= 2) { var a = E[0], b = E[1], mx = Q(a[0] + b[0], 2), my = Q(a[1] + b[1], 2); ok(M.satQ(C, mx, my) === !M.strict(C), 'half-way boundary point ' + M.conTxt(C)); ok(satRaw(C, mx[0], mx[1], my[0], my[1]) === M.satQ(C, mx, my), 'satQ raw disagrees');
+        var nudge = M.qadd(my, Q(1, 997)); ok(M.satQ(C, mx, nudge) === satRaw(C, mx[0], mx[1], nudge[0], nudge[1]), 'nudged point'); }
+      ok(cnt === M.region(cons, G).length, 'region count'); ok(cnt >= 4, 'region only ' + cnt); ok(cnt < before, 'rule cut nothing');
+      st.minReg = Math.min(st.minReg, cnt);
+      var e = M.encCon(C), dc = M.decCon(e, 0); ok(dc.f === C.f && dc.op === C.op && dc.A === C.A && dc.B === C.B && dc.C === C.C, 'rule coding'); e.forEach(function (v) { ok(v >= 0 && v <= 9999, 'rule number range'); });
+      ok(/safe\.$|lava\.$/.test(M.conWork(cons, G)), 'conWork');
+      var si = M.scafIneq(cons, G, 'kid:' + seed + k); ok(M.region(cons.slice(0, -1), G).some(function (p) { return p[0] === si.x && p[1] === si.y; }), 'hint point breaks an earlier rule'); ok(si.safe === M.sat(C, si.x, si.y), 'hint safe'); ok(cons.every(function (c) { return M.sat(c, si.ax, si.ay); }), 'hint moves to a lava point');
     }
-    stats.stacks++; if (cons.length === 6) stats.six++;
+    st.stacks++; if (cons.length === 6) st.full++;
   });
 }
-// scoring
-var Q = M.mkLine(3, -1);   // y = 2x - 1
-var r = M.scoreLine(Q, { a: M.PT(-2, -5), b: M.PT(1, 1), c: M.PT(1, 1), d: M.PT(0, 0), e: 169 });
-ok(r.a === 2 && r.b === 1 && r.c === 1 && r.d === 3 && r.e === 0, 'scoreLine ' + JSON.stringify(r));
-var cons = [{ k: 0, si: 1, b: 1, op: 2 }, { k: 0, si: 2, b: 4, op: 1 }, { k: 1, c: -2, op: 3 }];   // y > x + 1, y <= -x + 4, x >= -2
-ok(!M.sat(cons[0], 1, 2) && M.sat(cons[0], 1, 3) && M.sat(cons[1], 1, 3) && !M.sat(cons[1], 1, 4) && M.sat(cons[2], -2, 0) && !M.sat(cons[2], -3, 0), 'the example rules');
-ok(M.conTxt(cons[0]) === 'y > x + 1' && M.conTxt(cons[1]) === 'y ≤ −x + 4' && M.conTxt(cons[2]) === 'x ≥ −2', 'rule words ' + cons.map(M.conTxt));
-var e = M.resolveElim(cons, ['a', 'b', 'c'], { a: M.PT(0, 2), b: M.PT(1, 2), c: 169, g: M.PT(0, 3) }, false);
-ok(e.res.a === 1 && e.res.b === 3 && e.res.c === 0 && e.res.g === 1 && e.out.join() === 'b,c' && !e.spared, 'elim ' + JSON.stringify(e));
-e = M.resolveElim(cons, ['a', 'b'], { a: M.PT(1, 2), b: 169 }, false); ok(e.spared && e.out.length === 0, 'everyone wrong: nobody goes');
-e = M.resolveElim(cons, ['a', 'b', 'c'], { a: M.PT(0, 2), b: M.PT(0, 2), c: M.PT(0, 3), g: M.PT(0, 2) }, true);
-ok(e.res.a === 2 && e.res.b === 2 && e.res.c === 1 && e.res.g === 1 && e.out.join() === 'a,b', 'shared point ' + JSON.stringify(e));
-e = M.resolveElim(cons, ['a', 'b'], { a: M.PT(0, 2), b: M.PT(0, 2) }, true); ok(e.spared && !e.out.length, 'shared by all: nobody goes');
-e = M.resolveElim(cons, ['a', 'b'], { a: M.PT(0, 2), b: M.PT(0, 2) }, false); ok(!e.out.length && !e.spared && e.res.a === 1, 'sharing before rule 4 is fine');
-var wl = M.workLine({ form: 0, si: 3, mn: 2, md: 1, b: -1, ex: -2 });
-ok(wl === 'x = −2: 2 × (−2) − 1 = −5, so (−2, −5) is on the line.', wl);
-out.push(JSON.stringify(stats, null, 1));
-out.push(checks + ' checks, ' + fails + ' failures · ' + SEEDS + ' seeds · ' + (Date.now() - t0) + ' ms');
-window.STAND_TEST = { checks: checks, fails: fails, stats: stats, text: out.join('\n') };
-document.getElementById('out').textContent = window.STAND_TEST.text;
-document.title = (fails ? 'FAILED' : 'passed') + ' · Stand on the Line maths';
 
+/* ---------- scoring and the elimination ---------- */
+var L0 = M.normL(-2, 1, -1);   // y = 2x − 1
+var r = M.judgeLine(L0, { a: { x: Q(-2), y: Q(-5) }, b: { x: Q(1), y: Q(1) }, c: { x: Q(1), y: Q(1) }, d: { x: Q(0), y: Q(0) }, e: null, f: { x: Q(1, 2), y: Q(0) } });
+ok(r.a === 2 && r.b === 1 && r.c === 1 && r.d === 3 && r.e === 0 && r.f === 2, 'judgeLine ' + JSON.stringify(r));
+var O = { speed: 1, uniq: 1, mult: 1 };
+ok(M.points(O, 2, { x: Q(-2), y: Q(-5) }, 0, 20, 30).total === Math.round(175 * 1.5), 'negative ×1.5');
+ok(M.points(O, 2, { x: Q(1, 2), y: Q(0) }, 0, 20, 30).total === 350, 'fraction ×2');
+ok(M.points(O, 1, { x: Q(-1, 2), y: Q(-2) }, 20000, 20, 30).total === 300, 'both ×3, no speed at the end');
+ok(M.points(O, 1, { x: Q(1), y: Q(1) }, 10000, 20, 30).total === 125, 'half-way speed 25');
+ok(M.points(O, 4, { x: Q(-1, 2), y: Q(-2) }, 0, 20, 30).total === 60, 'hint step is 60 flat');
+ok(M.points({ speed: 0, uniq: 0, mult: 0 }, 2, { x: Q(-1, 2), y: Q(-2) }, 0, 20, 30).total === 100, 'all off: 100');
+[-1, NaN, Infinity, 'x', 40000, null].forEach(function (t) { ok(M.speedBonus(t, 20, 30) === 0, 'impossible time scored ' + t); });
+ok(M.speedBonus(25000, 20, 30) === 0 && M.speedBonus(0, 20, 30) === 50 && M.speedBonus(5000, 20, 30) > M.speedBonus(6000, 20, 30), 'speed order');
+for (var t = -2000; t <= 40000; t += 777) [0, 3].forEach(function (rr) { ok(M.points(O, rr, { x: Q(-1, 2), y: Q(-2) }, t, 20, 30).total === 0, 'speed or multiplier scored a wrong answer'); });
+var cons = [{ f: 0, op: 2, A: -1, B: 1, C: 1 }, { f: 1, op: 1, A: 2, B: -1, C: 4 }, { f: 2, op: 3, A: 1, B: 0, C: -2 }];   // y > x + 1, 2x − y ≤ 4, x ≥ −2
+ok(M.conTxt(cons[0]) === 'y > x + 1' && M.conTxt(cons[1]) === '2x − y ≤ 4' && M.conTxt(cons[2]) === 'x ≥ −2', 'rule words ' + cons.map(M.conTxt));
+ok(M.conSub(cons[0], 1, 3) === '3 > 1 + 1', 'check words ' + M.conSub(cons[0], 1, 3));
+ok(!M.sat(cons[0], 1, 2) && M.sat(cons[0], 1, 3) && M.sat(cons[1], 0, -4) && !M.sat(cons[1], 0, -5) && M.sat(cons[2], -2, 0) && !M.sat(cons[2], -3, 0), 'the example rules');
+var P = function (x, y) { return { x: Q(x), y: Q(y) }; };
+var e = M.resolveElim(cons, ['a', 'b', 'c'], { a: P(0, 2), b: P(1, 2), c: null, g: P(0, 3) }, false);
+ok(e.res.a === 2 && e.res.b === 3 && e.res.c === 0 && e.res.g === 2 && e.out.join() === 'b,c' && !e.spared, 'elim ' + JSON.stringify(e));
+e = M.resolveElim(cons, ['a', 'b'], { a: P(1, 2), b: null }, false); ok(e.spared && e.out.length === 0, 'everyone wrong: nobody goes');
+e = M.resolveElim(cons, ['a', 'b', 'c'], { a: P(0, 2), b: P(0, 2), c: P(0, 3), g: P(0, 2) }, true); ok(e.out.join() === 'a,b' && e.shared.a && e.res.c === 2, 'shared point ' + JSON.stringify(e));
+e = M.resolveElim(cons, ['a', 'b'], { a: P(0, 2), b: P(0, 2) }, true); ok(e.spared && !e.out.length, 'shared by all: nobody goes');
+e = M.resolveElim(cons, ['a', 'b'], { a: P(0, 2), b: P(0, 2) }, false); ok(!e.out.length && !e.spared, 'sharing before the rule is on is fine');
+ok(M.breakdown(M.points(O, 1, { x: Q(-1), y: Q(3) }, 6800, 20, 30)) === 'Safe 100 + speed 33 = 133, ×1.5 negative = 200', 'breakdown ' + M.breakdown(M.points(O, 1, { x: Q(-1), y: Q(3) }, 6800, 20, 30)));
+[[0, 6], [1, 6], [-1.5, 6], [10, 10], [-10, 10]].forEach(function (c) { var q = c[0] === -1.5 ? Q(-3, 2) : Q(c[0]); ok(M.posDec(M.posEnc(q, c[1]), c[1]) === c[0], 'position coding'); });
+
+out.unshift(checks + ' checks, ' + fails + ' failures · ' + SEEDS + ' seeds · ' + (Date.now() - t0) + ' ms');
+out.push(JSON.stringify(st, null, 1));
+window.STAND_TEST = { checks: checks, fails: fails, stats: st, text: out.join('\n') };
+document.getElementById('out').textContent = window.STAND_TEST.text;
+document.title = (fails ? 'FAILED' : 'passed') + ' · Floor Is Lava maths';
 </script>
 </body></html>
