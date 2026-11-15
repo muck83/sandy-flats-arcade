@@ -1083,7 +1083,7 @@
   }
 
   // 🌋 The Floor Is Lava (sfa-stand.js; it hands a version 1 Stand on the Line game, keys zk*, to sfa-stand-v1.js): the whole class on one grid
-  var STAND_V = '20261115b', standLoading = null;
+  var STAND_V = '20261115c', standLoading = null;
   function standAssets(cb) {
     if (window.SFA_STAND) return cb();
     if (standLoading) { standLoading.push(cb); return; }

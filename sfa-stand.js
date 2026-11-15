@@ -844,7 +844,7 @@
       var s = x.s, a = avFor(x.k); dress(a, x.look, x.n);
       a.el.hidden = !!x.me && s.x == null;
       if (s.x != null) {
-        var grp = per[s.x + ',' + s.y], n = grp.length, k = grp.indexOf(x.k), step = Math.min(0.36, 1.3 / n), tx = s.x + (k - (n - 1) / 2) * step, ty = s.y, kk = s.x + ',' + s.y;
+        var grp = per[s.x + ',' + s.y], n = grp.length, k = grp.indexOf(x.k), step = n > 1 ? Math.min(0.3, 0.6 / (n - 1)) : 0, tx = s.x + (k - (n - 1) / 2) * step, ty = s.y, kk = s.x + ',' + s.y;
         a.mill = false;
         if (a.at !== kk || Math.abs(a.x - tx) > 0.01 || Math.abs(a.y - ty) > 0.01) { if (!a.melt) moveTo(a, tx, ty, a.at == null && !x.me ? 1300 : 1100, 'ease-in-out'); a.at = kk; }
         a.el.querySelector('.lavab').textContent = o.state === 3 && s.res === 2 ? '★' : !shown(o.state) && n > 1 && k === n - 1 ? '×' + n : '';
@@ -1378,7 +1378,7 @@
     '.lavaright{display:flex;justify-content:flex-end;gap:8px;align-items:center;min-width:0}.lavascore2{font-weight:800;font-size:clamp(13px,1.5vw,20px)}.lavaback{white-space:nowrap}.lavasnd{background:rgba(255,255,255,.12);color:inherit;border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:3px 8px;cursor:pointer;font:inherit;font-size:13px}',
     '.lavabodyw{flex:1;min-height:0;display:grid;gap:12px;grid-template-columns:minmax(0,1fr);align-items:start}',
     '.lava.scr .lavabodyw{grid-template-columns:minmax(220px,1fr) auto minmax(220px,1fr);align-items:stretch}',
-    '.lavasqw{display:flex;justify-content:center}.lavasq{position:relative;aspect-ratio:1;width:min(calc(100vh - 84px),56vw);border-radius:2.6%;overflow:hidden;box-shadow:0 0 40px rgba(255,80,0,.45),inset 0 0 0 4px #1a0805}',
+    '.lavasqw{display:flex;justify-content:center}.lavasq{position:relative;aspect-ratio:1;align-self:start;flex:none;width:min(calc(100vh - 84px),56vw);border-radius:2.6%;overflow:hidden;box-shadow:0 0 40px rgba(255,80,0,.45),inset 0 0 0 4px #1a0805}',
     '.lava.stu .lavasq{width:min(100%,calc(100vh - 150px));min-width:260px}',
     '@media (min-width:900px){.lava.stu .lavabodyw{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"side sq" "info sq"}.lava.stu .lavaside{grid-area:side}.lava.stu .lavasqw{grid-area:sq}.lava.stu .lavainfo{grid-area:info}.lava.stu .lavasq{width:min(calc(100vh - 84px),58vw)}}',
     '.lavacv,.lavasvg,.lavasvg svg{position:absolute;inset:0;width:100%;height:100%}.lavalay{position:absolute;inset:0;pointer-events:none;overflow:hidden}',
