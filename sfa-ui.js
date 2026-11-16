@@ -27,7 +27,10 @@
     'g14': 'Run each machine backwards to find what went in, then check it with the table, the graph and the crossing.',
     'g15': 'Square it, double it, divide 1 by it: cross the valley, climb the tower, drop into the canyon and find the input the door can\'t take.',
     'g16': 'Name each family, match the shadows by changing one number, and test points to open Max\'s locks.',
-    'g17': 'Re-forge the Chain four ways, catch the lying link, then find the edge of the Undefined\'s rule 12/x.'
+    'g17': 'Re-forge the Chain four ways, catch the lying link, then find the edge of the Undefined\'s rule 12/x.',
+    'g18': 'Set the lift dial by end minus start, find the slope of every span, and name the cause on each incident slip.',
+    'g19': 'Find the slope from the log, walk back to post zero for the start, then write the rule and check it before the train leaves.',
+    'g20': 'Write the bridge\'s load rule, turn the sign when you divide by a negative, check it with a number and read it on the line.'
   };
   var gid = (location.pathname.match(/\/(g\d+)-/) || [])[1];
   var TIER = { 'Low floor': 'Warm-up', 'Core': 'Main', 'Stretch': 'Challenge', 'Review': 'Review' };
