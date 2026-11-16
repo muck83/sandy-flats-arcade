@@ -1,143 +1,142 @@
-# Under the Pond · Floor One, Part 2: Count the Posts (draft 5, for review)
+# Under the Pond · Floor One, Part 2: Count the Posts (draft 6, built)
 
-Slope from a table with uneven steps, then from two points, with the order kept the same top and bottom.
-About 420 spoken words, a little over four minutes.
+Slope from a table with uneven steps, then from two points, in the same order top and bottom. About 377 spoken words, 3:24. Generated from `f1b/beats.json`, which is what the film is built from.
 
----
+### The stairs
 
-## Cold open
+*Clock on screen: ONE INCIDENT LEFT 0:09. The Swapper screeches.*
 
-*The dark end of the track. No map. Doug is still walking in a circle. A board on the wall: INCIDENTS: 1 OF 3.*
+**MARCUS:** Posts: two take away six...
+
+**DOUG:** STOP.
+
+*Freeze at 0:07.*
+
+**TITLE: THREE MINUTES EARLIER**
+
+### The Rails
+
+*Clock on screen: SWAPPER 0:08.*
 
 **DOUG:** Coo. Coo.
 
 **MARCUS:** Don't you coo at me. I know you can talk.
 
-*He opens the exercise book from the rusted cart. A page of numbers: POST 10, 11, 14, 15. HEIGHT 4, 6, 12, 14.*
+### The exercise book
 
-**MARCUS:** Somebody rode this span. They wrote down where the cart stopped. That's as good as a map!
+**MARCUS:** The exercise book! Someone wrote down every stop on this span. That's a map!
 
-**DOUG:** ...That is not in the procedure.
+**DOUG:** That is not in the procedure.
 
 **MARCUS:** It is now.
 
-**TITLE: UNDER THE POND · Floor One, Part 2**
+**TITLE: UNDER THE POND · Floor One · Part 2**
 
-## The book
+### The exercise book
 
-**MARCUS:** Heights: four, six, twelve, fourteen. First stop to second stop: up two. Dial two.
+**MARCUS:** Four to six, up two. Dial two!
 
-*The cart climbs smoothly to the second stop. DING.*
+*The cart rides on. DING.*
 
-**MARCUS:** See? Next stop: up six. Dial six!
+**MARCUS:** Six to twelve, up six. Dial six!
 
 **DOUG:** You have not looked at the posts.
 
-> **Pause point 3.** What will the incident slip say?
+*The cart rears up and throws him. WHOOPS!*
 
-*The cart rears up and throws him. WHOOPS. Marcus lands in the pen, under a goat with a staff badge.*
+### The goat pen
+
+*Marcus lands in the goat pen.*
+
+**VOICE:** Incident. Cause: counted the rows, not the posts. One more goat released. Incidents: two of three.
 
 **MARCUS:** Is this the same goat?
 
-**VOICE:** Incident. Cause: counted the rows, not the posts. Penalty: goats. Incidents on this floor: two of three.
+### The Rails
 
-*Marcus climbs out. Up on the ledge behind them, the rusted cart. He looks at it.*
+*Rust mites crawl from the old cart. Rust creeps up Marcus's shoes.*
 
-**MARCUS:** ...Two of three.
+**MARCUS:** Doug. My shoes are going rusty.
 
-## Chip's call
+**DOUG:** Rust mites. They come out of the old cart. They come for entrants who stay.
 
-**CHIP:** Good evening. Our top story: the duck pond is missing. We have a caller.
+**MARCUS:** Two of three.
 
-**MARCUS:** *(on the phone)* Chip! It's Marcus. I'm calling from under the pond. Somebody down here keeps moving the floor.
+### Chip's call
 
-**CHIP:** ...And how is the weather under the pond?
+**CHIP:** Our top story: the duck pond is missing. We have a caller.
 
-**MARCUS:** *(on the phone)* There's no weather. There's goats. And I've got one mistake left.
+**MARCUS:** *(on the phone)* Chip! It's Marcus, under the pond. There are goats. There's a monster. My shoes are rusting.
 
-**CHIP:** Caller, most of us are down to our last one. Good luck.
+**CHIP:** And how is the weather under the pond?
 
-## Count the posts
+### The exercise book
 
-*Doug takes a pencil from behind his wing and writes down both sides of the page. Left, beside the posts: +1, +3, +1. Right, beside the heights: +2, +6, +2.*
+*Two lamp eyes open in the dark. A growl.*
 
-**DOUG:** Ten to eleven is one post. Eleven to fourteen is three posts. The cart did not climb faster. It went further between stops.
+**DOUG:** Look at the posts. Ten to eleven is one post. Eleven to fourteen is three. It went further, not faster.
 
-**MARCUS:** So up six... over three posts. Six over three. Two. It was two the first time as well!
+**MARCUS:** Up six, over three posts. Six over three. Two! It was two all along!
 
 **DOUG:** Check the last one.
 
-**MARCUS:** Up two, over one post. Two. Two, two, two. It's the same all the way.
+**MARCUS:** Up two, over one. Two. Two, two, two. The track is straight. Dial two!
 
-**DOUG:** The same slope between every pair of rows. The track is straight. You were right to use the book.
+**DOUG:** You were right to use the book.
 
-**MARCUS:** You were right about the posts.
+*The cart rides on. DING.*
 
-*The cart rides the span, steady, to a door.*
+**MARCUS:** You were right about the posts. GO!
 
-## The stairs
+### The stairs
 
-*The door is shut. Beyond a grille, a stair goes down. Its top step is marked (2, −1) and its bottom step (6, −3). On the wall beside the door, in old chalk: + 1/2, crossed out, and under it: 3 OF 3.*
+*Clock on screen: ONE INCIDENT LEFT 0:15. The Swapper screeches.*
 
-**VOICE:** The stairs to floor two. Top step: post two, height minus one. Bottom step: post six, height minus three. State the slope. You have one incident remaining.
+**VOICE:** The stairs to floor two. Top step: two, minus one. Bottom step: six, minus three. State the slope. You have one incident left.
 
-**MARCUS:** Top to bottom. Height: minus three, take away minus one. That's minus three plus one. Minus two.
+**MARCUS:** Height: minus three take away minus one. Minus three plus one. Minus two.
 
 **MARCUS:** Posts: two take away six...
 
-**DOUG:** Stop.
+**DOUG:** STOP.
 
-*Marcus stops.*
+**DOUG:** On top you went end minus start. Underneath, start minus end.
 
-**DOUG:** On top you went end minus start. Underneath you are going start minus end.
+**MARCUS:** Same two numbers. Does it matter?
 
-**MARCUS:** Does it matter? It's the same two numbers.
+**DOUG:** Look at the wall. Backwards on one: plus a half. Three of three.
 
-*Doug looks at the old chalk on the wall. Marcus looks at it too. Plus a half. Three of three.*
+**MARCUS:** In order! Six take away two, four. Minus two over four. Minus a half!
 
-**DOUG:** Backwards on both: the same answer. Backwards on one: that.
-
-**MARCUS:** ...In order. Posts: six take away two. Four. Minus two over four. Minus a half.
+*The Swapper screeches.*
 
 **VOICE:** Correct. Floor one passed.
 
-*The grille opens. Marcus looks down the stairs.*
-
 **MARCUS:** Down one for every two across. My legs don't do halves. The stairs do.
 
-*The helmet, close up. Doug pencils a third line: SAME ORDER, TOP AND BOTTOM.*
+### The Rails
 
-## What's behind them
+*The cavern rebuilds itself behind them.*
 
-*A grinding noise. Behind them the cavern is rebuilding itself: the track lifts, turns, and locks into a new shape. The rusted cart is carried away into the dark.*
-
-**MARCUS:** He's changing it. Behind us.
+**MARCUS:** He's rebuilding it. Behind us.
 
 **VOICE:** Every floor that is passed is rebuilt. This floor was last passed eleven years ago.
 
-*Doug turns the exercise book over. On the cover, a name too faded to read. Under it: CLASS OF MR. DUNMORE.*
+### The exercise book
 
-**MARCUS:** *(reading the last page)* "If you are reading this, do not trust the..." It's torn.
+**MARCUS:** *(reading)* If you are reading this, do not trust the... It's torn.
 
-*He looks up, toward where the pond was, then at Doug.*
+### The stairs
 
 **MARCUS:** You can still fly out.
 
 **DOUG:** Complaint four: the stairs have no handrail. After you.
 
-## The surface
-
-*Mr. Dunmore's classroom, evening. Priya puts an old class photograph on his desk. Two of the faces have been cut out.*
+### Mr. Dunmore's classroom
 
 **PRIYA:** Eleven years ago. Who were they?
 
-*Dunmore straightens his tie. He does not answer.*
-
-**TITLE: FLOOR TWO · STATION ZERO**
-
-## Sting
-
-*The pen. Keith, chewing, wearing his staff badge.*
+### The goat pen
 
 **MARCUS:** Is the goat an entrant?
 
@@ -145,15 +144,15 @@ About 420 spoken words, a little over four minutes.
 
 *Keith eats the torn corner of the exercise book.*
 
+**TITLE: TO BE CONTINUED · FLOOR TWO: STATION ZERO**
+
 ---
 
-## Changes from the last draft
+## Changes from draft 5
 
-- **The order rule is now consistent.** Marcus starts to mix the order at the last door and Doug stops him. "Backwards on both: the same answer. Backwards on one: that."
-- **That mistake has a cost we can see.** The old chalk on the wall, + 1/2 and 3 OF 3, is how the entrant in the rusted cart came to stay.
-- **The last question belongs to something:** it is the stairs to the next floor, and Marcus says what the answer means.
-- **Both sets of gaps are written** on the page: posts and heights.
-- **Chip's call comes after the goats,** not between the cliffhanger and its answer.
-- **Marcus doesn't finish his arc here.** He does it in order because of the chalk on the wall, not because he has changed.
-- **Priya is back,** with a photograph that gives the mystery two missing students.
-- **Doug freezes into "Coo",** and Marcus is the one who gets him moving.
+- **It opens at the stairs** with the Swapper's claws through the grille, on "STOP.", then goes back three minutes.
+- **The Swapper is the clock:** its countdown runs through the exercise book and the stairs.
+- **What staying means is shown:** at two of three, rust mites start rusting Marcus's shoes.
+- **Chip's call is three lines.**
+- **The Swapper retreats** when the slope is right, and the grille opens.
+- **Every line is shorter** and the voices are faster.

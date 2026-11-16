@@ -17,6 +17,10 @@ the earlier films; the others are the nearest matches), works out the mouth move
 page from an earlier film's shell (`TEMPLATE.html`, e.g. One Alone), reusing Doug's "Coo" from `COO_SOURCE.html`.
 Audio is cached in `DIR/audio/`, so a rebuild only re-voices changed lines.
 
+`meta.json` can also set `gap` (seconds of silence after each line, default 0.45), `rates` (per-voice speed overrides,
+e.g. `{"voice": "+16%"}`) and `capBelow` (captions in a strip under the picture instead of over it). The Under the
+Pond films use all three.
+
 - `rewind/`: Rewind 1, *Rewind* (slope), before Lesson 12. Its `build.py` builds every film here.
 - `linehome/`: Rewind 2, *The Line Home* (graphing lines from start and step). Build it with `../rewind/build.py`.
 - `momentbefore/`: Rewind 3, *The Moment Before* (solving two-step equations). Build it with `../rewind/build.py`.

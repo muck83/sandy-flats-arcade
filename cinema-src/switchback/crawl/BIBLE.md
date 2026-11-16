@@ -39,9 +39,41 @@ nine floors of tests under their town, and the only way out is down.
   Penalty: goats. Incidents on this floor: one of three."
 - **Three incidents on a floor and you stay on it.** Do not let Marcus reach two of three on every floor: vary it,
   let Doug take one, and on one floor let them hit three and lose something real.
-- **The penalty is goats.** Keith works in the pen.
+- **The penalty is goats,** and the goats are dangerous: each incident lets more of them out behind you. Keith works
+  in the pen.
 - **Tips go on the helmet,** one line per floor.
 - **The Foreman acts on every floor, on screen:** he moves track, takes maps, rebuilds what is behind them.
+
+## Urgency (draft 6)
+
+The first drafts were too slow: nothing was chasing anyone. Every film now follows these rules.
+
+- **A clock on screen** for most of every film. A right answer buys seconds. An incident costs seconds and lets a
+  monster closer.
+- **Open in the middle of the danger, then cut back** ("SIX MINUTES EARLIER"). End every film on a freeze-frame with
+  the clock still running.
+- **Pause points go at the freeze-frames:** "0:03 left. What does he dial?"
+- **The maths happens on the move.** Marcus answers fast and wrong, Doug fixes it in one line, and the right answer
+  lands with a second or two left.
+- **Rivals:** ENTRANTS THIS CYCLE: 12. The board flips names to REMAINS between films.
+- **No silent beat longer than about two seconds** unless a clock is running over it.
+
+## Bestiary
+
+Every monster is a maths mistake with legs, so beating it is getting the step right.
+
+| Monster | Where | The mistake it stands for | How it works |
+|---|---|---|---|
+| **The goats** | Every floor | Every wrong answer | The penalty pen holds every wrong answer an entrant has ever given. Each incident lets more goats out behind you, red-eyed and fast. Keith is their handler, with a badge and a whistle. |
+| **The Swapper** | Floor 1 boss | Start minus end | Huge, clawed, mostly shadow. It swaps START and END signs, so a cart dialled backwards runs straight into it. You beat it by reading the signs and subtracting in the right order anyway. |
+| **Flippers** | Floors 1 to 3 | Lost minus signs | Small goblins that pry minus signs off the track posts and keep them in a sack. A slope with its sign missing points the cart the wrong way. |
+| **Spitting llamas** | Floor 1 ledge, later floors | "Zero is broken" / divide by zero | Toll-keepers on flat ground. Call a slope of zero broken and they spit. Try to divide by zero and every llama on the floor spits at once. |
+| **The bouncer ducks** | Every door | Answers with no working | Staff badges and sunglasses. They let you through only if you show the working, not just the answer. |
+| **Rust mites** | Floor 1, the old cart | What staying means | They crawl out of the 3 OF 3 cart and over anything left too long. |
+| **Rival entrants** | Every floor | Copying | Kids from other schools on the same floors. One copies Marcus's wrong answer and is swarmed by goats. |
+
+Later floors get their own: a toll troll for Desmond's prices (U3.2), and something that only moves in parallel for
+Floor 7 (U4.1).
 
 ## Cast
 

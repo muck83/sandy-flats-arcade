@@ -1,163 +1,142 @@
-# Under the Pond · Floor One, Part 1: End Minus Start (draft 5, for review)
+# Under the Pond · Floor One, Part 1: End Minus Start (draft 6, built)
 
-Signed change, then slope from a graph: uphill, flat and downhill. About 430 spoken words, a little over four minutes.
-"Level" means the lift only; the track reads **posts** across and **height** up.
+Signed change, then slope from a graph: uphill, flat and downhill. About 300 spoken words, 3:08. Generated from `f1a/beats.json`, which is what the film is built from.
 
----
+### The Rails
 
-## Cold open
+*Clock on screen: SPAN THREE 0:06. The Swapper screeches.*
 
-*A dark control room. A gloved hand chalks FLOOR 1 on a board, wipes out an old tally, and pulls a lever. Far below, the lights of a lift come on.*
+**VOICE:** Five seconds. Set the winch.
 
-*The lift. Marcus and Doug, the door with four green lights closing behind them.*
+**MARCUS:** Which way is DOWN?
 
-**VOICE:** Assessment complete. Floor one. Three incidents on a floor, and an entrant remains on that floor.
+**DOUG:** Read the sign!
 
-**MARCUS:** Remains? For how long?
+*Freeze at 0:03.*
 
-**VOICE:** The record is eleven years.
+**TITLE: FOUR MINUTES EARLIER**
 
-**TITLE: UNDER THE POND · Floor One**
+### The control room
 
-## The lift
+### The lift
 
-*A shaft: a number line from 5 down to −5. They are in a lift at 4. Far below, a lit door at −2.*
+*Clock on screen: GOAT DOOR OPENS 0:20.*
 
-**VOICE:** You are at level four. The door is at level minus two. The dial takes a change. Plus is up. Minus is down.
+**VOICE:** Floor one. You are at level four. The door is at minus two. Dial the change. The goat door opens in twenty seconds.
 
-**MARCUS:** Watch this. Four and minus two. Four, take away minus two. Two minuses make a plus, so... six! Plus six!
+**MARCUS:** Easy. Four take away minus two. Two minuses make a plus. Plus six!
 
-> **Pause point 1.** What is about to go wrong?
+*The lift moves.*
 
-*The lift shoots up and out of the top of the shaft. TWANG. Marcus lands in a pen full of goats.*
+### The goat pen
 
-**MARCUS:** There's no pond down here. So it's goats. Why is it goats?
+*Marcus lands in the goat pen.*
 
-**VOICE:** Incident. Cause: start minus end. Penalty: goats. Incidents on this floor: one of three.
+**VOICE:** Incident. Cause: start minus end. Penalty: one goat released. Incidents: one of three.
 
-**DOUG:** Incident reports are my job. Yours has no date on it.
+*A loose red-eyed goat watches them.*
 
-*Back in the lift, at 4.*
+**MARCUS:** Why is it ALWAYS goats?
 
-**DOUG:** Your arithmetic was fine. Your order was backwards. A change is end minus start. Where it is going, take away where it is.
+**DOUG:** Your arithmetic was fine. Your order was not. A change is end minus start.
 
-**DOUG:** Minus two, take away four. Start at minus two. Go down four more.
+### The lift
 
-**MARCUS:** Minus three, minus four, minus five, minus six. Minus six. And minus means down. Six down!
+**DOUG:** The end is minus two. Take away the start, four.
 
-*The lift goes down, counting past 3, 2, 1, 0, −1, and stops at −2. DING.*
+**MARCUS:** Minus three, four, five, six. Minus six. Six down!
 
-**MARCUS:** Wait. There's a ladder at level three. End minus start. Three, take away minus two. That's three plus two. Plus five. Take us up five!
+*The lift moves.*
+
+**MARCUS:** A ladder at level three! Three take away minus two. Plus five. Take us up five!
 
 **VOICE:** Correct.
 
-*Beat.*
-
 **VOICE:** Denied.
 
-*The helmet, close up. Under UP FIRST. THEN ACROSS. Doug pencils a new line: END MINUS START.*
+### The Rails
 
-## The Rails
+*Clock on screen: TRACK DROPS 0:15.*
 
-*A cavern. A mine cart on a track. The track is painted on the cavern wall as a graph: posts across, height up. It climbs, runs along a ledge, and climbs again to a lit door.*
+**VOICE:** The Rails. Set the winch to each span's slope. The track behind you drops in fifteen seconds.
 
-**VOICE:** The Rails. Three spans. Set the winch to the slope of each span: the height it gains for each post.
+*A loose red-eyed goat watches them.*
 
-*On the wall, the first span runs from (1, 2) to (4, 8).*
+**MARCUS:** One, two to four, eight. The pond question! Up six, across three. Six over three. Two!
 
-**MARCUS:** From one, two to four, eight. That's the quiz question! Count the squares. Up six, across three. Up first: six over three. Two.
+**DOUG:** Now without squares. Change in height over change in posts.
 
-**DOUG:** You said one half.
+**MARCUS:** Eight take away two, six. Four take away one, three. Six over three. Two!
 
-**MARCUS:** I said it into a pond.
+*The cart rides the span. The track behind them falls away. CRASH!*
 
-**DOUG:** Now without squares. The lift, done twice. Change in height over change in posts.
+*A llama in a staff cap blocks the ledge.*
 
-**MARCUS:** You're a pigeon.
+**MARCUS:** Flat span. Eight take away eight, zero. Over four. Zero. Is it broken?
 
-**DOUG:** I am an inspector who is a pigeon.
+*The llama spits. PTOO!*
 
-**MARCUS:** Fine. Height: eight take away two. Six. Posts: four take away one. Three. Six over three. Two. Same as the squares!
+**DOUG:** The llama says no. Zero is not broken. It goes. It gains no height.
 
-*The cart climbs the span. DING.*
+*The cart rides the span.*
 
-## The ledge
-
-*Span two. The track runs dead flat along a ledge, from (4, 8) to (8, 8). Halfway along, on a siding, sits another cart: rusted, cobwebbed. A board above it reads INCIDENTS: 3 OF 3.*
-
-**MARCUS:** Height: eight take away eight. ...Zero. Posts: eight take away four. Four. Zero over four is zero. Is it broken?
-
-> **Pause point 2.** Is a slope of zero broken?
-
-**DOUG:** It goes. It gains no height. That is all zero means.
-
-*The cart rolls along the ledge. Marcus looks over the side.*
-
-**MARCUS:** It is very high up for something called zero.
-
-*They pass the rusted cart.*
+**MARCUS:** Very high up, for something called zero.
 
 **MARCUS:** Whose cart is that?
 
-**VOICE:** An entrant with three incidents on this floor.
-
-**MARCUS:** Where are they now?
-
-*A pause, longer than the Voice usually takes.*
-
-**VOICE:** That information is on floor nine.
-
-*In the rusted cart: an old red helmet, covered edge to edge in handwriting. Under it, a school exercise book. Doug takes the book.*
+**VOICE:** An entrant with three incidents. That information is on floor nine.
 
 **DOUG:** Evidence.
 
-## The switch
+*The cart rides the span.*
 
-*Ahead, the third span climbs toward the lit door. On the far wall, the gloved hand closes on a lever. CLUNK. The whole span swings down, away from the door, into the dark.*
+*A gloved hand pulls a lever. The third span swings down.*
 
-**MARCUS:** It moved! Somebody moved it!
+**MARCUS:** Somebody moved it!
 
-**VOICE:** The Foreman has... The management has adjusted the floor.
+*Clock on screen: SPAN THREE 0:10. The Swapper screeches.*
 
-**MARCUS:** The who?
+**VOICE:** The Foreman... The management has adjusted the floor. Span three. Ten seconds.
 
-**VOICE:** Span three. Post eight, height eight. To post ten, height four.
+**MARCUS:** Four take away eight, minus four. Ten take away eight, two. Minus two!
 
-**MARCUS:** Height: four take away eight. Minus four. Posts: ten take away eight. Two. Minus four over two. Minus two.
+*A Flipper pries the minus sign off the winch. YOINK.*
 
-**MARCUS:** A minus slope. He's sending us downhill.
+**MARCUS:** It took the minus! Which way is DOWN?
 
-**DOUG:** Then we go downhill correctly.
+**DOUG:** Read the sign. Without its minus, the slope points up. It is minus. Down.
 
-*The cart drops down the span.*
+**MARCUS:** Minus two. DOWN!
 
-**MARCUS:** Minus two! My stomach agrees!
+*The cart rides the span.*
 
-*The cart stops in the dark. Above them a hook comes down on a chain. The painted map of the track ahead peels off the wall and is hauled up out of sight.*
+**MARCUS:** My stomach agrees!
+
+*A hook hauls the map away.*
 
 **VOICE:** The map for the final span has been removed.
 
 **DOUG:** There is no map. The procedure requires a map.
 
+*Two lamp eyes open in the dark. A growl.*
+
 **MARCUS:** Doug?
 
-*Doug walks in a small circle.*
+*Clock on screen: SWAPPER 0:09.*
 
 **DOUG:** Coo.
 
-**TITLE: FLOOR ONE CONTINUES**
+*Freeze at 0:08.*
+
+**TITLE: FLOOR ONE CONTINUES · Part 2: Count the Posts**
 
 ---
 
-## Changes from the last draft
+## Changes from draft 5
 
-- **It opens on the villain,** and the three-incidents rule is said just before Marcus dials.
-- **The first span is (1, 2) to (4, 8),** not from the origin. It is the question he got wrong at the pond, so there is something to subtract and a reason to care.
-- **He finishes the squares answer** before matching it with subtraction.
-- **−2 − 4 is counted down on the number line** before the answer, and Doug says "arithmetic", not "sum".
-- **"Change in height over change in posts"** is said, and 8 − 4 = 4 is no longer skipped.
-- **The Foreman is seen** (a gloved hand, twice) **and named** when the Voice slips.
-- **Marcus asks for something** before "Correct. Denied."
-- **Marcus has his own jokes back:** the pond, zero being high up, his stomach.
-- **Doug's lines are shorter.** When the procedure runs out he can only say "Coo."
-- **The Voice files incident slips,** and Doug objects to its paperwork.
+- **It opens on the cliffhanger** at span three, with the Swapper behind them, then goes back four minutes.
+- **Clocks on every task:** the goat door, the track dropping behind them, span three.
+- **Wrong answers let goats loose,** counted on screen, and one red-eyed goat follows them.
+- **Monsters do the teaching moments:** the llama spits when Marcus calls zero broken; a Flipper steals the minus off the winch, so the sign of a slope matters.
+- **It ends on the Swapper's eyes** in the dark with the clock frozen.
+- **Every line is shorter** and the voices are faster; the film is about a minute shorter.

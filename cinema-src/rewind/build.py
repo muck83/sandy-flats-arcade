@@ -55,6 +55,9 @@ async def voice(i, who, text):
 
 async def main():
     AUD, SRC, DUR = {}, {}, []
+    MT = json.load(open(os.path.join(EPD, 'meta.json'), encoding='utf-8'))
+    GAP = MT.get('gap', 0.45)   # silence after each line; a fast film sets a smaller one
+    for who, rate in MT.get('rates', {}).items(): VOICES[who] = (VOICES[who][0], rate, VOICES[who][2])   # a film can speed a voice up
     sem = asyncio.Semaphore(6)
     async def one(i, b):
         async with sem: return i, await voice(i, b['s'], spoken(b['t']))
@@ -70,7 +73,7 @@ async def main():
             AUD[str(i)] = {'d': d, 'e': envelope(words, int(d * FPS) + 1)}
         else:
             d = None
-        DUR.append(round(max(b.get('d') or 0, (d + 0.45 + b.get('hold', 0)) if d else 0) or 2.0, 2))
+        DUR.append(round(max(b.get('d') or 0, (d + GAP + b.get('hold', 0)) if d else 0) or 2.0, 2))
     ep = open(os.path.join(EPD, 'episode.js'), encoding='utf-8').read()
     if '__WORLD__' in ep:   # Switchback films share their sets with the arcade games: sfa-switchback.js at the repo root
         ep = ep.replace('__WORLD__', open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'sfa-switchback.js'), encoding='utf-8').read())
@@ -87,6 +90,15 @@ async def main():
            '<h1>One Alone</h1>': '<h1>%s</h1>' % meta['title'],
            'aria-label="Animated cartoon: One Alone"': 'aria-label="Animated cartoon: %s"' % meta['title'],
            'aria-label="Play One Alone"><span>▶ Play One Alone</span>': 'aria-label="Play %s"><span>▶ Play %s</span>' % (meta['title'], meta['title'])}
+    if meta.get('capBelow'):   # captions in a strip under the picture, so they never cover anyone
+        css = ('.screen{aspect-ratio:auto;display:flex;flex-direction:column}.screen canvas{height:auto;aspect-ratio:16/9}'
+               '.cap{position:static;transform:none;max-width:none;width:100%;box-sizing:border-box;border-radius:0;background:#0A0810;min-height:calc(2.6em + 18px);display:flex;align-items:center;justify-content:center;gap:0}'
+               '.cap:empty{display:flex}.cap b{flex:none}'
+               '.screen:fullscreen,body.filled .screen{flex-direction:column}'
+               '.screen:fullscreen canvas,body.filled .screen canvas{width:min(100vw,calc((100vh - 5.2em) * 16 / 9))}'
+               '.screen:fullscreen .cap,body.filled .screen .cap{width:min(100vw,calc((100vh - 5.2em) * 16 / 9))}'
+               'body.embed .screen{width:min(100vw,calc((100vh - 130px) * 16 / 9))}')
+        assert s.count('</style>') >= 1; s = s.replace('</style>', css + '</style>', 1)
     for k, v in old.items():
         assert s.count(k) == 1, k; s = s.replace(k, v)
     s = re.sub(r'(<header>.*?<h1>.*?</h1>\s*<p>).*?(</p>)', lambda m: m.group(1) + meta['blurb'] + m.group(2), s, count=1, flags=re.S)
