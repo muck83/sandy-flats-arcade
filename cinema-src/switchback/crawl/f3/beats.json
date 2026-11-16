@@ -1,0 +1,52 @@
+[
+ {"scene":"bridge","set":{"turned":true,"bgoats":4,"crack":1,"loose":3,"clock":["BRIDGE",23],"load":["g {s} 3"],"sym":"<"},"cast":{"doug":[372,1],"marcus":[430,1,{"dy":9,"mood":"shock"}]},"fx":[{"n":"crack","at":0.2}],"d":1.2},
+ {"s":"marcus","set":{"clock":["BRIDGE",22]},"t":"Fewer than three! Two goats off is ENOUGH!"},
+ {"s":"pigeon","set":{"clock":["BRIDGE",21]},"t":"Check it with a number!"},
+ {"set":{"clock":["BRIDGE",21,1],"freeze":true},"d":0.9},
+ {"title":"FOUR MINUTES EARLIER","sub":"","d":1.6},
+
+ {"scene":"control","set":{"chalk":0,"floorText":"FLOOR 3"},"fx":[{"n":"chalk","at":0.1,"dur":1.0},{"n":"pull","at":1.2}],"d":2.0},
+
+ {"scene":"bridge","set":{"turned":true,"bgoats":6,"loose":3},"cast":{"doug":[150,1],"marcus":[220,1]},"s":"voice","t":"Floor three. Weight limit. The sign says over three hundred."},
+ {"d":1.0},
+ {"s":"voice","t":"(quietly) The sign is wrong. The limit is under three hundred."},
+ {"s":"marcus","cast":{"marcus":[220,1,{"mood":"shock"}]},"t":"Why are you telling us?"},
+ {"s":"voice","t":"That information is on floor nine."},
+ {"s":"pigeon","cast":{"marcus":[220,1]},"t":"Complaint five. The Voice is doing my job."},
+
+ {"s":"voice","set":{"clock":["BRIDGE",40],"load":["you + cart: 180","goats: 6 × 40 = 240","now: 420"]},"cast":{"doug":[372,1],"marcus":[430,1,{"dy":9}]},"t":"You and the cart weigh one hundred and eighty. Six goats, forty each. Three of them are yours. Clear goats until the bridge holds under three hundred."},
+ {"s":"marcus","set":{"clock":["BRIDGE",32],"load":["420 - 40g < 300"]},"t":"Four twenty, take away forty for every goat off. Under three hundred."},
+ {"s":"marcus","set":{"clock":["BRIDGE",27],"load":["420 - 40g < 300","-40g < -120"]},"t":"Take away four twenty. Minus forty g, under minus one twenty."},
+ {"s":"marcus","set":{"clock":["BRIDGE",22],"load":["420 - 40g < 300","-40g < -120","g {s} 3"],"sym":"<"},"cast":{"marcus":[430,1,{"dy":9,"raise":true}]},"t":"Divide by minus forty. G under three. Fewer than three! Two goats off!"},
+ {"set":{"bgoats":4,"clock":["BRIDGE",20]},"cast":{"marcus":[430,1,{"dy":9}]},"fx":[{"n":"baa","at":0.3}],"d":1.6},
+ {"set":{"crack":1,"clock":["BRIDGE",14,1]},"cast":{"marcus":[430,1,{"dy":9,"mood":"shock"}]},"fx":[{"n":"crack","at":0.1},{"n":"plank","at":0.3}],"d":1.8},
+ {"s":"voice","set":{"bgoats":6,"crack":1,"clock":["BRIDGE",14]},"fx":[{"n":"baa","at":0.4}],"t":"Incident. Cause: divided by a negative and did not turn the sign. Penalty: goats. Both of them, back on the bridge."},
+ {"s":"marcus","set":{"clock":["BRIDGE",12]},"t":"Now it's CRACKED!"},
+ {"s":"pigeon","set":{"clock":["BRIDGE",10],"load":["try g = 2:","420 - 80 = 340","✗ not under 300"]},"t":"Check it with a number. Two off. Four twenty take away eighty. Three forty. Not under three hundred."},
+ {"s":"marcus","set":{"clock":["BRIDGE",8]},"t":"So fewer than three is wrong?"},
+ {"s":"pigeon","set":{"clock":["BRIDGE",6],"load":["420 - 40g < 300","-40g < -120","g {s} 3"],"sym":"<"},"fx":[{"n":"batflip","at":0.2}],"t":"Divide by a negative, and the sign turns over."},
+ {"s":"marcus","set":{"clock":["BRIDGE",3],"sym":">","symHot":true,"nl":[3,1]},"cast":{"marcus":[430,1,{"dy":9,"raise":true}]},"t":"G MORE than three. Four goats off!"},
+ {"set":{"bgoats":2,"clock":["BRIDGE",2]},"cast":{"marcus":[430,1,{"dy":9}]},"fx":[{"n":"baa","at":0.3}],"d":1.6},
+ {"s":"pigeon","set":{"clock":["BRIDGE",1.5],"load":["try g = 4:","420 - 160 = 260","✓ under 300"]},"t":"Check. Four off. Four twenty take away one sixty. Two sixty."},
+ {"s":"voice","set":{"clock":["BRIDGE",1,1],"nl":null},"t":"Correct. Floor three passed."},
+ {"set":{"clock":null,"load":null,"helmet":["END MINUS START.","SAME ORDER, TOP AND BOTTOM.","START IS WHERE THE POST IS ZERO.","DIVIDE BY A NEGATIVE: TURN THE SIGN."]},"cast":{"doug":[690,1],"marcus":[745,1]},"d":2.6},
+
+ {"set":{"helmet":null,"helmet2":true},"cast":{"doug":[690,1],"marcus":[745,1]},"s":"marcus","t":"Doug. There's another helmet on that nail."},
+ {"s":"pigeon","t":"Covered in writing. The last line says: turn the sign."},
+ {"s":"marcus","cast":{"marcus":[745,1,{"mood":"shock"}]},"t":"Somebody wrote our tips down first."},
+
+ {"scene":"news","cast":{"anchor":[480,1,{"dy":-44}]},"set":{"ticker":"DAY THREE: THE DUCK POND IS STILL MISSING"},"s":"anchor","t":"Day three. The duck pond is still missing. We have a caller."},
+ {"set":{"caller":true},"s":"marcus","t":"(on the phone) Chip! The voice down here warned us. I think it's on our side."},
+ {"s":"anchor","t":"And how is the weather under the pond?","comic":true},
+
+ {"scene":"gate","set":{"loose":3,"clock":["GATE A",9]},"cast":{},"d":1.6},
+ {"s":"voice","set":{"clock":["GATE A",8]},"t":"Gate A. The last cart down. You are not the only one riding it."},
+ {"s":"marcus","set":{"clock":["GATE A",7]},"t":"(off) Who is THAT?"},
+ {"set":{"clock":["GATE A",6]},"fx":[{"n":"roll","at":0.2}],"d":2.4},
+ {"set":{"clock":["GATE A",6,1],"freeze":true},"d":0.9},
+
+ {"scene":"pen","set":{"keith":[600,-1,0]},"cast":{"marcus":[300,1]},"s":"marcus","t":"Is the goat eating the load sign?"},
+ {"s":"voice","t":"Keith is staff.","comic":true},
+ {"fx":[{"n":"eat","at":0.2}],"d":1.8},
+ {"title":"TO BE CONTINUED","sub":"GATE A: THE LAST CART DOWN","d":3.0,"end":true}
+]
