@@ -8,7 +8,7 @@
   var SFA = window.SFA, el = SFA.el, esc = SFA.esc, CFG = window.SFA_CONFIG || {}, S = SFA.sync;
   var Q = new URLSearchParams(location.search);
   var MODE = Q.has('teach') ? 'teach' : Q.has('screen') ? 'screen' : 'student';
-  var N = Math.max(1, Math.min(21, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
+  var N = Math.max(1, Math.min(23, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
   var TEACHER = 'Mr. Crowell';
   var LIVE_FRESH = 10 * 60 * 1000;   // a live session counts as running while the console has checked in within 10 minutes
   document.body.classList.add('lesson', 'm-' + MODE);
@@ -1637,7 +1637,7 @@
       var f = feed.per[s.id], n = f ? f.n : 0, tot = feed.total || 0;
       sec.appendChild(H('div', 'nowcount', '<b>' + n + '</b> of ' + tot + ' answered' + ((s.k === 'number' || s.k === 'machine') && f ? ' · <b>' + f.right + '</b> right' : '')));
       var pb = H('div', 'pbar'), bi = H('i'); bi.style.width = (tot ? 100 * n / tot : 0) + '%'; pb.appendChild(bi); sec.appendChild(pb);
-      if (s.more && s.more.length) sec.appendChild(H('p', 'muted', '⭐ Going further: ' + s.more.map(function (m, j) { var q = feed.per[xid(s, j)] || { n: 0, right: 0, list: [] }; return (j === 0 ? '★ ' : '★★ ') + q.n + (m.k === 'open' ? ' sent' : ' tried, ' + q.right + ' right') + (q.n && q.n <= 6 ? ' (' + q.list.map(function (r) { return first(r.name); }).join(', ') + ')' : ''); }).join(' · ')));
+      if (s.more && s.more.length) sec.appendChild(H('p', 'muted', '⭐ Going further: ' + s.more.map(function (m, j) { var q = feed.per[xid(s, j)] || { n: 0, right: 0, list: [] }; return (j === 0 ? '★ ' : j === 1 ? '★★ ' : '★★★ ') + q.n + (m.k === 'open' ? ' sent' : ' tried, ' + q.right + ' right') + (q.n && q.n <= 6 ? ' (' + q.list.map(function (r) { return first(r.name); }).join(', ') + ')' : ''); }).join(' · ')));
       var rv = console_.reveal[s.id] || 0, r2 = H('div', 'row');
       var canShow = true;
       if (s.k === 'poll' || s.k === 'conf') r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 1 ? ' good' : ''), text: rv >= 1 ? 'Results showing' : 'Show results to class', onclick: function () { console_.reveal[s.id] = rv >= 1 ? 0 : 1; pushLive(); consolePanel(); } }));

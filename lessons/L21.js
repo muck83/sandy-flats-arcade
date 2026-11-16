@@ -1,6 +1,6 @@
 SFA_LESSON({
   id: 'L21', n: 18, label: 'Floor One', title: 'End Minus Start',
-  film: { n: 'Floor 1', title: 'End Minus Start and Count the Posts', len: '4:52 + 4:19' },
+  film: { n: 'Floor 1', title: 'End Minus Start and Count the Posts', len: '3:08 + 3:24' },
   game: { title: 'The Log Book', file: 'g18-log-book.html' },
   big: 'A change is end minus start, and its sign is its direction. Slope is the same idea twice: change in height over change in posts, in the same order top and bottom. In a table, divide each jump by its own gap.',
   slides: [
@@ -11,7 +11,7 @@ SFA_LESSON({
       opts: ['The lift goes down to −2', 'The lift goes UP 6, the wrong way', 'The lift doesn\'t move', 'The lift goes down 6, then up 6'], ans: 1,
       why: 'The dial takes the change: end − start = −2 − 4 = −6, which is 6 down. Marcus did start − end and got +6, so the lift shot up. (In the film he lands in the goats.)',
       help: 'Plus on the dial means up. Which way did the lift need to go?' },
-    { k: 'film', min: 5, title: 'Watch: Floor One, Part 1', watch: 'Marcus gets an incident slip at the lift. Watch for the cause written on it, and for who moves the track.', cue: 'Play *End Minus Start* (Under the Pond, Floor One, Part 1). It runs 4:52.' },
+    { k: 'film', min: 5, title: 'Watch: Floor One, Part 1', watch: 'Marcus gets an incident slip at the lift. Watch for the cause written on it, why the llama spits, and what the Flipper steals.', cue: 'Play *End Minus Start* (Under the Pond, Floor One, Part 1). It runs 3:08.' },
     { k: 'open', min: 2, id: 'report1', q: 'The incident slip said *Cause: start minus end.* What did Marcus do, and what should he have done?', ph: 'He did... He should have...',
       model: 'He did start minus end: 4 − (−2) = 6, so the lift went up 6. A change is end minus start: −2 − 4 = −6, which is 6 down.',
       help: 'Where was the lift going? Where was it? Which one did Marcus put first?',
@@ -20,7 +20,9 @@ SFA_LESSON({
           steps: ['The end is −4. The start is 3.', 'Change = end − start = −4 − 3.', 'Start at −4 on the number line and go down 3 more: −5, −6, −7.', '= *−7*. The minus means down.'] },
         { k: 'poll', q: 'Rami says the change from *level −5* to *level 2* is *−7*. What did he do?', opts: ['Start minus end', 'End minus start', 'He added them', 'Nothing: it is −7'], ans: 0,
           why: '−5 − 2 = −7 is start minus end. End minus start is 2 − (−5) = 7: up 7.',
-          steps: ['The end is 2. The start is −5.', 'End − start = 2 − (−5) = 2 + 5 = 7. Up 7.', 'Rami did −5 − 2 = −7: that is *start minus end*, the same mistake as Marcus.'] }
+          steps: ['The end is 2. The start is −5.', 'End − start = 2 − (−5) = 2 + 5 = 7. Up 7.', 'Rami did −5 − 2 = −7: that is *start minus end*, the same mistake as Marcus.'] },
+        { k: 'number', q: 'Two lifts start at *level 6*. Lift A changes by *−9*. Lift B ends at *level −1*. How many levels apart do they end?', ans: 2, hint: 'Where does lift A end? 6 + (−9).', why: 'A ends at −3, B at −1. They are 2 levels apart.',
+          steps: ['Lift A: change −9 from 6, so it ends at 6 − 9 = −3.', 'Lift B ends at −1.', 'From −3 to −1 is −1 − (−3) = 2.', 'They are *2* levels apart.'] }
       ] },
     { k: 'text', min: 1, title: 'A change is end minus start', points: ['*Change = end − start.* Where it is going, take away where it is.', 'A *plus* answer means up. A *minus* answer means down.', 'Taking away a negative is adding: 3 − (−2) = 3 + 2.'],
       note: 'Your arithmetic can be perfect and the answer still wrong, if the order is backwards.' },
@@ -31,7 +33,9 @@ SFA_LESSON({
         { k: 'number', q: 'From *level −1* to *level −5*. What is the change?', ans: -4, hint: 'End − start: −5 − (−1).', why: '−5 − (−1) = −5 + 1 = −4. Down 4.',
           steps: ['The end is −5. The start is −1.', 'Change = −5 − (−1) = −5 + 1.', '= *−4*. It went 4 down.'] },
         { k: 'number', q: 'The lift moved *−5* and stopped at *level −3*. What level did it start at?', ans: 2, hint: 'Change = end − start. So −5 = −3 − start.', why: 'It went down 5 and ended at −3, so it started 5 higher: level 2.',
-          steps: ['Change = end − start, so −5 = −3 − start.', 'Going down 5 ended at −3, so the start was 5 above −3.', '−3 + 5 = *2*.', 'Check: −3 − 2 = −5. ✓'] }
+          steps: ['Change = end − start, so −5 = −3 − start.', 'Going down 5 ended at −3, so the start was 5 above −3.', '−3 + 5 = *2*.', 'Check: −3 − 2 = −5. ✓'] },
+        { k: 'number', q: 'The lift makes two trips: *+7*, then *−11*. It ends at *level −6*. What level did it start at?', ans: -2, hint: 'Undo the trips backwards: from −6, undo −11, then undo +7.', why: 'The total change is −4, so the start is 4 above −6: level −2.',
+          steps: ['Total change: 7 + (−11) = −4.', 'Change = end − start, so −4 = −6 − start.', 'The start is 4 above −6: *−2*.', 'Check: −2 + 7 = 5, 5 − 11 = −6. ✓'] }
       ] },
     { k: 'text', min: 1, title: 'Slope is the lift, done twice', points: ['*Slope = change in height ÷ change in posts.*', 'On top: end height − start height.', 'Underneath: end post − start post.', 'The *same order* top and bottom.'],
       note: 'Uphill is a plus slope. Flat is zero. Downhill is a minus slope.' },
@@ -43,7 +47,9 @@ SFA_LESSON({
         { k: 'number', q: 'A span runs from *post 2, height 3* to *post 5, height 15*. What is its slope?', ans: 4, hint: '(15 − 3) ÷ (5 − 2).', why: '12 ÷ 3 = 4.',
           steps: ['Height change: 15 − 3 = 12.', 'Post change: 5 − 2 = 3.', 'Slope = 12 ÷ 3 = *4*.', 'It is not 15 ÷ 5: you need the *change*, not the end point.'] },
         { k: 'number', q: 'A span has slope *3*. It starts at *post 2, height 1*. What is its height at *post 6*?', ans: 13, hint: 'From post 2 to post 6 is 4 posts. Each post gains 3.', why: '4 posts × 3 = 12 up. 1 + 12 = 13.',
-          steps: ['Post change: 6 − 2 = 4 posts.', 'Slope 3 means 3 in height for each post: 4 × 3 = 12.', 'Start at height 1 and gain 12: *13*.'] }
+          steps: ['Post change: 6 − 2 = 4 posts.', 'Slope 3 means 3 in height for each post: 4 × 3 = 12.', 'Start at height 1 and gain 12: *13*.'] },
+        { k: 'number', q: 'A span starts at *post 3, height 5* and has slope *2.5*. At which *post* does it reach *height 20*?', ans: 9, hint: 'It must climb 20 − 5 = 15. How many posts at 2.5 each?', why: '15 ÷ 2.5 = 6 posts. 3 + 6 = post 9.',
+          steps: ['Height to climb: 20 − 5 = 15.', 'Each post climbs 2.5: 15 ÷ 2.5 = 6 posts.', 'It starts at post 3: 3 + 6 = *9*.'] }
       ] },
     { k: 'poll', min: 2, id: 'flat', q: 'Span two runs along the ledge, from *post 4, height 8* to *post 8, height 8*. What is its slope?', opts: ['0: it is flat', '4', '8', 'It has no slope: it is broken'], ans: 0,
       fig: { kind: 'graph', x: [0, 12], y: [0, 12], xl: 'posts', yl: 'height', lines: [{ pts: [[1, 2], [4, 8], [8, 8], [10, 4]], dots: true }] },
@@ -54,7 +60,10 @@ SFA_LESSON({
           steps: ['Height change: 5 − 5 = 0.', 'Post change: 9 − 2 = 7.', 'Slope = 0 ÷ 7 = *0*. A flat span.'] },
         { k: 'poll', q: 'Four spans have these slopes. Which one is the steepest *downhill*?', opts: ['−1', '−4', '0', '3'], ans: 1,
           why: 'Minus means downhill. −4 drops 4 in height for every post, which is steeper than dropping 1.',
-          steps: ['Only the minus slopes go downhill: −1 and −4.', '−1 drops 1 per post. −4 drops 4 per post.', '*−4* is the steepest downhill. (3 is steep, but uphill. 0 is flat.)'] }
+          steps: ['Only the minus slopes go downhill: −1 and −4.', '−1 drops 1 per post. −4 drops 4 per post.', '*−4* is the steepest downhill. (3 is steep, but uphill. 0 is flat.)'] },
+        { k: 'poll', q: 'A span runs from *(5, 2)* to *(5, 9)*. What is its slope?', opts: ['0', '7', 'It has no slope: you can\'t divide by a post change of 0', '−7'], ans: 2,
+          why: 'Height change 7, post change 0. 7 ÷ 0 cannot be done. A straight-up span (a wall) has no slope. That is different from a flat span, which has slope 0.',
+          steps: ['Height change: 9 − 2 = 7.', 'Post change: 5 − 5 = 0.', '7 ÷ 0 cannot be worked out: the slope is *undefined*.', 'Flat (slope 0) means no height change. A wall means no post change.'] }
       ] },
     { k: 'number', min: 2, id: 'dip', q: 'Somebody swings span three away from the door. It now runs from *post 8, height 8* to *post 10, height 4*. What is its slope?', ans: -2,
       fig: { kind: 'graph', x: [0, 12], y: [0, 12], xl: 'posts', yl: 'height', lines: [{ pts: [[1, 2], [4, 8], [8, 8], [10, 4]], dots: true }] },
@@ -64,9 +73,11 @@ SFA_LESSON({
         { k: 'number', q: 'From *post 4, height 9* to *post 7, height −3*. What is the slope?', ans: -4, hint: '(−3 − 9) ÷ (7 − 4).', why: '−12 ÷ 3 = −4.',
           steps: ['Height change: −3 − 9 = −12.', 'Post change: 7 − 4 = 3.', 'Slope = −12 ÷ 3 = *−4*.'] },
         { k: 'number', q: 'From *(−2, 5)* to *(2, −1)*. What is the slope? (Type a decimal.)', ans: -1.5, hint: '(−1 − 5) ÷ (2 − (−2)).', why: '−6 ÷ 4 = −1.5.',
-          steps: ['Height change: −1 − 5 = −6.', 'Post change: 2 − (−2) = 4.', 'Slope = −6 ÷ 4 = *−1.5*. Down one and a half for each post.'] }
+          steps: ['Height change: −1 − 5 = −6.', 'Post change: 2 − (−2) = 4.', 'Slope = −6 ÷ 4 = *−1.5*. Down one and a half for each post.'] },
+        { k: 'number', q: 'A span has slope *−2.5*. It ends at *post 6, height −4*. It started at *post 2*. What height did it start at?', ans: 6, hint: 'Going back 4 posts undoes the slope 4 times: each one climbs 2.5.', why: '4 posts back at −2.5 each is 10 up: −4 + 10 = 6.',
+          steps: ['From post 2 to post 6 is 4 posts.', 'Going forward it drops 2.5 per post: 4 × 2.5 = 10 down.', 'So the start was 10 higher than −4: *6*.', 'Check: (−4 − 6) ÷ (6 − 2) = −10 ÷ 4 = −2.5. ✓'] }
       ] },
-    { k: 'film', min: 5, title: 'Watch: Floor One, Part 2', watch: 'The map is gone, so Marcus uses someone else\'s exercise book. Watch for what he reads from the table, and what he doesn\'t.', cue: 'Play *Count the Posts* (Under the Pond, Floor One, Part 2). It runs 4:19.' },
+    { k: 'film', min: 5, title: 'Watch: Floor One, Part 2', watch: 'The map is gone, so Marcus uses someone else\'s exercise book. Watch for what he reads from the table, what he doesn\'t, and what happens to his shoes.', cue: 'Play *Count the Posts* (Under the Pond, Floor One, Part 2). It runs 3:24.' },
     { k: 'poll', min: 2, id: 'report2', q: 'Marcus dialled *2* for the first jump and it worked. Then he saw "up 6", dialled *6*, and was thrown. What did he miss?', opts: ['Nothing: the track bends', 'The posts jump by 1, then by 3', 'He should have dialled 12', 'The exercise book is wrong'], ans: 1,
       fig: { kind: 'table', head: ['post', 'height'], rows: [[10, 4], [11, 6], [14, 12], [15, 14]] },
       why: 'The cart gained 6 in height, but over 3 posts: 6 ÷ 3 = 2. The first jump was 2 ÷ 1 = 2, which is why dialling 2 worked. It is 2 the whole way. (The slip: counted the rows, not the posts.)',
@@ -82,7 +93,10 @@ SFA_LESSON({
         { k: 'poll', q: 'Is this track straight?', opts: ['Yes: it always goes up', 'No: the slope changes', 'Yes: the heights go up 4, 4, 6', 'You can\'t tell from a table'], ans: 1,
           fig: { kind: 'table', head: ['post', 'height'], rows: [[0, 1], [2, 5], [3, 9], [6, 15]] },
           why: 'The slopes are 4 ÷ 2 = 2, then 4 ÷ 1 = 4, then 6 ÷ 3 = 2. A straight track has the same slope between every pair of rows.',
-          steps: ['Rows 1 and 2: (5 − 1) ÷ (2 − 0) = 4 ÷ 2 = 2.', 'Rows 2 and 3: (9 − 5) ÷ (3 − 2) = 4 ÷ 1 = 4.', 'Rows 3 and 4: (15 − 9) ÷ (6 − 3) = 6 ÷ 3 = 2.', '2, 4, 2: the slope changes, so it is *not straight*.'] }
+          steps: ['Rows 1 and 2: (5 − 1) ÷ (2 − 0) = 4 ÷ 2 = 2.', 'Rows 2 and 3: (9 − 5) ÷ (3 − 2) = 4 ÷ 1 = 4.', 'Rows 3 and 4: (15 − 9) ÷ (6 − 3) = 6 ÷ 3 = 2.', '2, 4, 2: the slope changes, so it is *not straight*.'] },
+        { k: 'number', q: 'This track is straight. One height is smudged. What is it?', ans: 17, fig: { kind: 'table', head: ['post', 'height'], rows: [[1, 5], [4, 11], [7, '?'], [12, 27]] },
+          hint: 'Find the slope from two rows you can read, then go from post 4 to post 7.', why: 'Slope 2. From post 4 to post 7 is 3 posts: 11 + 6 = 17.',
+          steps: ['Slope from rows 1 and 2: (11 − 5) ÷ (4 − 1) = 2.', 'Check with the last row: (27 − 11) ÷ (12 − 4) = 16 ÷ 8 = 2. ✓', 'Post 4 to post 7 is 3 posts: 3 × 2 = 6 up.', '11 + 6 = *17*.'] }
       ] },
     { k: 'number', min: 2, id: 'log2', q: 'A cart on the way down. What is the slope?', ans: -2,
       fig: { kind: 'table', head: ['post', 'height'], rows: [[0, 10], [2, 6], [5, 0], [6, -2]] },
@@ -94,7 +108,9 @@ SFA_LESSON({
           steps: ['The slope is −2: down 2 in height for each post.', 'From post 6 to post 9 is 3 posts: 3 × −2 = −6.', 'It was at −2. −2 − 6 = *−8*.'] },
         { k: 'number', q: 'At which *post* was that cart at *height 4*?', ans: 3, fig: { kind: 'table', head: ['post', 'height'], rows: [[0, 10], [2, 6], [5, 0], [6, -2]] },
           hint: 'It starts at height 10 and drops 2 for each post. How many drops from 10 to 4?', why: 'From 10 down to 4 is 6. 6 ÷ 2 = 3 posts.',
-          steps: ['At post 0 it is at height 10. Each post drops 2.', 'To reach height 4 it must drop 10 − 4 = 6.', '6 ÷ 2 = 3 posts, so it is at *post 3*.', 'Check: post 2 is height 6, one more post is height 4. ✓'] }
+          steps: ['At post 0 it is at height 10. Each post drops 2.', 'To reach height 4 it must drop 10 − 4 = 6.', '6 ÷ 2 = 3 posts, so it is at *post 3*.', 'Check: post 2 is height 6, one more post is height 4. ✓'] },
+        { k: 'number', q: 'A second cart starts at *post 0, height −8* and climbs *3* for each post. At which post are the two carts at the *same height*? (The first starts at 10 and drops 2 for each post.)', ans: 3.6, hint: 'Each post the gap closes by 2 + 3 = 5. How big is the gap at post 0?', why: 'The gap is 18 and closes by 5 each post: 18 ÷ 5 = 3.6.',
+          steps: ['At post 0: heights 10 and −8. The gap is 18.', 'Each post: the first drops 2, the second climbs 3. The gap closes by 5.', '18 ÷ 5 = *3.6* posts.', 'Check: 10 − 7.2 = 2.8 and −8 + 10.8 = 2.8. ✓'] }
       ] },
     { k: 'poll', min: 2, id: 'order', q: 'At the stairs Marcus starts: height = *−3 − (−1) = −2*. Then posts = *2 − 6 = −4*. If Doug hadn\'t stopped him, what slope would he get?', opts: ['−1/2', '+1/2: the wrong sign', '2', '−2'], ans: 1,
       why: '−2 ÷ −4 = +1/2. On top he went end − start. Underneath he went start − end. That is the old chalk on the wall: + 1/2, three of three.',
@@ -104,7 +120,10 @@ SFA_LESSON({
           steps: ['Top: −1 − (−3) = −1 + 3 = 2.', 'Bottom: 2 − 6 = −4.', '2 ÷ −4 = *−0.5*.', 'Both are backwards, so the two sign changes cancel. Backwards on only one would give +0.5.'] },
         { k: 'poll', q: 'Lina finds the slope from *(1, 8)* to *(5, 0)* like this: (8 − 0) ÷ (5 − 1) = 2. What went wrong?', opts: ['Nothing: it is 2', 'Different orders top and bottom: it is −2', 'She should have added', 'The run should be 6'], ans: 1,
           why: 'On top she did start − end (8 − 0). Underneath she did end − start (5 − 1). Same order both times: (0 − 8) ÷ (5 − 1) = −8 ÷ 4 = −2.',
-          steps: ['Top: 8 − 0 is start height minus end height.', 'Bottom: 5 − 1 is end post minus start post.', 'The orders don\'t match. End − start for both: (0 − 8) ÷ (5 − 1) = −8 ÷ 4 = *−2*.', 'It makes sense: the height falls, so the slope is minus.'] }
+          steps: ['Top: 8 − 0 is start height minus end height.', 'Bottom: 5 − 1 is end post minus start post.', 'The orders don\'t match. End − start for both: (0 − 8) ÷ (5 − 1) = −8 ÷ 4 = *−2*.', 'It makes sense: the height falls, so the slope is minus.'] },
+        { k: 'open', q: 'Explain why doing *start − end* on top AND underneath still gives the right slope, but doing it on only one of them flips the sign.', ph: 'If you swap both...',
+          model: 'Swapping the order of a subtraction changes its sign: 8 − 0 = 8 but 0 − 8 = −8. Swap both and both signs change, and a minus divided by a minus is a plus, so the answer is the same. Swap only one and only one sign changes, so the slope comes out with the wrong sign.',
+          steps: ['Swapping a subtraction flips its sign: 5 − 2 = 3, 2 − 5 = −3.', 'Swap top and bottom: both flip. (−a) ÷ (−b) = a ÷ b. Same slope.', 'Swap only one: one flips. (−a) ÷ b = −(a ÷ b). The *sign is wrong*.'] }
       ] },
     { k: 'number', min: 2, id: 'two', q: 'The stairs to floor two. Top step: *(2, −1)*. Bottom step: *(6, −3)*. What is the slope? (Type a decimal.)', ans: -0.5,
       hint: '(−3 − (−1)) ÷ (6 − 2).', why: '−2 ÷ 4 = −0.5. Down one for every two across.',
@@ -113,7 +132,9 @@ SFA_LESSON({
         { k: 'number', q: 'What is the slope from *(−3, 2)* to *(1, 5)*? (Type a decimal.)', ans: 0.75, hint: '(5 − 2) ÷ (1 − (−3)).', why: '3 ÷ 4 = 0.75.',
           steps: ['Height change: 5 − 2 = 3.', 'Post change: 1 − (−3) = 1 + 3 = 4.', 'Slope = 3 ÷ 4 = *0.75*.'] },
         { k: 'number', q: 'What is the slope from *(4, −2)* to *(−2, 1)*? (Type a decimal.)', ans: -0.5, hint: '(1 − (−2)) ÷ (−2 − 4).', why: '3 ÷ −6 = −0.5.',
-          steps: ['Height change: 1 − (−2) = 3.', 'Post change: −2 − 4 = −6.', 'Slope = 3 ÷ −6 = *−0.5*.', 'The post change is negative because the second point is to the left. Same order, top and bottom.'] }
+          steps: ['Height change: 1 − (−2) = 3.', 'Post change: −2 − 4 = −6.', 'Slope = 3 ÷ −6 = *−0.5*.', 'The post change is negative because the second point is to the left. Same order, top and bottom.'] },
+        { k: 'number', q: 'A line has slope *−0.5* and goes through *(2, −1)*. What is its height at *post −6*? ', ans: 3, hint: 'From post 2 back to post −6 is 8 posts back. Going back undoes the slope.', why: '8 posts back at −0.5 is 4 up: −1 + 4 = 3.',
+          steps: ['Post change from 2 to −6: −6 − 2 = −8.', 'Height change = slope × post change = −0.5 × −8 = 4.', 'Height at post −6: −1 + 4 = *3*.', 'Check: (3 − (−1)) ÷ (−6 − 2) = 4 ÷ −8 = −0.5. ✓'] }
       ] },
     { k: 'conf', min: 1, id: 'conf', q: 'Finding a slope from a table where the rows are not evenly spaced: how do you feel?' },
     { k: 'play', min: 5, title: 'Play: The Log Book', steps: ['Open *The Log Book* in the Arcade.', 'Start at the lift: set the dial with end minus start.', 'Work up to the logbook level: divide each jump by its own gap.', 'A wrong dial means goats. Read the report, then try again.'], aim: 'Done when you have set the dial for the logbook level.', minutes: 5 },

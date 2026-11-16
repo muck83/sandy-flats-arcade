@@ -53,7 +53,9 @@ Any `poll`, `number`, `open` or `machine` slide (not `warm`, `conf` or `exit`) c
   `number` and `open` slides use their `hint` for this when there's no `help`.
 - `more`: up to 3 extra questions, worked down one at a time by students who have already answered the slide's
   question, while the teacher keeps the class on the slide. `more[0]` is **★ Another one** (the same idea, new
-  numbers or a new context), `more[1]` is **★★ Stretch** (one step deeper: backwards, a twist, explain or generalise).
+  numbers or a new context), `more[1]` is **★★ Stretch** (one step deeper: backwards, a twist, explain or generalise),
+  `more[2]` is **★★★ Challenge** (two ideas combined, a harder case, or a why question). The Under the Pond lessons
+  (L21 to L23) give every question all three.
 
 ```js
 more: [
