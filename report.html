@@ -53,7 +53,7 @@
 <script src="climb/bank-sy.js?v=20261024"></script>
 <script>
 /* One short report per student for a class's last three lessons: what they did, what they got right and what they
-   missed, across the lesson slides, the class games run in those lessons, the Climb check-in and the arcade.
+   missed, across the lesson slides, the class games run in those lessons (Laser Lines with the help each student had), the Climb check-in and the arcade.
    Data comes from the results script's "report" action. report.html?demo shows made-up students, for trying the page. */
 (function () {
   'use strict';
@@ -108,6 +108,14 @@
     zclash: function (o) { return 'Lane Clash: ' + (+o.r || 0) + ' right, ' + (+o.w || 0) + ' wrong'; },
     zraidx1: function (o) { var n = +o.n || 0, h = +o.h || 0; return 'Boss Raid: ' + h + ' right of ' + n + ' answered'; },
     zsumox1: function (o) { return 'Sumo Graphing: ' + (+o.c || 0) + ' lines graphed, ' + (+o.f || 0) + ' right first time, ' + (+o.w || 0) + ' wrong tries'; },
+    // Laser Lines: the line through two points, y = mx + b; the help levels say how much support the student had
+    zduelx1: function (o) {
+      var n = +o.n || 0, ok = +o.ok || 0, f = +o.f || 0, hi = +o.hi || 0, HL = ['from two points on their own', 'with a table of points on the line', 'with the slope and intercept given'];
+      if (!n) return 'Laser Lines (equations of lines from two points): joined, no rounds played';
+      var hl = String(o.hl || '').split('').map(Number).filter(function (h) { return h >= 0 && h <= 2; }).map(function (h) { return HL[h]; });
+      return 'Laser Lines (writing the equation of the line through two points): ' + ok + ' of ' + n + ' line' + (n === 1 ? '' : 's') + ' right' + (ok ? ' (' + f + ' right first time)' : '') +
+        (hl.length ? ', working ' + hl.join(', then ') : '') + (hi ? '; ' + hi + ' laser hit' + (hi === 1 ? '' : 's') : '') + (+o.w === 1 ? '; their fleet won' : +o.w === 2 ? '; their fleet lost' : +o.w === 3 ? '; the battle was a draw' : '');
+    },
     zboardx1: function (o) { return 'Big Board: ' + (+o.r || 0) + ' right, ' + (+o.m || 0) + ' missed'; },
     zstandx1: function (o) { var lo = +o.o || 0, io = +o.f || 0, h = +o.h || 0; if (!lo && !io) return o.p != null ? 'Stand on the Line: played' : 'The Floor Is Lava: joined, no rounds finished'; return 'The Floor Is Lava: ' + (lo ? (+o.r || 0) + ' of ' + lo + ' line' + (lo === 1 ? '' : 's') + ' right' : '') + (io ? (lo ? ', ' : '') + (+o.e || 0) + ' of ' + io + ' inequality round' + (io === 1 ? '' : 's') + ' safe' : '') + (h ? ', ' + h + ' with a hint step' : ''); }
   };
@@ -239,6 +247,7 @@
           if (s.more && s.more[0] && rnd() < 0.4 && s.more[0].ans != null) { var ok4 = rnd() < skill; res.push({ time: '', sid: st.sid, lesson: lid, q: s.id + 'x1', kind: s.more[0].k, answer: String(ok4 ? s.more[0].ans : 0), correct: ok4 ? 'yes' : 'no' }); }
         });
         if (li === 2) res.push({ time: '', sid: st.sid, lesson: lid, q: 'zclash', kind: 'open', answer: 'c3;id:1;r:' + Math.round(4 + skill * 10) + ';w:' + Math.round(6 - skill * 5), correct: '' });
+        if (li === 0) { var dn = 3, dok = Math.min(dn, Math.round(skill * 4)); res.push({ time: '', sid: st.sid, lesson: lid, q: 'zduelx1', kind: 'open', answer: 'd1;id:1;r:3;n:' + dn + ';ok:' + dok + ';f:' + Math.max(0, dok - 1) + ';hi:' + Math.max(0, dok - 1) + ';hl:' + (skill < 0.5 ? '21' : skill < 0.7 ? '10' : '0') + ';w:' + (si % 2 ? 1 : 2), correct: '' }); }
         if (li === 1) res.push({ time: '', sid: st.sid, lesson: lid, q: 'zraidx1', kind: 'open', answer: 'r1;id:1;d:140;h:' + Math.round(3 + skill * 8) + ';n:' + 12, correct: '' });
       });
       if (si !== 4) for (var k = 0; k < 9; k++) { var sk = skills[Math.floor(rnd() * skills.length)]; climb.push({ time: '', sid: st.sid, sess: 'S1', skill: sk, tid: '', seed: 0, mode: 'new', answer: '', result: rnd() < skill ? 'yes' : 'no', tag: '' }); }
