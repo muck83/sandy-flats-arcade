@@ -1,8 +1,9 @@
 /* Sandy Flats Arcade: avatars, the wardrobe and the coin wallet.
    Every student has a little character drawn in SVG: a colour, eyes, a mouth, a hat, an extra, a trail, a name colour,
    a character type (cat, bunny, robot...) and a pet.
-   A look is 9 base-36 characters (one per part, in that order), e.g. "120350030". Older 7-character looks still work:
-   a missing part counts as 0 (the plain blob, no pet). Basic parts are free; the rest cost coins, and the best ones
+   A look is 9 base-36 characters (one per part, in that order), e.g. "120350030", plus up to 3 more for extra extras
+   worn together (see wear()). Older 7-character looks still work: a missing part counts as 0 (the plain blob, no pet).
+   One character per part means a list can hold at most 36 items (0-9, a-z). Basic parts are free; the rest cost coins, and the best ones
    also need an arcade level. New items only ever go on the END of a list, because looks and purchases use positions.
    Coins are worked out from everything the student has done (arcade game levels and certificates, live-game XP,
    lesson answers, Climb), minus what they've spent. What they own, spend and wear lives in the arcade profile
@@ -20,44 +21,85 @@
       { n: 'Neon lime', c: '#B6FF2E', p: 40 }, { n: 'Lilac', c: '#C8A2FF', p: 40 }, { n: 'Peach', c: '#FFB38A', p: 30 }, { n: 'Teal', c: '#1FC7B6', p: 30 },
       { n: 'Shadow', c: '#4A4A6A', p: 60 }, { n: 'Camo', c: '#6B8E4E', fx: 'camo', p: 100, lv: 2 }, { n: 'Cotton candy', c: '#FFB3E1', fx: 'candy', p: 100, lv: 2 },
       { n: 'Slime', c: '#7FE04A', fx: 'slime', p: 120, lv: 3 }, { n: 'Sunset', c: '#FF8A5B', fx: 'sunset', p: 150, lv: 3 },
-      { n: 'Holographic', c: '#D9B8FF', fx: 'holo', p: 250, lv: 6 }, { n: 'Rainbow', c: '#FFE14D', fx: 'rainbow', p: 300, lv: 9 }] },
+      { n: 'Holographic', c: '#D9B8FF', fx: 'holo', p: 250, lv: 6 }, { n: 'Rainbow', c: '#FFE14D', fx: 'rainbow', p: 300, lv: 9 },
+      { n: 'Mango', c: '#FFA53B', p: 30 }, { n: 'Cherry', c: '#D7263D', p: 50 }, { n: 'Forest', c: '#2F8F4E', p: 50 }, { n: 'Ice', c: '#BFEFFF', p: 40 },
+      { n: 'Midnight', c: '#232A6B', p: 60 }, { n: 'Cow print', c: '#FFFFFF', fx: 'cow', p: 100, lv: 2 }, { n: 'Strawberry', c: '#FF4D6A', fx: 'berry', p: 120, lv: 3 },
+      { n: 'Aurora', c: '#3B8BFF', fx: 'aurora', p: 200, lv: 5 }] },
     e: { name: 'Eyes', items: [{ n: 'Round' }, { n: 'Happy' }, { n: 'Sleepy', p: 20 }, { n: 'Big', p: 30 }, { n: 'Star eyes', p: 80, lv: 3 }, { n: 'Heart eyes', p: 80, lv: 5 },
-      { n: 'Wink', p: 30 }, { n: 'Side-eye', p: 40 }, { n: 'Chill', p: 40 }, { n: 'Anime sparkle', p: 80, lv: 2 }, { n: 'Dizzy', p: 60 }, { n: 'Laser eyes', p: 200, lv: 7 }, { n: 'Happy tears', p: 60 }] },
+      { n: 'Wink', p: 30 }, { n: 'Side-eye', p: 40 }, { n: 'Chill', p: 40 }, { n: 'Anime sparkle', p: 80, lv: 2 }, { n: 'Dizzy', p: 60 }, { n: 'Laser eyes', p: 200, lv: 7 }, { n: 'Happy tears', p: 60 },
+      { n: 'Angry', p: 30 }, { n: 'Sus', p: 40 }, { n: 'Crying', p: 40 }, { n: 'Robot visor', p: 150, lv: 4 }, { n: 'Money eyes', p: 100, lv: 3 }, { n: 'Lashes', p: 30 }] },
     m: { name: 'Mouth', items: [{ n: 'Smile' }, { n: 'Grin' }, { n: 'Oh!', p: 20 }, { n: 'Tongue out', p: 30 }, { n: 'Smirk', p: 30 },
-      { n: 'Braces', p: 30 }, { n: 'Fangs', p: 40 }, { n: 'Cat mouth :3', p: 30 }, { n: 'Bubblegum', p: 60, lv: 2 }, { n: 'Moustache', p: 50 }, { n: 'Laughing', p: 40 }, { n: 'Nervous', p: 20 }, { n: 'Bunny teeth', p: 30 }] },
+      { n: 'Braces', p: 30 }, { n: 'Fangs', p: 40 }, { n: 'Cat mouth :3', p: 30 }, { n: 'Bubblegum', p: 60, lv: 2 }, { n: 'Moustache', p: 50 }, { n: 'Laughing', p: 40 }, { n: 'Nervous', p: 20 }, { n: 'Bunny teeth', p: 30 },
+      { n: 'Pout', p: 20 }, { n: 'Zipped', p: 30 }, { n: 'Wobbly', p: 20 }, { n: 'Lollipop', p: 60, lv: 2 }, { n: 'Beard', p: 80, lv: 3 }, { n: 'Whistle', p: 30 }] },
     h: { name: 'Hat', items: [{ n: 'No hat' }, { n: 'Cap', p: 40 }, { n: 'Beanie', p: 40 }, { n: 'Party hat', p: 50 }, { n: 'Headphones', p: 60 }, { n: 'Top hat', p: 80 },
       { n: 'Cowboy hat', p: 80 }, { n: 'Wizard hat', p: 120, lv: 3 }, { n: 'Viking helmet', p: 120, lv: 4 }, { n: 'Crown', p: 250, lv: 5 }, { n: 'Halo', p: 250, lv: 7 },
       { n: 'Backwards cap', p: 40 }, { n: 'Bucket hat', p: 50 }, { n: 'Frog hat', p: 80 }, { n: 'Cat-ear headphones', p: 90, lv: 2 }, { n: 'Chef hat', p: 60 },
       { n: 'Graduation cap', p: 100, lv: 3 }, { n: 'Pirate hat', p: 90, lv: 2 }, { n: 'Astronaut helmet', p: 200, lv: 6 }, { n: 'Flower crown', p: 70 },
-      { n: 'Headband', p: 30 }, { n: 'Mushroom hat', p: 80, lv: 2 }, { n: 'Propeller cap', p: 60 }] },
-    a: { name: 'Extra', items: [{ n: 'Nothing' }, { n: 'Glasses', p: 30 }, { n: 'Bow tie', p: 30 }, { n: 'Scarf', p: 40 }, { n: 'Sunglasses', p: 60 }, { n: 'Medal', p: 100, lv: 4 }, { n: 'Cape', p: 150, lv: 3 }, { n: 'Wings', p: 300, lv: 6 },
-      { n: 'Gaming headset', p: 80, lv: 2 }, { n: 'Pi chain', p: 60 }, { n: 'Boba tea', p: 50 }, { n: 'Skateboard', p: 100, lv: 2 }, { n: 'Basketball', p: 60 },
-      { n: 'Game controller', p: 70 }, { n: 'Backpack', p: 50 }, { n: 'Phone', p: 50 }, { n: 'Guitar', p: 150, lv: 3 }, { n: 'Earbuds', p: 40 }, { n: 'Ice cream', p: 40 }] },
+      { n: 'Headband', p: 30 }, { n: 'Mushroom hat', p: 80, lv: 2 }, { n: 'Propeller cap', p: 60 },
+      { n: 'Beret', p: 50 }, { n: 'Hard hat', p: 60 }, { n: 'Witch hat', p: 120, lv: 3 }, { n: 'Santa hat', p: 80 }, { n: 'Tiara', p: 150, lv: 4 },
+      { n: 'Devil horns', p: 100, lv: 2 }, { n: 'Traffic cone', p: 60 }, { n: 'Sprout', p: 30 }] },
+    // extras can be worn together, up to MAXX at once, but only one per spot (s): a second pair of glasses swaps the first
+    a: { name: 'Extras', items: [{ n: 'Nothing' }, { n: 'Glasses', p: 30, s: 'face' }, { n: 'Bow tie', p: 30, s: 'neck' }, { n: 'Scarf', p: 40, s: 'neck' }, { n: 'Sunglasses', p: 60, s: 'face' },
+      { n: 'Medal', p: 100, lv: 4, s: 'neck' }, { n: 'Cape', p: 150, lv: 3, s: 'back' }, { n: 'Wings', p: 300, lv: 6, s: 'back' },
+      { n: 'Gaming headset', p: 80, lv: 2, s: 'ears' }, { n: 'Pi chain', p: 60, s: 'neck' }, { n: 'Boba tea', p: 50, s: 'hand' }, { n: 'Skateboard', p: 100, lv: 2, s: 'feet' }, { n: 'Basketball', p: 60, s: 'lhand' },
+      { n: 'Game controller', p: 70, s: 'held' }, { n: 'Backpack', p: 50, s: 'back' }, { n: 'Phone', p: 50, s: 'hand' }, { n: 'Guitar', p: 150, lv: 3, s: 'held hand' }, { n: 'Earbuds', p: 40, s: 'ears' },
+      { n: 'Ice cream', p: 40, s: 'hand' },
+      { n: 'Monocle', p: 80, lv: 2, s: 'face' }, { n: 'Heart shades', p: 70, s: 'face' }, { n: 'Clown nose', p: 40, s: 'nose' }, { n: 'Gold chain', p: 150, lv: 4, s: 'neck' },
+      { n: 'Bandana', p: 40, s: 'neck' }, { n: 'Pizza slice', p: 50, s: 'hand' }, { n: 'Magic wand', p: 120, lv: 3, s: 'hand' }, { n: 'Balloon', p: 50, s: 'lhand' },
+      { n: 'Shield', p: 100, lv: 2, s: 'lhand' }, { n: 'Jetpack', p: 250, lv: 6, s: 'back' }, { n: 'Fairy wings', p: 200, lv: 5, s: 'back' }, { n: 'Hoverboard', p: 250, lv: 7, s: 'feet' }] },
     t: { name: 'Trail', items: [{ n: 'No trail' }, { n: 'Sparkles', e: '✨', p: 60 }, { n: 'Hearts', e: '💖', p: 60 }, { n: 'Music', e: '🎵', p: 60 }, { n: 'Stars', e: '⭐', p: 100, lv: 2 }, { n: 'Flames', e: '🔥', p: 150, lv: 3 }, { n: 'Rainbow', e: '🌈', p: 250, lv: 6 },
       { n: 'Lightning', e: '⚡', p: 60 }, { n: 'Bubbles', e: '🫧', p: 60 }, { n: 'Confetti', e: '🎉', p: 80 }, { n: 'Sakura', e: '🌸', p: 80 }, { n: 'Snow', e: '❄️', p: 80 },
       { n: 'Butterflies', e: '🦋', p: 100, lv: 2 }, { n: 'Dead funny', e: '💀', p: 100, lv: 2 }, { n: 'Moai', e: '🗿', p: 120, lv: 3 }, { n: 'Pixel aliens', e: '👾', p: 120, lv: 3 },
-      { n: 'Money rain', e: '💸', p: 150, lv: 4 }, { n: 'Galaxy', e: '🌌', p: 200, lv: 5 }, { n: 'Diamonds', e: '💎', p: 250, lv: 7 }] },
+      { n: 'Money rain', e: '💸', p: 150, lv: 4 }, { n: 'Galaxy', e: '🌌', p: 200, lv: 5 }, { n: 'Diamonds', e: '💎', p: 250, lv: 7 },
+      { n: 'Leaves', e: '🍃', p: 60 }, { n: 'Clovers', e: '🍀', p: 60 }, { n: 'Paw prints', e: '🐾', p: 60 }, { n: 'Pizza', e: '🍕', p: 80 }, { n: 'Cookies', e: '🍪', p: 80 },
+      { n: 'Bats', e: '🦇', p: 100, lv: 2 }, { n: 'Ghosts', e: '👻', p: 100, lv: 2 }, { n: 'Rockets', e: '🚀', p: 150, lv: 3 }, { n: 'Crowns', e: '👑', p: 200, lv: 5 }, { n: 'Fireworks', e: '🎆', p: 250, lv: 6 }] },
     n: { name: 'Name colour', items: [{ n: 'White' }, { n: 'Mint', p: 20 }, { n: 'Pink', p: 20 }, { n: 'Sky', p: 20 }, { n: 'Gold', p: 150, lv: 8 }, { n: 'Rainbow', p: 300, lv: 10 },
       { n: 'Neon', p: 40 }, { n: 'Lilac', p: 20 }, { n: 'Orange', p: 20 }, { n: 'Toxic green', p: 100, lv: 2 }, { n: 'Fire', p: 120, lv: 3 }, { n: 'Ice', p: 120, lv: 3 },
-      { n: 'Galaxy', p: 200, lv: 5 }, { n: 'Holographic', p: 300, lv: 9 }] },
+      { n: 'Galaxy', p: 200, lv: 5 }, { n: 'Holographic', p: 300, lv: 9 },
+      { n: 'Coral', p: 20 }, { n: 'Aqua', p: 20 }, { n: 'Candy', p: 100, lv: 2 }, { n: 'Sunset', p: 120, lv: 3 }, { n: 'Glitch', p: 200, lv: 6 }, { n: 'Ocean', p: 100, lv: 2 }] },
     // the character under everything: 0 is the original blob, the rest add ears, horns, tails and so on
     k: { name: 'Character', items: [{ n: 'Blob' }, { n: 'Cat' }, { n: 'Bear' }, { n: 'Bunny' }, { n: 'Frog', p: 40 }, { n: 'Penguin', p: 50 }, { n: 'Fox', p: 60 },
       { n: 'Capybara', p: 80 }, { n: 'Axolotl', p: 100, lv: 2 }, { n: 'Robot', p: 120, lv: 3 }, { n: 'Ghost', p: 120, lv: 3 }, { n: 'Alien', p: 150, lv: 4 },
-      { n: 'Dino', p: 150, lv: 4 }, { n: 'Unicorn', p: 200, lv: 6 }, { n: 'Dragon', p: 300, lv: 8 }] },
+      { n: 'Dino', p: 150, lv: 4 }, { n: 'Unicorn', p: 200, lv: 6 }, { n: 'Dragon', p: 300, lv: 8 },
+      { n: 'Mouse', p: 40 }, { n: 'Pig', p: 40 }, { n: 'Owl', p: 80, lv: 2 }, { n: 'Shark', p: 150, lv: 3 }, { n: 'Lion', p: 150, lv: 4 }] },
     // a little friend by the avatar's feet
     p: { name: 'Pet', items: [{ n: 'No pet' }, { n: 'Kitten', e: '🐱', p: 40 }, { n: 'Puppy', e: '🐶', p: 40 }, { n: 'Hamster', e: '🐹', p: 50 }, { n: 'Froggy', e: '🐸', p: 50 },
       { n: 'Duck', e: '🦆', p: 60 }, { n: 'Turtle', e: '🐢', p: 60 }, { n: 'Penguin', e: '🐧', p: 80 }, { n: 'Otter', e: '🦦', p: 100, lv: 2 }, { n: 'Octopus', e: '🐙', p: 120, lv: 3 },
-      { n: 'Fox cub', e: '🦊', p: 120, lv: 3 }, { n: 'Panda', e: '🐼', p: 150, lv: 4 }, { n: 'T. rex', e: '🦖', p: 200, lv: 5 }, { n: 'Dragon', e: '🐉', p: 300, lv: 8 }] }
+      { n: 'Fox cub', e: '🦊', p: 120, lv: 3 }, { n: 'Panda', e: '🐼', p: 150, lv: 4 }, { n: 'T. rex', e: '🦖', p: 200, lv: 5 }, { n: 'Dragon', e: '🐉', p: 300, lv: 8 },
+      { n: 'Bunny', e: '🐰', p: 50 }, { n: 'Bee', e: '🐝', p: 50 }, { n: 'Snail', e: '🐌', p: 40 }, { n: 'Hedgehog', e: '🦔', p: 80 }, { n: 'Parrot', e: '🦜', p: 100, lv: 2 },
+      { n: 'Sloth', e: '🦥', p: 120, lv: 3 }, { n: 'Flamingo', e: '🦩', p: 120, lv: 3 }, { n: 'Unicorn', e: '🦄', p: 250, lv: 7 }] }
   };
   var ORDER = ['b', 'e', 'm', 'h', 'a', 't', 'n', 'k', 'p'];
 
   /* ---------- looks ---------- */
+  /* Extras worn together: the first sits in its usual 5th place, up to MAXX-1 more go on the end (characters 10-12).
+     Looks never grow past 12 characters, because the live games only pass on [0-9a-z]{1,12}. L.x is the whole list. */
+  var MAXX = 4;
+  function slots(i) { var it = CAT.a.items[i]; return it && it.s ? it.s.split(' ') : []; }
+  function clash(i, j) { var a = slots(i), b = slots(j); return a.some(function (s) { return b.indexOf(s) >= 0; }); }
+  // the extras list after putting on i (anything in the same spot comes off; past MAXX the oldest comes off). mode 'toggle': i comes off if it's on
+  function wear(x, i, mode) {
+    x = (x || []).slice();
+    if (!i) return [];
+    if (x.indexOf(i) >= 0) return mode === 'toggle' ? x.filter(function (j) { return j !== i; }) : x;
+    x = x.filter(function (j) { return !clash(i, j); }); x.push(i);
+    while (x.length > MAXX) x.shift();
+    return x;
+  }
   function decode(code) {
-    var s = String(code || ''), L = {};
+    var s = String(code || ''), L = {}, x = [];
     ORDER.forEach(function (k, i) { var v = parseInt(s.charAt(i) || '0', 36); L[k] = isNaN(v) || !CAT[k].items[v] ? 0 : v; });
+    [L.a].concat(s.slice(ORDER.length, ORDER.length + MAXX - 1).split('').map(function (c) { return parseInt(c, 36); })).forEach(function (v) {
+      if (v > 0 && CAT.a.items[v] && x.length < MAXX && x.indexOf(v) < 0 && !x.some(function (j) { return clash(v, j); })) x.push(v);
+    });
+    L.x = x; L.a = x[0] || 0;
     return L;
   }
-  function encode(L) { return ORDER.map(function (k) { return ((L && L[k]) || 0).toString(36); }).join(''); }
+  function encode(L) {
+    L = L || {};
+    var x = (L.x || (L.a ? [L.a] : [])).filter(function (v) { return v > 0 && CAT.a.items[v]; }).slice(0, MAXX);
+    return ORDER.map(function (k) { return (k === 'a' ? x[0] || 0 : L[k] || 0).toString(36); }).join('') + x.slice(1).map(function (v) { return v.toString(36); }).join('');
+  }
   function hash(t) { var h = 5381; t = String(t); for (var i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return h; }
   // someone who never visited the wardrobe still gets a look of their own, from the free parts
   function defLook(seed) {
@@ -105,6 +147,23 @@
         var tx = x < 60 ? x - 10 : x + 10;
         o += arc(x, y) + '<path d="M' + tx + ' ' + (y + 3) + ' C' + (tx - 6) + ' ' + (y + 11) + ' ' + (tx - 5) + ' ' + (y + 16) + ' ' + tx + ' ' + (y + 16) + ' C' + (tx + 5) + ' ' + (y + 16) + ' ' + (tx + 6) + ' ' + (y + 11) + ' ' + tx + ' ' + (y + 3) + ' Z" fill="#7CC8FF"' + ink(2) + '/>';
       }
+      else if (v === 13) {   // angry: brows slanting down to the middle
+        var inr = x < 60 ? x + 10 : x - 10, out = x < 60 ? x - 11 : x + 11;
+        o += round(x, y) + '<path d="M' + out + ' 62 L' + inr + ' 69" stroke="' + INK + '" stroke-width="5" stroke-linecap="round"/>';
+      }
+      else if (v === 14) o += '<path d="M' + (x - 11) + ' ' + y + ' Q' + x + ' ' + (y - 6) + ' ' + (x + 11) + ' ' + y + ' Q' + x + ' ' + (y + 6) + ' ' + (x - 11) + ' ' + y + ' Z" fill="#fff"' + s3 + '/>' +   // sus
+        '<circle cx="' + (x + 4) + '" cy="' + y + '" r="3" fill="' + INK + '"/>';
+      else if (v === 15) {   // crying: shut eyes and two rivers
+        var cx = x < 60 ? x - 4 : x + 4;
+        o += '<path d="M' + cx + ' ' + (y + 4) + ' L' + cx + ' 134" stroke="#7CC8FF" stroke-width="6" stroke-linecap="round" opacity=".85"/>' +
+          '<path d="M' + (x - 8) + ' ' + (y - 2) + ' Q' + x + ' ' + (y + 6) + ' ' + (x + 8) + ' ' + (y - 2) + '" fill="none" stroke="' + INK + '" stroke-width="4.5" stroke-linecap="round"/>';
+      }
+      else if (v === 16) { if (x === 45) o += '<rect x="26" y="67" width="68" height="22" rx="11" fill="' + INK + '"/><rect class="avlz" x="32" y="74" width="56" height="8" rx="4" fill="#3BFFE1"/>' +   // robot visor
+        '<rect x="34" y="75.5" width="52" height="5" rx="2.5" fill="#3BFFE1"/><circle cx="40" cy="78" r="2" fill="#fff"/>'; }
+      else if (v === 17) o += white(x, y) + '<text x="' + x + '" y="' + (y + 6.5) + '" font-size="18" font-weight="900" font-family="Arial,sans-serif" fill="#1E9E50" text-anchor="middle">$</text>';   // money eyes
+      else if (v === 18) o += round(x, y) + [-1, 0, 1].map(function (d) {   // lashes
+        return '<path d="M' + (x + d * 6) + ' ' + (y - 9) + ' L' + (x + d * 9) + ' ' + (y - 16) + '" stroke="' + INK + '" stroke-width="2.6" stroke-linecap="round"/>';
+      }).join('');
       else o += round(x, y);
     });
     return o;
@@ -127,6 +186,16 @@
     if (v === 10) return '<path d="M40 98 Q60 132 80 98 Z" fill="' + INK + '"' + ink(2) + '/><ellipse cx="60" cy="117" rx="9" ry="6" fill="#FF6B8A"/><path d="M43 99 L77 99 L75 104 L45 104 Z" fill="#fff"/>';   // laughing
     if (v === 11) return '<path d="M44 106 L49 102 L54 106 L60 102 L66 106 L71 102 L76 106" fill="none" stroke="' + INK + '" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>';   // nervous
     if (v === 12) return '<rect x="54" y="106" width="6" height="8" rx="1.5" fill="#fff"' + ink(2.2) + '/><rect x="60" y="106" width="6" height="8" rx="1.5" fill="#fff"' + ink(2.2) + '/>' + smile;   // bunny teeth
+    if (v === 13) return '<path d="M60 108 C54 100 50 106 54 110 C50 114 54 120 60 112 C66 120 70 114 66 110 C70 106 66 100 60 108 Z" fill="#FF6B8A"' + ink(2.5) + '/>';   // pout
+    if (v === 14) { var z = '<path d="M45 105 L75 105" stroke="' + INK + '" stroke-width="4" stroke-linecap="round"/>';   // zipped
+      for (var zx = 49; zx <= 71; zx += 4) z += '<path d="M' + zx + ' 101.5 L' + zx + ' 108.5" stroke="' + INK + '" stroke-width="2"/>';
+      return z + '<rect x="74" y="101" width="7" height="10" rx="2" fill="#C9D2DD"' + ink(2) + '/>'; }
+    if (v === 15) return '<path d="M44 105 Q49 99 54 105 T64 105 T74 105" fill="none"' + s + '/>';   // wobbly
+    if (v === 16) return smile + '<path d="M68 108 L86 120" stroke="' + INK + '" stroke-width="6" stroke-linecap="round"/><path d="M68 108 L86 120" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' +   // lollipop
+      '<circle cx="90" cy="123" r="10" fill="#FF5B8A"' + ink(3) + '/><path d="M90 123 a2 2 0 0 1 4 0 a4 4 0 0 1 -8 0 a6 6 0 0 1 12 0" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>';
+    if (v === 17) return '<path d="M22 100 Q24 146 60 148 Q96 146 98 100 Q90 124 76 120 Q60 114 44 120 Q30 124 22 100 Z" fill="#6B4423"' + ink(2.5) + '/>' +   // beard
+      '<path d="M50 104 Q60 112 70 104" fill="none" stroke="#3A2412" stroke-width="4.5" stroke-linecap="round"/>';
+    if (v === 18) return '<ellipse cx="60" cy="106" rx="5" ry="5.5" fill="' + INK + '"/><text x="82" y="102" font-size="16" fill="' + INK + '" text-anchor="middle">♪</text>';   // whistle
     return smile;
   }
   function hat(v) {
@@ -173,6 +242,20 @@
         '<path d="M60 8 Q46 9 42 44 L60 44 Z" fill="#FF5B5B"' + ink(2) + '/><path d="M60 8 Q74 9 78 44 L60 44 Z" fill="#53B7FF"' + ink(2) + '/>' +
         '<rect x="26" y="38" width="68" height="10" rx="5" fill="#FFD23F"' + st + '/><path d="M60 8 L60 -3" stroke="' + INK + '" stroke-width="3"/>' +
         '<g class="avpr"><ellipse cx="48" cy="-4" rx="12" ry="3.5" fill="#53B7FF"' + s2 + '/><ellipse cx="72" cy="-4" rx="12" ry="3.5" fill="#FF5B5B"' + s2 + '/></g><circle cx="60" cy="-4" r="3" fill="' + INK + '"/>';
+      case 23: return '<path d="M22 40 Q20 16 60 14 Q102 14 98 40 Q60 47 22 40 Z" fill="#C0263A"' + st + '/><path d="M60 14 L63 5" stroke="' + INK + '" stroke-width="4" stroke-linecap="round"/>';   // beret
+      case 24: return '<path d="M28 44 Q28 8 60 8 Q92 8 92 44 Z" fill="#FFC107"' + st + '/><path d="M60 10 L60 40" stroke="#E0A000" stroke-width="7"/>' +   // hard hat
+        '<rect x="16" y="37" width="88" height="10" rx="5" fill="#FFB300"' + st + '/>';
+      case 25: return '<path d="M30 38 L68 -22 Q71 -14 77 -11 L90 38 Z" fill="#3B2A5E"' + st + '/><ellipse cx="60" cy="40" rx="45" ry="8" fill="#2C1F47"' + st + '/>' +   // witch hat
+        '<path d="M33 30 L88 30 L89.5 36 L31.5 36 Z" fill="#9B6BFF"/><rect x="54" y="28" width="12" height="10" rx="1.5" fill="none" stroke="#FFE14D" stroke-width="2.5"/>';
+      case 26: return '<path d="M30 40 Q34 0 66 -4 Q90 -6 100 22 L92 26 Q84 10 74 14 Q88 26 90 40 Z" fill="#E8452C"' + st + '/>' +   // santa hat
+        '<rect x="24" y="33" width="72" height="14" rx="7" fill="#fff"' + st + '/><circle cx="98" cy="25" r="8" fill="#fff"' + st + '/>';
+      case 27: return '<path d="M34 42 L38 26 L48 34 L60 14 L72 34 L82 26 L86 42 Z" fill="#E8EEF5"' + st + '/>' +   // tiara
+        '<circle cx="60" cy="29" r="5" fill="#FF5BB0"' + ink(2) + '/><circle cx="45" cy="37" r="3" fill="#7CC8FF"/><circle cx="75" cy="37" r="3" fill="#7CC8FF"/>';
+      case 28: return both(function (X) { return '<path d="M' + X(36) + ' 42 Q' + X(20) + ' 26 ' + X(26) + ' 6 Q' + X(36) + ' 24 ' + X(50) + ' 34 Z" fill="#E8452C"' + st + '/>'; });   // devil horns
+      case 29: return '<path d="M44 40 L56 -14 L64 -14 L76 40 Z" fill="#FF7A1F"' + st + '/>' +   // traffic cone
+        '<path d="M49.3 16 L70.7 16 L72.9 26 L47.1 26 Z M52.9 0 L67.1 0 L68.4 6 L51.6 6 Z" fill="#fff"/><rect x="28" y="36" width="64" height="10" rx="3" fill="#FF7A1F"' + st + '/>';
+      case 30: return '<path d="M60 32 Q57 18 60 5" fill="none" stroke="#3BAF7A" stroke-width="4" stroke-linecap="round"/>' +   // sprout
+        '<path d="M60 9 Q46 -6 38 6 Q48 15 60 9 Z" fill="#6BCB5A"' + s2 + '/><path d="M60 7 Q76 -8 83 4 Q72 14 60 7 Z" fill="#6BCB5A"' + s2 + '/>';
     }
     return '';
   }
@@ -180,6 +263,8 @@
   function extraUnder(v) {
     if (v === 11) return '<rect x="10" y="149" width="100" height="7" rx="3.5" fill="#FF5B8A"' + ink(3) + '/><path d="M22 152.5 L98 152.5" stroke="#fff" stroke-width="1.5" stroke-dasharray="4 4" opacity=".7"/>' +   // skateboard
       '<circle cx="28" cy="158" r="3.6" fill="#FFE14D"' + ink(2.2) + '/><circle cx="92" cy="158" r="3.6" fill="#FFE14D"' + ink(2.2) + '/>';
+    if (v === 30) return '<ellipse class="avlz" cx="60" cy="161" rx="42" ry="4" fill="#3BFFE1" opacity=".4"/><rect x="6" y="148" width="108" height="9" rx="4.5" fill="#2b2b3a"' + ink(3) + '/>' +   // hoverboard
+      '<rect x="14" y="151" width="92" height="3" rx="1.5" fill="#3BFFE1"/>';
     return '';
   }
   function extraBack(v) {
@@ -187,6 +272,15 @@
     if (v === 6) return '<path d="M30 52 Q10 118 2 152 L118 152 Q110 118 90 52 Z" fill="#C0263A"' + st + '/>';
     if (v === 7) return '<path d="M22 82 Q-20 48 -15 100 Q-4 96 0 114 Q8 100 22 106 Z" fill="#fff"' + st + '/><path d="M98 82 Q140 48 135 100 Q124 96 120 114 Q112 100 98 106 Z" fill="#fff"' + st + '/>';
     if (v === 14) return '<path d="M30 60 Q30 22 60 22 Q90 22 90 60 Z" fill="#FF8A1F"' + st + '/><path d="M52 25 Q60 12 68 25" fill="none" stroke="' + INK + '" stroke-width="4" stroke-linecap="round"/>';   // backpack top
+    if (v === 28) return both(function (X) {   // jetpack: a tank each side, flames below
+      var x0 = X(6) - (X(6) > 60 ? 22 : 0);
+      return '<path class="avjet" d="M' + (x0 + 4) + ' 112 Q' + (x0 + 11) + ' 146 ' + (x0 + 18) + ' 112 Z" fill="#FF8A1F"/><path class="avjet" d="M' + (x0 + 7) + ' 112 Q' + (x0 + 11) + ' 132 ' + (x0 + 15) + ' 112 Z" fill="#FFE14D"/>' +
+        '<rect x="' + x0 + '" y="54" width="22" height="60" rx="10" fill="#9AA4B2"' + st + '/><path d="M' + (x0 + 6) + ' 64 L' + (x0 + 6) + ' 100" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".5"/>';
+    });
+    if (v === 29) return both(function (X, s) {   // fairy wings
+      return '<ellipse cx="' + X(12) + '" cy="62" rx="16" ry="27" transform="rotate(' + (-32 * s) + ' ' + X(12) + ' 62)" fill="#BFF0FF" fill-opacity=".8"' + ink(3) + '/>' +
+        '<ellipse cx="' + X(14) + '" cy="108" rx="11" ry="16" transform="rotate(' + (24 * s) + ' ' + X(14) + ' 108)" fill="#FFC6E8" fill-opacity=".85"' + ink(3) + '/>';
+    });
     return '';
   }
   function extraFront(v) {
@@ -227,9 +321,32 @@
       case 18: return '<path d="M100 96 L120 96 L110 124 Z" fill="#F2C27A"' + st + '/><path d="M103 103 L116 110 M117 103 L106 112" stroke="#C9952E" stroke-width="1.6"/>' +   // ice cream
         '<circle cx="110" cy="78" r="8" fill="#7CF2A2"' + st + '/><circle cx="110" cy="90" r="10" fill="#FF8FD1"' + st + '/>' +
         '<path d="M105 86 l2 1 M113 84 l1 2 M110 92 l2 -1 M104 93 l1 1.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>';
+      case 19: return '<circle cx="75" cy="78" r="14" fill="#BFE6FF" fill-opacity=".25" stroke="#FFC94A" stroke-width="3.5"/><circle cx="75" cy="78" r="16" fill="none"' + ink(1.5) + '/>' +   // monocle
+        '<path d="M89 84 Q98 108 88 124" fill="none" stroke="#FFC94A" stroke-width="2" stroke-dasharray="3 2"/>';
+      case 20: return [45, 75].map(function (x) {   // heart shades
+        return '<path d="M' + x + ' 89 C' + (x - 17) + ' 77 ' + (x - 11) + ' 63 ' + x + ' 71 C' + (x + 11) + ' 63 ' + (x + 17) + ' 77 ' + x + ' 89 Z" fill="#FF3B7A"' + ink(3) + '/>' +
+          '<path d="M' + (x - 8) + ' 72 Q' + (x - 6) + ' 69 ' + (x - 3) + ' 70" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".8"/>';
+      }).join('') + '<path d="M57 74 L63 74" stroke="' + INK + '" stroke-width="3"/>';
+      case 21: return '<circle cx="60" cy="93" r="7.5" fill="#FF3B3B"' + ink(2.5) + '/><circle cx="57.5" cy="90.5" r="2.2" fill="#fff" opacity=".85"/>';   // clown nose
+      case 22: return '<path d="M28 112 Q60 142 92 112" fill="none" stroke="#9A6E08" stroke-width="8" stroke-linecap="round"/><path d="M28 112 Q60 142 92 112" fill="none" stroke="#FFD54A" stroke-width="5" stroke-dasharray="6 3"/>' +   // gold chain
+        '<text x="60" y="141" font-size="22" text-anchor="middle" fill="#FFD54A" stroke="' + INK + '" stroke-width="1.5">★</text>';
+      case 23: return '<path d="M24 112 Q60 128 96 112 L60 142 Z" fill="#2E6BD9"' + st + '/>' +   // bandana
+        '<g fill="#fff"><circle cx="46" cy="121" r="2"/><circle cx="60" cy="124" r="2"/><circle cx="74" cy="121" r="2"/><circle cx="53" cy="131" r="2"/><circle cx="67" cy="131" r="2"/></g>';
+      case 24: return '<path d="M96 76 Q111 68 126 78 L108 120 Z" fill="#FFD36B"' + st + '/><path d="M96 76 Q111 68 126 78" fill="none" stroke="#C9852E" stroke-width="6" stroke-linecap="round"/>' +   // pizza slice
+        '<g fill="#E8452C"><circle cx="108" cy="87" r="4"/><circle cx="116" cy="94" r="3.5"/><circle cx="107" cy="102" r="3"/></g>';
+      case 25: return '<path d="M102 122 L116 74" stroke="' + INK + '" stroke-width="7" stroke-linecap="round"/><path d="M102 122 L116 74" stroke="#3B3B52" stroke-width="4" stroke-linecap="round"/>' +   // magic wand
+        '<circle class="avlz" cx="118" cy="66" r="12" fill="#FFE14D" opacity=".35"/><text x="118" y="74" font-size="22" text-anchor="middle">⭐</text>';
+      case 26: return '<path d="M14 108 Q4 80 -5 58" fill="none" stroke="' + INK + '" stroke-width="1.5"/><g class="avbal">' +   // balloon
+        '<ellipse cx="-6" cy="40" rx="14" ry="17" fill="#FF5B8A"' + ink(3) + '/><path d="M-6 57 L-9.5 62 L-2.5 62 Z" fill="#FF5B8A"' + ink(2) + '/>' +
+        '<path d="M-13 32 Q-12 27 -8 26" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".75"/></g>';
+      case 27: return '<path d="M-6 92 L22 92 L22 112 Q22 128 8 137 Q-6 128 -6 112 Z" fill="#9AA4B2"' + st + '/>' +   // shield
+        '<path d="M0 97 L16 97 L16 112 Q16 123 8 130 Q0 123 0 112 Z" fill="#2E6BD9"/><path d="M8 100 L8 127 M2 109 L14 109" stroke="#FFE14D" stroke-width="3" stroke-linecap="round"/>';
     }
     return '';
   }
+  // the order extras are drawn in front: neck first, things held in both hands last
+  var XRANK = { neck: 0, ears: 1, face: 2, nose: 3, hand: 4, lhand: 4, held: 5 };
+  function xrank(i) { return slots(i).reduce(function (m, s) { return Math.max(m, XRANK[s] || 0); }, 0); }
 
   /* character types: kBack goes behind the body (ears, tails, spikes), kFront on top of it (whiskers, belly, horn) */
   function kBack(v, fill) {
@@ -262,6 +379,14 @@
         var d = 'M' + X(24) + ' 80 Q' + X(-2) + ' 44 ' + X(-14) + ' 62 Q' + X(-6) + ' 68 ' + X(-8) + ' 78 Q' + X(2) + ' 78 ' + X(2) + ' 90 Q' + X(10) + ' 86 ' + X(20) + ' 96 Z';
         return '<path d="' + d + '" fill="' + fill + '"' + st + '/><path d="' + d + '" fill="#000" opacity=".18"/>';
       }) + '<path d="M38 42 L42 18 L54 32 Z M52 34 L60 8 L68 34 Z M66 32 L78 18 L82 42 Z" fill="#FF5B5B"' + st + '/>';
+      case 15: return both(function (X) { return '<circle cx="' + X(25) + '" cy="40" r="20" fill="' + fill + '"' + st + '/><circle cx="' + X(25) + '" cy="40" r="11" fill="#FF9EC4"/>'; });   // mouse
+      case 16: return both(function (X) { return '<path d="M' + X(30) + ' 50 L' + X(24) + ' 20 L' + X(52) + ' 36 Z" fill="' + fill + '"' + st + '/><path d="M' + X(32) + ' 42 L' + X(29) + ' 28 L' + X(44) + ' 36 Z" fill="#FF9EC4"/>'; });   // pig
+      case 17: return both(function (X) { return '<path d="M' + X(30) + ' 48 L' + X(22) + ' 14 L' + X(50) + ' 36 Z" fill="' + fill + '"' + st + '/>'; });   // owl tufts
+      case 19: return [150, 174, 198, 222, 246, 270, 294, 318, 342, 366, 390].map(function (a) {   // lion mane (top and sides only: it mustn't cover the feet)
+        var r = a * Math.PI / 180; return '<circle cx="' + Math.round(60 + 52 * Math.cos(r)) + '" cy="' + Math.round(82 + 52 * Math.sin(r)) + '" r="16" fill="#C8641E"' + st + '/>';
+      }).join('') + '<circle cx="60" cy="82" r="52" fill="#C8641E"/>';
+      case 18: return '<path d="M42 38 Q58 -18 84 34 Z" fill="' + fill + '"' + st + '/><path d="M42 38 Q58 -18 84 34 Z" fill="#000" opacity=".15"/>' +   // shark fin and tail
+        '<path d="M96 120 Q128 132 136 108 Q126 112 120 98 Q110 114 98 108 Z" fill="' + fill + '"' + st + '/>';
     }
     return '';
   }
@@ -284,6 +409,14 @@
       case 13: return '<path d="M53 36 L60 -2 L67 36 Z" fill="#FFE14D"' + ink(3.5) + '/><path d="M55 27 L65 23 M56.5 17 L63.5 14" stroke="#E0A800" stroke-width="2.5" stroke-linecap="round"/>';   // unicorn horn
       case 14: return both(function (X) { return '<path d="M' + X(42) + ' 38 Q' + X(34) + ' 22 ' + X(30) + ' 10 Q' + X(44) + ' 20 ' + X(52) + ' 34 Z" fill="#F3EFE7"' + ink(3) + '/>'; }) +   // dragon horns
         '<ellipse cx="60" cy="118" rx="26" ry="20" fill="#fff" opacity=".22"/>' + holes;
+      case 15: return '<circle cx="60" cy="93" r="4" fill="#FF7AA8"' + ink(2) + '/>' + both(function (X) { return '<path d="M' + X(30) + ' 98 L' + X(6) + ' 92 M' + X(30) + ' 104 L' + X(7) + ' 108" stroke="' + INK + '" stroke-width="2" stroke-linecap="round"/>'; });   // mouse
+      case 16: return '<ellipse cx="60" cy="94" rx="12" ry="7" fill="#FFB3C7"' + ink(3) + '/><ellipse cx="55.5" cy="94" rx="2" ry="3" fill="' + INK + '"/><ellipse cx="64.5" cy="94" rx="2" ry="3" fill="' + INK + '"/>';   // pig snout
+      case 17: return '<circle cx="45" cy="78" r="16" fill="#fff" opacity=".3"/><circle cx="75" cy="78" r="16" fill="#fff" opacity=".3"/>' +   // owl
+        '<ellipse cx="60" cy="122" rx="22" ry="16" fill="#fff" opacity=".3"/><path d="M50 116 l4 4 l4 -4 M62 116 l4 4 l4 -4 M56 126 l4 4 l4 -4" fill="none" stroke="' + INK + '" stroke-opacity=".35" stroke-width="2"/>' +
+        '<path d="M55 89 L65 89 L60 98 Z" fill="#FFA53B"' + ink(2) + '/>';
+      case 18: return '<path d="M26 100 Q60 90 94 100 Q92 136 60 140 Q28 136 26 100 Z" fill="#fff" opacity=".9"/>' +   // shark belly and gills
+        both(function (X) { return [22, 27, 32].map(function (x) { return '<path d="M' + X(x) + ' 72 Q' + X(x + 3) + ' 80 ' + X(x) + ' 88" fill="none" stroke="' + INK + '" stroke-width="2" stroke-linecap="round" opacity=".55"/>'; }).join(''); });
+      case 19: return '<ellipse cx="60" cy="100" rx="18" ry="13" fill="#FFE2B0" opacity=".7"/><path d="M54 91 L66 91 L60 97 Z" fill="#5B3A1E"' + ink(2) + '/>';   // lion muzzle
     }
     return '';
   }
@@ -313,7 +446,14 @@
       return '<ellipse cx="' + b[0] + '" cy="' + b[1] + '" rx="' + b[2] + '" ry="' + b[3] + '" transform="rotate(' + b[4] + ' ' + b[0] + ' ' + b[1] + ')" fill="' + b[5] + '"/>';
     }).join('') },
     slime: { x: SHINE + '<g fill="#fff" opacity=".45"><circle cx="86" cy="62" r="4"/><circle cx="92" cy="72" r="2.2"/><circle cx="30" cy="118" r="3"/></g>' +
-      '<path d="M16 95 C16 60 25 30 60 30 C95 30 104 60 104 95 L104 100 Q98 96 96 106 Q94 116 90 106 Q86 92 78 100 Q72 106 66 98 Q60 92 52 100 Q46 108 40 98 Q34 90 28 104 Q24 112 22 100 Q20 94 16 100 Z" fill="#fff" opacity=".12"/>' }
+      '<path d="M16 95 C16 60 25 30 60 30 C95 30 104 60 104 95 L104 100 Q98 96 96 106 Q94 116 90 106 Q86 92 78 100 Q72 106 66 98 Q60 92 52 100 Q46 108 40 98 Q34 90 28 104 Q24 112 22 100 Q20 94 16 100 Z" fill="#fff" opacity=".12"/>' },
+    cow: { x: [[34, 56, 12, 9, -15], [86, 64, 10, 13, 20], [24, 112, 9, 12, 0], [70, 124, 14, 9, 10], [96, 110, 7, 6, 0], [52, 40, 7, 5, 0]].map(function (b) {
+      return '<ellipse cx="' + b[0] + '" cy="' + b[1] + '" rx="' + b[2] + '" ry="' + b[3] + '" transform="rotate(' + b[4] + ' ' + b[0] + ' ' + b[1] + ')" fill="#2b2b3a"/>';
+    }).join('') },
+    berry: { x: SHINE + '<g fill="#FFE6A0">' + [[30, 66], [50, 52], [70, 50], [90, 66], [24, 96], [42, 120], [60, 132], [78, 120], [96, 96], [36, 140], [84, 140], [100, 124], [20, 124]].map(function (p) {
+      return '<ellipse cx="' + p[0] + '" cy="' + p[1] + '" rx="1.8" ry="2.8"/>';
+    }).join('') + '</g>' },
+    aurora: { g: [[0, '#1FE0A0'], [.5, '#3B8BFF'], [1, '#A24BFF']], v: 1, x: SHINE }
   };
   // the whole character, as an SVG string. o.walk: feet and bob animate. o.size: width in px (height follows)
   function svg(code, o) {
@@ -325,17 +465,19 @@
       fill = 'url(#' + id + 'g)';
     }
     if (F && F.x) { defs += '<clipPath id="' + id + 'c"><path d="' + body + '"/></clipPath>'; extra = '<g clip-path="url(#' + id + 'c)">' + F.x + '</g>'; }
+    var X = L.x, XF = X.slice().sort(function (i, j) { return xrank(i) - xrank(j); });
+    function all(f, list) { return (list || X).map(f).join(''); }
     var w = o.size || 120, st = ' stroke="' + INK + '" stroke-width="4" stroke-linejoin="round"', foot = L.k === 5 ? '#FFA53B' : fill;
-    var bod = '<g class="avbod">' + extraBack(L.a) + kBack(L.k, fill) +
+    var bod = '<g class="avbod">' + all(extraBack) + kBack(L.k, fill) +
       '<ellipse cx="15" cy="100" rx="8" ry="13" fill="' + fill + '"' + st + '/><ellipse cx="105" cy="100" rx="8" ry="13" fill="' + fill + '"' + st + '/>' +
       '<path d="' + body + '" fill="' + fill + '"' + st + '/>' + extra + kFront(L.k) +
       '<ellipse cx="34" cy="98" rx="6" ry="4" fill="#FF7AA8" opacity=".45"/><ellipse cx="86" cy="98" rx="6" ry="4" fill="#FF7AA8" opacity=".45"/>' +
-      eyes(L.e, fill) + mouth(L.m) + extraFront(L.a) + hat(L.h) + '</g>';
+      eyes(L.e, fill) + mouth(L.m) + all(extraFront, XF) + hat(L.h) + '</g>';
     if (ghost) bod = '<g class="avgh">' + bod + '</g>';
     return '<svg class="av' + (o.walk ? ' walk' : '') + '" viewBox="-20 -24 160 184" width="' + w + '" height="' + Math.round(w * 184 / 160) + '" role="img" aria-label="' + (o.label || 'Avatar') + '" xmlns="http://www.w3.org/2000/svg">' +
       (defs ? '<defs>' + defs + '</defs>' : '') +
       (ghost ? '<ellipse cx="60" cy="156" rx="30" ry="5" fill="rgba(0,0,0,.18)"/>' : '<ellipse cx="60" cy="154" rx="40" ry="6" fill="rgba(0,0,0,.25)"/>') +
-      extraUnder(L.a) +
+      all(extraUnder) +
       (ghost ? '' : '<g class="avft l"><ellipse cx="44" cy="146" rx="13" ry="7" fill="' + foot + '"' + st + '/></g><g class="avft r"><ellipse cx="76" cy="146" rx="13" ry="7" fill="' + foot + '"' + st + '/></g>') +
       pet(L.p) + bod + trail(L.t, id) + '</svg>';
   }
@@ -410,10 +552,16 @@
       '.avn1{color:#7CF2A2}.avn2{color:#FF8FD1}.avn3{color:#7CC8FF}.avn4{color:#FFD23F;text-shadow:0 0 10px rgba(255,210,63,.6)}' +
       '.avn5{background:linear-gradient(90deg,#FF5B5B,#FFB020,#FFE14D,#4FD97A,#53B7FF,#9B6BFF);-webkit-background-clip:text;background-clip:text;color:transparent}' +
       '.avn6{color:#C6FF3D;text-shadow:0 0 8px rgba(198,255,61,.75)}.avn7{color:#D6BCFF}.avn8{color:#FFB15C}.avn9{color:#8CFF5A;text-shadow:0 0 4px #39D11F,0 0 12px rgba(57,209,31,.7)}' +
-      '.avn10,.avn11,.avn12,.avn13{-webkit-background-clip:text;background-clip:text;color:transparent}' +
+      '.avn10,.avn11,.avn12,.avn13,.avn16,.avn17,.avn19{-webkit-background-clip:text;background-clip:text;color:transparent}' +
       '.avn10{background-image:linear-gradient(0deg,#FF3B3B,#FF8A1F 50%,#FFE14D)}.avn11{background-image:linear-gradient(90deg,#fff,#A8E8FF 50%,#53B7FF)}' +
       '.avn12{background-image:linear-gradient(90deg,#C9A6FF,#8A6BFF 35%,#4FC3F7 70%,#FF9BE1)}' +
       '.avn13{background-image:linear-gradient(90deg,#B5FFFC,#D9B8FF,#FFC6E8,#FFF3B0,#B8FFD0,#B5FFFC);background-size:200% 100%;animation:avholo 3s linear infinite}@keyframes avholo{to{background-position:200% 0}}' +
+      '.avn14{color:#FF8A7A}.avn15{color:#3BFFE1;text-shadow:0 0 8px rgba(59,255,225,.5)}.avn16{background-image:linear-gradient(90deg,#FF8FD1,#C9A6FF,#9BE3FF)}' +
+      '.avn17{background-image:linear-gradient(0deg,#7B3FC4,#E8457C 45%,#FFD23F)}.avn19{background-image:linear-gradient(90deg,#1FC7B6,#2E6BD9 50%,#7CC8FF)}' +
+      '.avn18{color:#fff;text-shadow:2px 0 #FF2E6A,-2px 0 #2EE6FF;animation:avgl 1.6s steps(1) infinite}@keyframes avgl{50%{text-shadow:-2px 0 #FF2E6A,2px 0 #2EE6FF}}' +
+      // the balloon sways, jetpack flames flicker
+      '.av .avbal{transform-box:fill-box;transform-origin:50% 100%;animation:avbal 2.4s ease-in-out infinite alternate}@keyframes avbal{from{transform:rotate(-6deg)}to{transform:rotate(6deg)}}' +
+      '.av .avjet{transform-box:fill-box;transform-origin:50% 0;animation:avjet .18s ease-in-out infinite alternate}@keyframes avjet{to{transform:scaleY(.7)}}' +
       // pets bob, the propeller spins, the robot light blinks, ghosts float, bubblegum grows, laser eyes glow
       '.av .avpet{transform-box:fill-box;transform-origin:50% 100%;animation:avpet 1.8s ease-in-out infinite}@keyframes avpet{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px) rotate(-5deg)}}' +
       '.av .avpr{transform-box:fill-box;transform-origin:center;animation:avpr .5s linear infinite}@keyframes avpr{50%{transform:scaleX(.12)}}' +
@@ -425,12 +573,12 @@
       '.lcrost span.hasav{display:flex;flex-direction:column;align-items:center;gap:0;padding:0 2px;background:none}.lcrost .lcav{display:block;animation:lcavin .55s cubic-bezier(.2,1.6,.4,1) both}' +
       '.lcrost span.hasav em{font-style:normal;padding:1px 8px;border-radius:99px;background:rgba(255,255,255,.12);font-size:.85em}' +
       '@keyframes lcavin{from{opacity:0;transform:translateY(24px) scale(.4)}to{opacity:1;transform:none}}' +
-      '@media (prefers-reduced-motion:reduce){.av .avtr,.av.walk .avft,.av.walk .avbod,.lcrost .lcav,.av .avpet,.av .avpr,.av .avbl,.av .avgh,.av .avbb,.av .avlz,.avn13{animation:none}.av .avtr{opacity:.8}}';
+      '@media (prefers-reduced-motion:reduce){.av .avtr,.av.walk .avft,.av.walk .avbod,.lcrost .lcav,.av .avpet,.av .avpr,.av .avbl,.av .avgh,.av .avbb,.av .avlz,.avn13,.avn18,.av .avbal,.av .avjet{animation:none}.av .avtr{opacity:.8}}';
     (document.head || document.documentElement).appendChild(s);
   }
   if (document.head) css(); else document.addEventListener('DOMContentLoaded', css);
 
-  window.SFA_AVATAR = { CAT: CAT, ORDER: ORDER, decode: decode, encode: encode, defLook: defLook, svg: svg, nameCls: nameCls, level: level, title: title, need: need,
+  window.SFA_AVATAR = { CAT: CAT, ORDER: ORDER, MAXX: MAXX, slots: slots, wear: wear, decode: decode, encode: encode, defLook: defLook, svg: svg, nameCls: nameCls, level: level, title: title, need: need,
     profile: profile, save: save, myLook: myLook, owns: owns, lessons: lessons, localGames: localGames, earned: earned, RATE: RATE, hash: hash,
     scale: scale, price: price, itemPrice: itemPrice, strutPrice: function () { return price(STRUT); } };
 })();

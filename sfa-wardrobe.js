@@ -23,6 +23,7 @@
       '.wd .wdcoins{margin-top:6px;font:400 34px "Luckiest Guy",system-ui;color:#FFC94A}.wd .wdcoins small{display:block;font:600 13px "Bricolage Grotesque",system-ui;color:#ABA5BC}',
       '.wd .wdparts{width:100%;margin:8px 0 0;padding:0;list-style:none;text-align:left;font-size:14px}.wd .wdparts li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid #3A3550}.wd .wdparts li small{display:block;color:#ABA5BC;font-size:12px}.wd .wdparts b{color:#FFC94A;white-space:nowrap}',
       '.wd .wdstate{font-size:13px;color:#ABA5BC;margin:6px 0 0}',
+      '.wd .wdhint{font-size:13px;color:#ABA5BC;margin:0 0 10px}.wd .wdhint b{color:#F3EFE7}',
       '.wd .wdtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.wd .wdtab{padding:7px 12px;border-radius:99px;border:2px solid #3A3550;background:#24202F;color:#F3EFE7;font-weight:800;cursor:pointer}.wd .wdtab.on{border-color:#FFC94A;background:#3a2f14;color:#FFC94A}',
       '.wd .wdgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}',
       '.wd .wdit{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;border:2px solid #3A3550;background:#24202F;color:#F3EFE7;cursor:pointer;font:inherit}',
@@ -80,30 +81,37 @@
       var shop = SFA.el('div', { 'class': 'wdcard' }); wd.appendChild(shop);
       var tabs = SFA.el('div', { 'class': 'wdtabs', role: 'tablist' }); shop.appendChild(tabs);
       AV.ORDER.forEach(function (k) { var t = SFA.el('button', { type: 'button', 'class': 'wdtab' + (k === cat ? ' on' : ''), role: 'tab', 'aria-selected': k === cat ? 'true' : 'false', text: AV.CAT[k].name }); t.onclick = function () { cat = k; draw(); }; tabs.appendChild(t); });
+      var L = AV.decode(show), cur = AV.decode(look), multi = cat === 'a';
+      // extras go on together: say how many are on and how it works
+      if (multi) { var hint = SFA.el('p', { 'class': 'wdhint' }); hint.innerHTML = '<b>Wearing ' + cur.x.length + ' of ' + AV.MAXX + '.</b> Wear up to ' + AV.MAXX + ' extras, one per spot (face, neck, back, hands, feet…). Tap a worn one to take it off.'; shop.appendChild(hint); }
       var grid = SFA.el('div', { 'class': 'wdgrid' }); shop.appendChild(grid);
-      var L = AV.decode(show), cur = AV.decode(look);
       AV.CAT[cat].items.forEach(function (it, i) {
-        var own = AV.owns(P, cat, i), lock = (it.lv || 0) > lv, pr = AV.itemPrice(cat, i), on = cur[cat] === i, tr = L[cat] === i && !on;
-        var t = {}; AV.ORDER.forEach(function (k) { t[k] = cur[k]; }); t[cat] = i;
+        var own = AV.owns(P, cat, i), lock = (it.lv || 0) > lv, pr = AV.itemPrice(cat, i);
+        var on = multi ? (i ? cur.x.indexOf(i) >= 0 : !cur.x.length) : cur[cat] === i, tr = !on && (multi ? i > 0 && L.x.indexOf(i) >= 0 : L[cat] === i);
+        var t = {}; AV.ORDER.forEach(function (k) { t[k] = cur[k]; }); t.x = cur.x.slice(); if (multi) t.x = AV.wear(cur.x, i); else t[cat] = i;
         var c = SFA.el('button', { type: 'button', 'class': 'wdit' + (on ? ' on' : '') + (tr ? ' try' : '') + (lock ? ' lock' : ''), 'aria-label': it.n });
         c.innerHTML = (cat === 'n' ? '<span class="wdnm ' + AV.nameCls(AV.encode(t)) + '">' + esc(first()) + '</span>' : AV.svg(AV.encode(t), { size: 64 })) + '<b>' + esc(it.n) + '</b>' + (on ? '<small class="own">✓ Wearing</small>' : own ? '<small class="own">Owned</small>' : lock ? '<small class="lk">🔒 Level ' + it.lv + '</small>' : '<small>🪙 ' + pr + '</small>');
         c.onclick = function () {
-          if (own) { P.look = AV.encode(t); tryLook = null; AV.save(P); if (opt.onChange) opt.onChange(P); draw(); }
+          if (own) { if (multi && on) t.x = AV.wear(cur.x, i, 'toggle'); P.look = AV.encode(t); tryLook = null; AV.save(P); if (opt.onChange) opt.onChange(P); draw(); }
           else { tryLook = AV.encode(t); draw(); }
         };
         grid.appendChild(c);
       });
       // trying something on that isn't owned yet: buy it, or put it back
       if (tryLook) {
-        var TL = AV.decode(tryLook), k = null; AV.ORDER.forEach(function (q) { if (TL[q] !== cur[q] && !AV.owns(P, q, TL[q])) k = q; });
+        var TL = AV.decode(tryLook), k = null, idx = 0;
+        AV.ORDER.forEach(function (q) {
+          if (q === 'a') TL.x.forEach(function (i) { if (cur.x.indexOf(i) < 0 && !AV.owns(P, 'a', i)) { k = 'a'; idx = i; } });
+          else if (TL[q] !== cur[q] && !AV.owns(P, q, TL[q])) { k = q; idx = TL[q]; }
+        });
         if (k) {
-          var it = AV.CAT[k].items[TL[k]], pr = AV.itemPrice(k, TL[k]), lock = (it.lv || 0) > lv, short = pr - W.left;
+          var it = AV.CAT[k].items[idx], pr = AV.itemPrice(k, idx), lock = (it.lv || 0) > lv, short = pr - W.left;
           var bar = SFA.el('div', { 'class': 'wdbuy' });
           bar.appendChild(SFA.el('span', { text: lock ? '🔒 ' + it.n + ' unlocks at level ' + it.lv + ' (you\'re level ' + lv + ').' : short > 0 ? it.n + ': 🪙 ' + pr + '. You need ' + short + ' more coins.' : it.n + ' for 🪙 ' + pr + '?' }));
           var buy = SFA.el('button', { type: 'button', 'class': 'wdbtn', text: 'Buy and wear' }); buy.disabled = lock || short > 0;
           buy.onclick = function () {
             var Q = AV.profile(), W2 = wallet(Q); if (W2.left < pr) return;
-            Q.spent = (Q.spent || 0) + pr; Q.own[k + TL[k]] = 1; Q.look = tryLook; tryLook = null; AV.save(Q);
+            Q.spent = (Q.spent || 0) + pr; Q.own[k + idx] = 1; Q.look = tryLook; tryLook = null; AV.save(Q);
             if (SFA.toast) SFA.toast('🛍️ ' + it.n + ' is yours!', 2500); if (opt.onChange) opt.onChange(Q); draw();
           };
           var back = SFA.el('button', { type: 'button', 'class': 'wdbtn ghost', text: 'Put it back' }); back.onclick = function () { tryLook = null; draw(); };

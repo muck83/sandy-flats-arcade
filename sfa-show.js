@@ -85,7 +85,9 @@
   function me(b) { return A.MODE === 'student' && A.S.me && b.w && b.w.fp === sh3(A.S.me.sid); }
   function wearing(look) {
     var L = AV.decode(look), out = [];
-    ['h', 'a', 't'].forEach(function (k) { if (L[k]) out.push(AV.CAT[k].items[L[k]].n); });
+    if (L.h) out.push(AV.CAT.h.items[L.h].n);
+    (L.x || (L.a ? [L.a] : [])).forEach(function (i) { out.push(AV.CAT.a.items[i].n); });
+    if (L.t) out.push(AV.CAT.t.items[L.t].n);
     if (AV.CAT.b.items[L.b].fx) out.unshift(AV.CAT.b.items[L.b].n);
     return out;
   }
