@@ -14,8 +14,9 @@
    change it): just the two points; an easy table of points on the line (x = 0, 1, 2, 3, so b and the slope show); or
    the slope and the intercept given, to put together into y = mx + b.
 
-   Each student's row also carries their running totals for the battle (rounds, lines right, right first time, the help
-   levels they had, hits, damage, clashes, shield blocks, win or loss), which the teacher's Report page turns into a line.
+   Each student's row also carries their running totals for the battle (rounds, lines finished, lines right on their own,
+   right with no mistakes, lines where a step was shown, the help levels they had, the no-help final volley, hits,
+   damage, clashes, shield blocks, win or loss), which the teacher's Report page turns into a line for parents.
 
    Sync through the Sheet like Sumo Graphing: students send one running row (q "zduelx1", an x1 extra, so it never
    counts as a lesson answer). The console referees and publishes in the live counts
@@ -233,7 +234,7 @@
     apply(o);
   }
   function stale(o) { var age = sNow() - o.at; return o.state === 2 ? age > 6 * 60000 : age > (Math.max(o.alen, o.intro, 60) + 300) * 1000; }
-  function freshST(id) { return { id: id, r: 0, bank: [], cur: null, mk: 0, sh: 0, str: 0, msg: '', good: false, coins: 0, met: '', hole: 0, miss: 0, tot: { right: 0, first: 0, hits: 0, dmg: 0, zaps: 0, blocks: 0, p: 0, hl: '' }, seen: {}, mr: 0, w: 0 }; }
+  function freshST(id) { return { id: id, r: 0, bank: [], cur: null, mk: 0, sh: 0, str: 0, msg: '', good: false, coins: 0, met: '', hole: 0, miss: 0, tot: { right: 0, first: 0, hits: 0, dmg: 0, zaps: 0, blocks: 0, p: 0, hl: '', ln: 0, rv: 0, fo: 0, fr: 0 }, seen: {}, mr: 0, w: 0 }; }
   function open(o) {
     close();
     var saved = SFA.store.get(key(), null);
@@ -902,7 +903,8 @@
     cur.tr = cur.miss;
     if (R.r === 'blank' || R.r === 'miss' || R.r === 'next') { ST.msg = R.msg; ST.good = R.r === 'next' && !R.miss; snd(R.r === 'next' ? 'lock' : 'nope'); if (R.miss) send(); keep(); drawWork(); return; }
     var tries = clamp(cur.miss + 1, 1, 3), right = R.r === 'done', lm = right ? Q.m : R.gm, lb = right ? Q.b : R.gb, pre = R.msg ? R.msg + '<br>' : '';
-    if (isL) {
+    if (isL) {   // for the report: lines finished, lines where we showed a step, and the no-help final volley
+      ST.tot.ln = (ST.tot.ln || 0) + 1; if (cur.rv) ST.tot.rv = (ST.tot.rv || 0) + 1; if (final()) { ST.tot.fo = (ST.tot.fo || 0) + 1; if (right) ST.tot.fr = (ST.tot.fr || 0) + 1; }
       var sp = speedOf(secs, V.o.alen);
       if (right) {
         var own = !cur.rv, earn = own ? [2, 3, 4][Q.d] + (cur.miss ? 0 : 1) : 1;   // a step we had to show earns a little less
@@ -927,7 +929,7 @@
     if (ST.met) v.push('r' + ST.met); if (ST.hole) v.push('h');
     // what they're working on right now, for the teacher's "needs a hand" list: target_tries_slope typed_intercept typed
     var C2 = ST.cur, stp = C2 && C2.steps ? C2.steps[C2.si] || '' : '', cu = C2 && C2.k === 'L' && C2.miss ? C2.tg + '_' + C2.miss + '_' + (stp === 'both' ? C2.m || '' : '') + '_' + (stp === 'both' ? C2.b || '' : '') + '_' + (stp === 'both' ? '' : stp) + '_' + (stp && stp !== 'both' ? C2.v[stp] || '' : '') : '';   // target_misses_slope_intercept (final volley)_step_what they typed
-    A.record({ id: QID, k: 'open' }, 'd2;id:' + Math.round(V.id / 1000) + ';r:' + (ST.r || 0) + ';v:' + v.join('.') + ';sh:' + ST.sh + ';st:' + ST.str + ';cu:' + cu + ';mi:' + (ST.miss || 0) + ';cn:' + (ST.coins || 0) + ';n:' + (ST.tot.p || 0) + ';ok:' + ST.tot.right + ';f:' + ST.tot.first + ';hi:' + ST.tot.hits + ';dm:' + ST.tot.dmg + ';z:' + ST.tot.zaps + ';bl:' + ST.tot.blocks + ';hl:' + (ST.tot.hl || '') + ';w:' + (ST.w || 0), null);
+    A.record({ id: QID, k: 'open' }, 'd2;id:' + Math.round(V.id / 1000) + ';r:' + (ST.r || 0) + ';v:' + v.join('.') + ';sh:' + ST.sh + ';st:' + ST.str + ';cu:' + cu + ';mi:' + (ST.miss || 0) + ';cn:' + (ST.coins || 0) + ';n:' + (ST.tot.p || 0) + ';ok:' + ST.tot.right + ';f:' + ST.tot.first + ';hi:' + ST.tot.hits + ';dm:' + ST.tot.dmg + ';z:' + ST.tot.zaps + ';bl:' + ST.tot.blocks + ';hl:' + (ST.tot.hl || '') + ';ln:' + (ST.tot.ln || 0) + ';rv:' + (ST.tot.rv || 0) + ';fo:' + (ST.tot.fo || 0) + ';fr:' + (ST.tot.fr || 0) + ';w:' + (ST.w || 0), null);
   }
   function stFire() {
     var c = H('div', 'dlcard');

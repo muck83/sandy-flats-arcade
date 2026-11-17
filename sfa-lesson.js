@@ -1062,7 +1062,7 @@
   }
 
   // 🚀 Laser Lines (sfa-duel.js): fleets on a grid in space; secret missions to write the line to an enemy; every laser fires at once
-  var DUEL_V = '20261117c', duelLoading = null;
+  var DUEL_V = '20261117d', duelLoading = null;
   function duelAssets(cb) {
     if (window.SFA_DUEL) return cb();
     if (duelLoading) { duelLoading.push(cb); return; }

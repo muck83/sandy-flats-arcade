@@ -19,12 +19,13 @@
 .ok{color:#5CE0B8}.no{color:#FF8A80}.mid{color:#FFC94A}
 .q{color:var(--ink)}.their{font-family:var(--mono);font-size:13px}
 .none{color:var(--muted)}
+.games{list-style:none;padding-left:0}.games li{margin:8px 0}.gwhen,.gskill{color:var(--muted)}.gskill{font-size:14px}
 .demo{margin-top:14px;padding:10px 14px;border-radius:12px;border:2px solid #FFC94A;background:#2a2410;color:#FFC94A;font-weight:700}
 @media print{
   body{background:#fff;color:#000}
   header .chips,.bar1,.sfanav-strip,.sfanav,.demo{display:none!important}
   .stu{background:#fff;border:1px solid #999;break-inside:avoid;break-after:page;color:#000}
-  .stu h2{color:#000}.stu .sum,.part h3 small,.k,.none{color:#444}
+  .stu h2{color:#000}.stu .sum,.part h3 small,.k,.none,.gwhen,.gskill{color:#444}
   .ok{color:#0a6b4a}.no{color:#a61b12}.mid{color:#7a5a00}.q{color:#000}
   .part{border-top:1px solid #bbb}
 }
@@ -104,20 +105,46 @@
   function shown(s, a) { return s && s.opts && /^\d+$/.test(a) && s.opts[+a] != null ? plain(s.opts[+a]) : plain(a); }
   function rightAnswer(s) { if (!s || s.ans == null) return s && s.rule ? s.rule : ''; return s.opts ? plain(s.opts[s.ans]) : String(s.ans); }
   function kv(str) { var o = {}; String(str).split(';').forEach(function (p) { var i = p.indexOf(':'); if (i > 0) o[p.slice(0, i)] = p.slice(i + 1); }); return o; }
-  var GAMEROW = {
-    zclash: function (o) { return 'Lane Clash: ' + (+o.r || 0) + ' right, ' + (+o.w || 0) + ' wrong'; },
-    zraidx1: function (o) { var n = +o.n || 0, h = +o.h || 0; return 'Boss Raid: ' + h + ' right of ' + n + ' answered'; },
-    zsumox1: function (o) { return 'Sumo Graphing: ' + (+o.c || 0) + ' lines graphed, ' + (+o.f || 0) + ' right first time, ' + (+o.w || 0) + ' wrong tries'; },
-    // Laser Lines: the line through two points, y = mx + b; the help levels say how much support the student had
-    zduelx1: function (o) {
-      var n = +o.n || 0, ok = +o.ok || 0, f = +o.f || 0, hi = +o.hi || 0, HL = ['from two points on their own', 'with a table of points on the line', 'with the slope and intercept given'];
-      if (!n) return 'Laser Lines (equations of lines from two points): joined, no rounds played';
+  // every class game a lesson can run: its name, the maths it practises (in words a parent can follow), and a result
+  // line built from the student's own saved row (each game keeps one running row per student per lesson)
+  function pc(a, b) { return b ? Math.round(100 * a / b) + '%' : ''; }
+  function pl(n, w, ws) { return n + ' ' + (n === 1 ? w : (ws || w + 's')); }
+  var GAMES = {
+    zclash: { n: 'Lane Clash', e: '⚔️', skill: 'answering this lesson\'s questions to earn characters for a team battle', line: function (o) {
+      var r = +o.r || 0, w = +o.w || 0, sk = +o.sk || 0;
+      if (!r && !w) return 'joined the battle but answered no questions';
+      return r + ' of ' + (r + w) + ' questions right (' + pc(r, r + w) + ')' + (sk > 1 ? ', best streak ' + sk + ' in a row' : '') + (+o.n ? ', sent ' + pl(+o.n, 'character') + ' into battle' : '');
+    } },
+    zraidx1: { n: 'Boss Raid', e: '👹', skill: 'review questions, the whole class against one boss', line: function (o) {
+      var n = +o.n || 0, h = +o.h || 0, b = +o.b || 0;
+      if (!n) return 'joined the raid but answered no questions';
+      return h + ' of ' + n + ' questions right (' + pc(h, n) + ')' + (b > 1 ? ', best streak ' + b + ' in a row' : '');
+    } },
+    zboardx1: { n: 'Big Board', e: '🔠', skill: 'review questions from earlier lessons, to earn letters in a class crossword', line: function (o) {
+      var r = +o.r || 0, m = +o.m || 0;
+      return (r || m ? r + ' of ' + (r + m) + ' questions right (' + pc(r, r + m) + ')' : 'joined, no questions answered') + (+o.s ? ', and solved their crossword word' : '');
+    } },
+    zsumox1: { n: 'Sumo Graphing', e: '🤼', skill: 'graphing straight lines from a rule: filling a table, plotting points, drawing the line and reading values off it', line: function (o) {
+      var c = +o.c || 0, f = +o.f || 0, w = +o.w || 0, ms = String(o.ms || '').split('.').map(Number), STEP = ['filling the table', 'plotting points', 'drawing the line', 'reading values off the line'];
+      if (!c && !w) return 'joined, no lines finished';
+      var most = -1, mv = 0; ms.forEach(function (v, i) { if (v > mv) { mv = v; most = i; } });
+      return pl(c, 'line') + ' graphed, ' + f + ' with every step right first time' + (w ? ', ' + pl(w, 'wrong try', 'wrong tries') : '') + (most >= 0 ? '; most slips were in ' + STEP[most] : '');
+    } },
+    zstandx1: { n: 'The Floor Is Lava', e: '🌋', skill: 'finding points that lie on a line (and, later, in the region an inequality describes)', line: function (o) {
+      var lo = +o.o || 0, io = +o.f || 0, h = +o.h || 0;
+      if (!lo && !io) return 'joined, no rounds finished';
+      return (lo ? (+o.r || 0) + ' of ' + pl(lo, 'line round') + ' with a point on the line' : '') + (io ? (lo ? ', ' : '') + (+o.e || 0) + ' of ' + pl(io, 'inequality round') + ' safe' : '') + (h ? '; used a hint step ' + pl(h, 'time') : '');
+    } },
+    zduelx1: { n: 'Laser Lines', e: '🚀', skill: 'writing the equation of the line through two points, step by step: change in y, change in x, slope, then y-intercept', line: function (o) {
+      var n = +o.n || 0, ln = +o.ln || 0, ok = +o.ok || 0, f = +o.f || 0, rv = +o.rv || 0, fo = +o.fo || 0, fr = +o.fr || 0, hi = +o.hi || 0, w = +o.w || 0;
+      var HL = ['from the two points alone', 'with a table of points on the line', 'with the slope and intercept given'];
+      if (!n) return 'joined, no rounds played';
+      if (!ln && !o.ln) ln = n;   // a row from before lines were counted: one line a round
       var hl = String(o.hl || '').split('').map(Number).filter(function (h) { return h >= 0 && h <= 2; }).map(function (h) { return HL[h]; });
-      return 'Laser Lines (writing the equation of the line through two points): ' + ok + ' of ' + n + ' line' + (n === 1 ? '' : 's') + ' right' + (ok ? ' (' + f + ' right first time)' : '') +
-        (hl.length ? ', working ' + hl.join(', then ') : '') + (hi ? '; ' + hi + ' laser hit' + (hi === 1 ? '' : 's') : '') + (+o.w === 1 ? '; their fleet won' : +o.w === 2 ? '; their fleet lost' : +o.w === 3 ? '; the battle was a draw' : '');
-    },
-    zboardx1: function (o) { return 'Big Board: ' + (+o.r || 0) + ' right, ' + (+o.m || 0) + ' missed'; },
-    zstandx1: function (o) { var lo = +o.o || 0, io = +o.f || 0, h = +o.h || 0; if (!lo && !io) return o.p != null ? 'Stand on the Line: played' : 'The Floor Is Lava: joined, no rounds finished'; return 'The Floor Is Lava: ' + (lo ? (+o.r || 0) + ' of ' + lo + ' line' + (lo === 1 ? '' : 's') + ' right' : '') + (io ? (lo ? ', ' : '') + (+o.e || 0) + ' of ' + io + ' inequality round' + (io === 1 ? '' : 's') + ' safe' : '') + (h ? ', ' + h + ' with a hint step' : ''); }
+      var out = ok + ' of ' + pl(ln, 'line') + ' right on their own' + (ok ? ' (' + f + ' with no mistakes)' : '') + (rv ? ', ' + rv + ' more finished after we showed them a step' : '') + (hl.length ? '; worked ' + hl.join(', then ') : '');
+      if (fo) out += '; in the final round, with no help at all, ' + fr + ' of ' + pl(fo, 'line') + ' right';
+      return out + (hi ? '; ' + pl(hi, 'laser hit') : '') + (w === 1 ? '; their fleet won' : w === 2 ? '; their fleet lost' : w === 3 ? '; the battle was a draw' : '');
+    } }
   };
   function lessonPart(L, rows) {
     var main = L.slides.filter(function (s) { return s.id && !s.warm; }), joined = rows.length > 0;
@@ -133,7 +160,7 @@
       else if (s.k === 'open' || s.k === 'exit') o.written.push({ s: s, a: plain(r.answer) });
     });
     Object.keys(by).forEach(function (q) {
-      var r = by[q]; if (GAMEROW[q]) return o.games.push(GAMEROW[q](kv(r.answer)));
+      var r = by[q]; if (GAMES[q]) { var G = GAMES[q]; return o.games.push({ q: q, n: G.n, e: G.e, skill: G.skill, text: G.line(kv(r.answer)) }); }
       var x = slideOf(L, q); if (!x || !x.extra) return;
       o.extras.done++; if (r.correct === 'yes') o.extras.right++; else if (r.correct === 'no') o.extras.missed.push({ s: x.s, a: shown(x.s, r.answer) });
     });
@@ -147,10 +174,11 @@
     return { n: sc.length, right: sc.filter(function (r) { return r.result === 'yes'; }).length, sessions: Object.keys(sess).length,
       missed: Object.keys(miss).sort(function (a, b) { return miss[b] - miss[a]; }).map(function (k) { return { name: skillName(k), wrong: miss[k], right: okBy[k] || 0 }; }) };
   }
+  function gameLesson(g) { var p = (window.SFA_PLAN || []).filter(function (x) { return x.game.indexOf(g + '-') === 0; })[0], L = p ? LES['L' + p.l] : null; if (!L) return ''; var lab = L.label || 'Lesson ' + L.n; return gameTitle(g).toLowerCase() === String(L.title).toLowerCase() ? lab : lab + ': ' + L.title; }
   function gameTitle(g) { var p = (window.SFA_PLAN || []).filter(function (x) { return x.game.indexOf(g + '-') === 0; })[0]; return p ? p.game.replace(/^g\d+-/, '').replace(/\.html$/, '').split('-').map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ') : g; }
   function arcadePart(rows) {
     var by = {};
-    rows.forEach(function (e) { var o = by[e.game] || (by[e.game] = { game: gameTitle(e.game), levels: [], certs: [] }), d = String(e.detail).split(' ');
+    rows.forEach(function (e) { var o = by[e.game] || (by[e.game] = { game: gameTitle(e.game), topic: gameLesson(e.game), levels: [], certs: [] }), d = String(e.detail).split(' ');
       if (e.type === 'certificate') o.certs.push(e.detail === 'standard' ? 'standard certificate' : e.detail); else if (e.type === 'level') o.levels.push(d.slice(2).join(' ') || d[0]); });
     return Object.keys(by).map(function (k) { return by[k]; });
   }
@@ -193,9 +221,15 @@
         if (p.skipped.length) { d.appendChild(el('p', { 'class': 'k mid', text: 'Did not answer (' + p.skipped.length + ')' })); var u2 = el('ul'); p.skipped.forEach(function (s) { u2.appendChild(qline({ s: s })); }); d.appendChild(u2); }
         if (p.written.length) { d.appendChild(el('p', { 'class': 'k', text: 'Wrote' })); var u3 = el('ul'); p.written.forEach(function (m) { var li = el('li'); li.appendChild(el('span', { 'class': 'q', text: (m.s.k === 'exit' ? 'Exit ticket: ' : '') + clip(m.s.q, 110) })); li.appendChild(el('br')); li.appendChild(el('span', { 'class': 'their', text: '"' + clip(m.a, 220) + '"' })); u3.appendChild(li); }); d.appendChild(u3); }
         if (p.extras.done) { d.appendChild(el('p', { text: 'Go-further extras: did ' + p.extras.done + ', ' + p.extras.right + ' right' + (p.extras.missed.length ? ', ' + p.extras.missed.length + ' missed:' : '.') })); if (p.extras.missed.length) { var u4 = el('ul'); p.extras.missed.forEach(function (m) { u4.appendChild(qline(m, true)); }); d.appendChild(u4); } }
-        p.games.forEach(function (g) { d.appendChild(el('p', { text: '🎮 ' + g + '.' })); });
+        if (p.games.length) d.appendChild(el('p', { text: '🎮 Class game' + (p.games.length > 1 ? 's' : '') + ': ' + p.games.map(function (g) { return g.n; }).join(', ') + ' (results under Class games).' }));
         box.appendChild(d);
       });
+      // class games: each one played in these lessons, what it practises, and how the student did
+      var gp = el('div', { 'class': 'part' }); gp.appendChild(el('h3', { text: '🎮 Class games' }));
+      var played = []; R.lessons.forEach(function (p) { p.games.forEach(function (g) { played.push({ g: g, p: p }); }); });
+      if (!played.length) gp.appendChild(el('p', { 'class': 'none', text: 'No class games in these lessons.' }));
+      else { var ug = el('ul', { 'class': 'games' }); played.forEach(function (x) { var li = el('li'); li.appendChild(el('b', { text: x.g.e + ' ' + x.g.n + ' ' })); li.appendChild(el('small', { 'class': 'gwhen', text: '(' + (x.p.L.label || 'Lesson ' + x.p.L.n) + ', ' + x.p.day + ')' })); li.appendChild(el('br')); li.appendChild(el('span', { 'class': 'gskill', text: 'Practises ' + x.g.skill + '.' })); li.appendChild(el('br')); li.appendChild(el('span', { text: x.g.text.charAt(0).toUpperCase() + x.g.text.slice(1) + '.' })); ug.appendChild(li); }); gp.appendChild(ug); }
+      box.appendChild(gp);
       var c = el('div', { 'class': 'part' }); c.appendChild(el('h3', { text: '🧗 Climb check-in' }));
       if (!R.climb.n) c.appendChild(el('p', { 'class': 'none', text: 'No Climb questions in these days.' }));
       else { c.appendChild(el('p', { text: R.climb.n + ' questions in ' + R.climb.sessions + (R.climb.sessions === 1 ? ' session' : ' sessions') + ', ' + R.climb.right + ' right.' }));
@@ -204,7 +238,7 @@
       box.appendChild(c);
       var a = el('div', { 'class': 'part' }); a.appendChild(el('h3', { text: '🕹️ Arcade' }));
       if (!R.arcade.length) a.appendChild(el('p', { 'class': 'none', text: 'No arcade levels in these days.' }));
-      else { var u6 = el('ul'); R.arcade.forEach(function (g) { u6.appendChild(el('li', { text: g.game + ': cleared ' + g.levels.length + (g.levels.length === 1 ? ' level' : ' levels') + (g.levels.length ? ' (' + clip(g.levels.join(', '), 120) + ')' : '') + (g.certs.length ? '; earned ' + g.certs.join(', ') : '') })); }); a.appendChild(u6);
+      else { var u6 = el('ul'); R.arcade.forEach(function (g) { u6.appendChild(el('li', { text: g.game + (g.topic ? ' (goes with ' + g.topic + ')' : '') + ': cleared ' + g.levels.length + (g.levels.length === 1 ? ' level' : ' levels') + (g.levels.length ? ' (' + clip(g.levels.join(', '), 120) + ')' : '') + (g.certs.length ? '; earned ' + g.certs.join(', ') : '') })); }); a.appendChild(u6);
         a.appendChild(el('p', { 'class': 'none', text: 'The arcade saves the levels a student finishes, not each wrong answer.' })); }
       box.appendChild(a);
       body.appendChild(box);
@@ -218,7 +252,7 @@
     var lines = [head.map(q).join(',')];
     rows.forEach(function (R) {
       var line = [nice(R.st.name), R.st.cls];
-      R.lessons.forEach(function (p) { line.push(p.joined ? p.answered + ' of ' + p.total : 'did not join', p.right, p.checked, p.missed.map(function (m) { return clip(m.s.q, 80); }).join(' | '), p.skipped.map(function (s) { return clip(s.q || s.name || '', 60); }).join(' | '), p.games.join(' | ')); });
+      R.lessons.forEach(function (p) { line.push(p.joined ? p.answered + ' of ' + p.total : 'did not join', p.right, p.checked, p.missed.map(function (m) { return clip(m.s.q, 80); }).join(' | '), p.skipped.map(function (s) { return clip(s.q || s.name || '', 60); }).join(' | '), p.games.map(function (g) { return g.n + ': ' + g.text; }).join(' | ')); });
       line.push(R.climb.n, R.climb.right, R.climb.missed.map(function (m) { return m.name + ' (' + m.wrong + ')'; }).join(' | '), R.arcade.map(function (g) { return g.game + ': ' + g.levels.length + ' levels' + (g.certs.length ? ', ' + g.certs.join(', ') : ''); }).join(' | '));
       lines.push(line.map(q).join(','));
     });
@@ -247,7 +281,10 @@
           if (s.more && s.more[0] && rnd() < 0.4 && s.more[0].ans != null) { var ok4 = rnd() < skill; res.push({ time: '', sid: st.sid, lesson: lid, q: s.id + 'x1', kind: s.more[0].k, answer: String(ok4 ? s.more[0].ans : 0), correct: ok4 ? 'yes' : 'no' }); }
         });
         if (li === 2) res.push({ time: '', sid: st.sid, lesson: lid, q: 'zclash', kind: 'open', answer: 'c3;id:1;r:' + Math.round(4 + skill * 10) + ';w:' + Math.round(6 - skill * 5), correct: '' });
-        if (li === 0) { var dn = 3, dok = Math.min(dn, Math.round(skill * 4)); res.push({ time: '', sid: st.sid, lesson: lid, q: 'zduelx1', kind: 'open', answer: 'd1;id:1;r:3;n:' + dn + ';ok:' + dok + ';f:' + Math.max(0, dok - 1) + ';hi:' + Math.max(0, dok - 1) + ';hl:' + (skill < 0.5 ? '21' : skill < 0.7 ? '10' : '0') + ';w:' + (si % 2 ? 1 : 2), correct: '' }); }
+        if (li === 0) res.push({ time: '', sid: st.sid, lesson: lid, q: 'zboardx1', kind: 'open', answer: 'b1;id:1;w:ORBIT;s:' + (skill > 0.5 ? 1 : 0) + ';r:' + Math.round(3 + skill * 6) + ';m:' + Math.round(4 - skill * 3), correct: '' });
+        if (li === 1) res.push({ time: '', sid: st.sid, lesson: lid, q: 'zsumox1', kind: 'open', answer: 's1;id:1;p:40;c:' + Math.round(2 + skill * 5) + ';f:' + Math.round(skill * 4) + ';w:' + Math.round(6 - skill * 5) + ';k:0;b:0;lv:2;ms:' + [1, Math.round(4 - skill * 3), 1, 0].join('.') + ';s1:5;sn:9', correct: '' });
+        if (li === 2) res.push({ time: '', sid: st.sid, lesson: lid, q: 'zstandx1', kind: 'open', answer: 't2;id:1;g:1;x:0;y:0;t:9;s:0;r:' + Math.round(2 + skill * 3) + ';o:5;n:5;h:' + (skill < 0.5 ? 2 : 0) + ';e:' + Math.round(skill * 4) + ';f:4', correct: '' });
+        if (li === 0) { var dn = 3, dok = Math.min(dn, Math.round(skill * 4)); res.push({ time: '', sid: st.sid, lesson: lid, q: 'zduelx1', kind: 'open', answer: 'd2;id:1;r:5;n:5;ln:' + (dn + 6) + ';ok:' + (dok + 4) + ';f:' + Math.max(0, dok + 1) + ';rv:' + (skill < 0.5 ? 3 : 1) + ';fo:2;fr:' + (skill > 0.6 ? 2 : skill > 0.45 ? 1 : 0) + ';hi:' + Math.max(0, dok + 2) + ';hl:' + (skill < 0.5 ? '210' : skill < 0.7 ? '10' : '0') + ';w:' + (si % 2 ? 1 : 2), correct: '' }); }
         if (li === 1) res.push({ time: '', sid: st.sid, lesson: lid, q: 'zraidx1', kind: 'open', answer: 'r1;id:1;d:140;h:' + Math.round(3 + skill * 8) + ';n:' + 12, correct: '' });
       });
       if (si !== 4) for (var k = 0; k < 9; k++) { var sk = skills[Math.floor(rnd() * skills.length)]; climb.push({ time: '', sid: st.sid, sess: 'S1', skill: sk, tid: '', seed: 0, mode: 'new', answer: '', result: rnd() < skill ? 'yes' : 'no', tag: '' }); }
@@ -256,9 +293,11 @@
     return { ok: true, cls: '8A', roster: ro, lessons: ids.map(function (id, i) { return { lesson: id, day: '2026-11-0' + (3 + i * 2), students: 6 }; }), from: '2026-11-03', today: '2026-11-11', responses: res, climb: climb, events: ev };
   }
 
+  // the arcade game names come from sfa-nav.js (window.SFA_PLAN), which can arrive after the lessons: wait for it a moment
+  function whenPlan(f, n) { if (window.SFA_PLAN || n <= 0) f(); else setTimeout(function () { whenPlan(f, n - 1); }, 50); }
   var left = MAXL;
   window.SFA_LESSON = function (L) { LES[L.id] = L; };
-  for (var i = 1; i <= MAXL; i++) { var s = document.createElement('script'); s.src = 'lessons/L' + i + '.js'; s.onload = s.onerror = function () { if (--left === 0) load(); }; document.head.appendChild(s); }
+  for (var i = 1; i <= MAXL; i++) { var s = document.createElement('script'); s.src = 'lessons/L' + i + '.js'; s.onload = s.onerror = function () { if (--left === 0) whenPlan(load, 40); }; document.head.appendChild(s); }
 })();
 </script>
 <script src="sfa-nav.js?v=20261111a"></script>
