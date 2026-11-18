@@ -1572,7 +1572,7 @@
       { id: 'clash', e: '⚔️', n: 'Lane Clash', len: SFA.store.get('teacher.clash.mins', 5) + ' min', sug: atEnd, one: 'Team battle: answer today\'s questions for coins and send characters down 5 lanes.', build: buildClash },
       { id: 'sumo', e: '🤼', n: 'Sumo Graphing', len: '~' + Math.round(SFA.store.get('teacher.sumo.mins', 2) * 3 + 1.5) + ' min', sug: false, one: 'Pairs graph lines from rules; every 30 s their work becomes a sumo bout. Three fights, then a highlight reel.', build: buildSumo },
       { id: 'stand', e: '🌋', n: 'The Floor Is Lava', len: '~' + (function (o) { o = o || {}; var n = o.rounds || 5, t = o.secs || 25; return Math.max(2, Math.round((16 + n * (t + 22) + (o.ineq === 0 ? 0 : 11 + (o.ncon || 6) * (t + 23))) / 60)); })(SFA.store.get('teacher.lava', null)) + ' min', sug: false, one: 'The whole class on one grid. The floor is lava: only points on the line are safe. Tap or type a point; everyone on lava melts.', build: buildStand },
-      { id: 'duel', e: '🚀', n: 'Laser Lines', len: '~' + Math.round(SFA.store.get('teacher.duel.rounds5', 5) * (SFA.store.get('teacher.duel.secs', 60) + 22) / 60) + ' min', sug: false, one: 'Space battle: pick an enemy, write the line to them, bank a laser. Every minute all the lasers fire at once; harder lines score more.', build: buildDuel },
+      { id: 'duel', e: '🚀', n: 'Laser Lines', len: '~' + Math.round(SFA.store.get('teacher.duel.rounds5', 5) * (SFA.store.get('teacher.duel.secs', 60) + 22) / 60) + ' min', sug: false, one: 'Space battle: pick an enemy, write the line to them, bank a laser. When the aiming time ends, all the lasers fire at once; harder lines score more.', build: buildDuel },
       { id: 'show', e: '👗', n: 'Fashion show', len: '~' + Math.max(1, Math.ceil(Math.max(1, rosterIn().length) * SFA.store.get('teacher.show.secs', 5) / 60)) + ' min', sug: cur === 0, one: 'Every student\'s avatar walks the catwalk, one after another.', build: buildShow }
     ];
     var sec = H('div', 'sect games');
@@ -1633,7 +1633,7 @@
     var r = H('div', 'row'); r.appendChild(len); r.appendChild(dm); r.appendChild(fn); r.appendChild(sb); box.appendChild(r);
   }
   function buildDuel(box) {
-    var len = pickSel('Aiming time', [[45, '45 seconds to aim'], [60, '1 minute to aim'], [90, '1½ minutes to aim']], SFA.store.get('teacher.duel.secs', 60), 'teacher.duel.secs');
+    var len = pickSel('Aiming time', [[45, '45 seconds to aim'], [60, '1 minute to aim'], [90, '1½ minutes to aim'], [120, '2 minutes to aim'], [180, '3 minutes to aim']], SFA.store.get('teacher.duel.secs', 60), 'teacher.duel.secs');
     var rd = pickSel('Volleys', [[4, '4 volleys'], [5, '5 volleys'], [6, '6 volleys']], SFA.store.get('teacher.duel.rounds5', 5), 'teacher.duel.rounds5');
     var sb = startBtn('🚀 Start Laser Lines', 'Forming the fleets…', function () { duelAssets(function () { if (SFA_DUEL.start(+len.value, +rd.value)) SFA.toast('Laser Lines on! Students\' screens switch within a few seconds.', 3500); else consolePanel(); }); });
     var r = H('div', 'row'); r.appendChild(len); r.appendChild(rd); r.appendChild(sb); box.appendChild(r);
