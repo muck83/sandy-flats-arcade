@@ -1,0 +1,70 @@
+[
+ {"scene":"gate","set":{"locks":[1,1,0],"hot":2,"sacks":9,"cw":"450","foreman":"sit","loose":4,"clock":["GATE A",5],"board":["450 - 50s < 150","-50s < -300","s {s} 6"],"sym":"?"},"cast":{"doug":[90,1],"marcus":[150,1,{"mood":"shock"}]},"d":1.0},
+ {"s":"marcus","set":{"clock":["GATE A",4]},"t":"Divide by minus fifty. S is..."},
+ {"s":"pigeon","set":{"clock":["GATE A",3]},"t":"Which way does the sign go?"},
+ {"set":{"clock":["GATE A",3,1],"freeze":true},"d":0.9},
+ {"title":"TWO MINUTES EARLIER","sub":"","d":1.6},
+
+ {"scene":"control","set":{"chalk":0,"floorText":"GATE A"},"fx":[{"n":"chalk","at":0.1,"dur":1.0},{"n":"pull","at":1.2}],"d":2.0},
+
+ {"scene":"gate","set":{"locks":[0,0,0],"sacks":9,"cw":"450","foreman":"sit","loose":3},"cast":{"doug":[90,1],"marcus":[150,1]},"s":"voice","t":"Gate A. Three locks, one for each floor you passed. Open all three before the last cart leaves."},
+ {"s":"voice","set":{"clock":["GATE A",50]},"t":"Incidents allowed at the gate: three. Observers, you are assessed after."},
+ {"s":"marcus","set":{"clock":["GATE A",48]},"cast":{"marcus":[150,1,{"mood":"shock"}]},"t":"Who is sitting in our cart?"},
+ {"s":"voice","set":{"clock":["GATE A",47]},"t":"That information is on floor nine."},
+ {"s":"pigeon","set":{"clock":["GATE A",46]},"cast":{"marcus":[150,1]},"t":"Complaint six. Somebody is in our cart."},
+
+ {"s":"voice","set":{"hot":0,"clock":["GATE A",45],"board":["(2, 9) to (6, 1)","slope = ?"]},"t":"Lock one. The track runs from post two, height nine, to post six, height one. Dial the slope."},
+ {"s":"marcus","set":{"clock":["GATE A",41],"board":["(2, 9) to (6, 1)","(9 - 1) / (6 - 2)"]},"t":"Nine take away one, eight. Six take away two, four."},
+ {"s":"marcus","set":{"clock":["GATE A",38],"board":["(2, 9) to (6, 1)","(9 - 1) / (6 - 2)","= 8 / 4 = +2"]},"cast":{"marcus":[150,1,{"raise":true}]},"t":"Plus two!"},
+ {"s":"voice","set":{"clock":["GATE A",37,1]},"cast":{"marcus":[150,1]},"t":"(quietly) Stop. Not that one."},
+ {"set":{"loose":4,"clock":["GATE A",34],"stalker":[40,1,470,0.8]},"cast":{"marcus":[150,1,{"mood":"shock"}]},"fx":[{"n":"buzz","at":0.1}],"d":1.2},
+ {"s":"voice","set":{"report":{"cause":"different orders, top and bottom","by":"The Voice","count":"1 OF 3","prints":false},"clock":["GATE A",33]},"t":"Incident. Cause: subtracted in different orders, top and bottom. Penalty: goats."},
+ {"s":"voice","set":{"report":null,"clock":["GATE A",32]},"t":"(quietly) That is how it happened last time."},
+ {"s":"marcus","set":{"clock":["GATE A",31]},"t":"Last time?"},
+ {"s":"pigeon","set":{"clock":["GATE A",30],"board":["(2, 9) to (6, 1)","end minus start, twice:","(1 - 9) / (6 - 2)"]},"cast":{"marcus":[150,1]},"t":"End minus start. Top AND bottom. One take away nine, over six take away two."},
+ {"s":"marcus","set":{"clock":["GATE A",27],"board":["(2, 9) to (6, 1)","end minus start, twice:","(1 - 9) / (6 - 2)","= -8 / 4 = -2 ✓"]},"cast":{"marcus":[150,1,{"raise":true}]},"t":"Minus eight over four. Minus two. It goes DOWNHILL."},
+ {"s":"voice","set":{"clock":["GATE A",26],"locks":[1,0,0]},"cast":{"marcus":[150,1]},"fx":[{"n":"clunk","at":0.1}],"t":"Correct. Lock one."},
+
+ {"s":"voice","set":{"hot":1,"clock":["GATE A",25],"board":["POST   HEIGHT","  2      11","  3      14","  5      20","rule = ?"]},"t":"Lock two. The log starts at post two. Write the rule."},
+ {"s":"pigeon","set":{"clock":["GATE A",22],"board":["POST   HEIGHT","  2      11","  3      14","  5      20","+3 a post, every row"]},"t":"Three more for one post. Six more for two posts. Three a post, every row."},
+ {"s":"pigeon","set":{"clock":["GATE A",19]},"t":"The start is... There is no row for post zero."},
+ {"s":"pigeon","set":{"clock":["GATE A",18]},"t":"Coo."},
+ {"s":"marcus","set":{"clock":["GATE A",17],"board":["walk back, 3 at a time:","post 2: 11","post 1: 8","post 0: 5"]},"cast":{"marcus":[150,1,{"raise":true}]},"t":"Walk it back! Post one, eight. Post zero, five!"},
+ {"s":"marcus","set":{"clock":["GATE A",14],"board":["height = 3 × post + 5","check post 5:","15 + 5 = 20 ✓"]},"cast":{"marcus":[150,1]},"t":"Height equals three times post, plus five. Check post five. Twenty!"},
+ {"s":"voice","set":{"clock":["GATE A",12],"locks":[1,1,0]},"fx":[{"n":"clunk","at":0.1}],"t":"Correct. Lock two."},
+ {"s":"pigeon","set":{"clock":["GATE A",11]},"t":"Complaint seven. You were right and I was not."},
+ {"set":{"clock":["GATE A",11,1],"foreman":"look"},"fx":[{"n":"steal","at":0.2}],"d":1.9},
+ {"s":"marcus","set":{"clock":["GATE A",9],"foreman":"sit"},"cast":{"marcus":[150,1,{"mood":"shock"}]},"t":"He TOOK our seconds!"},
+
+ {"s":"voice","set":{"hot":2,"clock":["GATE A",9,1],"board":["counterweight: 450","each sack off: -50","gate lifts: under 150"]},"cast":{"marcus":[150,1]},"t":"Lock three. The counterweight is four fifty. Every sack off takes fifty. The gate lifts under one fifty."},
+ {"s":"pigeon","set":{"clock":["GATE A",9]},"t":"Those sacks are full of minus signs. The Flippers' sacks."},
+ {"s":"marcus","set":{"clock":["GATE A",7],"board":["450 - 50s < 150","-50s < -300"]},"t":"Four fifty take away fifty s, under one fifty. Minus fifty s, under minus three hundred."},
+ {"s":"marcus","set":{"clock":["GATE A",5],"board":["450 - 50s < 150","-50s < -300","s {s} 6"],"sym":"?"},"cast":{"marcus":[150,1,{"mood":"shock"}]},"t":"Divide by minus fifty. S is..."},
+ {"s":"pigeon","set":{"clock":["GATE A",4]},"t":"Which way does the sign go?"},
+ {"s":"marcus","set":{"clock":["GATE A",3],"sym":">","symHot":true},"cast":{"marcus":[150,1,{"raise":true}]},"t":"I KNOW. Turn it over. S MORE than six. Seven sacks!"},
+ {"set":{"sacks":2,"cw":"100","clock":["GATE A",2]},"cast":{"marcus":[150,1]},"fx":[{"n":"toss","at":0.1,"from":9}],"d":1.8},
+ {"s":"pigeon","set":{"clock":["GATE A",1.5],"board":["try s = 7:","450 - 350 = 100","✓ under 150"]},"t":"Check. Seven off. Four fifty take away three fifty. One hundred."},
+ {"s":"voice","set":{"clock":["GATE A",1,1],"locks":[1,1,1]},"fx":[{"n":"clunk","at":0.1},{"n":"open","at":0.8}],"t":"Correct. Gate A passed."},
+ {"set":{"clock":null,"board":null,"open":1,"helmet":["END MINUS START.","SAME ORDER, TOP AND BOTTOM.","START IS WHERE THE POST IS ZERO.","DIVIDE BY A NEGATIVE: TURN THE SIGN."]},"s":"pigeon","t":"Three floors. Four lines. You used every one."},
+
+ {"set":{"helmet":null,"foreman":"look"},"cast":{"doug":[200,1],"marcus":[470,1]},"s":"marcus","t":"Hey! That's OUR cart!"},
+ {"set":{"foreman":"sit"},"fx":[{"n":"roll","at":0.2,"dur":2.2}],"d":2.6},
+ {"set":{"gone":true},"s":"pigeon","t":"His helmet. It was covered in writing."},
+ {"s":"voice","t":"(quietly) He has passed this gate before. Many times."},
+ {"s":"marcus","cast":{"marcus":[470,1,{"raise":true}]},"t":"Then we catch him on floor four."},
+
+ {"scene":"news","cast":{"anchor":[480,1,{"dy":-44}]},"set":{"ticker":"DAY FOUR: SOMEONE ELSE IS UNDER THE POND"},"s":"anchor","t":"Day four. Reports say somebody else is under the pond. We have a caller."},
+ {"set":{"caller":true},"s":"marcus","t":"(on the phone) Chip! We passed the gate. Somebody in a helmet is one cart ahead of us."},
+ {"s":"anchor","t":"And how is the weather under the pond?","comic":true},
+
+ {"scene":"gate","set":{"locks":[1,1,1],"open":1,"gone":true,"sacks":2,"cw":"100","loose":4},"cast":{"doug":[200,1],"marcus":[470,1]},"s":"voice","t":"Observers. Gate A is assessed now. Three floors. On your own. No talking."},
+ {"title":"GATE A CHECK","sub":"Three floors. On your own.","d":3.0},
+
+ {"scene":"control","set":{"chalk":0,"floorText":"FLOOR 4","sub":"one ticket, one stop"},"fx":[{"n":"chalk","at":0.1,"dur":1.0}],"s":"voice","t":"Floor four. One ticket. One stop."},
+
+ {"scene":"pen","set":{"keith":[600,-1,0],"slip":true},"cast":{"doug":[230,1],"marcus":[300,1]},"s":"marcus","t":"Is the goat eating my incident slip?"},
+ {"s":"voice","t":"Keith is staff.","comic":true},
+ {"fx":[{"n":"eat","at":0.2}],"d":1.6},
+ {"set":{"slip":false},"s":"pigeon","t":"Complaint eight. That was evidence."},
+ {"title":"TO BE CONTINUED","sub":"FLOOR FOUR: ONE TICKET, ONE STOP","d":3.0,"end":true}
+]

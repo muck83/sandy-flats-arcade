@@ -30,7 +30,8 @@
     'g17': 'Re-forge the Chain four ways, catch the lying link, then find the edge of the Undefined\'s rule 12/x.',
     'g18': 'Set the lift dial by end minus start, find the slope of every span, and name the cause on each incident slip.',
     'g19': 'Find the slope from the log, walk back to post zero for the start, then write the rule and check it before the train leaves.',
-    'g20': 'Write the bridge\'s load rule, turn the sign when you divide by a negative, check it with a number and read it on the line.'
+    'g20': 'Write the bridge\'s load rule, turn the sign when you divide by a negative, check it with a number and read it on the line.',
+    'g21': 'Open Gate A\'s three locks: a slope from two points, a rule from a log that starts late, and a counterweight where the sign has to turn.'
   };
   var gid = (location.pathname.match(/\/(g\d+)-/) || [])[1];
   var TIER = { 'Low floor': 'Warm-up', 'Core': 'Main', 'Stretch': 'Challenge', 'Review': 'Review' };

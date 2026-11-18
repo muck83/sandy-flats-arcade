@@ -8,7 +8,7 @@
   var SFA = window.SFA, el = SFA.el, esc = SFA.esc, CFG = window.SFA_CONFIG || {}, S = SFA.sync;
   var Q = new URLSearchParams(location.search);
   var MODE = Q.has('teach') ? 'teach' : Q.has('screen') ? 'screen' : 'student';
-  var N = Math.max(1, Math.min(23, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
+  var N = Math.max(1, Math.min(24, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
   var TEACHER = 'Mr. Crowell';
   var LIVE_FRESH = 10 * 60 * 1000;   // a live session counts as running while the console has checked in within 10 minutes
   document.body.classList.add('lesson', 'm-' + MODE);

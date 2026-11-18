@@ -55,7 +55,7 @@ Any `poll`, `number`, `open` or `machine` slide (not `warm`, `conf` or `exit`) c
   question, while the teacher keeps the class on the slide. `more[0]` is **★ Another one** (the same idea, new
   numbers or a new context), `more[1]` is **★★ Stretch** (one step deeper: backwards, a twist, explain or generalise),
   `more[2]` is **★★★ Challenge** (two ideas combined, a harder case, or a why question). The Under the Pond lessons
-  (L21 to L23) give every question all three.
+  (L21 to L24) give every question all three.
 
 ```js
 more: [

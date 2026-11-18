@@ -1,0 +1,72 @@
+SFA_LESSON({
+  id: 'L24', n: 21, label: 'Gate A', title: 'The Last Cart Down',
+  film: { n: 'Gate A', title: 'The Last Cart Down', len: '3:41' },
+  game: { title: 'The Last Cart Down', file: 'g21-last-cart-down.html' },
+  big: 'Gate A is the first three floors at once. A slope is end minus start, top and bottom, in the same order. A rule starts where the post is zero, so walk the log back. Divide an inequality by a negative and turn the sign, then check with a number.',
+  slides: [
+    { k: 'title', min: 1, kicker: 'Under the Pond · Gate A', title: 'The Last Cart Down', sub: 'Three locks, one for each floor. Marcus and Doug have less than a minute, and somebody in a helmet covered in writing is sitting in their cart.', art: '🚪' },
+    { k: 'signin', min: 1, title: 'Before we start', points: ['Watch Gate A', 'Find a slope from two points, in the same order top and bottom', 'Walk a log back to post zero to find the start', 'Solve an inequality, turn the sign for a negative, and check it'] },
+    { k: 'poll', min: 1, id: 'warm', warm: true, q: 'Somebody is sitting in YOUR cart and will not say who they are. What do you do?', opts: ['Ask politely', 'Climb in anyway', 'Let Doug file a complaint', 'Check if it is Keith'] },
+    { k: 'poll', min: 2, id: 'hook', q: 'Lock one: the track runs from *(2, 9)* to *(6, 1)*. Marcus works out (9 − 1) ÷ (6 − 2) = *+2*. What went wrong?',
+      opts: ['Nothing: the slope is 2', 'Different orders top and bottom: it should be −2', 'He should divide by 2, not 4', 'He should add, not take away'], ans: 1,
+      why: 'Top: 9 − 1 starts from the first point. Bottom: 6 − 2 starts from the second. Same order: (1 − 9) ÷ (6 − 2) = −8 ÷ 4 = −2. The track goes downhill.',
+      help: 'Which point did he start from on top? Which point on the bottom?' },
+    { k: 'film', min: 4, title: 'Watch: Gate A, The Last Cart Down', watch: 'Three locks. Watch for what the Voice says before it files the incident, where Doug gets stuck, and who takes the cart.', cue: 'Play *The Last Cart Down* (Under the Pond, Gate A). It runs 3:41. The film ends with the Gate A check: do the next three questions alone and in silence.' },
+    { k: 'open', min: 4, id: 'report1', q: 'The incident slip said *Cause: different orders, top and bottom.* The Voice then said "That is how it happened last time." What did Marcus do, and why does the order matter?', ph: 'He did... The order matters because...',
+      model: 'On top he did 9 − 1 (first point minus second), but on the bottom 6 − 2 (second minus first). That flips the sign: +2 instead of −2. If you start from the same point top and bottom, the signs match and the slope is right.',
+      help: 'Write down which point he started from on top, and which on the bottom.',
+      more: [
+        { k: 'number', q: 'Find the slope from *(1, 8)* to *(5, 0)*.', ans: -2, hint: 'End minus start, top and bottom: (0 − 8) ÷ (5 − 1).', why: '−8 ÷ 4 = −2.',
+          steps: ['Top: 0 − 8 = −8.', 'Bottom: 5 − 1 = 4.', '−8 ÷ 4 = *−2*. Downhill.'] },
+        { k: 'poll', q: 'Ana goes from *(6, 1)* to *(2, 9)* and works out (1 − 9) ÷ (6 − 2). Is she right?', opts: ['Yes: both top and bottom are start minus end, so −2', 'No: the orders are different', 'No: she must start from the left point', 'Yes, and the slope is +2'], ans: 0,
+          why: 'Top: 1 − 9 takes the end (9) from the start (1). Bottom: 6 − 2 takes the end (2) from the start (6). Same order both times, so −8 ÷ 4 = −2 is right.',
+          steps: ['Her start is (6, 1), her end is (2, 9).', 'Top: 1 − 9 is start minus end. Bottom: 6 − 2 is start minus end.', 'Same order top and bottom: −8 ÷ 4 = *−2*. She is right.', 'End minus start gives the same: 8 ÷ (−4) = −2.'] },
+        { k: 'open', q: 'Explain why (y₂ − y₁) ÷ (x₂ − x₁) and (y₁ − y₂) ÷ (x₁ − x₂) give the same slope.', ph: 'Both...',
+          model: 'The second one is the first with both top and bottom multiplied by −1. A negative over a negative is the same as the positive, so the slope does not change. Only mixing the orders changes the sign.',
+          steps: ['y₁ − y₂ = −(y₂ − y₁), and x₁ − x₂ = −(x₂ − x₁).', 'So the second fraction is −a ÷ −b.', '−a ÷ −b = a ÷ b: the same slope.', 'Mixing orders gives −a ÷ b: the sign flips.'] }
+      ] },
+    { k: 'text', min: 1, title: 'The Gate A check', points: ['Three questions, one for each lock.', 'On your own. No talking.', 'Use your helmet lines.', 'The Voice is watching. So is Doug.'],
+      note: 'END MINUS START. SAME ORDER, TOP AND BOTTOM. START IS WHERE THE POST IS ZERO. DIVIDE BY A NEGATIVE: TURN THE SIGN.' },
+    { k: 'number', min: 3, id: 'gate1', q: 'Lock one. A track runs from *(1, 9)* to *(5, 1)*, as (post, height). What is its slope?', ans: -2,
+      hint: 'Change in height ÷ change in posts, both end minus start.', why: '(1 − 9) ÷ (5 − 1) = −8 ÷ 4 = −2.',
+      help: 'Write the top as 1 − 9 and the bottom as 5 − 1.',
+      more: [
+        { k: 'number', q: 'A lift goes from level *3* to level *−4*. What is the change?', ans: -7, hint: 'End minus start: −4 − 3.', why: '−4 − 3 = −7: seven down.',
+          steps: ['End minus start.', '−4 − 3 = *−7*.', 'Minus means down: seven levels down.'] },
+        { k: 'number', q: 'Find the slope from *(2, −1)* to *(6, −3)*.', ans: -0.5, hint: '(−3 − (−1)) ÷ (6 − 2).', why: '−2 ÷ 4 = −1/2.',
+          steps: ['Top: −3 − (−1) = −3 + 1 = −2.', 'Bottom: 6 − 2 = 4.', '−2 ÷ 4 = *−1/2* (−0.5).'] },
+        { k: 'number', q: 'A track has slope *−3*. It starts at *(2, 10)* and ends at post *6*. What height does it end at?', ans: -2, hint: 'It changes by −3 for each post. How many posts?', why: '4 posts × −3 = −12. 10 − 12 = −2.',
+          steps: ['From post 2 to post 6 is 4 posts.', 'Each post changes the height by −3: 4 × −3 = −12.', '10 + (−12) = *−2*.'] }
+      ] },
+    { k: 'number', min: 5, id: 'gate2', q: 'Lock two. The log reads *(2, 13), (3, 16), (5, 22)*. What is the height at *post 0* (the start)?', ans: 7,
+      hint: 'Find the slope first. Then walk back from post 2 to post 0.', why: 'Slope: (16 − 13) ÷ (3 − 2) = 3. Walk back: post 1 is 10, post 0 is 7.',
+      help: 'How much does the height change for one post?',
+      more: [
+        { k: 'number', q: 'The log reads *(3, 10), (4, 12), (6, 16)*. What is the start (height at post 0)?', ans: 4, hint: 'Slope 2. Walk back three posts.', why: '10 − 3 × 2 = 4.',
+          steps: ['Slope: (12 − 10) ÷ (4 − 3) = 2.', 'Walk back 3 posts: 10 − 2 − 2 − 2.', 'Start = *4*. Rule: height = 2 × post + 4.'] },
+        { k: 'poll', q: 'Marcus reads the log *(2, 11), (3, 14), (5, 20)* and writes height = 3 × post + 11. What is wrong?', opts: ['Nothing', 'The slope should be 11', 'He took the start from the first row: it should be + 5', 'He should use post 5'], ans: 2,
+          why: '11 is the height at post 2, not post 0. Walk back: 8, then 5. height = 3 × post + 5.',
+          steps: ['11 is in the row for post 2.', 'The start is at post 0: walk back 2 posts of 3.', '11 − 6 = 5. *height = 3 × post + 5*.', 'Check post 5: 15 + 5 = 20. ✓'] },
+        { k: 'number', q: 'The log reads *(2, 9), (4, 5), (5, 3)*. What is the start?', ans: 13, hint: 'The slope is negative. Walking back goes UP.', why: 'Slope −2. Walk back 2 posts: 9 + 2 + 2 = 13.',
+          steps: ['Slope: (5 − 9) ÷ (4 − 2) = −4 ÷ 2 = −2.', 'Walking back a post undoes −2: add 2.', 'Post 1: 11. Post 0: *13*.', 'height = −2 × post + 13. Check post 5: −10 + 13 = 3. ✓'] }
+      ] },
+    { k: 'number', min: 5, id: 'gate3', q: 'Lock three. The counterweight is *500*. Each sack off takes away *40*. The gate lifts when it is *under 180*: 500 − 40s < 180. What is the *fewest* whole sacks off?', ans: 9,
+      hint: 'Take away 500, then divide by −40. Turn the sign.', why: '−40s < −320, so s > 8. The fewest whole sacks more than 8 is 9. Check: 500 − 360 = 140, under 180.',
+      help: 'What is 180 − 500? Then: what do you divide by?',
+      more: [
+        { k: 'poll', q: 'Solve *−6x ≥ 24*.', opts: ['x ≥ −4', 'x ≤ −4', 'x ≥ 4', 'x ≤ 4'], ans: 1, why: 'Divide by −6 and turn the sign: x ≤ −4.',
+          steps: ['Divide both sides by −6.', '24 ÷ −6 = −4.', 'Dividing by a negative turns ≥ into ≤: *x ≤ −4*.'] },
+        { k: 'number', q: 'Marcus solves *450 − 50s < 150* and says s < 6. Check with *s = 5*: what is 450 − 50 × 5?', ans: 200, hint: '50 × 5 = 250.', why: '200 is not under 150, so s < 6 is wrong: it should be s > 6.',
+          steps: ['450 − 250 = *200*.', 'Is 200 under 150? No.', 'So his sign is backwards: s > 6. Seven sacks.'] },
+        { k: 'number', q: 'The last cart weighs *120*. Each sack loaded adds *30*. It rides the chute only when it weighs *at least 300*. What is the fewest whole sacks?', ans: 6, hint: '120 + 30s ≥ 300. Dividing by a positive keeps the sign.', why: '30s ≥ 180, s ≥ 6.',
+          steps: ['120 + 30s ≥ 300.', 'Take away 120: 30s ≥ 180.', 'Divide by 30 (positive, the sign stays): s ≥ 6.', 'Fewest: *6*. Check: 120 + 180 = 300 ✓ (at least includes 300).'] }
+      ] },
+    { k: 'conf', min: 1, id: 'conf', q: 'All three floors at once: how do you feel?' },
+    { k: 'text', min: 1, title: 'Boss Raid: the last cart', points: ['The whole class against the gate.', 'Every question is one of the three locks.', 'Right answers knock seconds off the Foreman\'s lead.'],
+      note: 'Teacher: start a Boss Raid from the console\'s games tray. It takes its questions from this lesson\'s number and poll slides and their extras, so every lock is in it.' },
+    { k: 'play', min: 10, title: 'Play: The Last Cart Down', steps: ['Open *The Last Cart Down* in the Arcade.', 'Open lock one: the lift, then two points.', 'Lock two: an uneven log, then walk it back to post zero.', 'Lock three: the counterweight. Turn the sign for a negative.'], aim: 'Done when all three locks are open, or you have reached the counterweight.', minutes: 10 },
+    { k: 'exit', min: 4, id: 'exit', q: 'His track passes *(1, 11)* and *(3, 7)*. Find the slope, the start (height at post 0) and the rule. Then solve *−2p + 13 ≥ 5* to find the posts where the track is at least height 5.', ph: 'Slope... Start... Rule... Solve...',
+      model: 'Slope: (7 − 11) ÷ (3 − 1) = −2. Walk back from post 1: 11 + 2 = 13. height = −2 × post + 13. −2p + 13 ≥ 5 → −2p ≥ −8 → divide by −2 and turn the sign: p ≤ 4. Check p = 4: −8 + 13 = 5 ✓.' },
+    { k: 'end', title: 'Gate A passed.', next: 'Next: *Floor Four, One Ticket, One Stop*. The figure in the helmet took the last cart down.' }
+  ]
+});

@@ -30,7 +30,8 @@
     { l: 9, n: 17, game: 'g17-hold-the-chain.html' },
     { l: 21, n: 18, label: 'Floor One', game: 'g18-log-book.html' },   // Under the Pond: Units 2 to 4, one floor per plan step
     { l: 22, n: 19, label: 'Floor Two', game: 'g19-station-zero.html' },
-    { l: 23, n: 20, label: 'Floor Three', game: 'g20-goat-bridge.html' }
+    { l: 23, n: 20, label: 'Floor Three', game: 'g20-goat-bridge.html' },
+    { l: 24, n: 21, label: 'Gate A', game: 'g21-last-cart-down.html' }   // the Unit 2 check: one lock per floor
   ];
   var LESSON_OF = {}, NUM = {}, LABEL = {};   // game file -> lesson file number; lesson file number -> number shown; -> its name ("Lesson 12", "Rewind 1")
   PLAN.forEach(function (p) { if (!LESSON_OF[p.game]) LESSON_OF[p.game] = p.l; NUM[p.l] = p.n; LABEL[p.l] = p.label || 'Lesson ' + p.n; });

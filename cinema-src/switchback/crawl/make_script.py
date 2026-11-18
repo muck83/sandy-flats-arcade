@@ -3,12 +3,14 @@
 import json, re, sys
 NM = {'marcus': 'MARCUS', 'pigeon': 'DOUG', 'voice': 'VOICE', 'anchor': 'CHIP', 'priya': 'PRIYA', 'dunmore': 'DUNMORE', 'zero': 'ZERO'}
 SC = {'rails': 'The Rails', 'control': 'The control room', 'lift': 'The lift', 'pen': 'The goat pen', 'log': 'The exercise book', 'stairs': 'The stairs',
-      'classroom': "Mr. Dunmore's classroom", 'news': "Chip's call", 'station': 'The station', 'bridge': 'The bridge'}
+      'classroom': "Mr. Dunmore's classroom", 'news': "Chip's call", 'station': 'The station', 'bridge': 'The bridge', 'gate': 'Gate A'}
 FX = {'roar': 'The Swapper screeches.', 'growl': 'Something growls in the dark.', 'spit': 'The llama spits. PTOO!', 'snatch': 'A Flipper snatches something. YOINK.',
       'drop': 'The track behind them falls away. CRASH!', 'launch': 'The cart rears up and throws him. WHOOPS!', 'launch2': 'The cart sets off from the wrong height and leaves the track. CLANG!',
       'goats': 'Marcus lands in the goat pen.', 'hook': 'A hook hauls the map away.', 'switch': 'A gloved hand pulls a lever. The third span swings down.',
       'rebuild': 'The cavern rebuilds itself behind them.', 'eat': 'Keith eats it.', 'ding': 'The cart rides on. DING.', 'walkback': 'They walk back through the tunnel, one post at a time.',
-      'depart': 'The cart leaves station zero and rides the whole track. DING.', 'turn': 'A gloved hand turns the sign round.', 'chalk': 'A gloved hand chalks the floor number.'}
+      'depart': 'The cart leaves station zero and rides the whole track. DING.', 'turn': 'A gloved hand turns the sign round.', 'chalk': 'A gloved hand chalks the floor number.',
+      'buzz': 'The lock buzzes red. BZZZT.', 'clunk': 'The lock turns green. CLUNK.', 'steal': 'A gloved hand reaches out of the last cart and snatches seconds off the clock.',
+      'toss': 'Marcus heaves the sacks off the counterweight.', 'open': 'The gate lifts.', 'roll': 'The last cart rolls away down the chute, with the figure in it.'}
 d, head, changes = sys.argv[1], sys.argv[2], sys.argv[3:]
 b = json.load(open(d + '/beats.json', encoding='utf-8'))
 words = sum(len(re.sub(r'\([^)]*\)', '', x.get('t', '')).split()) for x in b)
@@ -31,6 +33,7 @@ for x in b:
     if st.get('mites'): notes.append("Rust mites crawl from the old cart. Rust creeps up Marcus's shoes.")
     if st.get('bur') and st['bur'][3] > 0.5: notes.append('The Burrower is in the tunnel.')
     if st.get('swapper') and st['swapper'][3] > 0.5: notes.append('The Swapper is behind them.')
+    if st.get('foreman') == 'look': notes.append('The figure in the last cart turns and looks at them.')
     if st.get('helmet'): notes.append('The helmet: ' + ' / '.join(st['helmet']) + '.')
     for f in x.get('fx') or []:
         if f['n'] in FX: notes.append(FX[f['n']])
@@ -40,6 +43,6 @@ for x in b:
         if m: dirn = ' *(%s)*' % m.group(1); t = m.group(2)
         out += ['**%s:**%s %s' % (NM.get(x['s'], x['s'].upper()), dirn, t), '']
 if changes: out += ['---', '', '## Notes', ''] + ['- ' + c for c in changes]
-name = 'film' + d[1:] + '-script.md'
+name = 'film' + ('GateA' if d == 'ga' else d[1:]) + '-script.md'
 open(name, 'w', encoding='utf-8').write(re.sub(r'\n{3,}', '\n\n', '\n'.join(out)) + '\n')
 print('wrote', name, words, 'words')
