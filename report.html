@@ -135,13 +135,13 @@
       if (!lo && !io) return 'joined, no rounds finished';
       return (lo ? (+o.r || 0) + ' of ' + pl(lo, 'line round') + ' with a point on the line' : '') + (io ? (lo ? ', ' : '') + (+o.e || 0) + ' of ' + pl(io, 'inequality round') + ' safe' : '') + (h ? '; used a hint step ' + pl(h, 'time') : '');
     } },
-    zduelx1: { n: 'Laser Lines', e: '🚀', skill: 'writing the equation of the line through two points, step by step: change in y, change in x, slope, then y-intercept', line: function (o) {
+    zduelx1: { n: 'Laser Lines', e: '🚀', skill: 'writing the equation of the line through two points: the slope formula, then finding b', line: function (o) {
       var n = +o.n || 0, ln = +o.ln || 0, ok = +o.ok || 0, f = +o.f || 0, rv = +o.rv || 0, fo = +o.fo || 0, fr = +o.fr || 0, hi = +o.hi || 0, w = +o.w || 0;
-      var HL = ['from the two points alone', 'with a table of points on the line', 'with the slope and intercept given'];
+      var HL = ['starting with the whole equation', 'starting step by step', 'step by step with extra hints'], sp = +o.sp || 0, eqn = +o.eq || 0;
       if (!n) return 'joined, no rounds played';
       if (!ln && !o.ln) ln = n;   // a row from before lines were counted: one line a round
       var hl = String(o.hl || '').split('').map(Number).filter(function (h) { return h >= 0 && h <= 2; }).map(function (h) { return HL[h]; });
-      var out = ok + ' of ' + pl(ln, 'line') + ' right on their own' + (ok ? ' (' + f + ' with no mistakes)' : '') + (rv ? ', ' + rv + ' more finished after we showed them a step' : '') + (hl.length ? '; worked ' + hl.join(', then ') : '');
+      var out = ok + ' of ' + pl(ln, 'line') + ' right on their own' + (ok ? ' (' + f + ' with no mistakes)' : '') + (sp || eqn ? '; wrote ' + pl(eqn, 'line') + ' straight as an equation and worked ' + pl(sp, 'line') + ' out step by step (slope formula, then b)' : rv ? ', ' + rv + ' more finished after we showed them a step' : '') + (hl.length ? '; worked ' + hl.join(', then ') : '');
       if (fo) out += '; in the final round, with no help at all, ' + fr + ' of ' + pl(fo, 'line') + ' right';
       return out + (hi ? '; ' + pl(hi, 'laser hit') : '') + (w === 1 ? '; their fleet won' : w === 2 ? '; their fleet lost' : w === 3 ? '; the battle was a draw' : '');
     } }

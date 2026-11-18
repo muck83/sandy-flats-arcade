@@ -35,7 +35,7 @@
   var XM = 9, YM = 6, WX = 10.8, WY = 7.8, TMAX = 8, LEN = 2.2, HITR = 0.42, CLASHR = 0.3;
   var TEAMS = [['Nova Squadron', 'Comet Fleet'], ['Solar Flares', 'Ion Storm'], ['Red Giants', 'Blue Dwarfs'], ['Meteor Mob', 'Quasar Crew']];
   var TE = ['🔴', '🔵'], TC = ['#FF4D5E', '#3BD7FF'], TG = ['rgba(255,77,94,', 'rgba(59,215,255,'];
-  var SUP = ['Two points', 'Easy table', 'Slope and intercept'], SUPE = ['🎯', '📋', '🧭'];
+  var SUP = ['Equation first', 'Step by step', 'Step by step, extra hints'], SUPE = ['✏️', '🪜', '🧭'];
   // the weapons shop: right lines earn coins (Easy 2, Medium 3, Hard 4, +1 first try; +2 a hit, +1 a laser knocked out)
   var SHOP = [
     { k: 'x', e: '⚡', n: 'Mega laser', cost: 5, say: 'Your newest laser becomes a mega laser: double power, very hard to stop.' },
@@ -234,7 +234,7 @@
     apply(o);
   }
   function stale(o) { var age = sNow() - o.at; return o.state === 2 ? age > 6 * 60000 : age > (Math.max(o.alen, o.intro, 60) + 300) * 1000; }
-  function freshST(id) { return { id: id, r: 0, bank: [], cur: null, mk: 0, sh: 0, str: 0, msg: '', good: false, coins: 0, met: '', hole: 0, miss: 0, tot: { right: 0, first: 0, hits: 0, dmg: 0, zaps: 0, blocks: 0, p: 0, hl: '', ln: 0, rv: 0, fo: 0, fr: 0 }, seen: {}, mr: 0, w: 0 }; }
+  function freshST(id) { return { id: id, r: 0, bank: [], cur: null, mk: 0, sh: 0, str: 0, msg: '', good: false, coins: 0, met: '', hole: 0, miss: 0, tot: { right: 0, first: 0, hits: 0, dmg: 0, zaps: 0, blocks: 0, p: 0, hl: '', ln: 0, rv: 0, fo: 0, fr: 0, sp: 0, eq: 0 }, seen: {}, mr: 0, w: 0 }; }
   function open(o) {
     close();
     var saved = SFA.store.get(key(), null);
@@ -564,7 +564,7 @@
   }
   /* ---------- the class screen (and the teacher's "Show the battle") ---------- */
   function rules(big) {
-    return '<ol class="dlhow"><li>🎯 <b>Pick a target</b>: easy, medium or hard. Harder lines score <b>×1.5</b> or <b>×2</b>.</li><li>✏️ Fill in the <b>slope</b> and the <b>y-intercept</b>: y = <b>m</b>x + <b>b</b>. Every right line puts a <b>laser in your bank</b> (up to ' + MAXL + ') and earns 🪙 coins.</li>' +
+    return '<ol class="dlhow"><li>🎯 <b>Pick a target</b>: easy, medium or hard. Harder lines score <b>×1.5</b> or <b>×2</b>.</li><li>✏️ Write the line from you to them, <b>y = mx + b</b>: type the whole equation, or work it out <b>step by step</b> (the slope formula, then b). Every right line puts a <b>laser in your bank</b> (up to ' + MAXL + ') and earns 🪙 coins.</li>' +
       '<li>⏱️ When the clock hits zero, <b>every laser fires at once</b> along your line. Lock in sooner for a <b>faster, stronger</b> laser.</li>' +
       (big ? '<li>🛒 Save your coins for the shop: ⚡ mega laser, ☄️ meteor, 🕳️ black hole… and the 🐐 <b>wild goat</b>.</li>' : '') + '</ol>';
   }
@@ -599,12 +599,12 @@
       w._on = 1;
       var A1 = P.A, B1 = P.B, mx = fr(P.m[0] * A1[0], P.m[1]);
       var dy = B1[1] - A1[1], dx = B1[0] - A1[0];
-      var S = ['You are at <b class="dlA">A' + pt(A1[0], A1[1]) + '</b>. Your target is at <b class="dlB">B' + pt(B1[0], B1[1]) + '</b>.',
-        '<b>Change in y</b>: y of B − y of A = ' + nm(B1[1]) + ' − ' + par(A1[1]) + ' = <b>' + nm(dy) + '</b>',
-        '<b>Change in x</b>: x of B − x of A = ' + nm(B1[0]) + ' − ' + par(A1[0]) + ' = <b>' + nm(dx) + '</b>',
-        '<b>Slope</b> = change in y ÷ change in x = ' + nm(dy) + ' ÷ ' + nm(dx) + ' = <b>' + fhtml(P.m) + '</b>',
-        '<b>y-intercept</b>: put A into y = mx + b: ' + nm(A1[1]) + ' = ' + fhtml(P.m) + ' × ' + par(A1[0]) + ' + b, so ' + nm(A1[1]) + ' = ' + fhtml(mx) + ' + b, and <b>b = ' + fhtml(P.b) + '</b>',
-        'Fill in the boxes: slope <b>' + fhtml(P.m) + '</b>, y-intercept <b>' + fhtml(P.b) + '</b> <span class="dleqbig">' + eqHTML(P.m, P.b) + '</span>'];
+      var S = ['You are at <b class="dlA">A' + pt(A1[0], A1[1]) + '</b> (point 1). Your target is at <b class="dlB">B' + pt(B1[0], B1[1]) + '</b> (point 2).',
+        '<b>Plug into the slope formula</b>: m = (y₂ − y₁) ÷ (x₂ − x₁) = (' + nm(B1[1]) + ' − ' + par(A1[1]) + ') ÷ (' + nm(B1[0]) + ' − ' + par(A1[0]) + ')',
+        '<b>Work out the slope</b>: ' + nm(dy) + ' ÷ ' + nm(dx) + ' = <b>' + fhtml(P.m) + '</b>',
+        '<b>Plug a point into y = mx + b</b>: point A gives ' + nm(A1[1]) + ' = ' + fhtml(P.m) + ' × ' + par(A1[0]) + ' + b',
+        '<b>Solve for b</b>: ' + nm(A1[1]) + ' = ' + fhtml(mx) + ' + b, so <b>b = ' + fhtml(P.b) + '</b>',
+        'The equation: slope <b>' + fhtml(P.m) + '</b>, b = <b>' + fhtml(P.b) + '</b> <span class="dleqbig">' + eqHTML(P.m, P.b) + '</span>'];
       w.innerHTML = '<div class="dlexh">HOW TO AIM · EXAMPLE ' + (n - salt % 3 + 1) + ' <span class="dld" style="--d:' + DCOL[P.d] + '">' + DIFF[P.d] + '</span></div><div class="dltutg">' + mini(P, step >= 5 ? 3 : step >= 4 ? 2 : step >= 1 ? 1 : 0) +
         '<ol>' + S.map(function (x, i) { return '<li class="' + (i <= step ? 'on' : '') + '">' + x + '</li>'; }).join('') + '</ol></div>';
       step++; if (step > 7) { step = 0; n++; P = exProblem(n, salt); }
@@ -665,88 +665,119 @@
     root.appendChild(c);
     var body = H('div', 'dlbody'), l = H('div', 'dlcard'), r = H('div', 'dlwork');
     tutorial(l); body.appendChild(l); body.appendChild(r); root.appendChild(body);
-    if (!V.pcur) { var n0 = Math.floor(Math.random() * 3), s0 = Math.floor(Math.random() * 1e6); V.pcur = newCur('P', '', exProblem(n0, s0), false); V.pcur.n = n0; V.pcur.salt = s0; V.pcur.done = 0; }
+    if (!V.pcur) { var n0 = Math.floor(Math.random() * 3), s0 = Math.floor(Math.random() * 1e6); V.pcur = newCur('P', '', exProblem(n0, s0), false); V.pcur.mode = 'steps'; V.pcur.n = n0; V.pcur.salt = s0; V.pcur.done = 0; }
     V.work = r; drawPractice();
   }
   // the warm-up during the briefing: a line to try on your own device, not scored
   function drawPractice() {
     var box = V.work, p = V.pcur; if (!box || !p) return;
-    var Q = exProblem(p.n, p.salt);
+    var Q = exProblem(p.n, p.salt); Q.s = 1;
     box.innerHTML = '<div class="dlshh">🎯 WARM-UP' + (p.done ? ' · ' + p.done + ' right' : '') + ' <span class="dld" style="--d:' + DCOL[Q.d] + '">' + DIFF[Q.d] + '</span></div><p class="dlc">Not scored. You at <b class="dlA">A' + pt(Q.A[0], Q.A[1]) + '</b>, target at <b class="dlB">B' + pt(Q.B[0], Q.B[1]) + '</b>.</p>' +
       stepsHTML(Q, p, 3, 'B') + keysHTML(goLabel(p, '✓ Check the line'), false, p) + (p.msg ? '<p class="dlfb' + (p.good ? ' good' : '') + '">' + p.msg + '</p>' : '');
     [].forEach.call(box.querySelectorAll('[data-k]'), function (b) { b.onclick = function () { pressP(b.getAttribute('data-k')); }; });
+    [].forEach.call(box.querySelectorAll('[data-v]'), function (b) { b.onclick = function () { p.box = b.getAttribute('data-v'); drawPractice(); }; });
+    [].forEach.call(box.querySelectorAll('[data-b]'), function (b) { b.onclick = function () { p.act = b.getAttribute('data-b'); drawPractice(); }; });
   }
   function pressP(k) {
     var p = V.pcur; if (!p || V.o.state !== 3) return;
+    if (k === 'mode') { p.mode = p.mode === 'eq' ? 'steps' : 'eq'; p.msg = ''; return drawPractice(); }
     if (k === 'go') {
-      var Q = exProblem(p.n, p.salt), R = stepCheck(p, Q, 3, 'B');
+      var Q = exProblem(p.n, p.salt); Q.s = 1; var R = stepCheck(p, Q, 3, 'B');
       if (R.r === 'done') {
-        var nx = newCur('P', '', exProblem(p.n + 1, p.salt), false); nx.n = p.n + 1; nx.salt = p.salt; nx.done = p.done + (p.rv ? 0 : 1);
-        nx.msg = (R.msg ? R.msg + ' ' : '') + '🎯 ' + eqHTML(Q.m, Q.b) + (p.rv ? '. Try another.' : '. Spot on! Here\'s another.'); nx.good = !p.rv; V.pcur = nx; snd('lock');
+        var nx = newCur('P', '', Q, false); nx.n = p.n + 1; nx.salt = p.salt; nx.done = p.done + 1; nx.mode = p.mode;
+        nx.msg = '🎯 ' + eqHTML(Q.m, Q.b) + '. Spot on! Here\'s another.'; nx.good = true; V.pcur = nx; snd('lock');
       }
-      else { p.msg = R.msg; p.good = R.r === 'next' && !R.miss; snd(R.r === 'next' ? 'lock' : 'nope'); }
+      else { p.msg = R.msg; p.good = R.r === 'next'; snd(R.r === 'next' ? 'lock' : 'nope'); }
       return drawPractice();
     }
     typeInto(p, k); p.msg = ''; drawPractice();
   }
   function final() { return !!(V && V.o && V.o.round >= V.o.rounds); }
   function supOf(m) { return final() ? 0 : m.s; }
-  var SNAME = { dy: 'Change in y', dx: 'Change in x', m: 'Slope', b: 'y-intercept' };
-  function stepsFor(Q, fin) { return fin ? ['both'] : Q.s === 2 ? ['m', 'b'] : ['dy', 'dx', 'm', 'b']; }
-  function newCur(k, tg, Q, fin) { return { k: k, tg: tg || '', steps: stepsFor(Q, fin), si: 0, v: { dy: '', dx: '', m: '', b: '' }, m: '', b: '', act: 'm', sm: 0, miss: 0, tr: 0, rv: 0 }; }
-  function ans(Q, st) { return st === 'dy' ? [Q.B[1] - Q.A[1], 1] : st === 'dx' ? [Q.B[0] - Q.A[0], 1] : st === 'm' ? Q.m : Q.b; }
+  // the steps: plug the points into the slope formula, work the slope out, plug a point into y = mx + b, solve for b.
+  // The student types every number; we never show the slope or b, only where their own numbers go
+  var SN = { f: 'Plug the points into the slope formula', m: 'Work out the slope', p: 'Plug a point into y = mx + b', b: 'Solve for b' };
+  var BOXES = { f: ['y2', 'y1', 'x2', 'x1'], m: ['m'], p: ['py', 'pm', 'px'], b: ['b'] }, STEPS = ['f', 'm', 'p', 'b'];
+
+  function newCur(k, tg, Q, fin) { return { k: k, tg: tg || '', mode: fin || !Q.s ? 'eq' : 'steps', used: fin || !Q.s ? '' : 's', fin: !!fin, steps: STEPS, si: 0, box: 'y2', v: { y2: '', y1: '', x2: '', x1: '', m: '', py: '', pm: '', px: '', b: '' }, m: '', b: '', act: 'm', sm: 0, miss: 0, tr: 0 }; }
+
   // each step written out with the student's own numbers (B is the target, or S the shield beacon)
-  function stepExpr(Q, st, bn) {
-    var A1 = Q.A, B1 = Q.B;
-    if (st === 'dy') return '<span class="dlsf">y of ' + bn + ' − y of A</span> = ' + nm(B1[1]) + ' − ' + par(A1[1]) + ' =';
-    if (st === 'dx') return '<span class="dlsf">x of ' + bn + ' − x of A</span> = ' + nm(B1[0]) + ' − ' + par(A1[0]) + ' =';
-    if (st === 'm') return Q.s === 2 ? '<span class="dlsf">the slope you were given</span> =' : '<span class="dlsf">change in y ÷ change in x</span> = ' + nm(B1[1] - A1[1]) + ' ÷ ' + nm(B1[0] - A1[0]) + ' =';
-    return Q.s === 2 ? '<span class="dlsf">the y-intercept you were given</span> =' : '<span class="dlsf">put A into y = mx + b:</span> ' + nm(A1[1]) + ' = ' + fhtml(Q.m) + ' × ' + par(A1[0]) + ' + b, so b =';
+  function bxv(cur, key, ph) { return '<button type="button" class="dlbox sm' + (cur.box === key ? ' on' : '') + '" data-v="' + key + '">' + (esc(cur.v[key]) || '<span>' + ph + '</span>') + '</button>'; }
+  function fv(s) { var f = parseF(s); return f ? fhtml(f) : esc(s); }
+  function pv(s) { var f = parseF(s); return f ? (f[0] < 0 ? '(' + fhtml(f) + ')' : fhtml(f)) : esc(s); }
+  // one step's working: boxes while it's the active step, the student's own numbers once it's done
+  function stepBody(Q, cur, st, done) {
+    var v = cur.v, slope = 'm = (' + fv(v.y2) + ' − ' + pv(v.y1) + ') ÷ (' + fv(v.x2) + ' − ' + pv(v.x1) + ')', tick = ' <b class="dlsv">✓</b>';
+    if (st === 'f') return done ? slope + tick : 'm = ( ' + bxv(cur, 'y2', 'y₂') + ' − ' + bxv(cur, 'y1', 'y₁') + ' ) ÷ ( ' + bxv(cur, 'x2', 'x₂') + ' − ' + bxv(cur, 'x1', 'x₁') + ' )';
+    if (st === 'm') return slope + ' = ' + (done ? '<b class="dlsv">' + fhtml(Q.m) + '</b>' + tick : bxv(cur, 'm', '?'));
+    if (st === 'p') return done ? fv(v.py) + ' = ' + fv(v.pm) + ' × ' + pv(v.px) + ' + b' + tick : bxv(cur, 'py', 'y') + ' = ' + bxv(cur, 'pm', 'm') + ' × ' + bxv(cur, 'px', 'x') + ' + b';
+    return fv(v.py) + ' = ' + fv(v.pm) + ' × ' + pv(v.px) + ' + b, so b = ' + (done ? '<b class="dlsv">' + fhtml(Q.b) + '</b>' + tick : bxv(cur, 'b', '?'));
   }
-  function stepHint(Q, st, bn) {
-    var A1 = Q.A, B1 = Q.B;
-    if (Q.s === 2) return 'Copy the ' + (st === 'm' ? 'slope' : 'y-intercept') + ' from the box above.';
-    if (st === 'dy') return 'Take A\'s y (' + nm(A1[1]) + ') away from ' + bn + '\'s y (' + nm(B1[1]) + ').' + (A1[1] < 0 ? ' Taking away a negative is the same as adding.' : '');
-    if (st === 'dx') return 'Take A\'s x (' + nm(A1[0]) + ') away from ' + bn + '\'s x (' + nm(B1[0]) + ').' + (A1[0] < 0 ? ' Taking away a negative is the same as adding.' : '');
-    if (st === 'm') return 'Divide: ' + nm(B1[1] - A1[1]) + ' ÷ ' + nm(B1[0] - A1[0]) + '. If it doesn\'t divide evenly, type a fraction like 3/4. Watch the signs: a negative ÷ a positive is negative.';
-    var mx = fr(Q.m[0] * A1[0], Q.m[1]);
-    return 'First work out ' + fhtml(Q.m) + ' × ' + par(A1[0]) + ' = ' + fhtml(mx) + '. What do you add to ' + fhtml(mx) + ' to get ' + nm(A1[1]) + '?';
-  }
+
   // the active step's row has the only box; finished steps show their answer with a tick; the equation fills in below
   function stepsHTML(Q, cur, max, bn) {
-    if (cur.steps[0] === 'both') return eqBoxes(cur, max);
-    var out = '<ol class="dlsteps">';
+    if (cur.mode === 'eq') return eqBoxes(cur, max) + (cur.fin ? '' : '<button type="button" class="dlalt" data-k="mode">🪜 Walk me through it, step by step</button>');
+    var out = '<div class="dlpts">Point 1: <b class="dlA">A' + pt(Q.A[0], Q.A[1]) + '</b> · Point 2: <b class="dlB">' + bn + pt(Q.B[0], Q.B[1]) + '</b>' + (Q.s >= 2 ? '<small>x₁ and y₁ come from point 1, x₂ and y₂ from point 2</small>' : '') + '</div><ol class="dlsteps">';
     cur.steps.forEach(function (st, i) {
       var done = i < cur.si, on = i === cur.si;
-      out += '<li class="' + (done ? 'done' : on ? 'on' : '') + '"><div class="dlsn">Step ' + (i + 1) + ' of ' + cur.steps.length + ' · <b>' + SNAME[st] + '</b></div>' +
-        (done || on ? '<div class="dlse">' + stepExpr(Q, st, bn) + ' ' + (done ? '<b class="dlsv">' + fhtml(ans(Q, st)) + ' ✓</b>' : '<button type="button" class="dlbox on" data-b="v">' + (esc(cur.v[st]) || '<span>?</span>') + '</button>') + '</div>' : '') + '</li>';
+      out += '<li class="' + (done ? 'done' : on ? 'on' : '') + '"><div class="dlsn">Step ' + (i + 1) + ' of ' + cur.steps.length + ' · <b>' + SN[st] + '</b></div>' + (done || on ? '<div class="dlse">' + stepBody(Q, cur, st, done) + '</div>' : '') + '</li>';
     });
-    var mi = cur.steps.indexOf('m'), bi = cur.steps.indexOf('b'), mDone = cur.si > mi, bDone = cur.si > bi;
-    out += '</ol><div class="dleqline"><i class="dlx">y</i> = ' + (mDone ? '<b class="dlsv">' + fhtml(Q.m) + '</b>' : '<span class="dlq">slope</span>') + '<i class="dlx">x</i> + ' + (bDone ? '<b class="dlsv">' + fhtml(Q.b) + '</b>' : '<span class="dlq">y-intercept</span>') + '</div>';
+    out += '</ol><div class="dleqline"><i class="dlx">y</i> = ' + (cur.si > 1 ? '<b class="dlsv">' + fhtml(Q.m) + '</b>' : '<span class="dlq">slope</span>') + '<i class="dlx">x</i> + ' + (cur.si > 3 ? '<b class="dlsv">' + fhtml(Q.b) + '</b>' : '<span class="dlq">b</span>') + '</div>';
     if (cur.miss && cur.k !== 'P') out += '<div class="dlprev">' + cur.miss + ' miss' + (cur.miss === 1 ? '' : 'es') + ' so far: each one makes the laser a little weaker.</div>';
-    return out;
+    return out + '<button type="button" class="dlalt" data-k="mode">✏️ I know it: write the whole equation</button>';
   }
-  function goLabel(cur, lock) { return cur.steps && cur.steps[0] !== 'both' && cur.steps[cur.si] !== 'b' ? 'Check ' + SNAME[cur.steps[cur.si]].toLowerCase() + ' ▶' : lock; }
+  function goLabel(cur, lock) { return cur.mode === 'steps' && cur.si < 3 ? 'Check ▶' : lock; }
   // checks the active step (or, in the final volley, the whole line): next, done, miss, out (final volley only) or blank
+  // checks the whole equation (equation mode) or the active step: next, done, miss, out (final volley only) or blank
   function stepCheck(cur, Q, max, bn) {
-    if (cur.steps[0] !== 'both') {
-      var st = cur.steps[cur.si], want = ans(Q, st), g = parseF(cur.v[st]);
-      if (!g) return { r: 'blank', msg: 'Type a number in the box first.' };
-      if (feq(g, want)) { cur.si++; cur.sm = 0; return { r: cur.si >= cur.steps.length ? 'done' : 'next', msg: '✅ ' + SNAME[st] + ' = <b>' + fhtml(want) + '</b>.' + (cur.si < cur.steps.length ? ' Now step ' + (cur.si + 1) + ': ' + SNAME[cur.steps[cur.si]].toLowerCase() + '.' : '') }; }
-      cur.miss++; cur.sm++;
-      if (cur.sm >= 2) { cur.v[st] = fstr(want); cur.si++; cur.sm = 0; cur.rv = 1; return { r: cur.si >= cur.steps.length ? 'done' : 'next', miss: 1, msg: '💡 ' + SNAME[st] + ' is <b>' + fhtml(want) + '</b>. ' + stepHint(Q, st, bn) + ' Keep going!' }; }
-      return { r: 'miss', miss: 1, msg: '❌ Not quite. ' + stepHint(Q, st, bn) };
+    var A1 = Q.A, B1 = Q.B;
+    if (cur.mode === 'eq') {
+      var gm = parseF(cur.m), gb = parseF(cur.b);
+      if (!gm || !gb) return { r: 'blank', msg: 'Fill in both boxes: the slope and b.' };
+      cur.m = fstr(gm); cur.b = fstr(gb);
+      if (feq(gm, Q.m) && feq(gb, Q.b)) return { r: 'done', gm: gm, gb: gb };
+      cur.miss++;
+      if (cur.fin) return cur.miss >= max ? { r: 'out', miss: 1, gm: gm, gb: gb } : { r: 'miss', miss: 1, msg: '❌ Not quite. No hints in the final volley: ' + (max - cur.miss) + ' tr' + (max - cur.miss === 1 ? 'y' : 'ies') + ' left.' };
+      return { r: 'miss', miss: 1, msg: '❌ Not quite. ' + (feq(gm, Q.m) ? 'The slope is right: check b by putting a point into y = mx + b.' : feq(gb, Q.b) ? 'b is right: check the slope, change in y ÷ change in x.' : 'Start with the slope: change in y ÷ change in x.') + ' Or walk through it step by step.' };
     }
-    var gm = parseF(cur.m), gb = parseF(cur.b);
-    if (!gm || !gb) return { r: 'blank', msg: 'Fill in both boxes: the slope and the y-intercept.' };
-    cur.m = fstr(gm); cur.b = fstr(gb);
-    if (feq(gm, Q.m) && feq(gb, Q.b)) return { r: 'done', gm: gm, gb: gb };
-    cur.miss++;
-    if (cur.miss >= max) return { r: 'out', miss: 1, gm: gm, gb: gb };
-    return { r: 'miss', miss: 1, msg: '❌ Not quite. No hints in the final volley: ' + (max - cur.miss) + ' tr' + (max - cur.miss === 1 ? 'y' : 'ies') + ' left.' };
+    var st = cur.steps[cur.si], v = cur.v, P = function (k) { return parseF(v[k]); }, hard = Q.s >= 2 || cur.sm >= 1;
+    function blank(n) { return { r: 'blank', msg: n > 1 ? 'Fill in all ' + (n === 4 ? 'four' : 'three') + ' boxes (tap a box, or Next box, to move).' : 'Type a number in the box first.' }; }
+    function ok() { cur.si++; cur.sm = 0; cur.box = cur.si < cur.steps.length ? BOXES[cur.steps[cur.si]][0] : ''; return { r: cur.si >= cur.steps.length ? 'done' : 'next', msg: '✅ Right.' + (cur.si < cur.steps.length ? ' Now: ' + SN[cur.steps[cur.si]].toLowerCase() + '.' : '') }; }
+    function bad(m) { cur.miss++; cur.sm++; return { r: 'miss', miss: 1, msg: '❌ ' + m }; }
+    if (st === 'f') {
+      var g = BOXES.f.map(P); if (g.some(function (x) { return !x; })) return blank(4);
+      var n = g.map(fval), fw = n[0] === B1[1] && n[1] === A1[1] && n[2] === B1[0] && n[3] === A1[0], bw = n[0] === A1[1] && n[1] === B1[1] && n[2] === A1[0] && n[3] === B1[0];
+      if (fw || bw) return ok();
+      var topOk = (n[0] === B1[1] && n[1] === A1[1]) || (n[0] === A1[1] && n[1] === B1[1]), botOk = (n[2] === B1[0] && n[3] === A1[0]) || (n[2] === A1[0] && n[3] === B1[0]);
+      var flip = (n[0] === B1[0] || n[0] === A1[0]) && (n[2] === B1[1] || n[2] === A1[1]);
+      if (topOk && botOk) return bad('Same order top and bottom: if y₂ is ' + bn + '\'s y, then x₂ has to be ' + bn + '\'s x too.');
+      if (flip) return bad('The y-values go on top and the x-values go on the bottom.');
+      return bad(hard ? 'y₂ and x₂ both come from point 2 (' + bn + '), y₁ and x₁ from point 1 (A). In a point (x, y), the y is the second number.' : 'Each box takes a number from the two points: y-values on top, x-values on the bottom.');
+    }
+    if (st === 'm') {
+      var gm2 = P('m'); if (!gm2) return blank(1);
+      if (feq(gm2, Q.m)) { cur.m = fstr(Q.m); return ok(); }
+      return bad(hard ? 'Work out the top and the bottom on their own first: taking away a negative is the same as adding. Then divide. A negative ÷ a positive is negative, and a fraction like 3/4 is fine.' : 'Work out the top, then the bottom, then divide. If it doesn\'t divide evenly, type a fraction like 3/4.');
+    }
+    if (st === 'p') {
+      var py = P('py'), pm = P('pm'), px = P('px'); if (!py || !pm || !px) return blank(3);
+      if (!feq(pm, Q.m)) return bad('The m box takes the slope you just worked out.');
+      var X = fval(px), Y = fval(py);
+      if ((X === A1[0] && Y === A1[1]) || (X === B1[0] && Y === B1[1])) return ok();
+      if ((Y === A1[0] && X === A1[1]) || (Y === B1[0] && X === B1[1])) return bad('Swap them: the point\'s y goes on the left, its x goes after the ×.');
+      return bad('Pick one point, A or ' + bn + ', and use both of its numbers: its y on the left, its x after the ×.');
+    }
+    var gb2 = P('b'); if (!gb2) return blank(1);
+    if (feq(gb2, Q.b)) { cur.b = fstr(Q.b); return ok(); }
+    return bad(hard ? 'Work out ' + fv(v.pm) + ' × ' + pv(v.px) + ' first. Then b is what you add to that to get ' + fv(v.py) + '. (Or take it away: b = y − m × x.)' : 'Work out m × x first. Then ask: what do you add to that to get y?');
   }
   function typeInto(cur, k) {
-    if (cur.steps && cur.steps[0] !== 'both') { var st = cur.steps[cur.si]; cur.v[st] = edit(cur.v[st] || '', k); }
+    if (cur.mode === 'steps') {
+      var bs = BOXES[cur.steps[cur.si]] || [];
+      if (k === '⇄') { var i = bs.indexOf(cur.box); cur.box = bs[(i + 1) % bs.length]; return; }
+      if (bs.indexOf(cur.box) < 0) cur.box = bs[0];
+      cur.v[cur.box] = edit(cur.v[cur.box] || '', k);
+    }
     else { if (k === '⇄') { cur.act = cur.act === 'm' ? 'b' : 'm'; return; } cur[cur.act] = edit(cur[cur.act] || '', k); }
   }
   function edit(v, k) {
@@ -795,9 +826,8 @@
     return '<table class="dltbl"><tr><th>x</th>' + xs.map(function (x) { return '<td>' + nm(x) + '</td>'; }).join('') + '</tr><tr><th>y</th>' + xs.map(function (x) { return '<td>' + fhtml(fr(Q.m[0] * x * Q.b[1] + Q.b[0] * q, q * Q.b[1])) + '</td>'; }).join('') + '</tr></table>';
   }
   function scaffold(Q, what) {
-    if (Q.s === 2) return '<div class="dlgiv">' + SUPE[2] + ' Slope <b>m = ' + fhtml(Q.m) + '</b> · y-intercept <b>b = ' + fhtml(Q.b) + '</b><small>Put them into y = mx + b.</small></div>';
-    if (Q.s === 1) return '<div class="dlgiv">' + SUPE[1] + ' Every point in this table is on ' + what + ':' + tableHTML(Q) + '<small>' + (Q.m[1] === 1 ? 'How much does y change each time x goes up by 1? What is y when x = 0?' : 'x goes up by ' + Q.m[1] + ' each time. How much does y change? What is y when x = 0?') + '</small></div>';
-    return final() ? '<div class="dlgiv dlfin">🏁 <b>Final volley: no help.</b> Just the two points: fill in the slope and the y-intercept yourself.</div>' : '<div class="dlgiv">' + SUPE[0] + ' Work it out one step at a time below.</div>';
+    if (final()) return '<div class="dlgiv dlfin">🏁 <b>Final volley: no help.</b> Just the two points: write the whole equation yourself.</div>';
+    return '';
   }
   function hint(Q, gm, gb) {
     var mOk = feq(gm, Q.m), bOk = feq(gb, Q.b), A1 = Q.A, B1 = Q.B;
@@ -836,8 +866,8 @@
       '<div class="dlprev">' + (gm && gb ? 'That\'s ' + eqHTML(gm, gb) : 'Fractions like 3/2 are fine.') + (cur.miss ? ' · try ' + (cur.miss + 1) + ' of ' + max : '') + '</div>';
   }
   function keysHTML(go, back, cur) {
-    var one = cur && cur.steps && cur.steps[0] !== 'both';   // one box at a time: no box-switch key
-    return '<div class="dlkeys">' + ['7', '8', '9', '⌫', '4', '5', '6', '/', '1', '2', '3', '−', '0', '.', '⇄'].map(function (k) { return k === '⇄' && one ? '<span></span>' : '<button type="button" data-k="' + k + '">' + k + '</button>'; }).join('') +
+    var many = !cur || cur.mode !== 'steps' || (BOXES[cur.steps[cur.si]] || []).length > 1, nb = cur && cur.mode === 'steps';   // a box-switch key only where there's more than one box
+    return '<div class="dlkeys">' + ['7', '8', '9', '⌫', '4', '5', '6', '/', '1', '2', '3', '−', '0', '.', '⇄'].map(function (k) { return k === '⇄' ? (many ? '<button type="button" data-k="⇄"' + (nb ? ' class="dlnb">Next box' : '>⇄') + '</button>' : '<span></span>') : '<button type="button" data-k="' + k + '">' + k + '</button>'; }).join('') +
       '<button type="button" class="dlgo" data-k="go">' + go + '</button></div>' + (back ? '<button type="button" class="dlalt" data-k="back">↩ Pick a different target</button>' : '');
   }
   function drawWork() {
@@ -876,7 +906,8 @@
     if (ST.msg) out += '<p class="dlfb' + (ST.good ? ' good' : '') + '">' + ST.msg + '</p>';
     box.innerHTML = out;
     [].forEach.call(box.querySelectorAll('[data-k]'), function (b) { b.onclick = function () { press(b.getAttribute('data-k')); }; });
-    [].forEach.call(box.querySelectorAll('[data-b]'), function (b) { b.onclick = function () { var w = b.getAttribute('data-b'); if (ST.cur && w !== 'v') { ST.cur.act = w; drawWork(); } }; });
+    [].forEach.call(box.querySelectorAll('[data-b]'), function (b) { b.onclick = function () { if (ST.cur) { ST.cur.act = b.getAttribute('data-b'); drawWork(); } }; });
+    [].forEach.call(box.querySelectorAll('[data-v]'), function (b) { b.onclick = function () { if (ST.cur) { ST.cur.box = b.getAttribute('data-v'); drawWork(); } }; });
     [].forEach.call(box.querySelectorAll('[data-s]'), function (b) { b.onclick = function () { buy(b.getAttribute('data-s')); }; });
     [].forEach.call(box.querySelectorAll('[data-m]'), function (b) { b.onclick = function () { var it = SHOP[1]; if ((ST.coins || 0) < it.cost || ST.met) return; ST.coins -= it.cost; ST.met = b.getAttribute('data-m'); ST.cur = null; ST.msg = '☄️ Meteor locked on <b>' + esc(nameOf(ST.met)) + '</b>!'; ST.good = true; snd('buy'); keep(); send(); drawWork(); }; });
     [].forEach.call(box.querySelectorAll('[data-t]'), function (b) { b.onclick = function () { var t = b.getAttribute('data-t'), Qn = t === 'S' ? beacon(m) : V.ros[t] ? Qof(m, V.ros[t]) : null; if (!Qn) return; ST.cur = newCur(t === 'S' ? 'S' : 'L', t === 'S' ? '' : t, Qn, final()); ST.msg = ''; keep(); drawWork(); }; });
@@ -886,6 +917,7 @@
     if (k === 'go') return check();
     if (k === 'back') { if (!cur.miss && !cur.si) { ST.cur = null; ST.msg = ''; keep(); drawWork(); } return; }
     if (cur.k === 'R') return;
+    if (k === 'mode') { if (cur.fin) return; cur.mode = cur.mode === 'eq' ? 'steps' : 'eq'; if (cur.mode === 'steps') { cur.used = 's'; if (!cur.box) cur.box = BOXES[cur.steps[cur.si]][0]; } ST.msg = ''; keep(); drawWork(); return; }
     typeInto(cur, k); ST.msg = ''; keep(); drawWork();
   }
   function onKey(e) {
@@ -907,11 +939,11 @@
       ST.tot.ln = (ST.tot.ln || 0) + 1; if (cur.rv) ST.tot.rv = (ST.tot.rv || 0) + 1; if (final()) { ST.tot.fo = (ST.tot.fo || 0) + 1; if (right) ST.tot.fr = (ST.tot.fr || 0) + 1; }
       var sp = speedOf(secs, V.o.alen);
       if (right) {
-        var own = !cur.rv, earn = own ? [2, 3, 4][Q.d] + (cur.miss ? 0 : 1) : 1;   // a step we had to show earns a little less
+        var earn = [2, 3, 4][Q.d] + (cur.miss ? 0 : 1);
         ST.coins = (ST.coins || 0) + earn; ST.bank.push({ ok: 1, tg: tg.fp, c: code(sp, tries) });
-        if (own) { ST.tot.right++; if (!cur.miss) ST.tot.first++; }
+        ST.tot.right++; if (!cur.miss) ST.tot.first++; if (cur.used === 's') ST.tot.sp = (ST.tot.sp || 0) + 1; else ST.tot.eq = (ST.tot.eq || 0) + 1;
         ST.msg = pre + '🎯 Locked on ' + esc(tg.n) + ': ' + eqHTML(Q.m, Q.b) + (cur.miss ? '' : ', no mistakes') + '! ⚡ speed ' + sp + ' · 💥 power ' + power(sp, tries) + (Q.d ? ' ×' + MULT[Q.d] : '') + ' · +' + earn + ' 🪙';
-        ST.good = true; xp(own ? (cur.miss ? 3 + Q.d : 5 + 2 * Q.d) : 1); snd('lock');
+        ST.good = true; xp(cur.miss ? 3 + Q.d : 5 + 2 * Q.d); snd('lock');
       }
       else { ST.bank.push({ ok: 0, m: fstr(lm), b: fstr(lb), c: code(sp, 3) }); ST.msg = 'The line to ' + esc(tg.n) + ' was ' + eqHTML(Q.m, Q.b) + '. Your laser fires along ' + eqHTML(lm, lb) + ' anyway.'; ST.good = false; snd('nope'); }
       ST.cur = null; ST.mk++;
@@ -928,8 +960,8 @@
     var v = (ST.bank || []).map(function (x) { return x.ok ? 'c' + x.tg + '_' + x.c + (x.u ? '_' + x.u : '') : 'w' + x.m + '_' + x.b + '_' + x.c; });
     if (ST.met) v.push('r' + ST.met); if (ST.hole) v.push('h');
     // what they're working on right now, for the teacher's "needs a hand" list: target_tries_slope typed_intercept typed
-    var C2 = ST.cur, stp = C2 && C2.steps ? C2.steps[C2.si] || '' : '', cu = C2 && C2.k === 'L' && C2.miss ? C2.tg + '_' + C2.miss + '_' + (stp === 'both' ? C2.m || '' : '') + '_' + (stp === 'both' ? C2.b || '' : '') + '_' + (stp === 'both' ? '' : stp) + '_' + (stp && stp !== 'both' ? C2.v[stp] || '' : '') : '';   // target_misses_slope_intercept (final volley)_step_what they typed
-    A.record({ id: QID, k: 'open' }, 'd2;id:' + Math.round(V.id / 1000) + ';r:' + (ST.r || 0) + ';v:' + v.join('.') + ';sh:' + ST.sh + ';st:' + ST.str + ';cu:' + cu + ';mi:' + (ST.miss || 0) + ';cn:' + (ST.coins || 0) + ';n:' + (ST.tot.p || 0) + ';ok:' + ST.tot.right + ';f:' + ST.tot.first + ';hi:' + ST.tot.hits + ';dm:' + ST.tot.dmg + ';z:' + ST.tot.zaps + ';bl:' + ST.tot.blocks + ';hl:' + (ST.tot.hl || '') + ';ln:' + (ST.tot.ln || 0) + ';rv:' + (ST.tot.rv || 0) + ';fo:' + (ST.tot.fo || 0) + ';fr:' + (ST.tot.fr || 0) + ';w:' + (ST.w || 0), null);
+    var C2 = ST.cur, stp = C2 && C2.mode === 'steps' ? C2.steps[C2.si] || '' : '', cu = C2 && C2.k === 'L' && C2.miss ? C2.tg + '_' + C2.miss + '_' + (stp ? '' : C2.m || '') + '_' + (stp ? '' : C2.b || '') + '_' + stp + '_' + (stp ? (BOXES[stp] || []).map(function (k) { return C2.v[k] || '?'; }).join(',') : '') : '';   // target_misses_slope_intercept (final volley)_step_what they typed
+    A.record({ id: QID, k: 'open' }, 'd2;id:' + Math.round(V.id / 1000) + ';r:' + (ST.r || 0) + ';v:' + v.join('.') + ';sh:' + ST.sh + ';st:' + ST.str + ';cu:' + cu + ';mi:' + (ST.miss || 0) + ';cn:' + (ST.coins || 0) + ';n:' + (ST.tot.p || 0) + ';ok:' + ST.tot.right + ';f:' + ST.tot.first + ';hi:' + ST.tot.hits + ';dm:' + ST.tot.dmg + ';z:' + ST.tot.zaps + ';bl:' + ST.tot.blocks + ';hl:' + (ST.tot.hl || '') + ';ln:' + (ST.tot.ln || 0) + ';rv:' + (ST.tot.rv || 0) + ';fo:' + (ST.tot.fo || 0) + ';fr:' + (ST.tot.fr || 0) + ';sp:' + (ST.tot.sp || 0) + ';eq:' + (ST.tot.eq || 0) + ';w:' + (ST.w || 0), null);
   }
   function stFire() {
     var c = H('div', 'dlcard');
@@ -1226,14 +1258,14 @@
         var L = x.Q ? lineThrough([x.P.x, x.P.y], [x.Q.x, x.Q.y]) : null, d = x.Q ? diffOf([x.P.x, x.P.y], [x.Q.x, x.Q.y]) : 0, s = K.sup[x.sid] || 0;
         hs.appendChild(H('div', 'dlhrow', '<b>' + esc(sname(x.sid)) + '</b> <span class="muted">' + SUPE[s] + ' ' + SUP[s] + ' · ' + x.row.mi + ' miss' + (x.row.mi === 1 ? '' : 'es') + ' this volley · ' + x.ok + ' right</span>' +
           (L ? '<div>A' + pt(x.P.x, x.P.y) + ' → ' + esc(sname(x.tsid)) + ' B' + pt(x.Q.x, x.Q.y) + ' <span class="dld" style="--d:' + DCOL[d] + '">' + DIFF[d] + '</span> · answer <b>' + eqHTML(L.m, L.b) + '</b>' +
-            (x.st ? ' · stuck on <b>' + SNAME[x.st] + '</b>' + (x.typed ? ': typed <span class="dlno2">' + esc(x.typed) + '</span>, right answer <b>' + fhtml(x.st === 'dy' ? [x.Q.y - x.P.y, 1] : x.st === 'dx' ? [x.Q.x - x.P.x, 1] : x.st === 'm' ? L.m : L.b) + '</b>' : '') + ' (' + x.tries + ' miss' + (x.tries === 1 ? '' : 'es') + ' on this line)'
+            (SN[x.st] ? ' · stuck on <b>' + SN[x.st].toLowerCase() + '</b>' + (x.typed ? ': typed <span class="dlno2">' + esc(x.typed.split(',').join(', ')) + '</span>, wants <b>' + (x.st === 'f' ? '(' + nm(x.Q.y) + ' − ' + par(x.P.y) + ') ÷ (' + nm(x.Q.x) + ' − ' + par(x.P.x) + ')' : x.st === 'm' ? fhtml(L.m) : x.st === 'p' ? nm(x.P.y) + ' = ' + fhtml(L.m) + ' × ' + par(x.P.x) + ' + b' : 'b = ' + fhtml(L.b)) + '</b>' : '') + ' (' + x.tries + ' miss' + (x.tries === 1 ? '' : 'es') + ' on this line)'
               : (x.tm && x.tb ? ' · typed <span class="dlno2">' + eqHTML(x.tm, x.tb) + '</span>' + (feq(x.tm, L.m) ? ' <span class="dlok2">slope ✓</span>' : '') + (feq(x.tb, L.b) ? ' <span class="dlok2">intercept ✓</span>' : '') : '') + ' (final volley, try ' + Math.min(TRIES, x.tries + 1) + ' of ' + TRIES + ')') + '</div>' : '<div class="muted">Between problems: ' + x.row.mi + ' lines missed, none right yet.</div>')));
       });
       sec.appendChild(hs);
     }
     // details: each student's help level (tap to change), this round, the battle so far
     var dd = A.fold ? A.fold('g-duel', '📋 Details · help levels, who has locked in', K.state === 2) : (function () { var d = el('details', { 'class': 'sect fold' }); d.appendChild(el('summary', {}, [H('h3', '', '📋 Details')])); return d; })();
-    dd.appendChild(H('p', 'muted', 'Help levels: ' + SUP.map(function (s, i) { return SUPE[i] + ' ' + s; }).join(' · ') + '. They move each round (right first time: less help; no right line: more). Tap a student to set theirs yourself; that keeps it fixed.'));
+    dd.appendChild(H('p', 'muted', 'Help levels: ' + SUP.map(function (s, i) { return SUPE[i] + ' ' + s; }).join(' · ') + '. None of them gives away the slope or b: they only set whether a line starts as the whole equation or as the steps (students can switch any time), and how strong the hints are. They move each round (right first time: less help; no right line: more). Tap a student to set theirs yourself; that keeps it fixed.'));
     var wrap = H('div', 'row');
     [0, 1].forEach(function (t) {
       K.teams[t].slice().sort(function (a, b) { return sname(a).localeCompare(sname(b)); }).forEach(function (sid) {
@@ -1314,7 +1346,8 @@
     '.dlsteps li.on{opacity:1;border-color:#FFE14D;background:rgba(255,225,77,.08)}.dlsteps li.done{opacity:1;border-color:rgba(124,242,162,.5);background:rgba(124,242,162,.07)}',
     '.dlsn{font-size:13px;letter-spacing:.5px;text-transform:uppercase;opacity:.85}.dlsn b{color:#FFE14D;font-size:15px}.dlsteps li.done .dlsn b{color:#7CF2A2}',
     '.dlse{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:4px;font:700 19px/1.3 system-ui}.dlsf{font-weight:600;font-size:15px;opacity:.85}.dlsv{color:#7CF2A2;font-size:21px}',
-    '.dlse .dlbox{min-width:84px;font-size:24px;padding:6px 10px}',
+    '.dlse .dlbox{min-width:84px;font-size:24px;padding:6px 10px}.dlse .dlbox.sm{min-width:58px;font-size:20px;padding:5px 8px}',
+    '.dlpts{text-align:center;font-size:16px}.dlpts b{font-size:18px}.dlpts small{display:block;opacity:.8;font-size:13px}.dlkeys .dlnb{font-size:14px}',
     '.dleqline{text-align:center;font:900 26px/1.3 Georgia,serif;margin-top:4px}.dlq{display:inline-block;font:700 13px system-ui;border:2px dashed rgba(255,255,255,.35);border-radius:8px;padding:3px 7px;margin:0 3px;vertical-align:middle;opacity:.7}',
     '.dlfinb{display:block;text-align:center;font-weight:900;letter-spacing:1.5px;color:#0c1230;background:linear-gradient(90deg,#FFE14D,#FF9A3B);border-radius:10px;padding:4px 10px;margin-bottom:6px}.dlstrip .dlfinb{flex-basis:100%;margin:0}',
     '.dlgiv.dlfin{border:2px solid #FF9A3B}',
