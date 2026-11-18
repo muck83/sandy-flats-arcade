@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unit 2 Review Dashboard · Sandy Flats</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css?v=20261118">
+<style>
+/* Unit 2 Review dashboard: who is where on each of the 12 review skills, by rubric level. */
+.dash{max-width:1320px}
+.l0{--lc:#2E2A3D;--lt:#ABA5BC}.l1{--lc:#E8584C;--lt:#2A0703}.l2{--lc:#FF9F45;--lt:#2A1400}.l3{--lc:#FFC94A;--lt:#2A1E00}.l4{--lc:#3BFF8A;--lt:#00260F}
+.bar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-top:12px}
+.bar .grow{flex:1 1 auto}
+.bar input[type=search]{font:600 15px var(--ui);padding:8px 12px;border-radius:999px;border:2px solid var(--line);background:#0E0C14;color:var(--ink);min-width:200px}
+.seg{display:inline-flex;border:2px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{all:unset;cursor:pointer;font:600 13px var(--ui);padding:6px 12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--marquee);color:#231800}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:14px}
+.kpi{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:12px 14px}
+.kpi .k{font:600 12px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.kpi .v{font-family:var(--display);font-size:34px;line-height:1.1;color:var(--marquee)}
+.kpi .s{font-size:13px;color:var(--muted)}
+.kpi.warn .v{color:#FF8E84}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:14px;margin-top:14px}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.panel h2{font-family:var(--display);font-weight:400;letter-spacing:.03em;color:var(--marquee);font-size:20px;margin:0 0 4px}
+.panel .sub{font-size:13px;color:var(--muted);margin:0 0 10px}
+.stk{display:flex;height:16px;border-radius:8px;overflow:hidden;background:#2E2A3D}
+.stk i{display:block;height:100%;background:var(--lc);flex:none}
+.srow{all:unset;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 44px;gap:10px;align-items:center;width:100%;padding:6px 8px;border-radius:10px;cursor:pointer}
+.srow:hover,.srow:focus-visible,.srow.on{background:var(--panel2)}
+.srow .nm{font-size:14px;font-weight:600;line-height:1.2}
+.srow .nm small{display:block;font-weight:400;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.srow .pc{font:600 13px var(--mono);text-align:right}
+.flag{display:inline-block;font:700 10px var(--ui);letter-spacing:.06em;text-transform:uppercase;background:#4A1D1A;color:#FF8E84;border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:2px}
+.crits{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.crit{background:var(--panel2);border-radius:12px;padding:10px 12px}
+.crit b{font-size:14px;display:block;line-height:1.25;margin-bottom:6px}
+.crit .strand{font:600 11px var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.crit .nums{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:5px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:12px;height:12px;border-radius:3px;background:var(--lc);display:inline-block}
+.heat{overflow-x:auto;margin-top:6px}
+table.hm{border-collapse:separate;border-spacing:3px;min-width:100%}
+.hm th{font:600 11px var(--ui);color:var(--muted);text-align:center;vertical-align:bottom;padding:4px 2px;white-space:nowrap}
+.hm th.sk{cursor:pointer;height:160px}
+.hm th.sk span{display:inline-block;writing-mode:vertical-rl;transform:rotate(180deg);max-height:156px;overflow:hidden;text-overflow:ellipsis}
+.hm th.sk:hover span,.hm th.sk.on span{color:var(--marquee)}
+.hm th.cg{font-size:10px;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid var(--line);padding-bottom:3px}
+.hm th.sortable{cursor:pointer;text-align:left}
+.hm th.sortable:hover{color:var(--marquee)}
+.hm td{padding:0}
+.hm td.who{padding:4px 10px 4px 2px;white-space:nowrap;font-size:14px;font-weight:600}
+.hm td.who button{all:unset;cursor:pointer}
+.hm td.who button:hover{color:var(--marquee)}
+.hm td.who small{color:var(--muted);font-weight:400;margin-left:6px;font-size:11px}
+.hm td.c{width:34px;min-width:30px;height:30px;border-radius:7px;background:var(--lc);text-align:center;font:700 11px var(--mono);color:var(--lt)}
+.hm td.c.dim{opacity:.18}
+.hm td.meta{padding:0 8px;font:500 12px var(--mono);color:var(--muted);white-space:nowrap;text-align:right}
+.hm td.ready{font:700 13px var(--mono);text-align:center;padding:0 8px;white-space:nowrap}
+.hm tr.gap td.c{box-shadow:none}
+.hm tr:hover td.who{color:var(--marquee)}
+.pillbar{display:flex;gap:3px}
+.pillbar i{width:9px;height:14px;border-radius:3px;background:#2E2A3D}
+.pillbar i.on{background:var(--teal)}
+.drawer{position:fixed;inset:0 0 0 auto;width:min(440px,100vw);background:var(--panel);border-left:2px solid var(--line);box-shadow:-20px 0 50px rgba(0,0,0,.5);z-index:60;overflow-y:auto;padding:18px;transform:translateX(105%);transition:transform .25s ease}
+.drawer.open{transform:none}
+.drawer h2{font-family:var(--display);font-weight:400;color:var(--marquee);margin:0;font-size:24px}
+.drawer .x{float:right}
+.dsk{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;margin-top:6px;font-size:14px}
+.badge{flex:none;align-self:flex-start;display:inline-block;font:700 11px var(--ui);padding:3px 9px;border-radius:999px;background:var(--lc);color:var(--lt);white-space:nowrap}
+.rgroups{display:grid;gap:8px}
+.rgrp{background:var(--panel2);border-radius:12px;padding:10px 12px}
+.rgrp .gh{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.rgrp .names{font-size:14px;margin-top:4px;line-height:1.6}
+.say{margin-top:14px}
+.muted{color:var(--muted)}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.live i{animation:none}.stack i,.drawer{transition:none}}
+body.blur .nmv{filter:blur(6px)}
+</style>
+</head><body>
+<div class="wrap dash">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Unit 2 Review · Dashboard</h1><div class="chips" id="chips"></div></header>
+  <main id="body"><p class="muted">Loading…</p></main>
+</div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-label="Student detail"></aside>
+<script src="config.js"></script>
+<script src="sfa-kit.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SFA = window.SFA, el = SFA.el, CFG = window.SFA_CONFIG || {}, body = document.getElementById('body'), drawer = document.getElementById('drawer');
+  var DEMO = /[?&]demo/.test(location.search);
+  // the twelve review skills, as review-u2.js saves them (id = level id in the g90 row)
+  var CRIT = [
+    { id: 'compute', short: 'Compute slope', name: 'Compute slope from tables, equations, graphs and ordered pairs', strand: 'C1 Concepts', skills: [['s1', 'Slope from two points'], ['s2', 'Slope from a table'], ['s3', 'Slope from a graph'], ['s4', 'Slope from an equation']] },
+    { id: 'convert', short: 'Convert forms', name: 'Convert between standard form and slope-intercept form', strand: 'C1 Concepts', skills: [['f1', 'Standard → slope-intercept'], ['f2', 'Slope-intercept → standard']] },
+    { id: 'represent', short: 'Represent', name: 'Represent scenarios graphically, with equations and with words', strand: 'C3 Problem Solving', skills: [['r1', 'Story → equation, solve'], ['r2', 'Graph a line'], ['r3', 'Inequalities'], ['r4', 'Match representations']] },
+    { id: 'explain', short: 'Explain', name: 'Explain reasoning', strand: 'C2 Communicating', skills: [['e1', 'Meaning of slope & intercept'], ['e2', 'Find the mistake']] }
+  ];
+  var SK = []; CRIT.forEach(function (c) { c.skills.forEach(function (s) { SK.push({ id: s[0], name: s[1], crit: c }); }); });
+  var LV = ['Not started', 'Limited', 'Emerging', 'Developed', 'Deep'], ABBR = ['', 'L', 'E', 'D', 'D+'];
+  var TIER = { none: 0, limited: 1, emerging: 2, devel: 3, deep: 4 };
+
+  /* ---------- teacher key (shared with Class Results) ---------- */
+  var KEY = 'sfa.classkey';
+  var Key = {
+    get: function () { try { var s = sessionStorage.getItem(KEY); if (s) return s; var r = JSON.parse(localStorage.getItem(KEY) || 'null'); if (r && r.until > Date.now()) return r.k; } catch (e) { } return ''; },
+    set: function (k, remember) { try { sessionStorage.setItem(KEY, k); if (remember) { var d = new Date(); d.setHours(23, 59, 59, 0); localStorage.setItem(KEY, JSON.stringify({ k: k, until: d.getTime() })); } } catch (e) { } },
+    del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
+  };
+  function api(op) {
+    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ op: op, teacherKey: Key.get() }) })
+      .then(function (r) { return r.text(); })
+      .then(function (t) { try { return JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly.'); } })
+      .then(function (j) { if (!j.ok) throw new Error(j.error); return j; });
+  }
+  function pref(k, d) { try { var v = localStorage.getItem('sfa.rvdash.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function setPref(k, v) { try { localStorage.setItem('sfa.rvdash.' + k, JSON.stringify(v)); } catch (e) { } }
+
+  /* ---------- state ---------- */
+  var S = { rows: [], cls: pref('cls', ''), q: '', sort: pref('sort', 'ready'), focus: null, hide: false, auto: pref('auto', true), at: null };
+  var timer = null;
+
+  function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
+  function initials(n) { return nice(n).split(' ').map(function (w) { return w[0] || ''; }).join('').toUpperCase(); }
+  function ago(iso) { return iso ? SFA.ago(iso) : 'never'; }
+
+  // one row per student: level per skill (0 to 4), plus summary numbers
+  function build(j) {
+    var by = {}; (j.progress || []).forEach(function (p) { if (p.game === 'g90') by[p.sid] = p; });
+    return (j.roster || []).map(function (s) {
+      var p = by[s.sid], lv = {}; SK.forEach(function (k) { lv[k.id] = 0; });
+      if (p) SFA.parseLevels(p.levels).forEach(function (x) { if (x.id in lv) lv[x.id] = TIER[x.tier] || 0; });
+      var dev = SK.filter(function (k) { return lv[k.id] >= 3; }).length, started = SK.filter(function (k) { return lv[k.id] > 0; }).length;
+      var score = SK.reduce(function (a, k) { return a + lv[k.id]; }, 0);
+      return { sid: s.sid, name: s.name, cls: s.cls || '', lv: lv, dev: dev, started: started, score: score, p: p, updated: p ? p.updated : '', assisted: p ? +p.assisted || 0 : 0 };
+    });
+  }
+  function shown() {
+    var q = S.q.toLowerCase();
+    var r = S.rows.filter(function (x) { return (!S.cls || x.cls === S.cls) && (!q || nice(x.name).toLowerCase().indexOf(q) >= 0); });
+    var cmp = {
+      name: function (a, b) { return a.name.localeCompare(b.name); },
+      ready: function (a, b) { return a.dev - b.dev || a.score - b.score || a.name.localeCompare(b.name); },
+      best: function (a, b) { return b.dev - a.dev || b.score - a.score || a.name.localeCompare(b.name); },
+      recent: function (a, b) { return (b.updated || '').localeCompare(a.updated || '') || a.name.localeCompare(b.name); }
+    }[S.sort] || null;
+    if (S.focus && S.sort === 'skill') cmp = function (a, b) { return a.lv[S.focus] - b.lv[S.focus] || a.name.localeCompare(b.name); };
+    return r.sort(cmp);
+  }
+  function dist(rows, f) { var d = [0, 0, 0, 0, 0]; rows.forEach(function (r) { d[f(r)]++; }); return d; }
+  function stack(d) { var n = d.reduce(function (a, b) { return a + b; }, 0) || 1; return el('div', { 'class': 'stk', role: 'img', 'aria-label': LV.map(function (l, i) { return d[i] + ' ' + l; }).join(', ') }, d.map(function (c, i) { return el('i', { 'class': 'l' + i, style: 'width:' + (100 * c / n) + '%', title: c + ' ' + LV[i] }); })); }
+  function critLv(r, c) { return Math.min.apply(null, c.skills.map(function (s) { return r.lv[s[0]]; })); }
+  function nm(r) { return S.hide ? initials(r.name) : nice(r.name); }
+
+  /* ---------- render ---------- */
+  function render() {
+    var rows = shown(), all = S.rows.filter(function (x) { return !S.cls || x.cls === S.cls; });
+    body.innerHTML = '';
+    body.appendChild(toolbar());
+    if (!all.length) { body.appendChild(el('p', { 'class': 'say muted', text: 'No students on the roster for this class.' })); return; }
+
+    // headline numbers
+    var started = all.filter(function (r) { return r.started; }).length, ready = all.filter(function (r) { return r.dev === SK.length; }).length;
+    var avg = all.length ? (all.reduce(function (a, r) { return a + r.dev; }, 0) / all.length) : 0;
+    var weekAgo = Date.now() - 7 * 864e5, active = all.filter(function (r) { return r.updated && Date.parse(r.updated) > weekAgo; }).length;
+    var pct = SK.map(function (k) { return { k: k, n: all.filter(function (r) { return r.lv[k.id] >= 3; }).length }; }).sort(function (a, b) { return a.n - b.n; });
+    var weakest = pct[0];
+    body.appendChild(el('div', { 'class': 'kpis' }, [
+      kpi('Started the review', started + '/' + all.length, Math.round(100 * started / all.length) + '% of the class', started < all.length / 2),
+      kpi('Ready (all 12 Developed)', String(ready), ready ? 'on track for the formative' : 'nobody yet', false),
+      kpi('Average skills at Developed', avg.toFixed(1), 'out of 12', false),
+      kpi('Active this week', String(active), 'practised in the last 7 days', false),
+      kpi('Reteach first', weakest.k.name, weakest.n + ' of ' + all.length + ' at Developed', weakest.n < all.length / 2)
+    ]));
+
+    // criteria and skills
+    var crits = el('div', { 'class': 'crits' }, CRIT.map(function (c) {
+      var d = dist(all, function (r) { return critLv(r, c); });
+      return el('div', { 'class': 'crit' }, [el('div', { 'class': 'strand', text: c.strand }), el('b', { text: c.name }), stack(d), el('div', { 'class': 'nums' }, [el('span', { text: (d[3] + d[4]) + ' Developed+' }), el('span', { text: d[0] + ' not started' })])]);
+    }));
+    var left = el('section', { 'class': 'panel' }, [el('h2', { text: 'Success criteria' }), el('p', { 'class': 'sub', text: 'A student\'s level on a criterion is the lowest level across its skills (the rubric\'s weakest link).' }), crits, legend()]);
+    var skl = el('div', {});
+    var flagN = 3, flagged = {}; pct.slice(0, flagN).forEach(function (x) { if (x.n < all.length * 0.6) flagged[x.k.id] = 1; });
+    SK.forEach(function (k) {
+      var d = dist(all, function (r) { return r.lv[k.id]; }), n = d[3] + d[4];
+      var b = el('button', { 'class': 'srow' + (S.focus === k.id ? ' on' : ''), type: 'button', 'aria-pressed': S.focus === k.id ? 'true' : 'false', onclick: function () { S.focus = S.focus === k.id ? null : k.id; if (S.focus) S.sort = 'skill'; else if (S.sort === 'skill') S.sort = 'ready'; render(); } },
+        [el('span', { 'class': 'nm' }, [el('small', { text: k.crit.short }), k.name, flagged[k.id] ? el('span', { 'class': 'flag', text: 'reteach' }) : null]), stack(d), el('span', { 'class': 'pc', text: Math.round(100 * n / all.length) + '%' })]);
+      skl.appendChild(b);
+    });
+    var right = el('section', { 'class': 'panel' }, [el('h2', { text: 'Skills' }), el('p', { 'class': 'sub', text: 'Share of the class at Developed or Deep. Click a skill for its reteach groups and to sort the grid by it.' }), skl]);
+    body.appendChild(el('div', { 'class': 'grid2' }, [left, right]));
+
+    if (S.focus) body.appendChild(groups(all, S.focus));
+
+    // the heatmap
+    var heat = el('section', { 'class': 'panel', style: 'margin-top:14px' }, [el('h2', { text: 'Student × skill' }), el('p', { 'class': 'sub', text: 'Each square is one skill. L Limited · E Emerging · D Developed · D+ Deep. Click a name for detail, a column for reteach groups.' })]);
+    var t = el('table', { 'class': 'hm' });
+    var g = el('tr', {}, [el('th'), el('th')]);
+    CRIT.forEach(function (c) { g.appendChild(el('th', { 'class': 'cg', colspan: String(c.skills.length), text: c.short })); });
+    g.appendChild(el('th', { colspan: '3' }));
+    var h = el('tr', {}, [sortTh('Student', 'name'), sortTh('Ready', 'best')]);
+    SK.forEach(function (k) { h.appendChild(el('th', { 'class': 'sk' + (S.focus === k.id ? ' on' : ''), title: k.name, onclick: function () { S.focus = S.focus === k.id ? null : k.id; S.sort = S.focus ? 'skill' : 'ready'; render(); } }, [el('span', { text: k.name })])); });
+    h.appendChild(sortTh('Last practised', 'recent')); h.appendChild(el('th', { text: 'Show me', title: 'Times the student used "Show me" in guided practice' }));
+    t.appendChild(g); t.appendChild(h);
+    rows.forEach(function (r) {
+      var tr = el('tr', {}, [
+        el('td', { 'class': 'who' }, [el('button', { type: 'button', onclick: function () { openStudent(r); } }, [el('span', { 'class': 'nmv', text: nm(r) })]), S.cls ? null : el('small', { text: r.cls })]),
+        el('td', { 'class': 'ready' }, [el('div', { 'class': 'pillbar', title: r.dev + ' of 12 at Developed', 'aria-label': r.dev + ' of 12 at Developed' }, SK.map(function (k, i) { return el('i', { 'class': i < r.dev ? 'on' : '' }); }))])
+      ]);
+      SK.forEach(function (k) { var L = r.lv[k.id]; tr.appendChild(el('td', { 'class': 'c l' + L + (S.focus && S.focus !== k.id ? ' dim' : ''), title: nice(r.name) + ' · ' + k.name + ': ' + LV[L], text: ABBR[L] })); });
+      tr.appendChild(el('td', { 'class': 'meta', text: ago(r.updated) }));
+      tr.appendChild(el('td', { 'class': 'meta', text: r.p ? String(r.assisted) : '·' }));
+      t.appendChild(tr);
+    });
+    heat.appendChild(el('div', { 'class': 'heat' }, [t]));
+    heat.appendChild(legend());
+    body.appendChild(heat);
+  }
+  function kpi(k, v, s, warn) { return el('div', { 'class': 'kpi' + (warn ? ' warn' : '') }, [el('div', { 'class': 'k', text: k }), el('div', { 'class': 'v', text: v, style: v.length > 9 ? 'font-size:20px;line-height:1.25;padding:6px 0' : '' }), el('div', { 'class': 's', text: s })]); }
+  function legend() { return el('div', { 'class': 'legend' }, LV.map(function (l, i) { return el('span', { 'class': 'l' + i }, [el('i'), l]); })); }
+  function sortTh(label, key) { return el('th', { 'class': 'sortable', onclick: function () { S.sort = key; S.focus = key === 'skill' ? S.focus : null; setPref('sort', key); render(); } }, [label + (S.sort === key ? ' ▾' : '')]); }
+
+  // reteach groups for one skill: who is at each level, ready to copy
+  function groups(all, id) {
+    var k = SK.filter(function (x) { return x.id === id; })[0];
+    var box = el('section', { 'class': 'panel', style: 'margin-top:14px' }, [el('h2', { text: 'Groups for: ' + k.name }), el('p', { 'class': 'sub', text: k.crit.name + '. Start with the first two groups.' })]);
+    var g = el('div', { 'class': 'rgroups' });
+    [[0, 'Not started: send them to Learn'], [1, 'Limited: guided practice together'], [2, 'Emerging: one more push on their own'], [3, 'Developed: ready, try the stretch problems'], [4, 'Deep: could help a classmate']].forEach(function (x) {
+      var who = all.filter(function (r) { return r.lv[id] === x[0]; });
+      if (!who.length) return;
+      var names = who.map(function (r) { return nice(r.name); });
+      g.appendChild(el('div', { 'class': 'rgrp l' + x[0] }, [
+        el('div', { 'class': 'gh' }, [el('span', {}, [el('span', { 'class': 'badge', text: LV[x[0]] + ' · ' + who.length }), ' ', x[1].split(': ')[1]]), el('button', { 'class': 'btn small', type: 'button', text: 'Copy names', onclick: function () { copy(names.join(', ')); } })]),
+        el('div', { 'class': 'names' }, who.map(function (r, i) { return el('span', { 'class': 'nmv', text: nm(r) + (i < who.length - 1 ? ', ' : '') }); }))
+      ]));
+    });
+    box.appendChild(g);
+    return box;
+  }
+  function copy(t) { try { navigator.clipboard.writeText(t).then(function () { SFA.toast('Names copied'); }); } catch (e) { SFA.toast(t, 6000); } }
+
+  function toolbar() {
+    var classes = []; S.rows.forEach(function (r) { if (r.cls && classes.indexOf(r.cls) < 0) classes.push(r.cls); }); classes.sort();
+    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Class' }, [''].concat(classes).map(function (c) { return el('button', { type: 'button', 'aria-pressed': S.cls === c ? 'true' : 'false', text: c ? 'Class ' + c : 'All classes', onclick: function () { S.cls = c; setPref('cls', c); render(); } }); }));
+    var search = el('input', { type: 'search', placeholder: 'Find a student', value: S.q, 'aria-label': 'Find a student' });
+    search.addEventListener('input', function () { S.q = search.value; var pos = search.selectionStart; render(); var s2 = body.querySelector('input[type=search]'); s2.focus(); try { s2.setSelectionRange(pos, pos); } catch (e) { } });
+    return el('div', { 'class': 'bar' }, [
+      classes.length > 1 ? seg : null, search, el('span', { 'class': 'grow' }),
+      el('span', { 'class': 'live' }, [S.auto ? el('i') : null, DEMO ? 'Sample data' : 'Updated ' + (S.at ? S.at.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '…') + (S.auto ? ' · refreshes every minute' : '')]),
+      el('button', { 'class': 'btn small', type: 'button', text: S.hide ? '👁 Show names' : '🙈 Hide names', title: 'Initials only, for showing on the board', onclick: function () { S.hide = !S.hide; render(); } }),
+      el('button', { 'class': 'btn small', type: 'button', text: S.auto ? '⏸ Auto-refresh' : '▶ Auto-refresh', onclick: function () { S.auto = !S.auto; setPref('auto', S.auto); schedule(); render(); } }),
+      el('button', { 'class': 'btn small', type: 'button', text: '↻ Refresh', onclick: function () { load(true); } }),
+      el('button', { 'class': 'btn small', type: 'button', text: '⬇ CSV', onclick: csv })
+    ]);
+  }
+
+  function openStudent(r) {
+    drawer.innerHTML = '';
+    drawer.appendChild(el('button', { 'class': 'btn small x', type: 'button', text: '✕ Close', onclick: closeDrawer }));
+    drawer.appendChild(el('h2', { 'class': 'nmv', text: nm(r) }));
+    drawer.appendChild(el('p', { 'class': 'muted', text: (r.cls ? 'Class ' + r.cls + ' · ' : '') + r.dev + ' of 12 skills at Developed · last practised ' + ago(r.updated) + (r.p ? ' · used Show me ' + r.assisted + ' time' + (r.assisted === 1 ? '' : 's') : '') }));
+    var next = SK.filter(function (k) { return r.lv[k.id] < 3; }).sort(function (a, b) { return r.lv[b.id] - r.lv[a.id]; })[0];
+    if (!r.p) drawer.appendChild(el('div', { 'class': 'rgrp l0' }, ['Hasn\'t opened the review yet. Share the link: ', el('b', { text: 'review-u2.html' })]));
+    else if (next) drawer.appendChild(el('div', { 'class': 'rgrp l' + r.lv[next.id] }, [el('b', { text: 'Closest to the next level: ' }), next.name + ' (' + LV[r.lv[next.id]] + ').']));
+    else drawer.appendChild(el('div', { 'class': 'rgrp l4' }, [el('b', { text: 'Ready for the formative: ' }), 'every skill at Developed or Deep.']));
+    CRIT.forEach(function (c) {
+      var L = critLv(r, c);
+      drawer.appendChild(el('h3', { style: 'margin:16px 0 4px;font-size:15px;display:flex;justify-content:space-between;gap:8px' }, [c.name, el('span', { 'class': 'badge l' + L, text: LV[L] })]));
+      drawer.appendChild(el('div', { 'class': 'dsk' }, [].concat.apply([], c.skills.map(function (s) { var l = r.lv[s[0]]; return [el('span', { text: s[1] }), el('span', { 'class': 'badge l' + l, text: LV[l] })]; }))));
+    });
+    drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false');
+    drawer.querySelector('.x').focus();
+  }
+  function closeDrawer() { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+
+  function csv() {
+    var head = ['Student', 'Class', 'Skills at Developed'].concat(SK.map(function (k) { return k.name; })).concat(CRIT.map(function (c) { return c.short + ' (criterion)'; })).concat(['Last practised', 'Show me used']);
+    var lines = [head].concat(shown().map(function (r) { return [nice(r.name), r.cls, r.dev].concat(SK.map(function (k) { return LV[r.lv[k.id]]; })).concat(CRIT.map(function (c) { return LV[critLv(r, c)]; })).concat([r.updated ? new Date(r.updated).toLocaleString() : '', r.p ? r.assisted : '']); }));
+    var text = lines.map(function (l) { return l.map(function (x) { x = String(x == null ? '' : x); return /[",\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; }).join(','); }).join('\n');
+    var a = el('a', { href: URL.createObjectURL(new Blob([text], { type: 'text/csv' })), download: 'unit2-review-progress.csv' }); document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  /* ---------- loading ---------- */
+  function schedule() { clearInterval(timer); if (S.auto && !DEMO) timer = setInterval(function () { if (document.visibilityState === 'visible') load(false); }, 60000); }
+  function askKey(msg) {
+    var inp = el('input', { type: 'password', style: 'font:600 15px var(--mono);padding:9px 12px;border-radius:10px;border:2px solid var(--line);background:#0E0C14;color:var(--ink);width:22em;max-width:100%', autocomplete: 'off', 'aria-label': 'Teacher key' });
+    var rem = el('input', { type: 'checkbox', id: 'remKey' });
+    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Open the dashboard', onclick: function () { Key.set(inp.value.trim(), rem.checked); load(true); } });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go.click(); });
+    body.innerHTML = '';
+    body.appendChild(el('div', { 'class': 'panel', style: 'margin-top:16px;max-width:640px' }, [
+      el('h2', { text: 'Teacher key' }), el('p', { 'class': 'muted', text: msg || 'The same key as Class Results. It is forgotten when you close this tab, unless you tick the box.' }),
+      el('div', { 'class': 'bar' }, [inp, go]),
+      el('label', { 'for': 'remKey', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' }, [rem, 'Remember on this computer until the end of today']),
+      el('p', { 'class': 'muted', style: 'font-size:13px' }, ['Just looking? ', el('a', { href: '?demo', text: 'Open it with sample data' }), '.'])
+    ]));
+    inp.focus();
+  }
+  function load(loud) {
+    if (DEMO) { S.rows = build(demo()); S.at = new Date(); render(); return; }
+    if (!CFG.endpoint) { body.textContent = 'Results saving isn\'t switched on for this copy of the arcade.'; return; }
+    if (!Key.get()) return askKey();
+    if (loud && !S.rows.length) body.innerHTML = '<p class="muted say">Loading the class…</p>';
+    api('class').then(function (j) { S.rows = build(j); S.at = new Date(); render(); schedule(); }, function (e) {
+      if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); }
+      else if (loud || !S.rows.length) body.innerHTML = '<p class="say" style="color:#FF8E84">Couldn\'t reach the results sheet. ' + SFA.esc(e.message) + '</p>';
+    });
+  }
+
+  // made-up class for ?demo: a realistic spread, weaker on conversions and inequalities
+  function demo() {
+    var first = ['Ava', 'Ben', 'Chloe', 'Dev', 'Eli', 'Farah', 'Gus', 'Hana', 'Ivan', 'Jun', 'Kira', 'Leo', 'Maya', 'Noor', 'Omar', 'Pia', 'Quinn', 'Rosa', 'Sami', 'Tara', 'Umar', 'Vera', 'Wes', 'Yara', 'Zane', 'Aiko', 'Bilal', 'Cleo'];
+    var last = ['Khan', 'Lopez', 'Smith', 'Okafor', 'Haddad', 'Nguyen', 'Silva', 'Ito', 'Petrov', 'Mensah', 'Rossi', 'Novak', 'Ali', 'Park'];
+    var hard = { s1: 0, s2: .2, s3: .1, s4: .6, f1: 1.2, f2: 1.6, r1: .6, r2: .3, r3: 1.4, r4: .7, e1: .5, e2: 1 }, seed = 7;
+    function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    var roster = [], progress = [];
+    first.forEach(function (f, i) {
+      var sid = 'd' + i, name = last[i % last.length] + ', ' + f; roster.push({ sid: sid, name: name, cls: i % 2 ? 'B' : 'A' });
+      var ability = 1.2 + rnd() * 4; if (i % 9 === 4) return;   // a few haven't started
+      var levels = SK.map(function (k) { var L = Math.round(ability - hard[k.id] + (rnd() - .5) * 1.6); L = Math.max(0, Math.min(4, L)); return k.id + '.' + ['none', 'limited', 'emerging', 'devel', 'deep'][L] + ':' + (L >= 3 ? 'Y' : '-'); });
+      var dn = levels.filter(function (x) { return /:Y$/.test(x); }).length;
+      progress.push({ sid: sid, game: 'g90', updated: new Date(Date.now() - rnd() * 9 * 864e5).toISOString(), levelsDone: dn, levelsTotal: 12, assisted: Math.floor(rnd() * 8), levels: levels.join(' '), specials: [] });
+    });
+    return { roster: roster, progress: progress };
+  }
+
+  load(true);
+})();
+</script>
+<script src="sfa-nav.js"></script>
+</body></html>
