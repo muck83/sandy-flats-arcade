@@ -397,6 +397,7 @@ a.btn{text-decoration:none;display:inline-block}
 <script src="sfa-sync.js"></script>
 <script src="sfa-account.js"></script>
 <script src="climb/core.js"></script>
+<script src="sfa-seasons.js"></script>
 <script>
 (function () {
   'use strict';
@@ -409,6 +410,7 @@ a.btn{text-decoration:none;display:inline-block}
     [40, 'I checked the sky. It says you\'re basically a function now.']
   ];
   function show(msg) { body.innerHTML = ''; body.appendChild(msg); }
+  window.__results = { draw: function (j) { draw(j); } };   // lets a test page draw made-up results
   if (!S || !S.on) { show(el('p', { 'class': 'muted', style: 'margin-top:16px', text: 'Results saving isn\'t switched on for this copy of the arcade.' })); return; }
   if (!S.me) {
     show(el('div', { 'class': 'acct' }, [el('div', {}, [el('b', { text: 'Sign in to see your results' }), el('small', { text: 'Use the student code from your school email, on the arcade front page.' })]), el('a', { 'class': 'btn primary', href: 'index.html#signin', text: 'Go to sign in' })]));
@@ -417,7 +419,7 @@ a.btn{text-decoration:none;display:inline-block}
   function draw(j) {
     var by = {}; (j.games || []).forEach(function (g) { by[g.game] = g; });
     var lv = 0, std = 0, sp = 0;
-    var grid = el('div', { 'class': 'res' });
+    var grid = el('div', { 'class': 'res' }), cards = [], SEA = SFA.seasons, seasonBox = el('div', {});
     SFA.GAMES.forEach(function (G) {
       var r = by[G.id], L = r ? SFA.parseLevels(r.levels) : [];
       if (r) { lv += r.levelsDone || 0; std += r.standard ? 1 : 0; sp += (r.specials || []).length; }
@@ -430,8 +432,12 @@ a.btn{text-decoration:none;display:inline-block}
         kids.push(el('small', { 'class': 'muted', text: 'Last played ' + SFA.ago(r.updated) + (r.assisted ? ' · Assisted ' + r.assisted : '') }));
       } else kids.push(el('span', { 'class': 'muted', text: 'Not started yet.' }));
       kids.push(el('div', { style: 'margin-top:auto' }, [el('a', { 'class': 'btn small' + (r ? '' : ' primary'), href: G.file, text: r ? 'Keep playing' : 'Play' })]));
-      grid.appendChild(el('div', { 'class': 'rg' + (r ? ' started' : '') }, kids));
+      cards.push({ s: SEA ? SEA.ofGame(G.id) : 1, std: !!(r && r.standard), el: el('div', { 'class': 'rg' + (r ? ' started' : '') }, kids) });
     });
+    // the season tabs: one season's games at a time, landing on the season the student is working in
+    function fill(n) { grid.innerHTML = ''; cards.forEach(function (c) { if (!SEA || c.s === n) grid.appendChild(c.el); }); }
+    if (SEA) SEA.tabs(seasonBox, { stats: function (n) { var cs = cards.filter(function (c) { return c.s === n; }); return { done: cs.filter(function (c) { return c.std; }).length, total: cs.length, unit: 'standard certificates' }; }, onPick: fill });
+    else fill(1);
     var line = GUS.filter(function (g) { return lv >= g[0]; }).pop()[1];
     var wrap = el('div', {}, [
       el('div', { 'class': 'acct' }, [el('div', {}, [el('b', { text: nice(j.student.name) }), el('small', { text: j.student.cls ? 'Class ' + j.student.cls : '' })]), el('a', { 'class': 'btn', href: 'index.html', text: 'Back to the arcade' })]),
@@ -442,6 +448,7 @@ a.btn{text-decoration:none;display:inline-block}
       ]),
       el('p', { 'class': 'gus' }, [el('b', { text: 'GUS' }), line]),
       climbCard(j.climb),
+      seasonBox,
       grid
     ]);
     show(wrap);

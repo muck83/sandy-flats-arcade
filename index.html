@@ -366,7 +366,8 @@ a.btn{text-decoration:none;display:inline-block}
     <div class="nextup" id="nextUp"></div>
     <div class="myres" id="myRes" hidden></div>
     <h2 id="gH">All the games</h2>
-    <p>One game for each film, in film order. Play the game for the film you just watched. Each one starts easy and takes about 30 minutes.</p>
+    <p>One game for each film, in film order, a season at a time. Play the game for the film you just watched. Each one starts easy and takes about 30 minutes.</p>
+    <div id="seasons"></div>
     <ol class="glist" id="games"></ol>
     <p style="margin-top:14px"><a class="btn" href="lessons.html">📺 Lesson slideshows: films, questions and polls</a> <a class="btn" href="climb.html">🧗 Climb: the linear functions check-in</a></p>
   </section>
@@ -894,6 +895,7 @@ a.btn{text-decoration:none;display:inline-block}
 })();
 </script>
 <script>window.VO_DATA={};</script>
+<script src="sfa-seasons.js"></script>
 <script>
 (function(){
   var SFA=window.SFA, el=SFA.el, $=SFA.$;
@@ -938,21 +940,29 @@ a.btn{text-decoration:none;display:inline-block}
   if(lastIx>=0){ nextIx=lastIx; while(nextIx<GAMES.length-1&&prog(GAMES[nextIx]).cert) nextIx++; }
   else { for(k=0;k<GAMES.length;k++){ if(!prog(GAMES[k]).cert){ nextIx=k; break; } } if(nextIx<0) nextIx=GAMES.length-1; }
   var next={G:GAMES[nextIx],ix:nextIx,pr:prog(GAMES[nextIx])};
+  // the season tabs: one season's games at a time; students land on the season they are working in
+  var SEA=SFA.seasons, season=0;
+  function drawGames(){ host.innerHTML='';
   GAMES.forEach(function(G,ix){
+    if(SEA&&SEA.ofGame(G.id)!==season) return;
     var pr=prog(G), isNext=ix===nextIx;
     var status=pr.cert?'✓ Certificate'+(pr.n<pr.tot?' · '+pr.n+'/'+pr.tot:''):pr.n?pr.n+' of '+pr.tot+' levels':'Not started';
-    var row=el('li',{'class':'grow'+(isNext?' next':''),'aria-label':'Film '+G.film+': '+G.title},[
-      el('div',{'class':'fno',style:'background:'+G.bg,'aria-hidden':'true'},[el('small',{text:'Film'}),el('b',{text:String(G.film)})]),
+    var ft=SEA?SEA.filmTag(G.film):['Film',String(G.film)];
+    var row=el('li',{'class':'grow'+(isNext?' next':''),'aria-label':ft.join(' ')+': '+G.title},[
+      el('div',{'class':'fno',style:'background:'+G.bg,'aria-hidden':'true'},[el('small',{text:ft[0]}),el('b',{text:ft[1]})]),
       el('div',{'class':'gt'},[el('b',{},[G.title,isNext?el('span',{'class':'tag',text:'Next up'}):null]),el('span',{text:GOAL[G.id]||G.math})]),
       el('div',{'class':'gp'+(pr.n?' started':'')},[el('span',{text:status}),pr.n?el('div',{'class':'pbar','aria-hidden':'true'},[el('i',{style:'width:'+(pr.tot?Math.min(100,Math.round(100*pr.n/pr.tot)):0)+'%'})]):null]),
-      el('div',{'class':'ga'},[el('a',{'class':'btn small'+(isNext?' primary':''),href:G.file,text:pr.n?'Keep playing':'Play'}),LES_OF[G.id]?el('a',{'class':'btn small',href:'lesson.html?l='+LES_OF[G.id],text:'📺 Lesson '+LES_N[G.id]}):null])
+      el('div',{'class':'ga'},[el('a',{'class':'btn small'+(isNext?' primary':''),href:G.file,text:pr.n?'Keep playing':'Play'}),LES_OF[G.id]?el('a',{'class':'btn small',href:'lesson.html?l='+LES_OF[G.id],text:ft[0]==='Film'?'📺 Lesson '+LES_N[G.id]:'📺 '+ft.join(' ')+' lesson'}):null])
     ]);
     host.appendChild(row);
   });
+  }
+  if(SEA) SEA.tabs($('#seasons'),{stats:function(n){ var gs=GAMES.filter(function(G){ return SEA.ofGame(G.id)===n; }); return {done:gs.filter(function(G){ return prog(G).cert; }).length,total:gs.length,unit:'certificates'}; },onPick:function(n){ season=n; drawGames(); }});
+  else drawGames();
   (function(){
     var box=$('#nextUp'), started=GAMES.some(function(G){ return prog(G).n>0; }), pr=next.pr;
     var line=pr.n?'You have done '+pr.n+' of '+pr.tot+' levels. Pick up where you stopped.':(GOAL[next.G.id]||'')+' Watch the film first: '+next.G.after+'.';
-    box.appendChild(el('div',{},[el('div',{'class':'k',text:(started?'Next up':'Start here')+' · Film '+next.G.film}),el('b',{text:next.G.title}),el('p',{text:line})]));
+    box.appendChild(el('div',{},[el('div',{'class':'k',text:(started?'Next up':'Start here')+' · '+(SEA?(SEA.list[SEA.ofGame(next.G.id)-1].tag+' · '+SEA.filmTag(next.G.film).join(' ')):'Film '+next.G.film)}),el('b',{text:next.G.title}),el('p',{text:line})]));
     box.appendChild(el('a',{'class':'btn primary',href:next.G.file,text:pr.n?'▶ Keep playing':'▶ Play'}));
   })();
   SFA.vo.init(window.VO_DATA,null);

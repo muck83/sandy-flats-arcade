@@ -21,10 +21,12 @@
   <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle" id="h">Lessons</h1><div class="chips"></div></header>
   <p class="intro" id="intro">Each lesson has a film, questions to answer, and a game. Open the lesson your teacher gives you. Your answers save when you're signed in.</p>
   <div id="sfaAccount"></div>
+  <div id="seasons"></div>
   <div class="lgrid" id="grid"></div>
 </div>
 <script src="config.js"></script>
 <script src="sfa-kit.js"></script>
+<script src="sfa-seasons.js"></script>
 <script src="sfa-sync.js"></script>
 <script src="sfa-account.js"></script>
 <script>
@@ -37,9 +39,20 @@
     document.getElementById('sfaAccount').remove();
   }
   window.SFA_LESSON = function (L) { all.push(L); };
+  // the season tabs: each season shows its own lessons; students land on the season they are working in
+  var SEA = SFA.seasons, tabs = null, season = SEA ? SEA.current() : 0;
+  function started(L) { var mine = SFA.store.get('les.' + L.id, {}) || {}; return L.slides.some(function (s) { return s.id && mine[s.id]; }); }
   function draw() {
+    if (SEA && !tabs) {
+      all.sort(function (a, b) { return a.n - b.n; });
+      tabs = true;   // set before drawing: the tabs call onPick (and so draw) once while they are built
+      SEA.tabs(document.getElementById('seasons'), {
+        stats: function (n) { var ls = all.filter(function (L) { return SEA.ofLesson(L) === n; }); return teach ? { label: ls.length + ' lessons, each with its film and game' } : { done: ls.filter(started).length, total: ls.length, unit: 'lessons started' }; },
+        onPick: function (n) { season = n; draw(); } });
+      return;
+    }
     var g = document.getElementById('grid'); g.innerHTML = '';
-    all.sort(function (a, b) { return a.n - b.n; }).forEach(function (L, i) {
+    all.sort(function (a, b) { return a.n - b.n; }).filter(function (L) { return !SEA || SEA.ofLesson(L) === season; }).forEach(function (L, i) {
       var qs = L.slides.filter(function (s) { return s.id; }), mine = SFA.store.get('les.' + L.id, {}) || {}, n = qs.filter(function (s) { return mine[s.id]; }).length;
       var url = 'lesson.html?l=' + L.id.slice(1);
       var c = el('div', { 'class': 'lcard', style: 'animation-delay:' + (i * 0.05) + 's' });
