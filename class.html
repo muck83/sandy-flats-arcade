@@ -420,7 +420,8 @@ a.btn{text-decoration:none;display:inline-block}
     { id: 'g18', title: 'The Log Book', file: 'g18-log-book.html', film: 18 },
     { id: 'g19', title: 'Station Zero', file: 'g19-station-zero.html', film: 19 },
     { id: 'g20', title: 'The Goat Bridge', file: 'g20-goat-bridge.html', film: 20 },
-    { id: 'g21', title: 'The Last Cart Down', file: 'g21-last-cart-down.html', film: 21 }
+    { id: 'g21', title: 'The Last Cart Down', file: 'g21-last-cart-down.html', film: 21 },
+    { id: 'g90', title: 'Unit 2 Review', file: 'review-u2.html', film: 99, label: 'Review' }   // levels = skills at Developed
   ];
   SFA.parseLevels = function (s) {
     return String(s || '').split(' ').filter(Boolean).map(function (t) { var m = t.match(/^([^.]+)\.([a-z]*):(.)$/); return m ? { id: m[1], tier: m[2], st: m[3] } : null; }).filter(Boolean);
@@ -677,7 +678,7 @@ a.btn{text-decoration:none;display:inline-block}
     var find = el('input', { type: 'search', placeholder: 'Find a student', value: q, 'aria-label': 'Find a student' });
     find.addEventListener('input', function () { q = find.value.toLowerCase(); render(); setTimeout(function () { var f = document.querySelector('.filters input'); if (f) { f.focus(); f.setSelectionRange(q.length, q.length); } }, 0); });
     var GS = gamesShown();
-    var head = el('tr', {}, [th('Student', 'name'), showEmail ? th('Email', 'email') : null, th('Last played', 'last'), th('Levels', 'lv'), th('Lessons', 'les'), th('Climb', 'climb'), th('🪙 Coins', 'coins')].concat(GS.map(function (G) { return th('Film ' + G.film + ' · ' + G.title, G.id); })));
+    var head = el('tr', {}, [th('Student', 'name'), showEmail ? th('Email', 'email') : null, th('Last played', 'last'), th('Levels', 'lv'), th('Lessons', 'les'), th('Climb', 'climb'), th('🪙 Coins', 'coins')].concat(GS.map(function (G) { return th((G.label || 'Film ' + G.film) + ' · ' + G.title, G.id); })));
     // game picker
     var pick = el('details', { 'class': 'gpick' }); pick.open = pickOpen; pick.addEventListener('toggle', function () { pickOpen = pick.open; });
     pick.appendChild(el('summary', { text: 'Choose games to show (' + GS.length + ' of ' + SFA.GAMES.length + ')' }));
@@ -691,7 +692,7 @@ a.btn{text-decoration:none;display:inline-block}
     SFA.GAMES.forEach(function (G) {
       var l = el('label', { 'class': 'gopt' }), c = el('input', { type: 'checkbox' }); c.checked = GS.indexOf(G) >= 0;
       c.addEventListener('change', function () { var ids = gamesShown().map(function (x) { return x.id; }).filter(function (id) { return id !== G.id; }); if (c.checked) ids.push(G.id); setGames(SFA.GAMES.filter(function (x) { return ids.indexOf(x.id) >= 0; }).map(function (x) { return x.id; })); });
-      l.appendChild(c); l.appendChild(document.createTextNode(' Film ' + G.film + ' · ' + G.title)); gl.appendChild(l);
+      l.appendChild(c); l.appendChild(document.createTextNode(' ' + (G.label || 'Film ' + G.film) + ' · ' + G.title)); gl.appendChild(l);
     });
     pick.appendChild(gl);
     var tb = el('tbody');

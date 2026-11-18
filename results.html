@@ -448,12 +448,26 @@ a.btn{text-decoration:none;display:inline-block}
       ]),
       el('p', { 'class': 'gus' }, [el('b', { text: 'GUS' }), line]),
       climbCard(j.climb),
+      reviewCard(by.g90),
       seasonBox,
       grid
     ]);
     show(wrap);
   }
   // Climb, the linear functions check-in: growth score and skill map (the same ones the student sees at the end of a session)
+  // the Unit 2 Review saves like a game (g90): one level per skill, its tier the mastery level reached
+  function reviewCard(r) {
+    var box = el('div', { 'class': 'rg' + (r ? ' started' : ''), style: 'margin-top:14px' }, [el('h3', { text: '📝 Unit 2 Review' })]);
+    if (!r) { box.appendChild(el('span', { 'class': 'muted', text: 'Not started yet. Learn, practise and reach Developed on every skill before the formative.' })); }
+    else {
+      var L = SFA.parseLevels(r.levels), COL = { none: 'rgba(255,255,255,.08)', limited: '#E8584C', emerging: '#FF9F45', devel: '#FFC94A', deep: '#3BFF8A' }, NAME = { none: 'not started', limited: 'Limited', emerging: 'Emerging', devel: 'Developed', deep: 'Deep' };
+      box.appendChild(el('span', { 'class': 'big', text: (r.levelsDone || 0) + ' of ' + (r.levelsTotal || 12) + ' skills at Developed' }));
+      box.appendChild(el('div', { style: 'display:flex;gap:3px;flex-wrap:wrap', 'aria-label': 'Review skills by level' }, L.map(function (x) { return el('i', { title: x.id + ': ' + (NAME[x.tier] || x.tier), style: 'width:16px;height:16px;border-radius:4px;background:' + (COL[x.tier] || COL.none) }); })));
+      box.appendChild(el('small', { 'class': 'muted', text: 'Last practised ' + SFA.ago(r.updated) }));
+    }
+    box.appendChild(el('div', {}, [el('a', { 'class': 'btn small' + (r ? '' : ' primary'), href: 'review-u2.html', text: r ? 'Keep reviewing' : 'Start the review' })]));
+    return box;
+  }
   function climbCard(c) {
     var C = window.CLIMB, box = el('div', { 'class': 'rg' + (c ? ' started' : ''), style: 'margin-top:14px' }, [el('h3', { text: '🧗 Climb' })]);
     if (!c || !C) { box.appendChild(el('span', { 'class': 'muted', text: 'No Climb sessions yet. Mr. Crowell opens Climb at the start of class.' })); return box; }
