@@ -6,6 +6,13 @@ SFA_LESSON({
     { k: 'title', min: 1, kicker: 'Unit 2 Review · 1 of 4', title: 'Slope Four Ways', sub: 'Two points, a table, a graph, an equation. Four ways in, one answer out: how much y changes for every 1 of x.', art: '📐' },
     { k: 'signin', min: 1, title: 'Today you will', points: ['Find slope from two points, in the same order top and bottom', 'Find slope from a table, even when x goes up by more than 1', 'Read rise over run from a graph', 'Get y alone to find the slope of any equation'] },
     { k: 'poll', min: 1, id: 'warm', warm: true, q: 'Which is the steepest thing you have walked up?', opts: ['Stairs at school', 'A hill or a mountain trail', 'A slide (the wrong way)', 'A wheelchair ramp', 'Escalator (walking counts)'] },
+    // retrieval warm-up: three quick questions on the number skills today's slopes need (retr: true marks them for the planner)
+    { k: 'number', min: 1, id: 'r1', retr: true, q: '*Warm-up 1 of 3.* What is *3 − (−2)*?', ans: 5,
+      hint: 'Subtracting a negative is the same as adding: 3 + 2.', why: '3 − (−2) = 3 + 2 = 5. You need this today when a point has a negative number.', help: 'Two minus signs next to each other make a plus.' },
+    { k: 'number', min: 1, id: 'r2', retr: true, q: '*Warm-up 2 of 3.* What is *−8 ÷ 4*?', ans: -2,
+      hint: 'A negative divided by a positive is negative.', why: '−8 ÷ 4 = −2.', help: '8 ÷ 4 is 2. Now decide the sign: is one of the numbers negative?' },
+    { k: 'number', min: 1, id: 'r3', retr: true, q: '*Warm-up 3 of 3.* The rule is *y = 3x − 2*. What is y when *x = 4*?', ans: 10,
+      hint: '3 × 4 first, then subtract 2.', why: '3(4) − 2 = 12 − 2 = 10.', help: 'Put 4 where x is: 3 × 4 − 2.' },
     { k: 'text', min: 2, title: 'One idea, four places', points: ['Slope = *change in y ÷ change in x*.', 'It tells you how much y changes for every *1* that x goes up.', 'Positive: uphill. Negative: downhill. Bigger number: steeper.', 'The formula with two points: *m = (y₂ − y₁) ÷ (x₂ − x₁)*.'],
       note: 'Same order on top and bottom. Point 2 minus point 1, both times.' },
 
@@ -25,11 +32,12 @@ SFA_LESSON({
         { t: 'Change in x: 3 − (−2) = [[~5]]. Subtracting a negative is adding.', eq: '3 − (−2) = [[5]]', fig: { kind: 'graph', x: [-4, 5], y: [-7, 7], lines: [{ pts: [[-2, 5], [3, -5]], dots: true, only: true }], labels: [[-2, 5, '(−2, 5)'], [3, -5, '(3, −5)', 'l']], arrows: [[-2, 5, 3, 5, 'right 5', 1], [3, 5, 3, -5, 'down 10']] } },
         { t: 'm = −10 ÷ 5 = [[~−2]]. Negative: the line goes downhill.', eq: 'm = −10/5 = [[−2]]', fig: { kind: 'graph', x: [-4, 5], y: [-7, 7], lines: [{ pts: [[-3, 7], [4, -7]] }, { pts: [[-2, 5], [3, -5]], dots: true, only: true }], labels: [[-2, 5, '(−2, 5)'], [3, -5, '(3, −5)', 'l']], arrows: [[-2, 5, 3, 5, 'right 5', 1], [3, 5, 3, -5, 'down 10']] } }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 3 of 3 · Two points', title: 'A fraction slope', q: 'Find the slope through *(−3, −1)* and *(3, 3)*.',
+    // we do: a faded example. The first move is done; the class supplies the rest (pairs, then cold call) before the question on their own
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'A fraction slope', q: 'Find the slope through *(−3, −1)* and *(3, 3)*.',
       steps: [
-        { t: 'Change in y: 3 − (−1) = [[~4]].', eq: '3 − (−1) = 3 + 1 = [[4]]' },
-        { t: 'Change in x: 3 − (−3) = [[~6]].', eq: '3 − (−3) = 3 + 3 = [[6]]' },
-        { t: 'm = 4/6. Simplify: [[~2/3]].', eq: 'm = 4/6 = [[2/3]]' },
+        { t: 'Point 1 = (−3, −1), point 2 = (3, 3). The change in y is done for you.', eq: '3 − (−1) = 3 + 1 = 4' },
+        { t: 'Your turn: the change in x. Point 2 minus point 1.', eq: '[[3]] − ([[−3]]) = [[6]]' },
+        { t: 'Divide, then simplify.', eq: 'm = [[4]]/[[6]] = [[2/3]]' },
         { t: 'The other order works too, as long as top and bottom match.', eq: '(−1 − 3) ÷ (−3 − 3) = [[−4]] ÷ [[−6]] = 2/3 ✓' }
       ] },
     { k: 'number', min: 4, id: 'pts1', q: 'Find the slope of the line through *(2, 3)* and *(6, 11)*.', ans: 2,
@@ -43,8 +51,9 @@ SFA_LESSON({
         { k: 'number', q: 'A line has slope *3* and goes through *(1, 2)*. It also goes through *(5, y)*. What is y?', ans: 14, hint: 'x goes up by 4. How much does y go up?', why: 'x changes by 4, so y changes by 3 × 4 = 12: 2 + 12 = 14.',
           steps: ['From x = 1 to x = 5 is a change of 4.', 'Slope 3: y changes by 3 for each 1 of x, so 3 × 4 = 12.', 'y = 2 + 12 = *14*.', 'Check: (14 − 2) ÷ (5 − 1) = 12 ÷ 4 = 3 ✓'] }
       ] },
-    { k: 'poll', min: 3, id: 'oops', q: 'Doug finds the slope through *(1, 7)* and *(4, 1)* like this: (7 − 1) ÷ (4 − 1) = *2*. What went wrong?',
-      opts: ['Nothing: the slope is 2', 'He mixed the order: top starts at point 1, bottom at point 2. It should be −2', 'He should have divided by 7', 'He should add instead of subtract'], ans: 1,
+    { k: 'mistake', min: 3, id: 'oops', q: 'Doug finds the slope through *(1, 7)* and *(4, 1)*. Tap the first line that goes wrong.',
+      lines: ['Top, starting with point 1: 7 − 1 = 6', 'Bottom: 4 − 1 = 3', 'Slope = 6 ÷ 3 = 2'], ans: 1, fix: 'Bottom, starting with point 1 too: 1 − 4 = −3, so the slope is 6 ÷ (−3) = −2',
+      hint: 'Which point does the top start from? Does the bottom start from the same one?',
       why: 'Top: 7 − 1 is point 1 minus point 2. Bottom: 4 − 1 is point 2 minus point 1. Same order: (1 − 7) ÷ (4 − 1) = −6 ÷ 3 = −2. The line goes downhill.',
       help: 'Which point did he start from on top? Which on the bottom?',
       more: [
@@ -58,7 +67,7 @@ SFA_LESSON({
       ] },
 
     { k: 'text', min: 2, title: 'Slope from a table', points: ['Pick any two rows.', 'Change in y ÷ change in x, between those rows.', 'Look at the x-column first: it does *not* always go up by 1.', 'Every pair of rows gives the same slope if it is linear.'] },
-    { k: 'ex', min: 2, kick: 'Example 1 of 3 · Tables', title: 'x goes up by 1', q: 'Find the slope of this table.',
+    { k: 'ex', min: 2, opt: true, kick: 'Example 1 of 3 · Tables', title: 'x goes up by 1', q: 'Find the slope of this table.',
       fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 4], [1, 7], [2, 10], [3, 13]] },
       steps: [
         { t: 'Look at the x-column first: it goes up by [[1]].', fig: { kind: 'table', head: ['x', 'y', 'x step'], rows: [[0, 4, ''], [1, 7, '+1'], [2, 10, '+1'], [3, 13, '+1']] } },
@@ -73,11 +82,11 @@ SFA_LESSON({
         { t: 'm = −4 ÷ 2 = [[~−2]].', eq: 'm = −4/2 = [[−2]]' },
         { t: 'The trap: dividing by 1 gives −4. Always check the x-step.' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 3 of 3 · Tables', title: 'Any two rows', q: 'Find the slope of this table.',
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'Any two rows', q: 'Find the slope of this table.',
       fig: { kind: 'table', head: ['x', 'y'], rows: [[1, 2], [4, 4], [7, 6]] },
       steps: [
-        { t: 'x step: [[+3]]. y step: [[+2]].', fig: { kind: 'table', head: ['x', 'y'], rows: [[1, 2], [4, 4], [7, 6]], hi: [0, 1] } },
-        { t: 'm = 2 ÷ 3 = [[~2/3]].', eq: 'm = [[2/3]]' },
+        { t: 'Use rows 1 and 2. The x step is done for you: 4 − 1 = 3.', fig: { kind: 'table', head: ['x', 'y'], rows: [[1, 2], [4, 4], [7, 6]], hi: [0, 1] } },
+        { t: 'Your turn: the y step, then the slope.', eq: 'y step: 4 − 2 = [[2]]     m = [[2]]/[[3]]' },
         { t: 'Check with rows 1 and 3: the slope is the same.', eq: '(6 − 2) ÷ (7 − 1) = [[4]]/[[6]] = 2/3 ✓', fig: { kind: 'table', head: ['x', 'y'], rows: [[1, 2], [4, 4], [7, 6]], hi: [0, 2] } }
       ] },
     { k: 'number', min: 4, id: 'tab1', q: 'What is the slope of this table?', fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 5], [2, 11], [4, 17], [6, 23]] }, ans: 3,
@@ -101,15 +110,15 @@ SFA_LESSON({
         { t: 'Run: then right to the point. Right [[2]].', fig: { kind: 'graph', x: [-3, 5], y: [-4, 5], lines: [{ pts: [[-1, -4], [3.5, 5]] }, { pts: [[0, -2], [2, 2]], dots: true, only: true }], labels: [[0, -2, '(0, −2)'], [2, 2, '(2, 2)', 'l']], arrows: [[0, -2, 0, 2, 'up 4'], [0, 2, 2, 2, 'right 2', 1]] } },
         { t: 'm = rise ÷ run = 4 ÷ 2 = [[~2]].', eq: 'm = 4/2 = [[2]]' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 2 of 2 · Graphs', title: 'Downhill', q: 'Find the slope of this line.',
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'Downhill', q: 'Find the slope of this line.',
       fig: { kind: 'graph', x: [-4, 4], y: [-4, 6], lines: [{ pts: [[-3.33, 6], [3.33, -4]] }] },
       steps: [
         { t: 'Two grid points: *(−2, 4)* and *(2, −2)*.', fig: { kind: 'graph', x: [-4, 4], y: [-4, 6], lines: [{ pts: [[-3.33, 6], [3.33, -4]] }, { pts: [[-2, 4], [2, -2]], dots: true, only: true }], labels: [[-2, 4, '(−2, 4)'], [2, -2, '(2, −2)', 'l']] } },
         { t: 'Rise: down [[6]], so the rise is [[−6]].', fig: { kind: 'graph', x: [-4, 4], y: [-4, 6], lines: [{ pts: [[-3.33, 6], [3.33, -4]] }, { pts: [[-2, 4], [2, -2]], dots: true, only: true }], labels: [[-2, 4, '(−2, 4)'], [2, -2, '(2, −2)', 'l']], arrows: [[-2, 4, -2, -2, 'down 6']] } },
         { t: 'Run: right [[4]].', fig: { kind: 'graph', x: [-4, 4], y: [-4, 6], lines: [{ pts: [[-3.33, 6], [3.33, -4]] }, { pts: [[-2, 4], [2, -2]], dots: true, only: true }], labels: [[-2, 4, '(−2, 4)'], [2, -2, '(2, −2)', 'l']], arrows: [[-2, 4, -2, -2, 'down 6'], [-2, -2, 2, -2, 'right 4']] } },
-        { t: 'm = −6 ÷ 4 = [[~−3/2]]. Downhill means negative.', eq: 'm = −6/4 = [[−3/2]]' }
+        { t: 'Rise over run. Downhill means negative.', eq: 'm = [[−6]]/[[4]] = [[−3/2]]' }
       ] },
-    { k: 'number', min: 4, id: 'gr1', q: 'What is the slope of this line?', fig: { kind: 'graph', x: [-2, 8], y: [-2, 8], lines: [{ pts: [[0, 1], [6, 5]] }, { pts: [[0, 1], [3, 3], [6, 5]], dots: true, only: true }] }, ans: 0.6667, tol: 0.01,
+    { k: 'est', min: 4, id: 'gr1', lo: 0, hi: 2, step: 0.1, near: 0.2, q: 'Look at the line. *Estimate* its slope first (is it steeper or flatter than 1?), then work it out.', fig: { kind: 'graph', x: [-2, 8], y: [-2, 8], lines: [{ pts: [[0, 1], [6, 5]] }, { pts: [[0, 1], [3, 3], [6, 5]], dots: true, only: true }] }, ans: 0.6667, tol: 0.01,
       hint: 'From (0, 1) to (3, 3): up 2, right 3.', why: 'Rise 2, run 3: slope 2/3.',
       help: 'Use the dots. Count up, then count right.',
       more: [
@@ -122,7 +131,7 @@ SFA_LESSON({
       ] },
 
     { k: 'text', min: 2, title: 'Slope from an equation', points: ['In *y = mx + b*, the slope is m: the number with x.', 'y = 7 − 2x: the slope is *−2* (the sign comes with it).', 'If y is not alone, get it alone first.', 'Standard form Ax + By = C: subtract the x-term, then divide every term by B.'] },
-    { k: 'ex', min: 2, kick: 'Example 1 of 3 · Equations', title: 'y is already alone', q: 'Find the slope of *y = 5 − 3x*.',
+    { k: 'ex', min: 2, opt: true, kick: 'Example 1 of 3 · Equations', title: 'y is already alone', q: 'Find the slope of *y = 5 − 3x*.',
       steps: [
         { t: 'The slope is the number with x, *sign included*.' },
         { t: 'Write it in the usual order.', eq: 'y = [[−3]]x + [[5]]' },
@@ -135,11 +144,11 @@ SFA_LESSON({
         { t: 'm = [[~−2]].' },
         { t: 'Quick check: in Ax + By = C the slope is −A ÷ B.', eq: '−6 ÷ 3 = −2 ✓' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 3 of 3 · Equations', title: 'A negative B', q: 'Find the slope of *2x − 5y = 10*.',
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'A negative B', q: 'Find the slope of *2x − 5y = 10*.',
       steps: [
-        { t: 'Subtract 2x from both sides.', eq: '−5y = [[−2]]x + 10' },
-        { t: 'Divide every term by −5. Both signs flip.', eq: 'y = [[2/5]]x − [[2]]' },
-        { t: 'm = [[~2/5]].', eq: 'Check: −A ÷ B = −2 ÷ (−5) = 2/5 ✓' }
+        { t: 'Step 1 is done for you: subtract 2x from both sides.', eq: '−5y = −2x + 10' },
+        { t: 'Your turn: divide every term by −5. Both signs flip.', eq: 'y = [[2/5]]x − [[2]]' },
+        { t: 'So the slope is the number with x.', eq: 'm = [[2/5]]     Check: −A ÷ B = −2 ÷ (−5) = 2/5 ✓' }
       ] },
     { k: 'number', min: 4, id: 'eq1', q: 'What is the slope of *3x + 2y = 8*?', ans: -1.5, tol: 0.01,
       hint: 'Subtract 3x: 2y = −3x + 8. Then divide everything by 2.', why: 'y = −(3/2)x + 4. The slope is −3/2.',
@@ -152,7 +161,11 @@ SFA_LESSON({
         { k: 'number', q: 'What is the slope of *5x − 2y = 10*?', ans: 2.5, tol: 0.01, hint: 'Subtract 5x, then divide by −2.', why: '−2y = −5x + 10, so y = 2.5x − 5.',
           steps: ['Subtract 5x: −2y = −5x + 10.', 'Divide every term by −2: y = (5/2)x − 5.', 'm = *5/2*. Shortcut: −A ÷ B = −5 ÷ −2 = 5/2.'] }
       ] },
-    { k: 'poll', min: 3, id: 'match', q: 'Which has the *same slope* as the line through (0, 1) and (2, 7)?', opts: ['y = 3x − 4', 'y = 7x + 1', 'A table where x goes 1, 2, 3 and y goes 4, 6, 8', 'x + 3y = 6'], ans: 0,
+    { k: 'odd', min: 2, id: 'odd1', items: ['y = 3x + 6', 'y = 3x − 2', 'y = −3x + 6', 'y = x + 6'],
+      why: ['It is the only one that goes through (−2, 0)', 'It is the only one with a negative y-intercept', 'It is the only one that goes downhill (negative slope)', 'It is the only one that goes up just 1 for every 1 across'],
+      note: 'Slope and y-intercept are two different things about a line. Three of these have slope 3 or −3, and three have b = 6.' },
+    { k: 'cross', min: 3, opt: true, id: 'match', q: 'Cross out every one that does *not* have the same slope as the line through (0, 1) and (2, 7).', opts: ['y = 3x − 4', 'y = 7x + 1', 'A table where x goes 1, 2, 3 and y goes 4, 6, 8', 'x + 3y = 6'], ans: 0,
+      reasons: ['Its slope is 7', 'Its slope is 2', 'Its slope is −1/3'], because: [0, 0, 1, 2],
       why: 'The two points give (7 − 1) ÷ (2 − 0) = 3. y = 3x − 4 has slope 3. The table has slope 2; x + 3y = 6 has slope −1/3.',
       help: 'Find the slope of the two points first, then check each option.',
       more: [
@@ -165,7 +178,7 @@ SFA_LESSON({
           steps: ['Slope from each: table, graph, equation.', 'y-intercept from each: y when x = 0.', 'Both match → the same line.'] }
       ] },
     { k: 'conf', min: 1, id: 'conf', q: 'Slope from points, tables, graphs and equations: how do you feel?' },
-    { k: 'play', min: 8, title: 'Practise: Unit 2 Review', steps: ['Open the *Unit 2 Review*.', 'Pick a slope skill under *Compute slope*.', 'Stuck? Do *Guided practice* first, or watch the Khan Academy video on the Learn tab.', 'Then *On your own* until it says Developed.'], aim: 'Done when at least two slope skills are Developed.', minutes: 8 },
+    { k: 'play', min: 6, title: 'Practise: Unit 2 Review', steps: ['Open the *Unit 2 Review*.', 'Pick a slope skill under *Compute slope*.', 'Stuck? Do *Guided practice* first, or watch the Khan Academy video on the Learn tab.', 'Then *On your own* until it says Developed.'], aim: 'Done when one slope skill is Developed. Keep going at home for the others.', minutes: 6 },
     { k: 'exit', min: 3, id: 'exit', q: 'Find the slope three ways and say if they match: the points *(1, 4)* and *(3, 10)*; the table x: 0, 1, 2 and y: 2, 5, 8; the equation *6x − 2y = 4*.', ph: 'Points: ... Table: ... Equation: ...',
       model: 'Points: (10 − 4) ÷ (3 − 1) = 3. Table: y goes up 3 for each 1 of x, so 3. Equation: −2y = −6x + 4, y = 3x − 2, so 3. All three are 3: they match.' },
     { k: 'end', title: 'Slope, four ways.', next: 'Next: *Review 2, Change the Form*. Standard form, slope-intercept form, and graphing them.' }

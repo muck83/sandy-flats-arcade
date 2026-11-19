@@ -1,0 +1,78 @@
+/* Sandy Flats scaffold layer (sfa-scaffold.js): tap-to-define words, the help ladder, read aloud, text size. */
+
+/* a word with a meaning card: dotted underline, tap to open */
+.sg-term{border-bottom:.14em dotted var(--teal,#5CE0B8);cursor:help;border-radius:.2em;transition:background .15s}
+.sg-term:hover,.sg-term:focus-visible{background:rgba(92,224,184,.18);outline:none}
+.sg-reading{outline:.14em solid var(--teal,#5CE0B8);outline-offset:.2em;border-radius:.4em;background:rgba(92,224,184,.08)}
+
+/* the meaning card */
+.sg-pop{position:fixed;z-index:55;width:min(380px,calc(100vw - 16px));background:var(--panel,#1B1824);border:2px solid var(--teal,#5CE0B8);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.55);padding:12px 14px;font:500 15px/1.45 var(--ui,system-ui);color:var(--ink,#F3EFE7);animation:sgIn .18s ease-out both}
+.sg-pop.sheet{left:8px;right:8px;bottom:8px;top:auto;width:auto}
+@keyframes sgIn{from{opacity:0;transform:translateY(6px)}}
+.sg-card{display:flex;flex-direction:column;gap:6px}
+.sg-cardh{display:flex;align-items:center;gap:8px}
+.sg-cardh b{font:400 20px/1.1 var(--display,system-ui);letter-spacing:.03em;color:var(--marquee,#FFC94A)}
+.sg-cardb{display:flex;gap:10px;align-items:flex-start}
+.sg-cardb>div:first-child{flex:1;min-width:0}
+.sg-card p{margin:0 0 5px}
+.sg-def{font-weight:600}
+.sg-exl{color:var(--muted,#ABA5BC)}
+.sg-exl span{font:800 10px var(--ui,system-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--teal,#5CE0B8);margin-right:4px}
+.sg-tr{font-weight:700;color:var(--teal,#5CE0B8);unicode-bidi:isolate}
+.sg-trl .sg-tr{font-size:1.15em}
+.sg-picw{flex:none;width:112px}
+.sg-pic{display:block;width:100%;height:auto;background:#0d0b13;border-radius:8px}
+.sg-popf{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line,#3A3550);font-size:13px;color:var(--muted,#ABA5BC)}
+.sg-popf .sg-mini,.sg-popf .btn{margin-left:auto}
+.sg-lang{font:600 13px var(--ui,system-ui);background:#0d0b13;color:var(--ink,#F3EFE7);border:2px solid var(--line,#3A3550);border-radius:8px;padding:4px 6px}
+.sg-mini{font-size:14px;line-height:1;background:var(--panel2,#24202F);border:2px solid var(--line,#3A3550);border-radius:999px;padding:5px 8px;cursor:pointer;color:var(--ink,#F3EFE7)}
+.sg-mini:hover{border-color:var(--marquee,#FFC94A)}
+
+/* the help ladder under a question */
+.slide.sg-on .helpb{display:none!important}   /* the player's one-line help button gives way to the ladder */
+.sg-ladder{display:flex;flex-direction:column;gap:.6em;align-items:flex-start;animation:none!important}
+.sg-ladder .sg-helpbtn{border-color:var(--teal,#5CE0B8)}
+.sg-steps{align-self:stretch;display:flex;flex-direction:column;gap:.6em}
+.sg-step{background:rgba(92,224,184,.08);border-left:.3em solid var(--teal,#5CE0B8);border-radius:.6em;padding:.6em .9em;font-size:.92em;line-height:1.4;animation:sgIn .25s ease-out both}
+.sg-step p{margin:0 0 .35em}
+.sg-step .sg-h{font-weight:800;color:var(--teal,#5CE0B8);margin-bottom:.4em}
+.sg-step .sg-h span{display:inline-grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;background:var(--teal,#5CE0B8);color:#06261C;font-size:.9em;margin-right:.3em}
+.sg-k{font:800 .68em var(--ui,system-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted,#ABA5BC);margin-top:.5em!important}
+.sg-k:first-child{margin-top:0!important}
+.sg-step ul,.sg-step ol{margin:0 0 .35em;padding-left:1.3em;display:flex;flex-direction:column;gap:.25em}
+.sg-step b{color:var(--marquee,#FFC94A)}
+.sg-fill{color:var(--green,#3BFF8A)!important}
+.sg-eq{display:block;font-family:var(--mono,monospace);font-size:.95em;margin-top:.15em;color:var(--ink,#F3EFE7)}
+.sg-exq{font-weight:700}
+.sg-frame{font-family:var(--hand,cursive);font-size:1.2em;background:#0d0b13;border:.1em dashed var(--line,#3A3550);border-radius:.5em;padding:.4em .7em}
+.sg-row{display:flex;flex-wrap:wrap;gap:.6em;align-items:center}
+.sg-fine{font-size:.78em;color:var(--muted,#ABA5BC);margin:0}
+.sg-endnote{margin-top:.4em}
+.sg-tag{align-self:flex-start;font:800 .7em var(--ui,system-ui);letter-spacing:.06em;background:#3a2f12;border:.12em solid var(--marquee,#FFC94A);color:var(--marquee,#FFC94A);border-radius:999px;padding:.3em .9em;margin:0}
+
+/* while the ladder is open the slide keeps its normal text size and scrolls (the player would shrink everything to fit) */
+.slide.sg-open{font-size:clamp(13px,2.25cqi,44px)!important}
+@media (max-width:760px){.slide.sg-open{font-size:16px!important}}
+
+/* top-bar tools */
+.sg-chip b{font-family:var(--ui,system-ui);font-weight:800;color:var(--teal,#5CE0B8)}
+.sg-chip[aria-pressed="true"]{background:var(--teal,#5CE0B8);color:#06261C;border-color:var(--teal,#5CE0B8)}
+
+/* text size: the lesson player shrinks a slide's text to fit; a student who asks for bigger text gets it, and the slide scrolls */
+body.sg-fs1 .slide{font-size:clamp(15px,2.65cqi,52px)!important}
+body.sg-fs2 .slide{font-size:clamp(17px,3.1cqi,60px)!important}
+@media (max-width:760px){
+  body.sg-fs1 .slide{font-size:18px!important}
+  body.sg-fs2 .slide{font-size:20.5px!important}
+  .sg-picw{width:88px}
+}
+
+/* the word list for the whole lesson */
+.sg-sheet{position:fixed;inset:0;z-index:58;background:rgba(12,10,20,.82);display:grid;place-items:center;padding:14px}
+.sg-sheetin{background:var(--panel,#1B1824);border:2px solid var(--line,#3A3550);border-radius:16px;max-width:980px;width:100%;max-height:calc(100vh - 28px);overflow:auto;padding:16px 18px;color:var(--ink,#F3EFE7);font:500 15px/1.45 var(--ui,system-ui)}
+.sg-sheeth{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.sg-sheeth h2{margin:0;font:400 24px var(--display,system-ui);color:var(--marquee,#FFC94A)}
+.sg-sheeth .sg-popf{margin:0;padding:0;border:0}
+.sg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:10px}
+.sg-grid .sg-card{background:var(--panel2,#24202F);border-radius:12px;padding:10px 12px}
+@media (prefers-reduced-motion:reduce){.sg-pop,.sg-step{animation:none}}

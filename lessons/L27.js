@@ -6,22 +6,30 @@ SFA_LESSON({
     { k: 'title', min: 1, kicker: 'Unit 2 Review · 3 of 4', title: 'Tell the Whole Story', sub: 'Words, a table, a graph and an equation can all tell the same story. Today you translate between them, add inequalities, and explain what the numbers mean.', art: '📖' },
     { k: 'signin', min: 1, title: 'Today you will', points: ['Write an equation from a story and solve for an unknown', 'Write, solve and graph an inequality', 'Explain what the slope and y-intercept mean, with units', 'Find and fix a mistake in someone\'s work'] },
     { k: 'poll', min: 1, id: 'warm', warm: true, q: 'Your phone is at 80% and loses 5% every hour. What do you do?', opts: ['Charge it now', 'Wait until 20%', 'Low power mode', 'Let it die, it builds character'] },
+    // retrieval warm-up: slope, b and changing form from Reviews 1 and 2 (retr: true marks them for the planner)
+    { k: 'number', min: 1, id: 'r1', retr: true, q: '*Warm-up 1 of 3.* What is the slope of the line through *(0, 4)* and *(2, 10)*?', ans: 3,
+      hint: 'Top: 10 − 4. Bottom: 2 − 0.', why: '(10 − 4) ÷ (2 − 0) = 6 ÷ 2 = 3.', help: 'Change in y goes on top. Change in x goes on the bottom.' },
+    { k: 'number', min: 1, id: 'r2', retr: true, q: '*Warm-up 2 of 3.* In *y = −2x + 7*, what is *b*, the y-intercept?', ans: 7,
+      hint: 'b is the number on its own: the value of y when x = 0.', why: 'When x = 0, y = 7. Today b is the *start* of a story.', help: 'Put x = 0. What is y?' },
+    { k: 'number', min: 1, id: 'r3', retr: true, q: '*Warm-up 3 of 3.* Write *6x + 2y = 10* as y = mx + b. What is the slope?', ans: -3,
+      hint: '2y = −6x + 10. Now divide every term by 2.', why: 'y = −3x + 5, so the slope is −3.', help: 'Move the 6x to the other side first. Then divide every term by 2.' },
     { k: 'text', min: 2, title: 'Start and rate', points: ['*Start* (b): the value when x = 0. "A $25 sign-up fee", "a 300-litre tank".', '*Rate* (m): the change for each 1 of x. "$12 per month", "drains 15 litres a minute".', 'Going down? The slope is *negative*.', 'Equation: *y = (rate)·x + (start)*.'] },
-    { k: 'ex', min: 2, kick: 'Example 1 of 3 · Story → equation → solve', title: 'Going up', q: 'A gym charges *$30* to join plus *$15* a month. When has Kai paid *$150*?',
+    { k: 'ex', min: 2, kick: 'Example · Story → equation → solve', title: 'Going up', q: 'A gym charges *$30* to join plus *$15* a month. When has Kai paid *$150*?',
       steps: [
         { t: 'Start: b = [[~30]]. Rate: m = [[~15]] per month.', eq: 'y = [[15]]x + [[30]]' },
         { t: 'Put in what you know: y = 150.', eq: '[[150]] = 15x + 30' },
         { t: 'Undo the + 30 first.', eq: '[[120]] = 15x' },
         { t: 'Then divide by 15: x = [[8]] months.', eq: 'Check: 15([[~8]]) + 30 = 150 ✓' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 2 of 3 · Story → equation → solve', title: 'Going down', q: 'A pool holds *600 L* and drains *40 L* a minute. When are *200 L* left?',
+    // we do: a faded example. The class writes the equation and solves it (pairs, then cold call) before the question on their own
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'Going down', q: 'A pool holds *600 L* and drains *40 L* a minute. When are *200 L* left?',
       fig: { kind: 'graph', x: [0, 16], y: [0, 700], xl: 'minutes', yl: 'litres', lines: [{ pts: [[0, 600], [15, 0]] }] },
       steps: [
-        { t: 'Start [[~600]]. Going [[~down]] 40 a minute, so m = [[~−40]].', eq: 'y = [[−40]]x + [[600]]' },
+        { t: 'Your turn: find the start and the rate. It is going *down*, so the rate is negative.', eq: 'y = [[−40]]x + [[600]]' },
         { t: 'Set y = 200 and subtract 600.', eq: '200 = −40x + 600  →  [[−400]] = −40x' },
         { t: 'Divide by −40: x = [[10]] minutes.', eq: 'Check: −40([[~10]]) + 600 = 200 ✓', fig: { kind: 'graph', x: [0, 16], y: [0, 700], xl: 'minutes', yl: 'litres', lines: [{ pts: [[0, 600], [15, 0]] }, { pts: [[10, 200]], dots: true, only: true }], labels: [[10, 200, '(10, 200)']] } }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 3 of 3 · Story → equation → solve', title: 'Two data points', q: 'A plumber charges *$110* for 2 hours and *$190* for 4 hours. What is the call-out fee?',
+    { k: 'ex', min: 2, opt: true, kick: 'Extra example · Story → equation → solve', title: 'Two data points', q: 'A plumber charges *$110* for 2 hours and *$190* for 4 hours. What is the call-out fee?',
       steps: [
         { t: 'The points are (2, 110) and (4, 190). Rate first.', eq: 'm = (190 − 110) ÷ (4 − 2) = [[80]] ÷ [[2]] = [[40]]' },
         { t: 'Put one point into y = mx + b.', eq: '110 = 40(2) + b  →  110 = [[80]] + b' },
@@ -45,15 +53,15 @@ SFA_LESSON({
         { t: '*Graph*: crosses the y-axis at 40 and goes up 15 for each week.', fig: { kind: 'graph', x: [0, 6], y: [0, 140], xl: 'weeks', yl: 'dollars', lines: [{ pts: [[0, 40], [6, 130]] }, { pts: [[0, 40], [1, 55], [2, 70], [3, 85]], dots: true, only: true }], labels: [[0, 40, '(0, 40)']] } },
         { t: 'The same two numbers are in every one: *start 40, rate 15*.' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 2 of 2 · Four representations', title: 'Table → equation', q: 'Write the equation for this table.',
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'Table → equation', q: 'Write the equation for this table.',
       fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 9], [2, 5], [4, 1], [6, -3]] },
       steps: [
         { t: 'Start: at x = 0, y = 9, so b = [[9]].', fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 9], [2, 5], [4, 1], [6, -3]], hi: [0] } },
         { t: 'Rate: y goes down 4 while x goes up 2.', eq: 'm = −4 ÷ 2 = [[−2]]' },
-        { t: 'Equation: y = [[~−2]]x + [[~9]].' },
+        { t: 'Your turn: write the equation.', eq: 'y = [[−2]]x + [[9]]' },
         { t: 'Check a row: (4, 1).', eq: '−2(4) + 9 = 1 ✓', fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 9], [2, 5], [4, 1], [6, -3]], hi: [2] } }
       ] },
-    { k: 'poll', min: 3, id: 'rep', q: 'Lena has *$40* and saves *$15* a week. Which table matches her savings?', opts: ['Weeks 0, 1, 2: $40, $55, $70', 'Weeks 0, 1, 2: $15, $55, $95', 'Weeks 0, 1, 2: $0, $15, $30', 'Weeks 1, 2, 3: $40, $55, $70'], ans: 0,
+    { k: 'cross', min: 3, id: 'rep', q: 'Lena has *$40* and saves *$15* a week. Cross out every table that does *not* match her savings.', opts: ['Weeks 0, 1, 2: $40, $55, $70', 'Weeks 0, 1, 2: $15, $55, $95', 'Weeks 0, 1, 2: $0, $15, $30', 'Weeks 1, 2, 3: $40, $55, $70'], ans: 0,
       why: 'Start at $40 when x = 0, then add $15 each week: 40, 55, 70.',
       help: 'What does she have at week 0?',
       more: [
@@ -73,7 +81,7 @@ SFA_LESSON({
         { t: 'Divide by 4.', eq: 'x ≤ [[7]]' },
         { t: 'At most *7 snacks*. Check: 7 snacks cost 12 + 28 = 40 ✓, 8 snacks cost 44 ✗.' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 2 of 3 · Inequalities', title: 'Turn the sign', q: 'Solve *20 − 3x ≥ 5*.',
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'Turn the sign', q: 'Solve *20 − 3x ≥ 5*.',
       steps: [
         { t: 'Subtract 20 from both sides.', eq: '−3x ≥ [[−15]]' },
         { t: 'Divide by −3. Dividing by a negative *turns the sign*.', eq: 'x ≤ [[5]]' },
@@ -86,6 +94,9 @@ SFA_LESSON({
         { t: 'Test (0, 0): is 0 < 2(0) − 1? That is 0 < [[−1]]: [[false|no]].', fig: { kind: 'graph', x: [-3, 4], y: [-4, 5], lines: [{ pts: [[-1.5, -4], [3, 5]], dash: true }, { pts: [[0, 0]], dots: true, only: true }], labels: [[0, 0, '(0, 0)', 'l']] } },
         { t: '(0, 0) is not a solution, so shade the other side: [[below|under]] the line.', fig: { kind: 'graph', x: [-3, 4], y: [-4, 5], lines: [{ pts: [[-1.5, -4], [3, 5]], dash: true }, { pts: [[0, 0]], dots: true, only: true }], labels: [[0, 0, '(0, 0)', 'l']], shade: [{ pts: [[-1.5, -4], [3, 5]], above: false }] } }
       ] },
+    { k: 'order', min: 2, id: 'ord1', q: 'A phone plan costs *$20* a month plus *$5* per GB. You can spend *at most $45*. Put the steps in order to find the most GB you can use.',
+      steps: ['Write it: 20 + 5x ≤ 45', 'Subtract 20 from both sides: 5x ≤ 25', 'Divide both sides by 5: x ≤ 5', 'Say it in words: at most 5 GB', 'Check: 5 GB costs 20 + 25 = $45 ✓, and 6 GB would cost $50 ✗'],
+      hint: 'Write the inequality first. The check comes last.', why: 'Write it, undo the + 20, undo the × 5, answer in words, then check. Dividing by a positive number: the sign stays.' },
     { k: 'number', min: 4, id: 'iq1', q: 'You have *$50* for the fair. Entry is *$8* and each ride is *$6*. What is the *greatest* number of rides you can take?', ans: 7,
       hint: '8 + 6x ≤ 50. Subtract 8, divide by 6, round down.', why: '6x ≤ 42, x ≤ 7. Seven rides cost 8 + 42 = 50, which is allowed.',
       help: '"Have $50" means you can spend at most 50. Which symbol?',
@@ -116,7 +127,7 @@ SFA_LESSON({
         { t: '*25 is the y-intercept*: "At [[0]] months, the cost is $[[25]]." It is a starting fee.' },
         { t: 'Check the units: 12 is dollars per month, 25 is dollars.' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 2 of 2 · Explain', title: 'Going down', q: '*y = −3x + 45* is the battery left (%) after x hours of gaming.',
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'Going down', q: '*y = −3x + 45* is the battery left (%) after x hours of gaming.',
       steps: [
         { t: '*−3*: "For every 1 hour, the battery goes [[down]] by [[3]]%."' },
         { t: '*45*: "At [[0]] hours, the battery is at [[45]]%."' },
@@ -133,10 +144,11 @@ SFA_LESSON({
         { k: 'number', q: 'In *y = −4x + 90*, after how many days is the pond *50 cm* deep?', ans: 10, hint: '50 = −4x + 90.', why: '−40 = −4x, x = 10.',
           steps: ['50 = −4x + 90.', 'Subtract 90: −40 = −4x.', 'x = *10* days.'] }
       ] },
-    { k: 'poll', min: 3, id: 'fix', q: 'Marcus solves *30 − 4x ≥ 6* and gets *x ≥ 6*. Check with x = 7: 30 − 28 = 2. What happened?',
-      opts: ['Nothing, 2 ≥ 6', 'He divided by −4 but did not turn the sign: it should be x ≤ 6', 'He should have added 4x', 'The answer is x ≥ 9'], ans: 1,
-      why: '−4x ≥ −24. Dividing by −4 turns the sign: x ≤ 6. The check: x = 7 gives 2, which is not ≥ 6, so x ≥ 6 was wrong.',
-      help: 'Which step divides by a negative number?',
+    { k: 'asn', min: 3, opt: true, id: 'fix', q: 'When you solve an inequality, the sign turns around.', ans: 1,
+      eg: 'When does it turn? Give an example.', ph: 'It turns when...',
+      why: 'Only when you multiply or divide both sides by a *negative* number. 30 − 4x ≥ 6 → −4x ≥ −24 → x ≤ 6 (turned). But 2x + 4 ≥ 10 → 2x ≥ 6 → x ≥ 3 (not turned).',
+      model: 'Marcus solved 30 − 4x ≥ 6 and wrote x ≥ 6. He divided by −4 without turning the sign. Check x = 7: 30 − 28 = 2, which is not ≥ 6. It should be x ≤ 6.',
+      help: 'Try one where you divide by a negative number, and one where you divide by a positive number.',
       more: [
         { k: 'poll', q: 'Doug writes *"at most 12"* as *x ≥ 12*. Is that right?', opts: ['No: at most means x ≤ 12', 'Yes', 'No: it means x < 12', 'No: it means x = 12'], ans: 0, why: 'At most 12: 12 or less, so ≤.',
           steps: ['"At most" = no more than.', '12 or anything below.', '*x ≤ 12*.'] },
@@ -147,7 +159,7 @@ SFA_LESSON({
           steps: ['Choose a value inside your answer.', 'Substitute it in the original inequality.', 'False → the answer (or its sign) is wrong.'] }
       ] },
     { k: 'conf', min: 1, id: 'conf', q: 'Stories, inequalities and explaining: how ready are you for the formative?' },
-    { k: 'play', min: 11, title: 'Practise: Unit 2 Review', steps: ['Open the *Unit 2 Review*.', 'Do the *Represent* and *Explain* skills.', 'Then try *🔀 Mixed review*: it is like the assessment.', 'Stuck? Guided practice, or the Khan Academy video on the Learn tab.'], aim: 'Done when every success criterion shows Emerging or better.', minutes: 8 },
+    { k: 'play', min: 8, title: 'Practise: Unit 2 Review', steps: ['Open the *Unit 2 Review*.', 'Do the *Represent* and *Explain* skills.', 'Then try *🔀 Mixed review*: it is like the assessment.', 'Stuck? Guided practice, or the Khan Academy video on the Learn tab.'], aim: 'Done when every success criterion shows Emerging or better.', minutes: 8 },
     { k: 'exit', min: 3, id: 'exit', q: 'A tank starts with *200 L* and fills at *25 L* per minute. Write the equation, explain what each number means, and find when it holds *at least 450 L*.', ph: 'Equation... The 25 means... The 200 means... At least 450 L when...',
       model: 'y = 25x + 200. 25 means 25 more litres every minute; 200 means the tank had 200 L at the start. 25x + 200 ≥ 450 → 25x ≥ 250 → x ≥ 10: after 10 minutes or more.' },
     { k: 'end', title: 'Ready for Unit 2.', next: 'Next: *Review 4, Find the Start*. Working out b, the y-intercept, when you cannot just read it.' }

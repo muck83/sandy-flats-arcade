@@ -6,6 +6,13 @@ SFA_LESSON({
     { k: 'title', min: 1, kicker: 'Unit 2 Review · 4 of 4', title: 'Find the Start', sub: 'Every line has a start, b. Sometimes you can read it. Today you learn to work it out when you cannot.', art: '🎯' },
     { k: 'signin', min: 1, title: 'Today you will', points: ['Say what b means on a graph, in a table and in a story', 'Find b from the slope and one point', 'Find b from two points, a table or a graph', 'Spot the three most common b mistakes'] },
     { k: 'poll', min: 1, id: 'warm', warm: true, q: 'You walk into a film 20 minutes late. How do you work out what you missed?', opts: ['Ask the person next to me', 'Work backwards from what is happening now', 'Look it up on my phone', 'Pretend I know', 'Leave and start again'] },
+    // retrieval warm-up: the three small skills every "find b" problem uses (retr: true marks them for the planner)
+    { k: 'number', min: 1, id: 'r1', retr: true, q: '*Warm-up 1 of 3.* Find the slope through *(1, 4)* and *(3, 10)*.', ans: 3,
+      hint: 'Top: 10 − 4. Bottom: 3 − 1.', why: '(10 − 4) ÷ (3 − 1) = 6 ÷ 2 = 3.', help: 'Change in y goes on top. Change in x goes on the bottom.' },
+    { k: 'number', min: 1, id: 'r2', retr: true, q: '*Warm-up 2 of 3.* Solve *11 = 6 + b*. What is b?', ans: 5,
+      hint: 'Subtract 6 from both sides.', why: 'b = 11 − 6 = 5. Today every problem ends with a step like this.', help: 'What do you add to 6 to make 11?' },
+    { k: 'number', min: 1, id: 'r3', retr: true, q: '*Warm-up 3 of 3.* What is *−3 × (−2)*?', ans: 6,
+      hint: 'A negative times a negative is positive.', why: '−3 × (−2) = +6.', help: '3 × 2 is 6. Now decide the sign.' },
     { k: 'text', min: 2, title: 'What b is', points: ['In *y = mx + b*, b is the *y-intercept*: where the line crosses the y-axis.', 'It is the value of y when *x = 0*: the start.', 'Table: the y next to x = 0. Graph: the crossing point (0, b). Story: the starting amount.', 'If x = 0 is not there, you *work backwards*. That is today.'] },
     { k: 'text', min: 2, title: 'Slope and one point → b', points: ['Example: slope *3* through *(2, 11)*.', '1) Put the point into y = mx + b: 11 = 3(2) + b.', '2) Multiply: 11 = 6 + b.', '3) Undo the 6: b = 11 − 6 = *5*. So y = 3x + 5.', 'Shortcut: *b = y − mx*.'], note: 'Check: 3(2) + 5 = 11 ✓. Always check with the point.' },
     { k: 'ex', min: 2, kick: 'Example 1 of 3 · Slope and a point', title: 'Walk back to x = 0', q: 'A line has slope *2* and goes through *(3, 4)*. Find b.',
@@ -23,11 +30,12 @@ SFA_LESSON({
         { t: 'b = 7 − 6 = [[1]].', eq: 'y = −3x + [[~1]]' },
         { t: 'Check: −3(−2) + 1 = 6 + 1 = 7 ✓' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 3 of 3 · Slope and a point', title: 'A fraction slope', q: 'A line has slope *1/2* and goes through *(4, 1)*. Find b.',
+    // we do: a faded example. The class does every move (pairs, then cold call) before the question on their own
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'A fraction slope', q: 'A line has slope *1/2* and goes through *(4, 1)*. Find b.',
       steps: [
-        { t: 'Put the point in.', eq: '[[1]] = (1/2)([[4]]) + b' },
-        { t: 'Half of 4 is [[~2]].', eq: '1 = [[2]] + b' },
-        { t: 'b = 1 − 2 = [[−1]].', eq: 'y = (1/2)x − [[~1]]' }
+        { t: 'Your turn: put the point (4, 1) into y = (1/2)x + b.', eq: '[[1]] = (1/2)([[4]]) + b' },
+        { t: 'Multiply: half of 4.', eq: '1 = [[2]] + b' },
+        { t: 'Undo it to get b alone.', eq: 'b = [[−1]]     so y = (1/2)x − [[1]]' }
       ] },
     { k: 'number', min: 4, id: 'pt1', q: 'A line has slope *−2* and goes through *(3, 4)*. What is *b*?', ans: 10,
       hint: '4 = −2(3) + b. What is −2 × 3?', why: '4 = −6 + b, so b = 4 + 6 = 10. y = −2x + 10.',
@@ -62,7 +70,7 @@ SFA_LESSON({
         { t: 'Check with the other point.', eq: '2(3) + 3 = 9 ✓', fig: { kind: 'graph', x: [-1, 4], y: [-1, 10], lines: [{ pts: [[-1, 1], [3.5, 10]] }, { pts: [[1, 5], [3, 9], [0, 3]], dots: true, only: true }], labels: [[1, 5, '(1, 5)'], [3, 9, '(3, 9)', 'l'], [0, 3, '(0, 3)', 'l']] } },
         { t: 'The equation is y = [[~2]]x + [[~3]].' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 2 of 2 · Two points', title: 'Going down', q: 'A line goes through *(−2, 1)* and *(2, −7)*. Find b.',
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'Going down', q: 'A line goes through *(−2, 1)* and *(2, −7)*. Find b.',
       steps: [
         { t: 'Slope first.', eq: 'm = (−7 − 1) ÷ (2 − (−2)) = [[−8]] ÷ [[4]] = [[−2]]' },
         { t: 'Use (−2, 1).', eq: '1 = −2(−2) + b  →  1 = [[4]] + b' },
@@ -89,7 +97,7 @@ SFA_LESSON({
         { t: 'Step back to x = 0, taking away 2 each time.', fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 1], [1, 3], [2, 5], [3, 7], [4, 9], [5, 11]], hi: [0] } },
         { t: 'b = [[1]]. Or work it out: 9 = 2(4) + b, so b = [[~1]] ✓', eq: 'y = 2x + [[~1]]' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 2 of 2 · Graphs', title: 'Between the gridlines', q: 'Find b for this line.',
+    { k: 'ex', min: 2, opt: true, kick: 'Example 2 of 2 · Graphs', title: 'Between the gridlines', q: 'Find b for this line.',
       fig: { kind: 'graph', x: [-2, 5], y: [-1, 4], lines: [{ pts: [[-2, -0.5], [5, 3]] }] },
       steps: [
         { t: 'It crosses the y-axis between gridlines. Do not guess. Find two grid points: *(1, 1)* and *(3, 2)*.', fig: { kind: 'graph', x: [-2, 5], y: [-1, 4], lines: [{ pts: [[-2, -0.5], [5, 3]] }, { pts: [[1, 1], [3, 2]], dots: true, only: true }], labels: [[1, 1, '(1, 1)'], [3, 2, '(3, 2)', 'l']] } },
@@ -107,13 +115,13 @@ SFA_LESSON({
         { k: 'number', q: 'This line crosses the y-axis between gridlines. It goes through *(1, 2)* and *(3, 3)*. What is b? A decimal is fine.', fig: { kind: 'graph', x: [-2, 6], y: [-1, 5], lines: [{ pts: [[-2, 0.5], [6, 4.5]] }, { pts: [[1, 2], [3, 3]], dots: true, only: true }] }, ans: 1.5, tol: 0.01, hint: 'm = 1/2. Then 2 = (1/2)(1) + b.', why: '2 = 0.5 + b, so b = 1.5.',
           steps: ['m = (3 − 2) ÷ (3 − 1) = 1/2.', '2 = (1/2)(1) + b = 0.5 + b.', 'b = *1.5*: the line crosses at (0, 1.5).'] }
       ] },
-    { k: 'ex', min: 2, kick: 'Example · A story', title: 'The joining fee', q: 'A gym costs *$95* for 3 months and *$175* for 7 months. What is the joining fee?',
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'The joining fee', q: 'A gym costs *$95* for 3 months and *$175* for 7 months. What is the joining fee?',
       steps: [
         { t: 'The points are (3, 95) and (7, 175). Monthly price first.', eq: 'm = (175 − 95) ÷ (7 − 3) = [[80]] ÷ [[4]] = [[20]]' },
         { t: 'Put one point in.', eq: '95 = 20(3) + b  →  95 = [[60]] + b' },
         { t: 'b = [[35]]: the joining fee is $[[~35]], the cost at 0 months.', eq: 'y = 20x + [[~35]]' }
       ] },
-    { k: 'number', min: 4, id: 'story', q: 'A taxi ride of *3 km* costs *$13*. A ride of *7 km* costs *$25*. What is the starting fee (b)?', ans: 4,
+    { k: 'est', min: 4, id: 'story', lo: 0, hi: 13, step: 1, near: 2, q: 'A taxi ride of *3 km* costs *$13*. A ride of *7 km* costs *$25*. *Estimate* the starting fee in dollars first, then work out b exactly.', ans: 4,
       hint: 'The points are (3, 13) and (7, 25). Find the price per km first.', why: 'm = 12 ÷ 4 = $3 per km. 13 = 3(3) + b, so b = $4.',
       help: 'Write the two rides as points (km, cost).',
       more: [
@@ -125,7 +133,11 @@ SFA_LESSON({
           model: 'The $4 is the cost of a 0 km ride: the fee you pay just for getting in, before you travel any distance.',
           steps: ['b is the value when x = 0.', 'x is kilometres, so 0 km.', '*$4 is the cost before you travel at all.*'] }
       ] },
-    { k: 'poll', min: 2, id: 'check', q: 'Which equation goes through both *(2, 3)* and *(4, 7)*?', opts: ['y = 2x − 1', 'y = 2x + 3', 'y = 4x − 5', 'y = 3x + 2'], ans: 0,
+    { k: 'odd', min: 2, id: 'odd1', items: ['y = 2x + 5', 'y = −x + 5', 'y = 2x', 'The line through (0, 5) and (1, 8)'],
+      why: ['It is the only one that goes through (1, 7)', 'It is the only one that goes downhill', 'It is the only one that starts at 0 (b = 0)', 'It is the only one with slope 3'],
+      note: 'Three of them start at b = 5. To find a start you cannot see, use the slope and one point: b = y − mx.' },
+    { k: 'cross', min: 2, opt: true, id: 'check', q: 'Cross out every equation that does *not* go through both *(2, 3)* and *(4, 7)*.', opts: ['y = 2x − 1', 'y = 2x + 3', 'y = 4x − 5', 'y = 3x + 2'], ans: 0,
+      reasons: ['It misses (2, 3)', 'It fits (2, 3) but misses (4, 7)'], because: [0, 0, 1, 0],
       why: 'm = 4 ÷ 2 = 2. 3 = 2(2) + b → b = −1. Check (4, 7): 2(4) − 1 = 7 ✓.',
       help: 'Test each option with both points.' },
     { k: 'conf', min: 1, id: 'conf', q: 'Finding b: how do you feel now?' },

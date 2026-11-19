@@ -6,9 +6,16 @@ SFA_LESSON({
     { k: 'title', min: 1, kicker: 'Unit 2 Review · 2 of 4', title: 'Change the Form', sub: 'Standard form and slope-intercept form are the same line in different clothes. Today you change them, and graph them.', art: '🔁' },
     { k: 'signin', min: 1, title: 'Today you will', points: ['Turn Ax + By = C into y = mx + b', 'Turn y = mx + b into Ax + By = C', 'Graph a line from its equation', 'Spot the most common conversion mistakes'] },
     { k: 'poll', min: 1, id: 'warm', warm: true, q: 'Same thing, different clothes. Which "translation" do you use most?', opts: ['Two languages at home', 'Texting shortcuts (brb, idk)', 'Emojis instead of words', 'Converting money', 'None, I say it as it is'] },
+    // retrieval warm-up: slope from Review 1, and the one algebra move today depends on (retr: true marks them for the planner)
+    { k: 'number', min: 1, id: 'r1', retr: true, q: '*Warm-up 1 of 3.* Find the slope through *(1, 3)* and *(3, 11)*.', ans: 4,
+      hint: 'Top: 11 − 3. Bottom: 3 − 1.', why: '(11 − 3) ÷ (3 − 1) = 8 ÷ 2 = 4.', help: 'Change in y goes on top. Change in x goes on the bottom.' },
+    { k: 'number', min: 1, id: 'r2', retr: true, q: '*Warm-up 2 of 3.* What is the slope of *y = 5 − 2x*?', ans: -2,
+      hint: 'The slope is the number with x. Take its sign too.', why: 'The x-term is −2x, so the slope is −2. The 5 is the y-intercept.', help: 'Find the term that has x in it.' },
+    { k: 'number', min: 1, id: 'r3', retr: true, q: '*Warm-up 3 of 3.* Solve *3y = 12*. What is y?', ans: 4,
+      hint: 'Divide both sides by 3.', why: '12 ÷ 3 = 4. Today you divide *every* term like this.', help: 'What do you do to 3y to get y alone?' },
     { k: 'text', min: 2, title: 'Two forms, one line', points: ['*Slope-intercept form*: y = mx + b. You can read the slope and where it crosses the y-axis.', '*Standard form*: Ax + By = C. x and y on the same side, whole numbers, A not negative.', 'Standard form is great for intercepts: put x = 0 or y = 0.', 'Changing form never changes the line.'] },
     { k: 'text', min: 2, title: 'Standard → slope-intercept', points: ['Example: *4x + 2y = 10*.', '1) Subtract 4x from both sides: 2y = −4x + 10.', '2) Divide *every* term by 2: y = −2x + 5.', 'Slope −2, y-intercept 5.'], note: 'The classic slip: dividing the x-term by 2 but forgetting to divide the 10.' },
-    { k: 'ex', min: 2, kick: 'Example 1 of 3 · Standard → slope-intercept', title: 'B is 1', q: 'Write *3x + y = 7* as y = mx + b.',
+    { k: 'ex', min: 2, opt: true, kick: 'Example 1 of 3 · Standard → slope-intercept', title: 'B is 1', q: 'Write *3x + y = 7* as y = mx + b.',
       steps: [
         { t: 'y is nearly alone. Subtract 3x from both sides.', eq: 'y = [[−3]]x + [[7]]' },
         { t: 'Read it: m = [[~−3]], b = [[~7]].' },
@@ -21,11 +28,12 @@ SFA_LESSON({
         { t: 'Simplify: m = [[~−1/2]], b = [[~3]].', eq: 'y = [[−1/2]]x + [[3]]' },
         { t: 'Check: x = 2 gives y = [[2]]. In the original: 2(2) + 4(2) = 12 ✓' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 3 of 3 · Standard → slope-intercept', title: 'A negative B', q: 'Write *5x − 2y = 8* as y = mx + b.',
+    // we do: a faded example. The first move is done; the class supplies the rest (pairs, then cold call) before the question on their own
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'A negative B', q: 'Write *5x − 2y = 8* as y = mx + b.',
       steps: [
-        { t: 'Subtract 5x from both sides.', eq: '−2y = [[−5]]x + 8' },
-        { t: 'Divide every term by *−2*: both signs flip.', eq: 'y = [[5/2]]x − [[4]]' },
-        { t: 'm = [[~5/2]], b = [[~−4]].' }
+        { t: 'Step 1 is done for you: subtract 5x from both sides.', eq: '−2y = −5x + 8' },
+        { t: 'Your turn: divide every term by *−2*. Both signs flip.', eq: 'y = [[5/2]]x − [[4]]' },
+        { t: 'Read the slope and the y-intercept.', eq: 'm = [[5/2]]     b = [[−4]]' }
       ] },
     { k: 'number', min: 5, id: 'sb1', q: 'Write *6x + 3y = 12* as y = mx + b. What is *b*?', ans: 4,
       hint: '3y = −6x + 12. Divide every term by 3.', why: 'y = −2x + 4, so b = 4.',
@@ -38,8 +46,11 @@ SFA_LESSON({
         { k: 'number', q: 'Write *5x + 2y = 9* as y = mx + b. What is b? A fraction or decimal is fine.', ans: 4.5, tol: 0.01, hint: 'Divide the 9 by 2 as well.', why: 'y = −(5/2)x + 9/2.',
           steps: ['2y = −5x + 9.', 'Divide every term by 2.', 'y = −(5/2)x + *9/2* (4.5).'] }
       ] },
-    { k: 'poll', min: 3, id: 'slip', q: 'Marcus turns *2x + 5y = 15* into *y = −(2/5)x + 15*. What went wrong?',
-      opts: ['Nothing', 'He forgot to divide 15 by 5: it should be + 3', 'The slope should be +2/5', 'He should divide by 2'], ans: 1,
+    { k: 'order', min: 2, id: 'ord1', q: 'Put the steps in order to write *3x + 2y = 8* as y = mx + b.',
+      steps: ['Start with 3x + 2y = 8', 'Subtract 3x from both sides: 2y = −3x + 8', 'Divide *every* term by 2: y = −(3/2)x + 4', 'Read it off: the slope is −3/2 and the y-intercept is 4'],
+      hint: 'Get the y-term alone first. Divide last.', why: 'Move the x-term, then divide every term by the number with y, then read off m and b.' },
+    { k: 'mistake', min: 3, id: 'slip', q: 'Marcus turns *2x + 5y = 15* into y = mx + b. Tap the first line that goes wrong.',
+      lines: ['2x + 5y = 15', '5y = −2x + 15', 'y = −(2/5)x + 15'], ans: 2, fix: 'y = −(2/5)x + 3', hint: 'Was *every* term divided by 5?',
       why: 'Every term gets divided by 5: 15 ÷ 5 = 3. y = −(2/5)x + 3.',
       help: 'Check each term: was it divided by 5?',
       more: [
@@ -64,11 +75,11 @@ SFA_LESSON({
         { t: 'Add 3x to both sides.', eq: '[[3]]x + 4y = 8' },
         { t: 'A = 3 is positive: done.' }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 3 of 3 · Slope-intercept → standard', title: 'All three moves', q: 'Write *y = (2/5)x − 1* in standard form.',
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'All three moves', q: 'Write *y = (2/5)x − 1* in standard form.',
       steps: [
-        { t: 'Multiply every term by 5.', eq: '5y = [[2]]x − [[5]]' },
-        { t: 'Subtract 2x from both sides.', eq: '[[−2]]x + 5y = [[−5]]' },
-        { t: 'A is negative: multiply every term by −1.', eq: '2x − 5y = [[5]]' }
+        { t: 'Step 1 is done for you: multiply every term by 5.', eq: '5y = 2x − 5' },
+        { t: 'Your turn: subtract 2x from both sides.', eq: '[[−2]]x + 5y = [[−5]]' },
+        { t: 'A is negative: multiply every term by −1.', eq: '[[2]]x − [[5]]y = [[5]]' }
       ] },
     { k: 'poll', min: 5, id: 'bs1', q: 'Which is *y = −3x + 4* in standard form?', opts: ['3x + y = 4', '−3x − y = 4', 'y + 4 = 3x', '3x − y = −4'], ans: 0,
       why: 'Add 3x to both sides: 3x + y = 4. A = 3 is positive: done.',
@@ -90,14 +101,14 @@ SFA_LESSON({
         { t: 'Do it again to get a third point: [[(2, 1)]].', fig: { kind: 'graph', x: [-3, 5], y: [-5, 6], lines: [{ pts: [[0, -3], [1, -1], [2, 1]], dots: true, only: true }], labels: [[0, -3, '(0, −3)'], [2, 1, '(2, 1)']], arrows: [[0, -3, 0, -1, 'up 2'], [0, -1, 1, -1, ''], [1, -1, 1, 1, 'up 2'], [1, 1, 2, 1, '']] } },
         { t: 'Join the points with a ruler.', fig: { kind: 'graph', x: [-3, 5], y: [-5, 6], lines: [{ pts: [[-1, -5], [4.5, 6]] }, { pts: [[0, -3], [1, -1], [2, 1]], dots: true, only: true }], labels: [[0, -3, '(0, −3)'], [2, 1, '(2, 1)']] } }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 2 of 3 · Graph a line', title: 'Use the intercepts', q: 'Graph *3x + 2y = 6*.',
+    { k: 'ex', min: 2, opt: true, kick: 'Example 2 of 3 · Graph a line', title: 'Use the intercepts', q: 'Graph *3x + 2y = 6*.',
       fig: { kind: 'graph', x: [-2, 4], y: [-2, 5], lines: [] },
       steps: [
         { t: 'Put x = 0: 2y = 6, so y = [[3]]. Plot [[~(0, 3)]].', fig: { kind: 'graph', x: [-2, 4], y: [-2, 5], lines: [{ pts: [[0, 3]], dots: true, only: true }], labels: [[0, 3, '(0, 3)']] } },
         { t: 'Put y = 0: 3x = 6, so x = [[2]]. Plot [[~(2, 0)]].', fig: { kind: 'graph', x: [-2, 4], y: [-2, 5], lines: [{ pts: [[0, 3], [2, 0]], dots: true, only: true }], labels: [[0, 3, '(0, 3)'], [2, 0, '(2, 0)']] } },
         { t: 'Join them. Check the slope: down 3, right 2 is [[−3/2]], and y = −(3/2)x + 3 ✓', fig: { kind: 'graph', x: [-2, 4], y: [-2, 5], lines: [{ pts: [[-1.33, 5], [3.33, -2]] }, { pts: [[0, 3], [2, 0]], dots: true, only: true }], labels: [[0, 3, '(0, 3)'], [2, 0, '(2, 0)']], arrows: [[0, 3, 0, 0, 'down 3'], [0, 0, 2, 0, 'right 2']] } }
       ] },
-    { k: 'ex', min: 2, kick: 'Example 3 of 3 · Graph a line', title: 'A fraction slope', q: 'Graph *y = −(1/3)x + 2*.',
+    { k: 'ex', min: 2, wedo: true, kick: 'We do · Finish it together', title: 'A fraction slope', q: 'Graph *y = −(1/3)x + 2*.',
       fig: { kind: 'graph', x: [-2, 7], y: [-2, 4], lines: [] },
       steps: [
         { t: 'Plot b: [[(0, 2)]].', fig: { kind: 'graph', x: [-2, 7], y: [-2, 4], lines: [{ pts: [[0, 2]], dots: true, only: true }], labels: [[0, 2, '(0, 2)']] } },
@@ -116,8 +127,12 @@ SFA_LESSON({
         { k: 'poll', q: 'Which is the fastest way to graph *5x + 2y = 10*?', opts: ['Find both intercepts: (0, 5) and (2, 0), then join them', 'Make a table with 20 values', 'Guess the slope', 'Only use the y-intercept'], ans: 0, why: 'Standard form gives the intercepts fast: x = 0 → y = 5; y = 0 → x = 2.',
           steps: ['x = 0: 2y = 10, y = 5 → (0, 5).', 'y = 0: 5x = 10, x = 2 → (2, 0).', 'Two points are enough: join them.'] }
       ] },
+    { k: 'asn', min: 2, id: 'asn1', q: 'In Ax + By = C, the number C is the y-intercept.', ans: 1,
+      eg: 'Give one equation where it is true, or one where it is false.', ph: 'It is true for... / It is false for...',
+      help: 'Try 3x + y = 7. Then try 2x + 4y = 12. Put x = 0 in each.',
+      why: 'Put x = 0: By = C, so y = C ÷ B. The y-intercept is C only when B is 1.', model: 'True for 3x + y = 7 (b = 7). False for 2x + 4y = 12 (b = 12 ÷ 4 = 3).' },
     { k: 'conf', min: 1, id: 'conf', q: 'Changing forms and graphing: how do you feel?' },
-    { k: 'play', min: 10, title: 'Practise: Unit 2 Review', steps: ['Open the *Unit 2 Review*.', 'Under *Convert forms*, do both skills.', 'Then *Graph a line* under Represent.', 'Stuck? Guided practice first, or the Khan Academy video on the Learn tab.'], aim: 'Done when both Convert skills are Developed.', minutes: 9 },
+    { k: 'play', min: 8, title: 'Practise: Unit 2 Review', steps: ['Open the *Unit 2 Review*.', 'Under *Convert forms*, do both skills.', 'Then *Graph a line* under Represent.', 'Stuck? Guided practice first, or the Khan Academy video on the Learn tab.'], aim: 'Done when one Convert skill is Developed. Keep going at home for the other.', minutes: 8 },
     { k: 'exit', min: 4, id: 'exit', q: 'Write *4x − 2y = 6* in slope-intercept form, then write *y = (1/3)x + 2* in standard form. Show each step.', ph: 'First: ... Second: ...',
       model: '4x − 2y = 6 → −2y = −4x + 6 → divide every term by −2: y = 2x − 3. y = (1/3)x + 2 → × 3: 3y = x + 6 → −x + 3y = 6 → × −1: x − 3y = −6.' },
     { k: 'end', title: 'Same line, new clothes.', next: 'Next: *Review 3, Tell the Whole Story*. Words, tables, graphs, equations and inequalities.' }

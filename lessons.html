@@ -35,7 +35,7 @@
   var SFA = window.SFA, el = SFA.el, esc = SFA.esc, teach = /[?&]teach/.test(location.search), all = [], MAX = 28, left = MAX;
   if (teach) {
     document.getElementById('h').textContent = 'Lessons · Teacher';
-    document.getElementById('intro').innerHTML = 'Open a lesson\'s <b>console</b> to run it live: polls, typed answers, who hasn\'t answered, a timer and a random picker. From the console, open the <b>class screen</b> window and share that one. Students open the <b>student link</b> on their own devices. <a href="participation.html">Participation across all lessons</a>.';
+    document.getElementById('intro').innerHTML = 'Open a lesson\'s <b>console</b> to run it live: polls, typed answers, who hasn\'t answered, a timer and a random picker. From the console, open the <b>class screen</b> window and share that one. Students open the <b>student link</b> on their own devices. <a href="participation.html">Participation across all lessons</a>. Each lesson has a printable <a href="planner.html">teaching plan</a>, and the <a href="scaffold-guide.html">scaffolds guide</a> explains the help students now get on every slide.';
     document.getElementById('sfaAccount').remove();
   }
   window.SFA_LESSON = function (L) { all.push(L); };
@@ -59,11 +59,14 @@
       c.appendChild(el('span', { 'class': 'n', text: L.label || 'Lesson ' + L.n }));
       c.appendChild(el('b', { text: L.title }));
       c.appendChild(el('small', { text: (L.film ? '🎬 ' + L.film.title + '  ·  ' : '📝 No film: teach and practise  ·  ') + '🕹️ ' + L.game.title }));
-      c.appendChild(el('small', { text: qs.length + ' questions · 45 minutes' }));
+      // planned minutes come from the slides themselves (optional slides left out), so the card is right for every lesson
+      var planned = L.slides.reduce(function (a, s) { return a + (s.opt ? 0 : +s.min || 0); }, 0);
+      c.appendChild(el('small', { text: qs.length + ' questions · ' + (planned || 45) + ' minutes' }));
       if (teach) {
         var row = el('div', { 'class': 'tl' });
         row.appendChild(el('a', { 'class': 'btn small primary', href: url + '&teach', text: 'Console' }));
         row.appendChild(el('a', { 'class': 'btn small', href: url + '&screen', target: '_blank', text: 'Class screen' }));
+        row.appendChild(el('a', { 'class': 'btn small', href: 'planner.html?l=' + L.id.slice(1), text: '🗓 Plan' }));   // the printable teaching plan built from this lesson's slides
         var link = el('button', { type: 'button', 'class': 'btn small', text: 'Copy student link' });
         link.onclick = function () { var u = new URL(url, location.href).href; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { SFA.toast('Copied: ' + u); }, function () { SFA.toast(u, 6000); }); };
         row.appendChild(link); c.appendChild(row);

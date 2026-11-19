@@ -364,12 +364,13 @@ a.btn{text-decoration:none;display:inline-block}
 
   <section class="shelf" aria-labelledby="gH">
     <div class="nextup" id="nextUp"></div>
+    <div id="questCard"></div>
     <div class="myres" id="myRes" hidden></div>
     <h2 id="gH">All the games</h2>
     <p>One game for each film, in film order, a season at a time. Play the game for the film you just watched. Each one starts easy and takes about 30 minutes.</p>
     <div id="seasons"></div>
     <ol class="glist" id="games"></ol>
-    <p style="margin-top:14px"><a class="btn" href="lessons.html">📺 Lesson slideshows: films, questions and polls</a> <a class="btn" href="climb.html">🧗 Climb: the linear functions check-in</a> <a class="btn" href="review-u2.html">📝 Unit 2 Review: get ready for the formative</a></p>
+    <p style="margin-top:14px"><a class="btn" href="lessons.html">📺 Lesson slideshows: films, questions and polls</a> <a class="btn" href="climb.html">🧗 Climb: the linear functions check-in</a> <a class="btn" href="review-u2.html">📝 Unit 2 Review: get ready for the formative</a> <a class="btn" href="check-u2.html">🎯 Unit 2 Check: the formative (needs a start code)</a></p>
   </section>
 
   <section class="shelf" aria-labelledby="vH">
@@ -1036,4 +1037,9 @@ a.btn{text-decoration:none;display:inline-block}
 })();
 </script>
 <script src="sfa-nav.js"></script>
+<!-- the student's own corner: avatar, quests, streak and the next unlock (sfa-quests.js draws it; sfa-avatar.js does the counting) -->
+<script src="sfa-avatar.js?v=20261119q"></script>
+<script src="sfa-wardrobe.js?v=20261119q"></script>
+<script src="sfa-quests.js?v=20261119q"></script>
+<script>if (window.SFA_QUESTS) SFA_QUESTS.mount(document.getElementById('questCard'));</script>
 </body></html>

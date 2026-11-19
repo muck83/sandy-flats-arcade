@@ -248,7 +248,9 @@
   ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, stillNote, { passive: true, capture: true }); });
   function record(s, answer, correct) {
     if (correct === true && still.slide === cur && !String(s.id).match(/x[1-3]$/)) { stillNote(); if (still.max >= 15000 && Date.now() - still.end < 8000) watchBump(6, 1); }
+    var was_ = mine[s.id];
     mine[s.id] = { answer: String(answer), correct: correct, sent: false, kind: s.k, run: liveRun() };
+    if (window.SFA_TOGETHER) try { SFA_TOGETHER.onAnswer(s, correct, was_); } catch (e) { }
     saveLocal(); flush(); refreshDots(); if (!/^z/.test(s.id)) heroLes(); clearTimeout(watchT); watchT = setTimeout(watchSend, 15000 + Math.random() * 10000);
     setTimeout(function () { if (slideEl && slideEl.scrollHeight > slideEl.clientHeight + 4) slideEl.scrollTo({ top: slideEl.scrollHeight, behavior: 'smooth' }); }, 120);
   }
@@ -678,6 +680,341 @@
   };
   function show_(v) { return numTxt(v); }
 
+  /* ---------------- thinking made visible: six more ways to answer, each one tap to start ----------------
+     mistake: tap the line of a worked solution where it first goes wrong.   order: put shuffled steps in order.
+     cross:   cross out wrong options one at a time (credit for each).       odd: which one doesn't belong, with a reason.
+     asn:     always / sometimes / never, then an example.                   est: a slider estimate first, then the exact answer.
+     They save through record() as the older kinds 'poll', 'open' or 'number', so the results script needs no change. */
+  var NEWK = { mistake: 1, order: 1, cross: 1, odd: 1, asn: 1, est: 1 };
+  var ASN = ['Always true', 'Sometimes true', 'Never true'];
+  function nOpts(s) { return s.k === 'conf' ? 4 : s.k === 'mistake' ? (s.lines || []).length : s.k === 'odd' ? (s.items || []).length : s.k === 'asn' ? 3 : s.k === 'est' ? 10 : s.k === 'order' ? 0 : s.opts ? s.opts.length : 0; }
+  function slideOfQ(q) { for (var i = 0; LES && i < LES.slides.length; i++) if (LES.slides[i].id === q) return LES.slides[i]; return null; }
+  // which tally boxes an answer counts in: one option for most kinds, every crossed-out option for cross, a tenth of the line for est
+  function idxOf(q, answer) {
+    var s = slideOfQ(q), a = String(answer);
+    if (s && s.k === 'cross') { var m = /^x:([0-9,]*)/.exec(a); return m && m[1] ? m[1].split(',').map(function (v) { return +v - 1; }) : []; }
+    if (s && s.k === 'est') { var e = /^e:(-?[0-9.]+)/.exec(a); return e ? [Math.max(0, Math.min(9, Math.floor((+e[1] - s.lo) / ((s.hi - s.lo) || 1) * 10)))] : []; }
+    return [parseInt(a, 10) - 1];
+  }
+  function tgXp(key, amt, msg) { if (window.SFA_TOGETHER && MODE === 'student') try { SFA_TOGETHER.xp(key, amt, msg); } catch (e) { } }
+  function classCounts(s, show) {
+    var counts = null;
+    if (show && feed && feed.per[s.id]) counts = feed.per[s.id].counts;
+    if (show && MODE === 'screen' && !onScreen(s.id)) counts = null;
+    if (MODE === 'student' && reveal(s.id) >= 1 && live && live.counts && live.counts[s.id]) counts = live.counts[s.id];
+    return counts;
+  }
+  function peeking() { return MODE === 'teach' && console_ && console_.peek; }
+  function sum(a) { return (a || []).reduce(function (x, y) { return x + y; }, 0); }
+  function optBtn(cls, label, html) { var b = el('button', { type: 'button', 'class': 'opt' + (cls ? ' ' + cls : '') }); b.appendChild(H('i', 'bar')); b.appendChild(H('span', 'L', label)); b.appendChild(H('span', 't', html)); return b; }
+  function pcBar(b, n, of, txt) { var bar = b.querySelector('.bar'), wd = of ? Math.round(100 * n / of) : 0; b.appendChild(H('span', 'pc', txt != null ? txt : wd + '%')); setTimeout(function () { if (bar) bar.style.width = wd + '%'; }, 60); }
+  // a shuffle that is the same on every device (so the class screen matches), and never the original order
+  function seeded(id, n) {
+    var h = 2166136261, a = [], i; id = String(id);
+    for (i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    for (i = 0; i < n; i++) a.push(i);
+    for (i = n - 1; i > 0; i--) { h = (Math.imul(h, 1103515245) + 12345) >>> 0; var j = (h >>> 8) % (i + 1), t = a[i]; a[i] = a[j]; a[j] = t; }
+    if (n > 1 && a.every(function (v, k) { return v === k; })) a.push(a.shift());
+    return a;
+  }
+  function retry(s, ans, ok, kind) { var t = (mine[s.id] && mine[s.id].tries) || 0; record({ id: s.id, k: kind || 'poll' }, ans, ok); mine[s.id].tries = t + 1; saveLocal(); }
+  function rightSoFar(s, box, label) { var p = feed && feed.per[s.id]; if (p && p.n) box.appendChild(H('p', 'state', label + ': ' + p.right + ' so far')); }
+  // the console's list of answers: the new kinds save a compact code, shown here in words
+  function niceAns(s, v) {
+    v = String(v); if (!s || !NEWK[s.k]) return v;
+    if (s.k === 'cross') return v.indexOf(' | ') > 0 ? v.split(' | ').slice(1).join(' | ') : v;
+    if (s.k === 'est') { var m = /^e:(-?[0-9.]+)(?:;a:(.*))?$/.exec(v); return m ? 'estimate ' + numTxt(+m[1]) + (m[2] != null ? ' → worked out ' + m[2] : ' (not worked out yet)') : v; }
+    if (s.k === 'order') return 'order: ' + v;
+    return v;
+  }
+
+  // 🔎 Spot the mistake: { lines: [...], ans: index of the first wrong line, fix: 'the line as it should be', why }
+  KINDS.mistake = function (s, d, show) {
+    head(s, d); var left = H('div', 'st'); left.appendChild(H('p', 'kick', '🔎 Spot the mistake')); qline(s, left);
+    var list = H('div', 'opts mlines'), foot = H('div', 'st'); left.appendChild(list); left.appendChild(foot); withFig(s, d, left);
+    d._upd = function () {
+      list.innerHTML = ''; foot.innerHTML = '';
+      var a = mine[s.id], picked = a ? parseInt(a.answer, 10) - 1 : -1, rv = reveal(s.id), solved = !!(a && a.correct === true);
+      var counts = classCounts(s, show), total = sum(counts), showAns = rv >= 2 || (MODE === 'student' && solved) || peeking();
+      (s.lines || []).forEach(function (ln, i) {
+        var b = optBtn('mline' + (i === picked ? ' mine' : '') + (showAns && i === s.ans ? ' wrongline' : ''), String(i + 1), fmt(ln));
+        if (showAns && i === s.ans && s.fix) b.querySelector('.t').appendChild(H('span', 'fixl', 'should be: ' + fmt(s.fix)));
+        if (counts) pcBar(b, counts[i] || 0, total);
+        if (show || solved || rv >= 2) b.disabled = true;
+        else b.onclick = function () { var ok = i === s.ans; retry(s, (i + 1) + '. ' + plain(ln), ok); if (ok) confetti(); d._upd(); };
+        list.appendChild(b);
+      });
+      if (show) {
+        foot.appendChild(tallyFor(s.id)); rightSoFar(s, foot, 'Found the mistake');
+        if (showAns) foot.appendChild(H('div', 'reveal', '<b>The first mistake is in line ' + (s.ans + 1) + '.</b> ' + fmt(s.why || '')));
+        return;
+      }
+      if (solved) foot.appendChild(H('div', 'fb good', '<b>Found it!</b> ' + fmt(s.why || '')));
+      else if (a && a.correct === false && rv < 2) foot.appendChild(H('div', 'fb try', 'Line ' + (picked + 1) + ' follows correctly from the line before it. ' + fmt(s.hint || 'Check each line against the one above, then tap again.')));
+      else if (!a) foot.appendChild(H('p', 'state', 'Tap the first line that is wrong. You can try again.'));
+      if (a) foot.appendChild(stateLine(s.id));
+      if (rv >= 2 && !solved) foot.appendChild(H('div', 'reveal', '<b>' + TEACHER + ' showed it: the first mistake is in line ' + (s.ans + 1) + '.</b> ' + fmt(s.why || '')));
+      if (!a) helpFor(s, foot, s.help || s.hint); moreFor(s, foot);
+    };
+    d._upd();
+  };
+
+  // 🔢 Put the steps in order: { steps: [...in the right order], why }. Shown shuffled, lettered A, B, C…
+  KINDS.order = function (s, d, show) {
+    head(s, d); var left = H('div', 'st'); left.appendChild(H('p', 'kick', '🔢 Put the steps in order')); qline(s, left);
+    var box = H('div', 'ans ord'); left.appendChild(box); withFig(s, d, left);
+    var steps = s.steps || [], n = steps.length, sh = seeded(s.id, n), lab = {}, pick = null, checked = '';
+    sh.forEach(function (orig, pos) { lab[orig] = letter(pos); });
+    function parse(v) { var out = []; String(v || '').split(/[ ›]/).forEach(function (L) { for (var o = 0; o < n; o++) if (lab[o] === L && out.indexOf(o) < 0) out.push(o); }); return out; }
+    function stepEl(tag, cls, o, numTxt_) { var e = el(tag, tag === 'button' ? { type: 'button', 'class': 'ordstep ' + cls } : { 'class': 'ordstep ' + cls }); e.appendChild(H('span', 'L', numTxt_ != null ? numTxt_ : lab[o])); e.appendChild(H('span', 't', fmt(steps[o]))); return e; }
+    d._upd = function () {
+      box.innerHTML = '';
+      var a = mine[s.id], rv = reveal(s.id), solved = !!(a && a.correct === true), k;
+      if (show) {
+        box.appendChild(tallyFor(s.id)); rightSoFar(s, box, 'Order right');
+        var showAns = rv >= 2 || peeking(), ol = H('div', 'ordlist');
+        if (showAns) for (k = 0; k < n; k++) ol.appendChild(stepEl('div', 'ok', k, String(k + 1))); else sh.forEach(function (o) { ol.appendChild(stepEl('div', '', o)); });
+        box.appendChild(ol);
+        if (onScreen(s.id) && !showAns) box.appendChild(answerGroups(s));
+        if (showAns && s.why) box.appendChild(H('div', 'reveal', fmt(s.why)));
+        return;
+      }
+      if (pick == null) pick = a && a.answer ? parse(a.answer) : [];
+      if (solved || rv >= 2) {
+        var done = H('div', 'ordlist'); for (k = 0; k < n; k++) done.appendChild(stepEl('div', 'ok', k, String(k + 1))); box.appendChild(done);
+        box.appendChild(solved ? H('div', 'fb good', '<b>That\'s the order!</b> ' + fmt(s.why || '')) : H('div', 'reveal', '<b>' + TEACHER + ' showed the order.</b> ' + fmt(s.why || '')));
+        if (a) box.appendChild(stateLine(s.id)); moreFor(s, box); return;
+      }
+      var cur_ = pick.map(function (o) { return lab[o]; }).join('›'), marked = !!checked && checked === cur_;
+      box.appendChild(H('p', 'state', pick.length ? 'Your order so far. Tap a step to take it back out.' : 'Tap the step that comes <b>first</b>.'));
+      var mineL = H('div', 'ordlist');
+      pick.forEach(function (o, pos) { var b = stepEl('button', 'in' + (marked ? (o === pos ? ' ok' : ' no') : ''), o, String(pos + 1)); b.onclick = function () { pick.splice(pos, 1); d._upd(); }; mineL.appendChild(b); });
+      box.appendChild(mineL);
+      var pool = H('div', 'ordlist pool'); sh.forEach(function (o) { if (pick.indexOf(o) >= 0) return; var b = stepEl('button', '', o); b.onclick = function () { pick.push(o); d._upd(); }; pool.appendChild(b); });
+      if (pool.children.length) { if (pick.length) box.appendChild(H('p', 'state', 'What comes next?')); box.appendChild(pool); }
+      if (pick.length === n) {
+        var cb = el('button', { type: 'button', 'class': 'btn primary', text: 'Check my order' }), row = H('div', 'row'); row.appendChild(cb); box.appendChild(row);
+        cb.onclick = function () { var ok = pick.every(function (o, pos) { return o === pos; }); checked = cur_; retry(s, cur_, ok, 'open'); if (ok) confetti(); d._upd(); };
+        if (marked && a && a.correct === false) { var good = pick.filter(function (o, pos) { return o === pos; }).length; box.appendChild(H('div', 'fb try', '<b>' + good + ' of ' + n + '</b> are in the right place (green). Take the others out and try a new order. ' + fmt(s.hint || ''))); }
+      }
+      if (a) box.appendChild(stateLine(s.id));
+      if (!a) helpFor(s, box, s.help || s.hint);
+    };
+    d._upd();
+  };
+
+  // ❌ Cross it out: { opts, ans, why, optional reasons: ['short reason', …] and because: [reason index for each option] }
+  KINDS.cross = function (s, d, show) {
+    head(s, d); var left = H('div', 'st'); left.appendChild(H('p', 'kick', '❌ Cross it out')); qline(s, left);
+    var list = H('div', 'opts xout'), foot = H('div', 'st'); left.appendChild(list); left.appendChild(foot); withFig(s, d, left);
+    var opts = s.opts || [], nWrong = opts.length - 1, asking = -1, slipAt = -1, lastR = null;
+    function state() {
+      var a = mine[s.id], o = { x: [], r: {}, slips: 0 }, m = a && /^x:([0-9,]*);r:([0-9=,]*);s:(\d+)/.exec(a.answer); if (!m) return o;
+      o.x = m[1] ? m[1].split(',').map(function (v) { return +v - 1; }) : [];
+      (m[2] ? m[2].split(',') : []).forEach(function (p) { var q = p.split('='); o.r[+q[0] - 1] = +q[1]; }); o.slips = +m[3]; return o;
+    }
+    function save(o) {
+      var done = o.x.length >= nWrong;
+      record({ id: s.id, k: 'poll' }, 'x:' + o.x.map(function (v) { return v + 1; }).join(',') + ';r:' + Object.keys(o.r).map(function (k) { return (+k + 1) + '=' + o.r[k]; }).join(',') + ';s:' + o.slips +
+        ' | crossed out ' + (o.x.length ? o.x.map(letter).join(', ') : 'nothing yet') + (o.slips ? ' · tried to cross out the answer ' + o.slips + '×' : '') + (done ? ' · left with ' + letter(s.ans) : ''), done ? true : null);
+    }
+    d._upd = function () {
+      list.innerHTML = ''; foot.innerHTML = '';
+      var o = state(), a = mine[s.id], rv = reveal(s.id), done = o.x.length >= nWrong && nWrong > 0, counts = classCounts(s, show);
+      var of = show && feed && feed.per[s.id] ? feed.per[s.id].n : Math.max.apply(null, (counts || [0]).concat([1])), showAns = rv >= 2 || peeking() || (MODE === 'student' && done);
+      opts.forEach(function (op, i) {
+        var out = o.x.indexOf(i) >= 0, most = counts && show && feed.per[s.id].n && (counts[i] || 0) * 2 > feed.per[s.id].n;
+        var b = optBtn((out || most ? 'out' : '') + (showAns && i === s.ans ? ' right' : '') + (i === slipAt ? ' slip' : ''), letter(i), fmt(op));
+        if (counts) pcBar(b, counts[i] || 0, of, '✗ ' + (counts[i] || 0));
+        if (show || out || done || rv >= 2 || asking >= 0) b.disabled = true;
+        else b.onclick = function () {
+          if (i === s.ans) { o.slips++; slipAt = i; save(o); d._upd(); return; }
+          slipAt = -1; o.x.push(i); tgXp(s.id + 'c' + i, 2); if (s.reasons && s.reasons.length) asking = i; lastR = null;
+          save(o); if (o.x.length >= nWrong) confetti(); d._upd();
+        };
+        list.appendChild(b);
+      });
+      if (show) {
+        foot.appendChild(tallyFor(s.id)); rightSoFar(s, foot, 'Down to one answer');
+        if (counts) foot.appendChild(H('p', 'state', 'Bars: how many students crossed each one out.'));
+        if (showAns) foot.appendChild(H('div', 'reveal', '<b>Left standing: ' + letter(s.ans) + '.</b> ' + fmt(s.why || '')));
+        return;
+      }
+      if (asking >= 0) {
+        var ask = H('div', 'xwhy'); ask.appendChild(H('p', 'state', 'Why is <b>' + letter(asking) + '</b> out? Pick a reason.'));
+        var rr = H('div', 'row'); (s.reasons || []).forEach(function (rs, k) {
+          var rb = el('button', { type: 'button', 'class': 'btn small', text: plain(rs) });
+          rb.onclick = function () { var good = !s.because || s.because[asking] === k; o.r[asking] = k; lastR = { i: asking, good: good }; if (good) tgXp(s.id + 'r' + asking, 1); asking = -1; save(o); d._upd(); };
+          rr.appendChild(rb);
+        });
+        var skip = el('button', { type: 'button', 'class': 'btn small', text: 'Not sure, skip' }); skip.onclick = function () { asking = -1; d._upd(); }; rr.appendChild(skip);
+        ask.appendChild(rr); foot.appendChild(ask);
+      }
+      if (lastR && s.because) foot.appendChild(H('p', 'state ' + (lastR.good ? 'ok' : ''), lastR.good ? '✓ Good reason.' : 'It is out, but the usual reason is: <b>' + fmt(s.reasons[s.because[lastR.i]] || '') + '</b>'));
+      if (slipAt >= 0) foot.appendChild(H('div', 'fb try', '<b>' + letter(slipAt) + ' can\'t be ruled out.</b> Keep it, and look for one that is definitely wrong.'));
+      if (done) foot.appendChild(H('div', 'fb good', '<b>Last one standing: ' + letter(s.ans) + '.</b> ' + fmt(s.why || '')));
+      else if (rv >= 2) foot.appendChild(H('div', 'reveal', '<b>' + TEACHER + ' showed the answer: ' + letter(s.ans) + '.</b> ' + fmt(s.why || '')));
+      else foot.appendChild(H('p', 'state', o.x.length ? 'Crossed out <b>' + o.x.length + ' of ' + nWrong + '</b> wrong answers. Each one you rule out counts.' : 'Not sure of the answer? Tap one you <b>know is wrong</b> to cross it out. Each one counts.'));
+      if (a) foot.appendChild(stateLine(s.id));
+      if (!a) helpFor(s, foot, s.help || s.hint); if (done) moreFor(s, foot);
+    };
+    d._upd();
+  };
+
+  // 🧐 Which one doesn't belong: { items: [four things], why: [one true reason for each item] }. Any item is right with its own reason.
+  KINDS.odd = function (s, d, show) {
+    head(s, d); var left = H('div', 'st'); left.appendChild(H('p', 'kick', '🧐 Which one doesn\'t belong?'));
+    left.appendChild(H('p', 'q', fmt(s.q || 'Which one doesn\'t belong? There is more than one good answer.')));
+    var list = H('div', 'opts oddg'), foot = H('div', 'st'); left.appendChild(list); left.appendChild(foot); withFig(s, d, left);
+    var items = s.items || [], whys = s.why || [], sh = seeded(s.id + 'r', whys.length), pickI = -1;
+    d._upd = function () {
+      list.innerHTML = ''; foot.innerHTML = '';
+      var a = mine[s.id], rv = reveal(s.id), solved = !!(a && a.correct === true), chosen = a ? parseInt(a.answer, 10) - 1 : -1;
+      var counts = classCounts(s, show), total = sum(counts), showAns = rv >= 2 || peeking();
+      if (pickI < 0 && !solved && a) pickI = chosen;
+      items.forEach(function (it, i) {
+        var b = optBtn((i === (solved ? chosen : pickI) ? 'mine' : ''), letter(i), fmt(it));
+        if (showAns && whys[i]) b.querySelector('.t').appendChild(H('span', 'fixl', fmt(whys[i])));
+        if (counts) pcBar(b, counts[i] || 0, total);
+        if (show || solved || rv >= 2) b.disabled = true; else b.onclick = function () { pickI = i; d._upd(); };
+        list.appendChild(b);
+      });
+      if (show) { foot.appendChild(tallyFor(s.id)); rightSoFar(s, foot, 'Picked a reason that fits'); if (showAns) foot.appendChild(H('div', 'reveal', '<b>Every one can be the odd one out.</b> ' + fmt(s.note || 'What matters is the reason.'))); return; }
+      if (solved) foot.appendChild(H('div', 'fb good', '<b>Yes, that is a real reason.</b> Challenge: can you find a reason for a different one?'));
+      else if (pickI >= 0 && rv < 2) {
+        var ask = H('div', 'xwhy'); ask.appendChild(H('p', 'state', '<b>' + letter(pickI) + '</b> doesn\'t belong because…'));
+        sh.forEach(function (k) {
+          var rb = el('button', { type: 'button', 'class': 'btn small', text: plain(whys[k]) });
+          rb.onclick = function () { var ok = k === pickI; retry(s, (pickI + 1) + '. ' + plain(items[pickI]) + ' | because: ' + plain(whys[k]), ok); if (ok) confetti(); d._upd(); };
+          ask.appendChild(rb);
+        });
+        foot.appendChild(ask);
+        if (a && a.correct === false && chosen === pickI) foot.appendChild(H('div', 'fb try', 'That reason isn\'t true for ' + letter(pickI) + ' only. Read it again: which one is it about? Or pick a different reason.'));
+      } else if (rv < 2) foot.appendChild(H('p', 'state', 'Tap any one. Then pick the reason that makes it the odd one out.'));
+      if (rv >= 2) foot.appendChild(H('div', 'reveal', '<b>Every one can be the odd one out.</b> ' + fmt(s.note || 'What matters is the reason.')));
+      if (a) foot.appendChild(stateLine(s.id));
+      if (solved) moreFor(s, foot);
+    };
+    d._upd();
+  };
+
+  // ⚖️ Always, sometimes or never: { q: the statement, ans: 0 always | 1 sometimes | 2 never, eg: the follow-up prompt, why, model }
+  KINDS.asn = function (s, d, show) {
+    head(s, d); var left = H('div', 'st'); left.appendChild(H('p', 'kick', '⚖️ Always, sometimes or never?'));
+    left.appendChild(H('p', 'q asnq', '“' + fmt(s.q) + '”'));
+    var list = H('div', 'opts asn'), foot = H('div', 'st'); left.appendChild(list); left.appendChild(foot); withFig(s, d, left);
+    var draft = null, E = ['✅', '🔀', '🚫'];
+    d._upd = function () {
+      var ta0 = foot.querySelector('textarea'); if (ta0) draft = ta0.value;
+      list.innerHTML = ''; foot.innerHTML = '';
+      var a = mine[s.id], picked = a ? parseInt(a.answer, 10) - 1 : -1, eg = a && a.answer.indexOf(' | ') > 0 ? a.answer.split(' | ').slice(1).join(' | ') : '';
+      var rv = reveal(s.id), selfPaced = MODE === 'student' && !isLive(), counts = classCounts(s, show), total = sum(counts);
+      var showAns = s.ans != null && (rv >= 2 || (selfPaced && a) || peeking());
+      ASN.forEach(function (o, i) {
+        var b = optBtn((i === picked ? 'mine' : '') + (showAns && i === s.ans ? ' right' : ''), E[i], o);
+        if (counts) pcBar(b, counts[i] || 0, total);
+        if (show || (MODE === 'student' && !selfPaced && rv >= 1)) b.disabled = true;
+        else b.onclick = function () { record({ id: s.id, k: 'poll' }, (i + 1) + '. ' + o + (eg ? ' | ' + eg : ''), s.ans != null ? i === s.ans : null); d._upd(); };
+        list.appendChild(b);
+      });
+      if (show) {
+        foot.appendChild(tallyFor(s.id));
+        if (onScreen(s.id)) {
+          var p = feed && feed.per[s.id], w = H('div', 'wall');
+          (p ? p.list : []).filter(function (x) { return String(x.answer).indexOf(' | ') > 0; }).sort(function (x, y) { return x.time < y.time ? 1 : -1; }).slice(0, 12).forEach(function (x) { var pr = String(x.answer).split(' | '); w.appendChild(H('div', 'card', '<small>' + esc(pr[0].replace(/^\d\. /, '')) + '</small> ' + esc(pr.slice(1).join(' | ').slice(0, 200)))); });
+          if (w.children.length) foot.appendChild(w);
+        }
+        if (showAns) foot.appendChild(H('div', 'reveal', '<b>' + ASN[s.ans] + '.</b> ' + fmt(s.why || '')));
+        return;
+      }
+      if (a && (selfPaced || rv < 1)) {
+        foot.appendChild(H('p', 'state', '<b>Back it up.</b> ' + fmt(s.eg || 'Give an example that shows why.')));
+        var ta = el('textarea', { 'aria-label': 'Your example', placeholder: s.ph || 'For example…', maxlength: '400' }); ta.value = draft != null ? draft : eg;
+        var sb = el('button', { type: 'button', 'class': 'btn primary small', text: eg ? 'Send again' : 'Send my example' });
+        sb.onclick = function () { var v = ta.value.trim().replace(/\s*\|\s*/g, ' / '); if (!v) { SFA.toast('Type an example first. One line is enough.'); return ta.focus(); } draft = null; if (!eg) tgXp(s.id + 'eg', 3); record({ id: s.id, k: 'poll' }, (picked + 1) + '. ' + ASN[picked] + ' | ' + v, a.correct); d._upd(); };
+        foot.appendChild(ta); var row = H('div', 'row'); row.appendChild(sb); foot.appendChild(row);
+      } else if (!a) foot.appendChild(H('p', 'state', 'Is the statement true every time, only some of the time, or never? Tap one.'));
+      if (a) foot.appendChild(stateLine(s.id));
+      if (!selfPaced && rv >= 1 && rv < 2) foot.appendChild(H('p', 'state', 'Answers are closed. ' + TEACHER + ' is sharing the results.'));
+      if (showAns) foot.appendChild(H('div', 'reveal', '<b>' + (a ? (picked === s.ans ? 'Yes! ' : 'Not this time. ') : '') + ASN[s.ans] + '.</b> ' + fmt(s.why || '') + (s.model ? '<br><b>An example:</b> ' + fmt(s.model) : '')));
+      if (!a) helpFor(s, foot, s.help || s.hint); moreFor(s, foot);
+    };
+    d._upd();
+  };
+
+  // 🎯 Estimate first: { q, lo, hi (the ends of the slider), step, unit, ans, tol (how close the exact answer must be), near (what counts as a good estimate), hint, why }
+  function estPlot(s, vals, bins, me, ans) {
+    var w = H('div', 'estplot'), cols = H('div', 'estcols'), n = bins ? bins.length : 20, b = bins ? bins.slice() : [], i, span = (s.hi - s.lo) || 1;
+    if (!bins) { for (i = 0; i < n; i++) b.push(0); vals.forEach(function (v) { b[Math.max(0, Math.min(n - 1, Math.floor((v - s.lo) / span * n)))]++; }); }
+    var mx = Math.max.apply(null, b.concat([1]));
+    b.forEach(function (c) { var col = H('i', c ? 'on' : ''); col.style.height = Math.round(100 * c / mx) + '%'; if (c) col.title = c; cols.appendChild(col); });
+    w.appendChild(cols);
+    function mark(v, cls, txt) { var m = H('span', 'estmark ' + cls, txt); m.style.left = Math.max(0, Math.min(100, 100 * (v - s.lo) / span)) + '%'; w.appendChild(m); }
+    if (me != null) mark(me, 'me', 'you'); if (ans != null) mark(ans, 'ans', '✓ ' + numTxt(ans));
+    w.appendChild(H('div', 'estaxis', '<span>' + esc(numTxt(s.lo)) + '</span><span>' + esc(numTxt((s.lo + s.hi) / 2)) + '</span><span>' + esc(numTxt(s.hi)) + '</span>'));
+    return w;
+  }
+  KINDS.est = function (s, d, show) {
+    head(s, d); var left = H('div', 'st'); left.appendChild(H('p', 'kick', '🎯 Estimate first')); qline(s, left);
+    var box = H('div', 'ans est'); left.appendChild(box); withFig(s, d, left);
+    var unit = s.unit ? ' ' + s.unit : '', sliderV = null, draft = '';
+    function parts() { var a = mine[s.id], m = a && /^e:(-?[0-9.]+)(?:;a:(.*))?$/.exec(a.answer); return m ? { e: +m[1], x: m[2] } : null; }
+    d._upd = function () {
+      var in0 = box.querySelector('input[type=text]'); if (in0) draft = in0.value;
+      box.innerHTML = '';
+      var a = mine[s.id], p = parts(), rv = reveal(s.id), showAns = s.ans != null && (rv >= 2 || peeking());
+      if (show) {
+        box.appendChild(tallyFor(s.id)); var f = feed && feed.per[s.id];
+        if (onScreen(s.id) || peeking()) {
+          var vals = (f ? f.list : []).map(function (x) { var m = /^e:(-?[0-9.]+)/.exec(String(x.answer)); return m ? +m[1] : null; }).filter(function (v) { return v != null; });
+          if (vals.length) { box.appendChild(H('p', 'state', 'The class\'s estimates:')); box.appendChild(estPlot(s, vals, null, null, showAns ? s.ans : null)); }
+        }
+        if (f && f.n && s.ans != null) box.appendChild(H('p', 'state', 'Worked out the exact answer: ' + f.right + ' so far'));
+        if (showAns) box.appendChild(H('div', 'reveal', '<b>Answer: ' + esc(numTxt(s.ans)) + esc(unit) + '.</b> ' + fmt(s.why || '')));
+        return;
+      }
+      if (!p) {
+        if (rv >= 1) { box.appendChild(H('p', 'state', 'Estimates are closed for this one.')); if (showAns) box.appendChild(H('div', 'reveal', '<b>Answer: ' + esc(numTxt(s.ans)) + esc(unit) + '.</b> ' + fmt(s.why || ''))); return; }
+        if (sliderV == null) sliderV = Math.round(((s.lo + s.hi) / 2) / (s.step || 1)) * (s.step || 1);
+        var out = H('div', 'estval', esc(numTxt(sliderV)) + esc(unit));
+        var rg = el('input', { type: 'range', min: String(s.lo), max: String(s.hi), step: String(s.step || 1), 'aria-label': 'Your estimate' }); rg.value = sliderV;
+        rg.oninput = function () { sliderV = +rg.value; out.textContent = numTxt(sliderV) + unit; };
+        box.appendChild(H('p', 'state', '<b>No working out yet.</b> Slide to your best guess. Any guess counts.'));
+        box.appendChild(out); box.appendChild(rg);
+        box.appendChild(H('div', 'estaxis', '<span>' + esc(numTxt(s.lo)) + '</span><span>' + esc(numTxt(s.hi)) + '</span>'));
+        var lb = el('button', { type: 'button', 'class': 'btn primary', text: 'Lock in my estimate' }), row = H('div', 'row'); row.appendChild(lb); box.appendChild(row);
+        lb.onclick = function () { record({ id: s.id, k: 'number' }, 'e:' + sliderV, null); d._upd(); };
+        return;
+      }
+      box.appendChild(H('p', 'state ok', '🔒 Your estimate: <b>' + esc(numTxt(p.e)) + esc(unit) + '</b>'));
+      var counts = classCounts(s, false);
+      if (counts) { box.appendChild(H('p', 'state', 'Where the class\'s estimates landed:')); box.appendChild(estPlot(s, null, counts, p.e, showAns || (a && a.correct === true) ? s.ans : null)); }
+      if (s.ans != null) {
+        var near = Math.abs(p.e - s.ans) <= (s.near != null ? s.near : (s.hi - s.lo) * 0.1);
+        if (a.correct === true) box.appendChild(H('div', 'fb good', '<b>Yes: ' + esc(numTxt(s.ans)) + esc(unit) + '.</b> ' + (near ? '🎯 And your estimate was close! ' : 'Your estimate was ' + esc(numTxt(Math.abs(Math.round((p.e - s.ans) * 100) / 100))) + ' away. ') + fmt(s.why || '')));
+        else if (rv >= 2) box.appendChild(H('div', 'reveal', '<b>' + TEACHER + ' showed the answer: ' + esc(numTxt(s.ans)) + esc(unit) + '.</b> ' + fmt(s.why || '')));
+        else {
+          box.appendChild(H('p', 'state', '<b>Now work it out exactly.</b>'));
+          var inp = el('input', { type: 'text', inputmode: s.ans < 0 ? 'text' : 'decimal', 'aria-label': 'Exact answer', placeholder: 'Type a number', autocomplete: 'off' }); inp.value = draft || '';
+          var cb = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' }), r2 = H('div', 'row'); r2.appendChild(inp); r2.appendChild(cb); box.appendChild(r2);
+          if (a.correct === false) box.appendChild(H('div', 'fb try', 'Not yet. ' + fmt(s.hint || 'Check your working and try again.')));
+          var chk = function () {
+            var v = numOf(normAns(inp.value)); if (!inp.value.trim()) return inp.focus();
+            if (v == null || isNaN(v)) { SFA.toast('Type a number, like 12 or -3.'); return; }
+            var ok = Math.abs(v - s.ans) <= (s.tol || 1e-9) + 1e-9; draft = '';
+            if (ok && near) tgXp(s.id + 'near', 3, '🎯 Close estimate');
+            retry(s, 'e:' + p.e + ';a:' + inp.value.trim(), ok, 'number'); if (ok) confetti(); d._upd();
+          };
+          cb.onclick = chk; inp.onkeydown = function (e) { if (e.key === 'Enter') chk(); };
+          if (a.correct !== false) helpFor(s, box, s.help || s.hint);
+        }
+      }
+      box.appendChild(stateLine(s.id));
+      if (a.correct === true || s.ans == null) moreFor(s, box);
+    };
+    d._upd();
+  };
+
   /* ---------------- differentiation inside a slide ----------------
      help: one first step for a student who's stuck (a button, before they answer).
      more: [★ another one like it, ★★ a stretch]. Once a student has answered the slide's question they work down these
@@ -877,6 +1214,7 @@
     if (MODE === 'teach') return;
     if (window.SFA_WB) SFA_WB.sync(live, MODE);   // the teacher's whiteboard, over the slide while it is open
     noteSkew();
+    if (window.SFA_TOGETHER) SFA_TOGETHER.sync();   // Everybody In, nudges, the spotlight spin, think-pair-share (sfa-together.js)
     priceSync();
     lookSync();
     lobbySync();
@@ -886,6 +1224,7 @@
     sumoSync();
     standSync();
     duelSync();
+    crewSync();   // crew games: All Aboard, Splash Squad
     if (window.SFA_CLASH) return SFA_CLASH.sync();
     if ((isLive() || MODE === 'screen') && freshClash(live) && !(MODE === 'student' && saving && !S.me)) clashAssets(function () { SFA_CLASH.sync(); });
   }
@@ -942,9 +1281,9 @@
   var lookKey = '';
   function lookSync() {
     if (MODE !== 'student' || !S || !S.me || !saving || !isLive() || !window.SFA_AVATAR) return;
-    var P = heroP(), look = P.look || SFA_AVATAR.defLook(S.me.sid), lv = heroLv(P.xp || 0), k = liveRun() + ':' + look + ':' + lv;
+    var P = heroP(), look = P.look || SFA_AVATAR.defLook(S.me.sid), lv = heroLv(P.xp || 0), lx = String(P.lx || '').replace(/[^0-9a-z]/g, '').slice(0, 16), k = liveRun() + ':' + look + ':' + lv + ':' + lx;
     if (k === lookKey) return; lookKey = k;
-    record({ id: 'zlookx1', k: 'open' }, 'lk1;' + look + ';' + lv, null);
+    record({ id: 'zlookx1', k: 'open' }, 'lk1;' + look + ';' + lv + (lx ? ';' + lx : ''), null);   // the 4th part is the extended look (hair, outfit, title…)
   }
   // 🪙 wardrobe prices, set by the teacher from the class's coin totals, ride along in the live state
   function priceSync() { var v = live && live.counts && Array.isArray(live.counts.zpr) ? +live.counts.zpr[0] : 0; if (v > 0 && SFA.store.get('teacher.avprice', 0) !== v) SFA.store.set('teacher.avprice', v); }
@@ -1085,7 +1424,7 @@
     ((console_.data && console_.data.answers) || []).forEach(function (a) {
       if (!ids[a.sid]) return;
       if (!beforeRun(a)) here[a.sid] = 1;
-      if (a.q === 'zlookx1') { var m = String(a.answer).match(/^lk1;([0-9a-z]{1,12})/); if (m && (!looks[a.sid] || String(a.time) >= looks[a.sid].t)) looks[a.sid] = { look: m[1], t: String(a.time) }; }
+      if (a.q === 'zlookx1') { var m = String(a.answer).match(/^lk1;([0-9a-z]{1,12})/); if (m && (!looks[a.sid] || String(a.time) >= looks[a.sid].t)) looks[a.sid] = { look: (SFA_AVATAR.fromWire && SFA_AVATAR.fromWire(a.answer)) || m[1], t: String(a.time) }; }
       if (a.q === 'zstrutx1') { var m2 = String(a.answer).match(/^st1;(\d+);([0-9a-z]{1,12})/); if (m2 && (!strs[a.sid] || +m2[1] > strs[a.sid].n)) strs[a.sid] = { n: +m2[1], look: m2[2], t: Date.parse(a.time) || 0 }; }
     });
     var nm = function (sid) { return String(first(ids[sid].name) || '').replace(/[^A-Za-zÀ-ÿ' -]/g, '').slice(0, 10); };
@@ -1104,7 +1443,7 @@
     if (K.cur) { K.cur = null; }
     if (K.q.length && !lobbyBusy()) { K.cur = K.q.shift(); K.seq++; K.at = Date.now(); strutFx(K.cur.n, K.cur.look); pushLive(); }
   }
-  function lobbyBusy() { return !!(console_.board || console_.clash || console_.raid || console_.show || console_.sumo || console_.stand || console_.duel || console_.spot); }
+  function lobbyBusy() { return !!(crewBusy() || console_.board ||console_.clash || console_.raid || console_.show || console_.sumo || console_.stand || console_.duel || console_.spot); }
   function lobbySpot() {
     var K = console_.lobby; if (!K || lobbyBusy()) return null;
     var S2 = K.cur ? '#S:' + K.seq + '~' + K.cur.n + '~' + K.cur.look : '#S:' + K.seq, J = '';
@@ -1114,7 +1453,7 @@
   every(function () { if (MODE === 'teach' && console_.on) lobbyTick(); }, 1000);
 
   // 👗 the fashion show (sfa-show.js): every student's avatar on the catwalk, on the class screen and every device
-  var SHOW_V = '20261116a', showLoading = null;
+  var SHOW_V = '20261120a', showLoading = null;
   function showAssets(cb) {
     if (window.SFA_SHOW) return cb();
     if (showLoading) { showLoading.push(cb); return; }
@@ -1217,6 +1556,60 @@
   function standSync() {
     if (window.SFA_STAND) return SFA_STAND.sync();
     if ((isLive() || MODE === 'screen') && freshStand(live) && !(MODE === 'student' && saving && !S.me)) standAssets(function () { SFA_STAND.sync(); });
+  }
+
+  /* ---------------- crew games: 🎈 All Aboard (sfa-aloft.js) and 💦 Splash Squad (sfa-splash.js) ----------------
+     The two "everyone is needed" games. Each loads sfa-crewkit.js first. Everything they need from this file is in this
+     block, plus the one-line crew…() calls marked "crew games" (clashSync, the console's restore, fetchAnswers, liveObj,
+     runningGame, lobbyBusy) and their two tiles in gamesTray. */
+  var CREW_V = '20261119a', crewLoading = {};
+  var CREW = { aloft: { g: 'SFA_ALOFT', f: 'sfa-aloft.js', s: 'zups', id: 'zupid', st: 'zupst', q: 'zup', n: 'All Aboard' }, splash: { g: 'SFA_SPLASH', f: 'sfa-splash.js', s: 'zwets', id: 'zwetid', st: 'zwetst', q: 'zwet', n: 'Splash Squad' } };
+  function crewAssets(k, cb) {
+    var G = CREW[k];
+    if (window[G.g]) return cb();
+    if (crewLoading[k]) { crewLoading[k].push(cb); return; }
+    crewLoading[k] = [cb];
+    var files = (window.SFA_CREW ? [] : ['sfa-crewkit.js']).concat([G.f]), i = 0;
+    (function next() {
+      if (i >= files.length) { var q = crewLoading[k]; crewLoading[k] = null; q.forEach(function (f) { try { f(); } catch (e) { console.warn(e); } }); return; }
+      var sc8 = document.createElement('script'); sc8.src = files[i++] + '?v=' + CREW_V; sc8.onload = next;
+      sc8.onerror = function () { crewLoading[k] = null; SFA.toast(G.n + ' couldn\'t load. Check the connection.', 4000); };
+      document.head.appendChild(sc8);
+    })();
+  }
+  // a game over 3 minutes past its end is stale (a console that never cleared it): pages ignore it
+  function crewFresh(k, L) {
+    var G = CREW[k], c = L && L.lesson === LID && L.counts; if (!c || !Array.isArray(c[G.s])) return false;
+    var st = MODE === 'screen' ? decRun(c[G.id]) : decRun(c[G.st]) || decRun(c[G.id]);
+    return MODE === 'teach' || (Date.now() + (MODE === 'screen' ? 0 : srvSkewV || 0)) - st <= (c[G.s][1] || 300) * 1000 + 180000;
+  }
+  function crewSync() {
+    Object.keys(CREW).forEach(function (k) {
+      var G = CREW[k];
+      if (window[G.g]) return window[G.g].sync();
+      if ((isLive() || MODE === 'screen') && crewFresh(k, live) && !(MODE === 'student' && saving && !S.me)) crewAssets(k, function () { window[G.g].sync(); });
+    });
+  }
+  function crewAgg() { Object.keys(CREW).forEach(function (k) { if (console_[k] && window[CREW[k].g]) window[CREW[k].g].agg(); }); }
+  function crewCounts(counts) { var sp = null; Object.keys(CREW).forEach(function (k) { var M = window[CREW[k].g]; if (console_[k] && M) { M.counts(counts); sp = M.spot() || sp; } }); return sp; }
+  function crewSection(p) { return Object.keys(CREW).some(function (k) { var M = window[CREW[k].g]; if (console_[k] && M) { M.section(p); return true; } return false; }); }
+  function crewBusy() { return !!(console_.aloft || console_.splash); }
+  function crewRestore(L) {
+    Object.keys(CREW).forEach(function (k) {
+      var G = CREW[k]; if (!(L && L.counts && Array.isArray(L.counts[G.s]))) return;
+      if (console_.spot && console_.spot.q === G.q) console_.spot = null;
+      crewAssets(k, function () { if (!window[G.g].restore(L)) pushLive(); consolePanel(); });
+    });
+  }
+  function buildAloft(box) {
+    var len = pickSel('Flight length', [[4, '4 minutes'], [5, '5 minutes'], [6, '6 minutes'], [8, '8 minutes']], SFA.store.get('teacher.aloft.mins', 5), 'teacher.aloft.mins');
+    var sb = startBtn('🎈 Start All Aboard', 'Filling the balloon…', function () { crewAssets('aloft', function () { if (SFA_ALOFT.start(+len.value)) SFA.toast('All Aboard is on! Students\' screens switch within a few seconds.', 3500); else consolePanel(); }); });
+    var r = H('div', 'row'); r.appendChild(len); r.appendChild(sb); box.appendChild(r);
+  }
+  function buildSplash(box) {
+    var len = pickSel('Game length', [[4, '4 minutes'], [6, '6 minutes'], [8, '8 minutes']], SFA.store.get('teacher.splash.mins', 6), 'teacher.splash.mins');
+    var sb = startBtn('💦 Start Splash Squad', 'Forming the crews…', function () { crewAssets('splash', function () { if (SFA_SPLASH.start(+len.value)) SFA.toast('Splash Squad is on! Students\' screens switch within a few seconds.', 3500); else consolePanel(); }); });
+    var r = H('div', 'row'); r.appendChild(len); r.appendChild(sb); box.appendChild(r);
   }
 
   /* ---------------- deck ---------------- */
@@ -1397,7 +1790,7 @@
     bc.onmessage = function (e) {
       var m = e.data || {};
       if (m.t === 'state') {
-        consoleSeen = true; live = m.live; feed = m.feed;
+        consoleSeen = true; live = m.live; feed = m.feed; if (window.SFA_TOGETHER) SFA_TOGETHER.fromConsole(m.tg);
         if (m.slide !== cur) render(m.slide, m.slide > cur ? 1 : -1); else upd();
         clashSync();
       }
@@ -1448,7 +1841,7 @@
     }, 15000);
     if (!console_.offline) tpost('live').then(function (j) {
       console_.climb = j.climb || null;
-      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; if (window.SFA_WB) SFA_WB.restore(j.live.wb); console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid' || console_.spot.q === 'zshow' || console_.spot.q === 'zsumo' || console_.spot.q === 'zstand' || console_.spot.q === 'zduel')) console_.spot = null; if (hasDuel(j.live)) { var jd = j.live; duelAssets(function () { if (!SFA_DUEL.restore(jd)) pushLive(); consolePanel(); }); } if (hasStand(j.live)) { var jt = j.live; standAssets(function () { if (!SFA_STAND.restore(jt)) pushLive(); consolePanel(); }); } if (hasSumo(j.live)) { var js2 = j.live; sumoAssets(function () { if (!SFA_SUMO.restore(js2)) pushLive(); consolePanel(); }); } if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
+      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; if (window.SFA_WB) SFA_WB.restore(j.live.wb); console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid' || console_.spot.q === 'zshow' || console_.spot.q === 'zsumo' || console_.spot.q === 'zstand' || console_.spot.q === 'zduel')) console_.spot = null; crewRestore(j.live); if (hasDuel(j.live)) { var jd = j.live; duelAssets(function () { if (!SFA_DUEL.restore(jd)) pushLive(); consolePanel(); }); } if (hasStand(j.live)) { var jt = j.live; standAssets(function () { if (!SFA_STAND.restore(jt)) pushLive(); consolePanel(); }); } if (hasSumo(j.live)) { var js2 = j.live; sumoAssets(function () { if (!SFA_SUMO.restore(js2)) pushLive(); consolePanel(); }); } if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
       // opened from the Climb dashboard ("End Climb → Lesson N"): go live straight away, so students' pages move into this lesson
       else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
       else consolePanel();
@@ -1468,7 +1861,7 @@
       if (my < applied) return;   // only an older reply than one already shown is dropped
       applied = my; console_.got = Date.now(); var js = JSON.stringify(j), wasErr = !!console_.err;
       console_.err = ''; if (js === lastData && !wasErr) return; lastData = js;
-      console_.data = j; computeFeed(); clashAgg(); if (window.SFA_BOARD && console_.board) SFA_BOARD.agg(); if (window.SFA_RAID && console_.raid) SFA_RAID.agg(); if (window.SFA_SUMO && console_.sumo) SFA_SUMO.agg(); if (window.SFA_STAND && console_.stand) SFA_STAND.agg(); if (window.SFA_DUEL && console_.duel) SFA_DUEL.agg(); lobbyAgg(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
+      console_.data = j; computeFeed(); clashAgg(); crewAgg();if (window.SFA_BOARD && console_.board) SFA_BOARD.agg(); if (window.SFA_RAID && console_.raid) SFA_RAID.agg(); if (window.SFA_SUMO && console_.sumo) SFA_SUMO.agg(); if (window.SFA_STAND && console_.stand) SFA_STAND.agg(); if (window.SFA_DUEL && console_.duel) SFA_DUEL.agg(); if (window.SFA_TOGETHER) SFA_TOGETHER.agg(); lobbyAgg(); consolePanel(); upd(); broadcast(); pushCountsIfChanged();
     },
       function (e) {
         if (my === fetchSeq) fetching = 0;
@@ -1487,7 +1880,7 @@
     roster.forEach(function (r) { ids[r.sid] = 1; name[r.sid] = nice(r.name); });
     var per = {};
     questions().forEach(function (s) {
-      var n = s.k === 'conf' ? 4 : s.opts ? s.opts.length : 0, p = per[s.id] = { n: 0, right: 0, counts: [], who: [], list: [], sids: {} };
+      var n = nOpts(s), p = per[s.id] = { n: 0, right: 0, counts: [], who: [], list: [], sids: {} };
       for (var i = 0; i < n; i++) { p.counts.push(0); p.who.push([]); }
       (s.more || []).forEach(function (m, j) { per[xid(s, j)] = { n: 0, right: 0, counts: [], who: [], list: [], sids: {}, extra: true }; });
     });
@@ -1499,8 +1892,7 @@
       if (a.q === 'zflag') { flags[a.sid] = decFlags(a.answer); return; }
       var p = per[a.q]; if (!p) return;
       p.n++; p.sids[a.sid] = 1; if (a.correct === 'yes') p.right++;
-      var k = parseInt(a.answer, 10) - 1;
-      if (p.counts.length && k >= 0 && k < p.counts.length) { p.counts[k]++; p.who[k].push(first(name[a.sid])); }
+      if (p.counts.length) idxOf(a.q, a.answer).forEach(function (k) { if (k >= 0 && k < p.counts.length) { p.counts[k]++; p.who[k].push(first(name[a.sid])); } });
       p.list.push({ sid: a.sid, name: name[a.sid], answer: a.answer, correct: a.correct, time: a.time });
     });
     feed = { total: roster.length, per: per };
@@ -1528,7 +1920,7 @@
   }
   function flagStrong(f) { return !!(f && (f.pastes || f.copies || f.shots)); }
   function flagShown(f) { return !!(f && (flagStrong(f) || f.secs >= 10)); }
-  function broadcast() { if (bc) bc.postMessage({ t: 'state', slide: cur, live: liveObj(), feed: feed }); }
+  function broadcast() { if (bc) bc.postMessage({ t: 'state', slide: cur, live: liveObj(), feed: feed, tg: window.SFA_TOGETHER ? SFA_TOGETHER.screenData() : null }); }
   function liveObj() {
     // the results script keeps the first 60 counts keys: the run, the lock and the battle go first, the slides' tallies last
     var counts = {}, spot = console_.spot || lobbySpot();
@@ -1542,15 +1934,17 @@
     if (console_.sumo && window.SFA_SUMO) { SFA_SUMO.counts(counts); spot = SFA_SUMO.spot(); }   // the matches, the ring, the roster; at the end the highlight reel
     if (console_.stand && window.SFA_STAND) { SFA_STAND.counts(counts); spot = SFA_STAND.spot(); }
     if (console_.duel && window.SFA_DUEL) { SFA_DUEL.counts(counts); spot = SFA_DUEL.spot(); }   // the fleets, the missions, the volley   // the grid: the line or the rules, where everyone stands, the scores
+    var crewSp = crewCounts(counts); if (crewSp) spot = crewSp;   // crew games: All Aboard, Splash Squad
+    if (window.SFA_TOGETHER) SFA_TOGETHER.counts(counts);   // Everybody In, the mural, nudges, the spin, think-pair-share
     Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length && Object.keys(counts).length < 60) counts[q] = feed.per[q].counts; });
-    return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: spot, timer: console_.timer, lock: console_.lock, auto: console_.auto, wb: window.SFA_WB ? SFA_WB.live() : null, ex: LES.slides[cur] && LES.slides[cur].k === 'ex' ? { s: cur, n: exN[cur] || 0 } : null };
+    return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: spot, timer: console_.timer, lock: console_.lock, auto: console_.auto, wb: window.SFA_WB ? SFA_WB.live() : null, ex: LES.slides[cur] && LES.slides[cur].k === 'ex' ? { s: cur, n: exN[cur] || 0 } : null, x: window.SFA_TOGETHER ? SFA_TOGETHER.x() : undefined };
   }
   var pushT = null, lastCounts = '', lastPush = 0;
   function pushLive() {
     live = liveObj(); upd(); broadcast();
     if (!console_.on || console_.offline) return;
     clearTimeout(pushT);
-    pushT = setTimeout(function () { if (!console_.on) return; var L = liveObj(); lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) { var sk = j.live.at - Math.round((t0 + Date.now()) / 2), moved = Math.abs(sk - (console_.skew || 0)) > 3000; console_.skew = sk; if (moved && console_.data) { computeFeed(); consolePanel(); upd(); broadcast(); } } }).catch(function (e) { SFA.toast('Couldn\'t update the class: ' + e.message, 4000); }); }, 300);
+    pushT = setTimeout(function () { if (!console_.on) return; var L = liveObj(); lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && window.SFA_TOGETHER) SFA_TOGETHER.pushed(L, j.live); if (j && j.live && j.live.at) { var sk = j.live.at - Math.round((t0 + Date.now()) / 2), moved = Math.abs(sk - (console_.skew || 0)) > 3000; console_.skew = sk; if (moved && console_.data) { computeFeed(); consolePanel(); upd(); broadcast(); } } }).catch(function (e) { SFA.toast('Couldn\'t update the class: ' + e.message, 4000); }); }, 300);
   }
   // toGame: students' pages move on to this lesson's game by themselves (counts.zgame rides along with the end marker)
   function endLive(toGame) {
@@ -1660,6 +2054,7 @@
     else if (console_.sumo && window.SFA_SUMO) SFA_SUMO.section(p);
     else if (console_.stand && window.SFA_STAND) SFA_STAND.section(p);
     else if (console_.duel && window.SFA_DUEL) SFA_DUEL.section(p);
+    else if (crewSection(p)) { }   // crew games: All Aboard, Splash Squad
     else return false;
     for (var i = n0; i < p.children.length; i++) p.children[i].classList.add('gamerun');
     return true;
@@ -1672,6 +2067,8 @@
     sumo: 'Students are paired into teams of two (the most sure with the less sure, from today\'s answers) and their avatars put on sumo belts. Each problem: a rule like y = 2x − 3, fill a table, plot two points, draw the line, then use the line to find a point off the table. Every step earns power (half for a second try). Every 30 seconds each pair\'s power against their opponents\' becomes a sumo move on every screen: a bigger gap is a bigger push, out of the ring is a point. Three fights; after each, winners meet winners and the rest meet each other (an odd team out meets the Sumo-Bot). Problems get harder each fight: negative slopes and finding x, then fractions and rearranged rules. At the end, a highlight reel of the best moves. Options: a worked example on every screen before the first bout (y = 2x − 3 worked out step by step, for the class to watch together; it loops until the fights start, and ⏭ starts them early), and a grand final after the reel: the two students with the most power wrestle 1 v 1 while everyone else watches the match and both of their graphs live. Details shows who missed which step.',
     stand: 'Under the Pond. The grid is lava and only the points that satisfy the rule are safe. Each line round the Voice gives a line (always as a rule, never as points to copy: slope-intercept, standard form, point-slope, or horizontal or vertical) and each student taps a point, or types one (fractions allowed), on their own device; their avatar walks there. At the reveal the safe points rise as stepping stones and everyone on lava melts into a puddle and comes back as a ghost. Scoring is accuracy first: safe 100, speed up to +50 (timed on each student\'s own device), +25 for a point nobody else chose, then ×1.5 for a negative coordinate, ×2 for a fraction, ×3 for both. Then an optional inequality round: rules stack one at a time and the safe region cools to rock (points only, or elimination). A student on nothing for two rounds gets a quiet hint step on their own screen (60 points); two right with it and it switches off. You can type your own lines, and switch the hint step on or off for one student from the list of who has not answered.',
     duel: 'A battle in deep space. Two fair fleets stand on a coordinate grid, one each side of the y-axis, every student\'s avatar on a grid point. Each volley students pick a target from three enemies (easy, medium and hard lines, worth ×1, ×1.5 and ×2) and write the line from their point to it as y = mx + b (three tries, with a hint after each miss). Every right line puts a laser in their bank (up to 4) and earns coins, and the next pick comes straight away. Coins carry over between volleys and buy weapons: a mega laser, a meteor, a black hole, or the Sandy Flats wild goat, which stampedes down a line ramming every enemy on it. When the clock runs out (or once every bank is full) every laser fires at once along the line its student typed: a right line hits the target, a wrong one flies where it was aimed. Lock in sooner for a faster, stronger laser; lasers that meet clash and the stronger one wins, weakened, while two of about the same power cancel out. The briefing shows worked examples (a different line each time) and gives students a warm-up line to try. While students aim, a Needs a hand box lists who is stuck, with the problem on their screen, the answer and what they typed. Every line can be typed straight in as y = mx + b, or worked out step by step: plug the two points into the slope formula, work out the slope, plug a point into y = mx + b, then solve for b. Nothing is given away; hints use the student\'s own numbers. The final volley has no help. Help levels (equation first, step by step, step by step with extra hints) only set how a line starts and how strong the hints are; they are set from today\'s answers and move each volley; tap a student in Details to set one yourself.',
+    aloft: 'The whole class flies one hot-air balloon to the Moon. Every student has their own burner: a right answer lights it for 80 seconds (it banks up to 160 s, no more), and the balloon climbs by how many burners are lit at once, not by how many answers come in, so the top few cannot carry it. A student\'s first right answer adds 8 m for everyone. A burner that has been out for a minute (or was never lit after the first 75 s) is a comeback spark when it relights: +25 m for the whole class with a banner on every screen, and bonus XP for everyone whose burner is lit, so the class wants quiet students back in. Questions are this lesson\'s, in tiers: students who have been quiet today start on the ones the class has already met; a miss gets a hint and another try, then the worked answer and an easier question. Lit burners show the student\'s avatar and name; burners that are out are anonymous sandbags, and only your console lists who is out. At the end the crew bounces about on the Moon, or parachutes down onto whatever was underneath.',
+    splash: 'Crews of three or four, formed by the game with busy and quiet students mixed (a snake draft on today\'s answers; nobody is told why). Every launch needs every member: each one gets their own question at their own level, and a right answer puts their charge in the crew\'s springboard. All charged: one member (they take turns) is flung into the pond, and the pond fills. All the crews fill the same pond; make it overflow before the time runs out. A member who is done sees what each teammate is working on (the question, never the answer) and can send a hint (it crosses out a wrong choice or gives the range the number is in), or answer up to two power-up questions. A miss gets a hint and another try. Someone who has not touched their screen for 75 seconds is marked away for that launch so the crew is not stuck (you can also do it from the console); they are back in the moment they do anything, and their next charge is a comeback splash. The class screen never shows who is away or stuck.',
     show: 'Every student here walks the catwalk on the class screen and every device in the avatar they built in the Wardrobe: name, level and outfit, one after another, then a group bow.'
   };
   function gamesTray(p, s) {
@@ -1683,6 +2080,8 @@
       { id: 'sumo', e: '🤼', n: 'Sumo Graphing', len: '~' + Math.round(SFA.store.get('teacher.sumo.mins', 2) * 3 + 1.5) + ' min', sug: false, one: 'Pairs graph lines from rules; every 30 s their work becomes a sumo bout. Three fights, then a highlight reel.', build: buildSumo },
       { id: 'stand', e: '🌋', n: 'The Floor Is Lava', len: '~' + (function (o) { o = o || {}; var n = o.rounds || 5, t = o.secs || 25; return Math.max(2, Math.round((16 + n * (t + 22) + (o.ineq === 0 ? 0 : 11 + (o.ncon || 6) * (t + 23))) / 60)); })(SFA.store.get('teacher.lava', null)) + ' min', sug: false, one: 'The whole class on one grid. The floor is lava: only points on the line are safe. Tap or type a point; everyone on lava melts.', build: buildStand },
       { id: 'duel', e: '🚀', n: 'Laser Lines', len: '~' + Math.round(SFA.store.get('teacher.duel.rounds5', 5) * (SFA.store.get('teacher.duel.secs', 60) + 22) / 60) + ' min', sug: false, one: 'Space battle: pick an enemy, write the line to them, bank a laser. When the aiming time ends, all the lasers fire at once; harder lines score more.', build: buildDuel },
+      { id: 'aloft', e: '🎈', n: 'All Aboard', len: SFA.store.get('teacher.aloft.mins', 5) + ' min', sug: atEnd, one: 'Whole class, one balloon: it climbs by how many students have a burner lit, not by who answers fastest. Quiet students coming back give everyone a boost.', build: buildAloft },
+      { id: 'splash', e: '💦', n: 'Splash Squad', len: SFA.store.get('teacher.splash.mins', 6) + ' min', sug: false, one: 'Mixed crews of 3 or 4: every member has to answer their own question before the crew can launch someone into the pond. Teammates can send hints.', build: buildSplash },
       { id: 'show', e: '👗', n: 'Fashion show', len: '~' + Math.max(1, Math.ceil(Math.max(1, rosterIn().length) * SFA.store.get('teacher.show.secs', 5) / 60)) + ' min', sug: cur === 0, one: 'Every student\'s avatar walks the catwalk, one after another.', build: buildShow }
     ];
     var sec = H('div', 'sect games');
@@ -1783,14 +2182,14 @@
     var sec = H('div', 'sect now'); sec.appendChild(H('h3', '', '📍 This slide <small>· ' + (s.min || 0) + ' min planned</small>'));
     if (s.id && feed) {
       var f = feed.per[s.id], n = f ? f.n : 0, tot = feed.total || 0;
-      sec.appendChild(H('div', 'nowcount', '<b>' + n + '</b> of ' + tot + ' answered' + ((s.k === 'number' || s.k === 'machine') && f ? ' · <b>' + f.right + '</b> right' : '')));
+      sec.appendChild(H('div', 'nowcount', '<b>' + n + '</b> of ' + tot + ' answered' + ((s.k === 'number' || s.k === 'machine' || NEWK[s.k]) && f ? ' · <b>' + f.right + '</b> right' : '')));
       var pb = H('div', 'pbar'), bi = H('i'); bi.style.width = (tot ? 100 * n / tot : 0) + '%'; pb.appendChild(bi); sec.appendChild(pb);
       if (s.more && s.more.length) sec.appendChild(H('p', 'muted', '⭐ Going further: ' + s.more.map(function (m, j) { var q = feed.per[xid(s, j)] || { n: 0, right: 0, list: [] }; return (j === 0 ? '★ ' : j === 1 ? '★★ ' : '★★★ ') + q.n + (m.k === 'open' ? ' sent' : ' tried, ' + q.right + ' right') + (q.n && q.n <= 6 ? ' (' + q.list.map(function (r) { return first(r.name); }).join(', ') + ')' : ''); }).join(' · ')));
       var rv = console_.reveal[s.id] || 0, r2 = H('div', 'row');
       var canShow = true;
-      if (s.k === 'poll' || s.k === 'conf') r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 1 ? ' good' : ''), text: rv >= 1 ? 'Results showing' : 'Show results to class', onclick: function () { console_.reveal[s.id] = rv >= 1 ? 0 : 1; pushLive(); consolePanel(); } }));
+      if (nOpts(s)) r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 1 ? ' good' : ''), text: rv >= 1 ? 'Results showing' : 'Show results to class', onclick: function () { console_.reveal[s.id] = rv >= 1 ? 0 : 1; pushLive(); consolePanel(); } }));
       else r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 1 ? ' good' : ''), text: rv >= 1 ? 'Answers showing' : 'Show answers to class', onclick: function () { console_.reveal[s.id] = rv >= 1 ? 0 : 1; pushLive(); consolePanel(); } }));
-      if ((s.k === 'poll' && s.ans != null) || s.model || s.k === 'number' || s.k === 'machine') r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 2 ? ' good' : ''), text: rv >= 2 ? 'Answer showing' : 'Reveal the answer', onclick: function () { console_.reveal[s.id] = rv >= 2 ? (canShow ? 1 : 0) : 2; pushLive(); consolePanel(); } }));
+      if ((s.k === 'poll' && s.ans != null) || s.model || s.k === 'number' || s.k === 'machine' || NEWK[s.k]) r2.appendChild(el('button', { type: 'button', 'class': 'btn small' + (rv >= 2 ? ' good' : ''), text: rv >= 2 ? 'Answer showing' : 'Reveal the answer', onclick: function () { console_.reveal[s.id] = rv >= 2 ? (canShow ? 1 : 0) : 2; pushLive(); consolePanel(); } }));
       r2.appendChild(el('button', { type: 'button', 'class': 'btn small', text: console_.peek ? 'Hide answer here' : 'Peek at answer (only here)', onclick: function () { console_.peek = !console_.peek; upd(); consolePanel(); } }));
       if (s.k === 'poll') r2.appendChild(el('button', { type: 'button', 'class': 'btn small', text: console_.names ? 'Hide names' : 'Show names', onclick: function () { console_.names = !console_.names; upd(); consolePanel(); } }));
       sec.appendChild(r2);
@@ -1805,14 +2204,15 @@
           c.appendChild(H('b', '', esc(a.name || a.sid) + (a.correct === 'yes' ? ' ✓' : a.correct === 'no' ? ' ✗' : '') + (lit ? ' · on screen now' : '')));
           var fl = console_.flags && console_.flags[a.sid] && console_.flags[a.sid][s.id];
           if (flagStrong(fl)) { var fb2 = H('span', 'flag strong', '⚠'); fb2.title = 'Possible AI help: ' + flagTxt(fl) + '. Details under "AI-use alerts" below.'; c.firstChild.appendChild(fb2); }
-          c.appendChild(document.createTextNode(a.answer));
+          c.appendChild(document.createTextNode(niceAns(s, a.answer)));
           if (s.k === 'open' || s.k === 'exit') { var rr = H('div', 'row'); rr.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Spotlight (no name)', onclick: function () { console_.spot = { q: s.id, text: a.answer }; pushLive(); consolePanel(); } })); c.appendChild(rr); }
           al.appendChild(c);
         });
         sec.appendChild(al);
       }
       var not = rosterIn().filter(function (r) { return !(f && f.sids[r.sid]); });
-      if (not.length && f && f.list.length) {
+      if (window.SFA_TOGETHER && SFA_TOGETHER.notYet(sec, s, not)) { }   // names with a nudge button and an activity dot
+      else if (not.length && f && f.list.length) {
         sec.appendChild(H('h3', '', 'Not answered yet (' + not.length + ')'));
         var wd = H('div', 'who'); not.forEach(function (r) { wd.appendChild(H('span', '', esc(nice(r.name)))); }); sec.appendChild(wd);
       }
@@ -1824,6 +2224,7 @@
     } else sec.appendChild(H('p', 'muted', s.k === 'film' ? 'Play film ' + esc((LES.film || {}).n || '') + ' on your shared screen.' : 'Nothing to collect on this slide.'));
 
     p.appendChild(sec);
+    if (window.SFA_TOGETHER) SFA_TOGETHER.panel(p, s, running);
     if (!running) gamesTray(p, s);
     // who has signed in to this lesson (since "Start fresh")
     if (console_.data) {
@@ -1865,6 +2266,7 @@
       st.appendChild(H('p', 'muted', 'Class shown here and on the class screen:')); st.appendChild(sel);
     }
 
+    if (window.SFA_TOGETHER) SFA_TOGETHER.settings(st);
     p.appendChild(st);
 
     // outline
@@ -1941,11 +2343,16 @@
     hero: HERO, trophy: trophy, fold: fold, live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
     srvSkew: function () { return MODE === 'screen' ? 0 : srvSkewV || 0; }, console_: function () { return console_; }, consoleAnswers: function () { return console_ && console_.data && console_.data.answers; }
   };
+  window.SFA_LESSON_API.tg = { cur: function () { return cur; }, feed: function () { return feed; }, liveRun: liveRun, upd: upd, broadcast: function () { broadcast(); }, go: go, reveal: reveal, heroLv: heroLv, pushCounts: function () { pushCountsIfChanged(); },
+    busy: function () { return !!(console_ && lobbyBusy()); },
+    sendZ: function (id, text) { mine[id] = { answer: String(text), correct: null, sent: false, kind: 'open', run: liveRun() }; saveLocal(); flush(); } };
   window.SFA_LESSON = function (L) { LES = L; };
   var sc = document.createElement('script');
-  sc.src = 'lessons/' + LID + '.js?v=20261119b';   // bump when lesson files change
+  sc.src = 'lessons/' + LID + '.js?v=20261120a';   // bump when lesson files change
   sc.onload = function () { if (!LES) return fail(); document.title = (LES.label || 'Lesson ' + LES.n) + ': ' + LES.title + ' · Sandy Flats'; boot(); };
   sc.onerror = fail;
   function fail() { document.querySelector('.lmain').innerHTML = '<div class="card keybox"><h2>That lesson isn\'t here</h2><p class="muted">Go back to <a href="lessons.html">all lessons</a>.</p></div>'; }
-  document.head.appendChild(sc);
+  var tgs = document.createElement('script'); tgs.src = 'sfa-together.js?v=20261119a';
+  tgs.onload = tgs.onerror = function () { document.head.appendChild(sc); };
+  document.head.appendChild(tgs);
 })();

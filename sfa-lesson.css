@@ -729,3 +729,44 @@ input.blk.in:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rg
 .exyou{display:block;font:800 .7em var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--marquee);margin-bottom:.2em}
 .exscore{color:var(--green);font-weight:700;margin:.4em 0 0;font-size:.9em}
 .exscore:empty{display:none}
+
+/* ---- six more ways to answer: spot the mistake, put in order, cross it out, odd one out, always/sometimes/never, estimate first ---- */
+.mlines .opt{font-family:var(--mono);min-height:0;padding:.38em .8em}
+.mlines .opt .L{border-radius:50%}
+.opt.wrongline{border-color:var(--red);background:#3a1717}
+.opt.wrongline .L{background:var(--red);color:#fff}
+.opt .fixl{display:block;margin-top:.2em;font:600 .82em var(--ui);color:var(--green)}
+.xout .opt.out .t{text-decoration:line-through;text-decoration-thickness:.12em;text-decoration-color:var(--red);opacity:.55}
+.xout .opt.out .L{background:var(--red);color:#fff}
+.xout .opt.out .bar{background:rgba(232,88,76,.2)}
+.xout .opt.slip{animation:xslip .4s}
+@keyframes xslip{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.xwhy{display:flex;flex-direction:column;gap:.4em;padding:.5em .7em;border-radius:.7em;background:rgba(92,224,184,.08);border:.1em dashed var(--teal)}
+.xwhy .btn{text-align:left;white-space:normal}
+.oddg{display:grid;grid-template-columns:1fr 1fr;gap:.5em}
+.oddg .opt{min-height:3.2em}
+.asnq{font-style:italic}
+.opts.asn{display:grid;grid-template-columns:repeat(3,1fr);gap:.5em}
+.opts.asn .opt{flex-direction:column;text-align:center;gap:.2em;padding:.6em .4em}
+.opts.asn .opt .L{background:none;font-size:1.5em;width:auto;height:auto}
+.wall .card small{display:block;font:700 .7em var(--ui);color:var(--teal);text-transform:uppercase;letter-spacing:.06em}
+.ordlist{display:flex;flex-direction:column;gap:.35em}
+.ordlist.pool{padding:.5em;border-radius:.7em;border:.1em dashed var(--line)}
+.ordstep{display:flex;align-items:center;gap:.6em;text-align:left;font:600 1em var(--ui);padding:.4em .7em;border-radius:.6em;border:.12em solid var(--line);background:var(--panel2);color:var(--ink)}
+button.ordstep{cursor:pointer}
+button.ordstep:hover{border-color:var(--marquee)}
+.ordstep .L{flex:none;width:1.6em;height:1.6em;border-radius:.4em;background:var(--panel);display:grid;place-items:center;font:400 .9em var(--display);color:var(--marquee)}
+.ordstep.in{border-color:var(--marquee);background:#3a2f12}
+.ordstep.ok{border-color:var(--green);background:#14352a}
+.ordstep.ok .L{background:var(--green);color:#06261C}
+.ordstep.no{border-color:var(--red)}
+.est input[type=range]{width:100%;accent-color:var(--marquee);height:2.2em}
+.estval{font:400 2.4em var(--display);color:var(--marquee);text-align:center;line-height:1}
+.estaxis{display:flex;justify-content:space-between;font:600 .8em var(--mono);color:var(--muted)}
+.estplot{position:relative;padding-top:1.4em}
+.estcols{display:flex;align-items:flex-end;gap:2px;height:4.5em;border-bottom:.12em solid var(--line)}
+.estcols i{flex:1;min-height:0;border-radius:.2em .2em 0 0;background:var(--panel2)}
+.estcols i.on{background:var(--teal);min-height:.3em}
+.estmark{position:absolute;top:0;bottom:1.3em;transform:translateX(-50%);border-left:.15em dashed var(--marquee);font:700 .72em var(--ui);color:var(--marquee);padding-left:.25em;white-space:nowrap;pointer-events:none}
+.estmark.ans{border-color:var(--green);color:var(--green);top:.9em}
+@media (max-width:700px){.oddg,.opts.asn{grid-template-columns:1fr}}

@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson planner · Sandy Flats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css">
+<style>
+.pbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-top:14px}
+.pbar select,.pbar input[type=time]{font:600 15px var(--ui);background:var(--panel2);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:7px 10px;max-width:100%}
+.pbar label{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--muted)}
+.tlinks{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sec{margin-top:22px}
+.sec>h2{font:400 24px/1.1 var(--display);letter-spacing:.03em;color:var(--marquee);margin:0 0 8px}
+.sec>h2 small{font:600 13px var(--ui);color:var(--muted);letter-spacing:0;margin-left:8px}
+.lead{color:var(--muted);max-width:75ch;margin:0 0 10px}
+.cardp{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:14px 16px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.pbig{font-size:18px;font-weight:700;margin:0}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.stat{background:var(--panel2);border-radius:10px;padding:6px 12px;font-size:14px}
+.stat b{font-family:var(--mono);color:var(--teal);font-size:16px}
+ul.tight,ol.tight{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.k{font:800 11px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin:0 0 4px}
+.arc{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.arc span{border-radius:999px;padding:3px 10px;font:700 12px var(--ui)}
+.tag{display:inline-block;border-radius:999px;padding:2px 9px;font:800 11px var(--ui);letter-spacing:.04em;white-space:nowrap;background:var(--panel2);color:var(--ink)}
+.t-ido{background:#33406b;color:#cfe0ff}.t-wedo{background:#1f5a4a;color:#bff5e2}.t-check{background:#6b3d00;color:#ffd98a}.t-youdo{background:#5a3a12;color:#ffe2b0}
+.t-retr{background:#4a2f6b;color:#e3ccff}.t-prac{background:#254a25;color:#c9f5c9}.t-exit{background:#6b2a2a;color:#ffd0cc}.t-opt{background:transparent;border:1.5px dashed var(--muted);color:var(--muted)}
+table.tl{width:100%;border-collapse:collapse;font-size:14px}
+.tl th{font:700 11px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:2px solid var(--line)}
+.tl td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tl tr.blk td{background:var(--panel2);font-weight:800;color:var(--marquee);border-bottom:0;padding:6px 8px}
+.tl tr.off td{opacity:.45}
+.tl .clock{font:600 13px var(--mono);white-space:nowrap;color:var(--teal)}
+.tl .mn{font:600 13px var(--mono);white-space:nowrap}
+.tl .what b{display:block}
+.tl .what small{color:var(--muted);display:block;margin-top:2px}
+.tl .move{color:var(--ink);max-width:36ch}
+.note{min-height:2.4em;min-width:14ch;border:1.5px dashed var(--line);border-radius:8px;padding:5px 8px;font-family:var(--hand);font-size:16px;line-height:1.3;white-space:pre-wrap;outline:none}
+.note:focus{border-color:var(--marquee);border-style:solid}
+.note:empty::before{content:attr(data-ph);color:var(--muted);font:500 13px var(--ui)}
+.qc{break-inside:avoid}
+.qc h3{margin:6px 0 4px;font:700 16px/1.3 var(--ui)}
+.qc .ansl{color:var(--green);font-weight:700;margin:4px 0}
+.qc details{margin-top:8px}
+.qc summary{cursor:pointer;color:var(--marquee);font-weight:700}
+.lad{margin:6px 0 0;padding:8px 12px;background:var(--panel2);border-radius:10px;font-size:14px}
+.lad p{margin:0 0 4px}.lad ul,.lad ol{margin:0 0 6px;padding-left:20px}
+.lad .sg-k{font:800 10px var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.lad .sg-eq{display:block;font-family:var(--mono)}.lad .sg-fill{color:var(--green)}.lad .sg-frame{font-family:var(--hand);font-size:17px}
+.prule{background:#2a2410;border-left:4px solid var(--marquee);border-radius:8px;padding:8px 12px;margin-top:8px;font-size:14px}
+.prule b{color:var(--marquee)}
+.voc{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.voc div{background:var(--panel2);border-radius:10px;padding:8px 10px;font-size:14px}
+.voc b{color:var(--marquee)}.voc .tr{color:var(--teal);font-weight:700;unicode-bidi:isolate;margin-left:6px}
+.pgrp{break-inside:avoid}
+.pgrp h3{margin:0 0 4px;font:700 15px var(--ui)}
+.pgrp .names{color:var(--ink)}
+.pgrp .do{color:var(--muted);font-size:14px;margin-top:4px}
+.say{margin-top:8px}.say.bad{color:var(--red)}
+.printonly{display:none}
+@media (max-width:760px){
+  table.tl,table.tl tbody,table.tl tr,table.tl td{display:block;width:100%}
+  table.tl thead{display:none}
+  .tl tr{border-bottom:2px solid var(--line);padding:6px 0}
+  .tl td{border:0;padding:3px 0}
+  .tl td.clock,.tl td.mn{display:inline-block;width:auto;margin-right:10px}
+  .tl .move{max-width:none}
+}
+@media print{
+  @page{margin:12mm}
+  :root{--ink:#000;--muted:#444;--panel:#fff;--panel2:#fff;--line:#999;--marquee:#000;--teal:#000;--green:#0a6b4a;--red:#a61b12}
+  html,body{background:#fff!important;color:#000!important}
+  body{font-size:10.5pt}
+  .noprint,.sfanav-strip,.sfanav,.toast{display:none!important}
+  .printonly{display:block}
+  .wrap{max-width:none;padding:0}
+  .topbar{border-bottom:1px solid #999}
+  .brand,.gtitle,.sec>h2{color:#000!important;text-shadow:none}
+  .sec>h2{font:800 14pt var(--ui);border-bottom:1.5px solid #000;padding-bottom:2px}
+  .sec>h2 small,.lead,.tl .what small,.pgrp .do{color:#444}
+  .cardp,.voc div,.stat,.lad{background:#fff!important;border:1px solid #999;color:#000}
+  .stat b,.k,.tl .clock,.voc .tr{color:#000}
+  .voc b,.qc summary,.prule b{color:#000}
+  .qc .ansl{color:#0a6b4a}
+  .prule{background:#fff;border:1px solid #999;border-left:4px solid #000}
+  .tag{background:#fff!important;color:#000!important;border:1px solid #000}
+  .t-opt{border-style:dashed}
+  .tl{font-size:9.5pt}
+  .tl th{color:#000;border-bottom:1.5px solid #000}
+  .tl td{border-bottom:1px solid #999}
+  .tl tr{break-inside:avoid}
+  .tl tr.blk td{background:#eee!important;color:#000}
+  .tl tr.off td{opacity:1;color:#777}
+  .note{border:0;border-bottom:1px solid #bbb;border-radius:0;min-height:1.6em;color:#000}
+  .note:empty::before{content:''}
+  .lad .sg-fill{color:#000;font-weight:800}
+  details.lad-d:not([open]){display:none}
+  .sec{break-inside:auto}
+  a{color:#000;text-decoration:none}
+}
+</style>
+</head><body>
+<div class="wrap">
+  <header class="topbar"><a class="brand" href="lessons.html?teach">Sandy Flats Lessons</a><h1 class="gtitle" id="h">Lesson planner</h1><div class="chips" id="chips"></div></header>
+  <div class="tlinks noprint">
+    <a class="btn small" href="lessons.html?teach">🎬 Lessons</a>
+    <a class="btn small" href="participation.html">✋ Participation</a>
+    <a class="btn small" href="report.html">🧾 Report</a>
+    <a class="btn small" href="day.html">📅 Student day</a>
+    <a class="btn small" href="scaffold-guide.html">🪜 Scaffolds guide</a>
+    <a class="btn small" href="teacher.html">🧭 Teacher guide</a>
+  </div>
+  <div id="body"><p class="muted" style="margin-top:16px">Loading the lessons…</p></div>
+</div>
+<script src="config.js"></script>
+<script>/* planner.html?mock uses the practice results (teacher key: test), like lesson-practice.html */
+if (/[?&]mock\b/.test(location.search)) document.write('<script src="climb/dev/mock.js"><\/script>');</script>
+<script src="sfa-kit.js"></script>
+<script src="sfa-scaffold.js?v=20261119a"></script>
+<script>
+/* The lesson planner: a printable teaching plan for any lesson, built from the lesson's own data file, so it is never
+   out of date. Objective and success criteria, a timeline with a running clock, where the checks for understanding
+   are and what to do with the result, likely misconceptions, what to skip, groupings and games, and (with the teacher
+   key) which students need what. Notes typed here are saved in this browser only. */
+(function () {
+  'use strict';
+  var SFA = window.SFA, el = SFA.el, esc = SFA.esc, CFG = window.SFA_CONFIG || {}, SG = window.SFA_SCAFFOLD, body = document.getElementById('body');
+  var Q = new URLSearchParams(location.search), MAXL = 28, LES = {}, left = MAXL;
+  var cur = 'L' + (parseInt(Q.get('l'), 10) || SFA.store.get('plan.last', 25) || 25);
+  var skipOpt = !!SFA.store.get('plan.skipopt', false), startAt = SFA.store.get('plan.start', '') || '', lang = SFA.store.get('sg.lang', 'ar') || 'ar';
+  var results = null, resErr = '', cls = SFA.store.get('teacher.lesson.cls', '') || '';
+  function fmt(s) { return SG.fmt(s); }
+  function plain(s) { return String(s == null ? '' : s).replace(/[*_]/g, ''); }
+  function H(tag, cls_, html) { var e = document.createElement(tag); if (cls_) e.className = cls_; if (html != null) e.innerHTML = html; return e; }
+  function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
+  function letter(i) { return 'ABCDEFGH'.charAt(i); }
+  function num(v) { return String(Math.round(v * 1000) / 1000).replace('-', '−'); }
+  function mins(s) { return +s.min || 0; }   // planned minutes
+  function isQ(s) { return !!s.id && !s.warm && s.k !== 'conf'; }
+  function errPoll(s) { return !!s && s.id && (s.k === 'mistake' || /went wrong|what happened|mistake|is (she|he|that) right|what is wrong/i.test(s.q || '')); }
+
+  /* ---- reading a lesson as a teaching arc ---- */
+  function phase(L, i) {
+    var s = L.slides[i], S = L.slides;
+    if (s.retr) return ['Retrieval', 't-retr'];
+    if (s.warm) return ['Connect', ''];
+    if (s.k === 'title' || s.k === 'signin') return ['Open', ''];
+    if (s.k === 'film') return ['Watch', 't-ido'];
+    if (s.k === 'text') return ['I do', 't-ido'];
+    if (s.k === 'ex') return s.wedo ? ['We do', 't-wedo'] : ['I do', 't-ido'];
+    if (s.k === 'conf') return ['Self-check', ''];
+    if (s.k === 'play') return ['Practice', 't-prac'];
+    if (s.k === 'exit') return ['Exit ticket', 't-exit'];
+    if (s.k === 'end') return ['Close', ''];
+    if (s.id) {
+      // the first question after teaching (a text slide, a film or a run of examples) is the check that decides what happens next
+      var j = i - 1; while (j >= 0 && S[j].opt && S[j].k === 'ex') j--;
+      if (j >= 0 && (S[j].k === 'ex' || S[j].k === 'text' || S[j].k === 'film')) return ['Check', 't-check'];
+      return ['You do', 't-youdo'];
+    }
+    return ['', ''];
+  }
+  function slideName(s) {
+    if (s.k === 'title') return 'Title: ' + plain(s.title || '');
+    if (s.k === 'signin') return 'Sign in and today\'s goals';
+    if (s.k === 'film') return 'Film. ' + plain(s.watch || '');
+    if (s.k === 'play') return plain(s.title || 'Play');
+    if (s.k === 'end') return 'End: ' + plain(s.title || '');
+    if (s.k === 'conf') return 'Confidence check: ' + plain(s.q || '');
+    if (s.k === 'text') return plain(s.title || '');
+    if (s.k === 'ex') return plain(s.title || '') + (s.q ? ': ' + plain(s.q) : '');
+    if (s.k === 'machine') return 'Machine: ' + plain(s.q || '');
+    if (s.k === 'odd') return 'Which one does not belong? ' + (s.items || []).map(plain).join('  |  ');
+    return plain(s.q || s.title || s.k);
+  }
+  var KINDN = { number: 'type a number', poll: 'multiple choice', open: 'typed sentence', exit: 'typed answer', machine: 'function machine', mistake: 'tap the wrong line', order: 'put steps in order', cross: 'cross out wrong options', odd: 'which one doesn\'t belong', asn: 'always / sometimes / never', est: 'estimate, then exact', ex: 'worked example with blanks', conf: 'four faces' };
+  function move(L, i, ph) {
+    var s = L.slides[i];
+    if (s.k === 'title') return 'Class screen up. Students open the lesson and sign in while you greet them.';
+    if (s.k === 'signin') return 'Read the goals aloud. Check the console: who is not in yet? Show 🔊 Read to me, Text size and 📖 Words once.';
+    if (s.warm) return 'Everyone taps. Ask two students for their reason. It proves every device is connected.';
+    if (s.retr) return 'Silent, alone, no teacher help. Watch the console. Under half right? Spend two minutes on it now: today depends on it.';
+    if (s.k === 'film') return 'Give the "watch for" before you press play. Pause once and ask what they noticed.';
+    if (s.k === 'text') return 'I do. Read each point aloud. Tap a dotted word to show its meaning. One student says it in their own words.';
+    if (s.k === 'ex') return s.wedo ? 'We do. Pairs get 60 seconds on the blanks. Cold call for each step and ask "how do you know?". Reveal with Next step ▶.' : 'I do. Think aloud. Students type the blanks before you reveal each step with Next step ▶. Wait ten seconds each time.';
+    if (s.k === 'conf') return 'Note who taps Lost or Getting there. Sit with them first during practice.';
+    if (s.k === 'play') return 'Independent practice. Pull a small group: anyone who missed two or more checks.';
+    if (s.k === 'exit') return 'Silent and alone. This is your evidence for tomorrow\'s groups. Sentence starter is in Help me start.';
+    if (s.k === 'end') return 'Name one thing the class did well. Say what comes next.';
+    if (ph === 'Check') return 'You do, alone. Two minutes of quiet first. Point stuck students to 🪜 Help me start. Then use the move-on rule.';
+    if (errPoll(s)) return 'Pairs talk for 30 seconds, then vote. Reveal the bars. Ask someone to explain the trap, with no blame.';
+    if (s.k === 'open') return 'Write first, then share. Spotlight two answers: one strong, one nearly there. Ask the class what to add.';
+    if (s.k === 'poll' && s.ans == null) return 'No right answer: use it to start talk. Ask two students why.';
+    return 'On their own. Early finishers go on to the ★ extras under the question. Reveal when most have answered.';
+  }
+  function answerOf(s) {
+    if (s.k === 'number') return num(s.ans);
+    if (s.k === 'machine') return 'the rule ' + String(s.rule || '').replace(/-/g, '−');
+    if ((s.k === 'poll' || s.k === 'cross') && s.ans != null && s.opts && s.opts[s.ans] != null) return letter(s.ans) + ': ' + plain(s.opts[s.ans]);
+    if (s.k === 'mistake' && s.lines && s.lines[s.ans] != null) return 'line ' + (s.ans + 1) + ' is the first wrong one: ' + plain(s.lines[s.ans]) + (s.fix ? '. It should be: ' + plain(s.fix) : '');
+    if (s.k === 'order') return 'the steps in this order: ' + (s.steps || []).map(function (x, k) { return (k + 1) + ') ' + plain(x); }).join('  ');
+    if (s.k === 'asn' && s.ans != null) return ['Always true', 'Sometimes true', 'Never true'][s.ans] + (s.model ? '. ' + plain(s.model) : '');
+    if (s.k === 'odd') return 'any of them, with a reason. ' + (s.items || []).map(function (x, k) { return plain(x) + ': ' + plain((s.why || [])[k] || ''); }).join('  |  ');
+    if (s.model) return plain(s.model);
+    if (typeof s.ans === 'number') return num(s.ans);
+    return '';
+  }
+  // what goes wrong on this question, from the lesson's own data
+  function watchFor(L, i) {
+    var s = L.slides[i], S = L.slides, out = [];
+    if ((s.k === 'poll' || s.k === 'cross') && s.ans != null && s.opts) {
+      if (errPoll(s)) out.push('This slide <b>is</b> the misconception: ' + fmt(s.opts[s.ans]) + '.');
+      var wrong = s.opts.map(function (o, k) { return k === s.ans ? null : '<b>' + letter(k) + '</b> ' + fmt(o); }).filter(Boolean);
+      out.push('Wrong options and what choosing them tells you: ' + wrong.join(' · '));
+    }
+    if (s.k === 'mistake' && s.lines && s.lines[s.ans] != null) out.push('This slide <b>is</b> the misconception. The slip is in line ' + (s.ans + 1) + ': ' + fmt(s.lines[s.ans]) + '.');
+    if ((s.k === 'number' || s.k === 'est') && typeof s.ans === 'number') {
+      var q = plain(s.q), pts = q.match(/\(\s*[−-]?\d+(?:\.\d+)?\s*,\s*[−-]?\d+(?:\.\d+)?\s*\)/g);
+      if (/slope/i.test(q) && pts && pts.length >= 2 && s.ans !== 0 && !/what is y|what is b\b/i.test(q)) {
+        out.push('An answer of <b>' + num(-s.ans) + '</b> means the order was mixed between top and bottom (or a sign was lost).' + (Math.abs(s.ans) !== 1 ? ' An answer of <b>' + num(1 / s.ans) + '</b> means change in x went on top.' : ''));
+      }
+      if (/slope/i.test(q) && s.fig && s.fig.kind === 'table' && s.fig.rows && s.fig.rows.length > 1) {
+        var r = s.fig.rows, dx = r[1][0] - r[0][0], dy = r[1][1] - r[0][1];
+        if (dx !== 1 && dy !== s.ans) out.push('An answer of <b>' + num(dy) + '</b> means the y-step was not divided by the x-step (x goes up by ' + num(dx) + ', not 1).');
+      }
+      var nx = S[i + 1];
+      if (errPoll(nx) && nx.opts && nx.ans != null) out.push('The common mistake here is the next slide\'s question: ' + fmt(nx.opts[nx.ans]) + '.');
+    }
+    // traps the lesson itself names in this block (back to the last text slide)
+    for (var j = i - 1; j >= 0 && S[j].k !== 'text'; j--) if (S[j].k === 'ex') (S[j].steps || []).forEach(function (x) { var t = typeof x === 'string' ? x : (x && x.t) || ''; if (/\btrap\b|classic slip|not the slope|turns? the sign|both signs flip|every\*? term/i.test(t) && out.length < 5) out.push('Named in the examples: ' + SG.filled(t)); });
+    if (j >= 0 && S[j].note && /slip|trap|same order|forget/i.test(S[j].note)) out.push('From the teaching slide: ' + fmt(S[j].note));
+    if (typeof s.why === 'string' && s.why) out.push('The reasoning to bring out: ' + fmt(s.why));
+    if (s.note && s.id) out.push('The point of the question: ' + fmt(s.note));
+    if ((s.k === 'open' || s.k === 'exit') && s.model) out.push('Weak answers name a number without saying what it means, or leave out the units. Compare with the model answer.');
+    var seen = {}; return out.filter(function (x) { if (seen[x]) return false; seen[x] = 1; return true; }).slice(0, 5);
+  }
+  function noteKey(s, i) { return s.id ? 'q:' + s.id : s.k + ':' + plain(s.title || s.q || '').slice(0, 40); }
+  function notesFor(L) { return SFA.store.get('plan.notes.' + L.id, {}) || {}; }
+  function noteBox(L, key, ph) {
+    var all = notesFor(L), d = H('div', 'note'); d.contentEditable = 'true'; d.setAttribute('data-ph', ph || 'My notes'); d.setAttribute('role', 'textbox'); d.setAttribute('aria-label', ph || 'My notes'); d.textContent = all[key] || '';
+    d.addEventListener('input', function () { var a = notesFor(L), v = d.innerText.replace(/\n+$/, ''); if (v) a[key] = v.slice(0, 2000); else delete a[key]; SFA.store.set('plan.notes.' + L.id, a); if (!v) d.innerHTML = ''; });
+    d.addEventListener('paste', function (e) { e.preventDefault(); var t = (e.clipboardData || window.clipboardData).getData('text'); document.execCommand('insertText', false, t); });
+    return d;
+  }
+  function clockTxt(m) {
+    var p = /^(\d{1,2}):(\d{2})$/.exec(startAt);
+    if (!p) return m + '′';
+    var t = (+p[1]) * 60 + (+p[2]) + m; return ('0' + Math.floor(t / 60) % 24).slice(-2) + ':' + ('0' + t % 60).slice(-2);
+  }
+  function sec(title, small) { var s = H('section', 'sec'); s.appendChild(H('h2', '', esc(title) + (small ? '<small>' + esc(small) + '</small>' : ''))); body.appendChild(s); return s; }
+
+  /* ---- results (the same "answers" request the Participation page makes) ---- */
+  var KEY = 'sfa.classkey';
+  var Key = {
+    get: function () { try { var s = sessionStorage.getItem(KEY); if (s) return s; var r = JSON.parse(localStorage.getItem(KEY) || 'null'); if (r && r.until > Date.now()) return r.k; } catch (e) { } return ''; },
+    set: function (k) { try { sessionStorage.setItem(KEY, k); } catch (e) { } },
+    del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
+  };
+  function api(op, b) {
+    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ op: op, teacherKey: Key.get() }, b || {})) })
+      .then(function (r) { return r.text(); }).then(function (t) { var j; try { j = JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly.'); } if (!j.ok) throw new Error(j.error); return j; });
+  }
+  function loadResults() {
+    var L = LES[cur]; resErr = ''; results = null;
+    if (!CFG.endpoint) { resErr = 'Results saving isn\'t switched on for this copy of the arcade.'; return draw(); }
+    resErr = 'Loading…'; drawNeeds();
+    api('answers', { lesson: L.id }).then(function (j) { if (LES[cur] !== L) return; results = j; resErr = ''; drawNeeds(); }, function (e) {
+      if (/teacher key/.test(e.message)) { Key.del(); resErr = 'That key didn\'t work. Check it and try again.'; } else resErr = 'Couldn\'t load the results: ' + e.message;
+      drawNeeds();
+    });
+  }
+
+  /* ---- the page ---- */
+  var needsBox = null;
+  function draw() {
+    var L = LES[cur]; body.innerHTML = '';
+    if (!L) { body.appendChild(H('p', 'muted', 'That lesson isn\'t here.')); return; }
+    SFA.store.set('plan.last', +L.id.slice(1));
+    document.title = 'Plan · ' + (L.label || 'Lesson ' + L.n) + ': ' + L.title;
+    var S = L.slides, total = S.reduce(function (a, s) { return a + mins(s); }, 0), optMin = S.filter(function (s) { return s.opt; }).reduce(function (a, s) { return a + mins(s); }, 0);
+    var qs = S.filter(isQ), checks = S.map(function (s, i) { return phase(L, i)[0] === 'Check' ? i : -1; }).filter(function (i) { return i >= 0; });
+
+    // controls
+    var bar = H('div', 'pbar noprint');
+    var sel = el('select', { 'aria-label': 'Lesson' });
+    Object.keys(LES).map(function (k) { return LES[k]; }).sort(function (a, b) { return a.n - b.n; }).forEach(function (x) { var o = el('option', { value: x.id, text: (x.label || 'Lesson ' + x.n) + ': ' + x.title }); if (x.id === cur) o.selected = true; sel.appendChild(o); });
+    sel.onchange = function () { cur = sel.value; results = null; resErr = ''; history.replaceState(null, '', 'planner.html?l=' + cur.slice(1) + (Q.has('mock') ? '&mock' : '')); draw(); };
+    bar.appendChild(sel);
+    var st = el('input', { type: 'time', value: startAt, 'aria-label': 'Lesson start time' }); st.onchange = function () { startAt = st.value; SFA.store.set('plan.start', startAt); draw(); };
+    var lb = el('label', {}, [document.createTextNode('Starts at'), st]); bar.appendChild(lb);
+    var ck = el('input', { type: 'checkbox' }); ck.checked = skipOpt; ck.onchange = function () { skipOpt = ck.checked; SFA.store.set('plan.skipopt', skipOpt); draw(); };
+    bar.appendChild(el('label', {}, [ck, document.createTextNode('Leave out optional slides')]));
+    bar.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: '🖨 Print this plan', onclick: function () { [].forEach.call(document.querySelectorAll('details.lad-d'), function (d) { d.open = false; }); window.print(); } }));
+    var n = L.id.slice(1);
+    bar.appendChild(el('a', { 'class': 'btn small', href: 'lesson.html?l=' + n + '&teach', text: 'Open the console' }));
+    bar.appendChild(el('a', { 'class': 'btn small', href: 'lesson.html?l=' + n, target: '_blank', text: 'Student view' }));
+    body.appendChild(bar);
+
+    // 1. overview
+    var s1 = sec((L.label || 'Lesson ' + L.n) + ': ' + L.title, 'teaching plan');
+    var g = H('div', 'grid2'); s1.appendChild(g);
+    var c1 = H('div', 'cardp'); c1.appendChild(H('p', 'k', 'Objective: the one idea students leave with')); c1.appendChild(H('p', 'pbig', fmt(L.big || '')));
+    var stt = H('div', 'stats');
+    stt.appendChild(H('span', 'stat', '<b>' + (total - optMin) + '</b> min core'));
+    if (optMin) stt.appendChild(H('span', 'stat', '<b>' + total + '</b> min with optional slides'));
+    stt.appendChild(H('span', 'stat', '<b>' + qs.length + '</b> questions'));
+    stt.appendChild(H('span', 'stat', '<b>' + checks.length + '</b> checks for understanding'));
+    stt.appendChild(H('span', 'stat', '<b>' + S.filter(function (s) { return s.wedo; }).length + '</b> we-do examples'));
+    c1.appendChild(stt);
+    var arc = H('div', 'arc'); [['Retrieval', 't-retr'], ['I do', 't-ido'], ['We do', 't-wedo'], ['Check', 't-check'], ['You do', 't-youdo'], ['Practice', 't-prac'], ['Exit ticket', 't-exit']].forEach(function (p) {
+      var m = S.reduce(function (a, s, i) { return a + (phase(L, i)[0] === p[0] && !(skipOpt && s.opt) ? mins(s) : 0); }, 0); if (m) arc.appendChild(H('span', 'tag ' + p[1], esc(p[0]) + ' ' + m + ' min'));
+    });
+    c1.appendChild(arc);
+    g.appendChild(c1);
+    var c2 = H('div', 'cardp'); c2.appendChild(H('p', 'k', 'Success criteria'));
+    var si = S.filter(function (s) { return s.k === 'signin'; })[0], ul = H('ul', 'tight');
+    ((si && si.points) || []).forEach(function (p) { p = plain(p); ul.appendChild(H('li', '', 'I can ' + esc(/^[A-Z][a-z]/.test(p) ? p.charAt(0).toLowerCase() + p.slice(1) : p) + '.')); });
+    if (!ul.children.length) ul.appendChild(H('li', '', esc(plain(L.big || ''))));
+    c2.appendChild(ul);
+    var ev = S.filter(function (s) { return s.k === 'exit'; })[0];
+    if (ev) { c2.appendChild(H('p', 'k', 'Evidence at the end')).style.marginTop = '10px'; c2.appendChild(H('p', '', 'Exit ticket: ' + fmt(ev.q))); }
+    g.appendChild(c2);
+    var c3 = H('div', 'cardp'); c3.appendChild(H('p', 'k', 'My plan for this lesson')); c3.appendChild(noteBox(L, '_lesson', 'Who am I watching today? What will I change? Type here: it saves in this browser.'));
+    s1.appendChild(c3).style.marginTop = '12px';
+
+    // 2. vocabulary
+    var text = SG.lessonText(L), counts = {}; SG.scan(text).forEach(function (h) { counts[h.id] = (counts[h.id] || 0) + 1; });
+    var ids = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).filter(function (id) { return ['table', 'graph', 'half', 'double', 'per', 'divide', 'subtract', 'multiply', 'negative', 'positive', 'fraction'].indexOf(id) < 0; }).slice(0, 10);
+    if (ids.length) {
+      var s2 = sec('Words to pre-teach', 'students can tap these on any slide');
+      var lr = H('p', 'lead noprint', 'The words this lesson leans on most. Say them, point to them, and have students say them back before the first example. Translation shown: ');
+      var ls = el('select', { 'aria-label': 'Translation language' }); SG.LANGS.forEach(function (l) { var o = el('option', { value: l[0], text: l[1] }); if (l[0] === lang) o.selected = true; ls.appendChild(o); });
+      ls.onchange = function () { lang = ls.value; SFA.store.set('sg.lang', lang); draw(); }; lr.appendChild(ls); s2.appendChild(lr);
+      var v = H('div', 'voc'); ids.forEach(function (id) { var t = SG.BY[id]; v.appendChild(H('div', '', '<b>' + esc(t.id) + '</b><span class="tr" lang="' + lang + '"' + (lang === 'ar' ? ' dir="rtl"' : '') + '>' + esc(t.tr[lang] || '') + '</span><br>' + esc(t.d))); });
+      s2.appendChild(v);
+    }
+
+    // 3. timeline
+    var s3 = sec('Timeline', (skipOpt ? total - optMin : total) + ' minutes' + (startAt ? ', starting ' + startAt : ''));
+    s3.appendChild(H('p', 'lead', 'One row per slide. The clock is when the slide should <b>start</b>. I do: you model. We do: the class finishes a part-done example. Check: the question that tells you whether to move on. Type in the notes column; it saves by itself.'));
+    var tb = H('table', 'tl'); tb.appendChild(H('thead', '', '<tr><th>Clock</th><th>Min</th><th>Phase</th><th>Slide</th><th>Teacher move</th><th>My notes</th></tr>'));
+    var tbody = H('tbody'); tb.appendChild(tbody); var at = 0;
+    S.forEach(function (s, i) {
+      var ph = phase(L, i), off = skipOpt && s.opt, tr = H('tr', off ? 'off' : '');
+      if (s.k === 'text' && S.filter(function (x) { return x.k === 'text'; }).length > 1) { var br = H('tr', 'blk'); br.appendChild(H('td', '', '')).colSpan = 6; br.firstChild.textContent = 'Skill: ' + plain(s.title || ''); tbody.appendChild(br); }
+      tr.appendChild(H('td', 'clock', off ? '–' : esc(clockTxt(at))));
+      tr.appendChild(H('td', 'mn', mins(s) ? mins(s) + '' : '·'));
+      tr.appendChild(H('td', '', (ph[0] ? '<span class="tag ' + ph[1] + '">' + esc(ph[0]) + '</span>' : '') + (s.opt ? ' <span class="tag t-opt">optional</span>' : '')));
+      var w = H('td', 'what'); w.appendChild(H('b', '', (i + 1) + '. ' + esc(slideName(s).slice(0, 150))));
+      var bits = [KINDN[s.k]]; if (s.id && isQ(s)) { var a = answerOf(s); if (a && (s.k === 'number' || s.k === 'est' || s.k === 'poll' || s.k === 'machine')) bits.push('answer ' + a); if (s.more && s.more.length) bits.push(s.more.length + ' ★ extra' + (s.more.length === 1 ? '' : 's')); }
+      if (s.fig) bits.push('has a ' + (s.fig.kind || 'picture'));
+      bits = bits.filter(Boolean); if (bits.length) w.appendChild(H('small', '', esc(bits.join(' · '))));
+      tr.appendChild(w);
+      tr.appendChild(H('td', 'move', esc(move(L, i, ph[0]))));
+      var nt = H('td'); nt.appendChild(noteBox(L, noteKey(s, i), 'Notes')); tr.appendChild(nt);
+      tbody.appendChild(tr);
+      if (!off) at += mins(s);
+    });
+    var end = H('tr'); end.appendChild(H('td', 'clock', esc(clockTxt(at)))); end.appendChild(H('td', '', '')).colSpan = 5; end.lastChild.textContent = 'Lesson ends'; tbody.appendChild(end);
+    s3.appendChild(tb);
+
+    // 4. skip list
+    var s4 = sec('Short on time?', 'what to cut, in this order');
+    var cut = H('ol', 'tight'), opts = S.map(function (s, i) { return s.opt ? i : -1; }).filter(function (i) { return i >= 0; });
+    opts.forEach(function (i) { cut.appendChild(H('li', '', 'Skip slide ' + (i + 1) + ', <b>' + esc(slideName(S[i]).slice(0, 80)) + '</b> (saves ' + mins(S[i]) + ' min). It is marked optional: the lesson still makes sense without it.')); });
+    var play = S.filter(function (s) { return s.k === 'play'; })[0];
+    if (play) cut.appendChild(H('li', '', 'Shorten the practice block (' + mins(play) + ' min) and set the rest as home practice. Never cut the exit ticket: it is tomorrow\'s plan.'));
+    cut.appendChild(H('li', '', 'Do the error-analysis polls as a 30-second hands-up instead of a full vote.'));
+    cut.appendChild(H('li', '', 'Do <b>not</b> cut the retrieval warm-up, the we-do examples or the checks. They are what gets the quiet half of the class started.'));
+    var cd = H('div', 'cardp'); cd.appendChild(cut); s4.appendChild(cd);
+
+    // 5. checks and misconceptions
+    var s5 = sec('Questions, answers and what to watch for', qs.length + ' questions');
+    s5.appendChild(H('p', 'lead', 'Every question students answer, in order. The move-on rule appears on each check. "What students see" is the three-step Help me start ladder for that question.'));
+    var gq = H('div', 'grid2'); s5.appendChild(gq);
+    S.forEach(function (s, i) {
+      if (!isQ(s)) return;
+      var ph = phase(L, i), c = H('div', 'cardp qc');
+      c.appendChild(H('p', '', '<span class="tag ' + ph[1] + '">' + esc(ph[0]) + '</span> ' + (s.opt ? '<span class="tag t-opt">optional</span> ' : '') + '<span class="muted">slide ' + (i + 1) + ' · ' + esc(KINDN[s.k] || s.k) + ' · id ' + esc(s.id) + '</span>'));
+      c.appendChild(H('h3', '', fmt(s.q || s.name || (s.k === 'odd' ? 'Which one does not belong? ' + (s.items || []).join('  |  ') : ''))));
+      if (s.k === 'mistake' && s.lines) c.appendChild(H('p', 'muted', s.lines.map(function (o, k) { return '<b>' + (k + 1) + '</b> ' + fmt(o); }).join(' &nbsp; ')));
+      if (s.opts && s.k !== 'conf') c.appendChild(H('p', 'muted', s.opts.map(function (o, k) { return '<b>' + letter(k) + '</b> ' + fmt(o); }).join(' &nbsp; ')));
+      var a = answerOf(s); if (a) c.appendChild(H('p', 'ansl', (s.k === 'open' || s.k === 'exit' ? 'A good answer: ' : 'Answer: ') + esc(a)));
+      var wf = watchFor(L, i);
+      if (wf.length) { c.appendChild(H('p', 'k', 'Watch for')).style.marginTop = '8px'; var wl = H('ul', 'tight'); wf.forEach(function (x) { wl.appendChild(H('li', '', x)); }); c.appendChild(wl); }
+      if (ph[0] === 'Check' || s.retr) c.appendChild(H('div', 'prule', s.retr
+        ? '<b>Rule:</b> most right → go on. Under half right → two minutes on this now, at the board, before the new work.'
+        : '<b>Move on or reteach?</b> 80% or more right → move on. 50 to 79% → reveal, do the first ★ extra together as one more we-do, move on, and see the rest during practice. Under 50% → stop: redo the we-do with new numbers, then ask again.'));
+      var lad = SG.ladder(L, i, lang);
+      if (lad && lad.steps.length) {
+        var d = el('details', { 'class': 'lad-d' }); d.appendChild(el('summary', { text: '🪜 What students see in Help me start (' + lad.steps.length + ' steps)' }));
+        lad.steps.forEach(function (stp, k) { var b = H('div', 'lad'); b.appendChild(H('p', '', '<b>' + (k + 1) + '. ' + esc(stp.h) + '</b>')); b.appendChild(H('div', '', stp.html)); d.appendChild(b); });
+        c.appendChild(d);
+      }
+      gq.appendChild(c);
+    });
+
+    // 6. groupings and games
+    var s6 = sec('Groupings and games', 'who works with whom, and what fits where');
+    var gg = H('div', 'grid2'); s6.appendChild(gg);
+    var ga = H('div', 'cardp'); ga.appendChild(H('p', 'k', 'Groupings through the arc'));
+    var gl = H('ul', 'tight');
+    ['<b>Retrieval:</b> alone and silent. It shows you who is missing a skill today\'s lesson needs.',
+      '<b>I do:</b> whole class, eyes on the class screen, every student typing the blanks on their own device.',
+      '<b>We do:</b> pairs. Seat a student who answered the last check right next to one who did not (the console shows names). The pair must agree before typing.',
+      '<b>Check:</b> alone. No talking for the first two minutes, so the result is honest.',
+      '<b>After a check:</b> anyone wrong twice comes to a small group with you during practice; the rest go on to the ★ extras.',
+      '<b>Language:</b> pair a new-to-English student with a same-language partner for the we-do, and allow talk in that language. The answer is typed in English.'].forEach(function (x) { gl.appendChild(H('li', '', x)); });
+    ga.appendChild(gl); gg.appendChild(ga);
+    var gb = H('div', 'cardp'); gb.appendChild(H('p', 'k', 'Live games and tools from the console'));
+    var gm = H('ul', 'tight'), lt = text.toLowerCase();
+    gm.appendChild(H('li', '', '<b>Start, if you have five spare minutes:</b> 🔠 Big Board or 👹 Boss Raid (review mode) use questions from earlier lessons. Use one <i>instead of</i> a discussion, never instead of the retrieval warm-up.'));
+    if (/graph/.test(lt)) gm.appendChild(H('li', '', '<b>After the graphing examples:</b> 🤼 Sumo Graphing (pairs graph lines from rules) or 🌋 The Floor Is Lava (everyone stands on a point of the line). Both get every student to commit to a point.'));
+    if (/inequalit/.test(lt)) gm.appendChild(H('li', '', '<b>After the inequality check:</b> 🌋 The Floor Is Lava with the inequality round on: the safe region is the shaded side.'));
+    if (/y = mx \+ b|slope/.test(lt)) gm.appendChild(H('li', '', '<b>When students can write a line\'s equation:</b> 🚀 Laser Lines. Each student writes the line to a target, with a hint step for anyone stuck.'));
+    gm.appendChild(H('li', '', '<b>End:</b> ⚔️ Lane Clash (5 min) replays today\'s questions in teams, or 👹 Boss Raid as the exit. Run it only after the exit ticket is in.'));
+    gm.appendChild(H('li', '', '<b>Every question:</b> the console\'s "who has not answered" list, the timer, Reveal and Spotlight. Lock the slides during I do and we do so nobody runs ahead.'));
+    gb.appendChild(gm); gg.appendChild(gb);
+
+    // 7. who needs what
+    var s7 = sec('Students who need what', 'from this lesson\'s answers');
+    needsBox = H('div'); s7.appendChild(needsBox); drawNeeds();
+    body.appendChild(H('p', 'muted printonly', 'Printed from the Sandy Flats lesson planner. Notes are saved in the browser they were typed in.'));
+  }
+
+  function drawNeeds() {
+    if (!needsBox) return; var L = LES[cur], S = L.slides; needsBox.innerHTML = '';
+    if (!results) {
+      var c = H('div', 'cardp noprint');
+      c.appendChild(H('p', '', 'Load the class\'s answers for this lesson to see who has not started, who needs which skill again, and who is ready for more. It reads the same results as the Participation page and changes nothing.'));
+      var row = H('div', 'pbar');
+      if (!Key.get()) { var inp = el('input', { type: 'password', placeholder: 'Teacher key', 'aria-label': 'Teacher key', autocomplete: 'off' }); inp.style.cssText = 'font:600 15px var(--ui);background:var(--panel2);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:7px 10px'; row.appendChild(inp); row.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: 'Load results', onclick: function () { if (!inp.value.trim()) return inp.focus(); Key.set(inp.value.trim()); loadResults(); } })); inp.onkeydown = function (e) { if (e.key === 'Enter') row.querySelector('button').click(); }; }
+      else row.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: 'Load this lesson\'s results', onclick: loadResults }));
+      c.appendChild(row);
+      if (resErr) c.appendChild(H('p', 'say' + (/Loading/.test(resErr) ? '' : ' bad'), esc(resErr)));
+      c.appendChild(H('p', 'muted', 'Help-ladder use is saved on each student\'s own device for now, so it does not appear here yet. The student\'s end slide shows how many questions they used it on.'));
+      needsBox.appendChild(c);
+      needsBox.appendChild(H('p', 'muted printonly', 'Class results were not loaded when this was printed.'));
+      return;
+    }
+    var classes = []; results.roster.forEach(function (r) { if (r.cls && classes.indexOf(r.cls) < 0) classes.push(r.cls); }); classes.sort();
+    if (cls && classes.indexOf(cls) < 0) cls = '';
+    var bar = H('div', 'pbar noprint');
+    [''].concat(classes).forEach(function (cname) { var b = el('button', { type: 'button', 'class': 'chip', 'aria-pressed': cls === cname ? 'true' : 'false', text: cname ? 'Class ' + cname : 'Everyone' }); b.onclick = function () { cls = cname; SFA.store.set('teacher.lesson.cls', cls); drawNeeds(); }; bar.appendChild(b); });
+    bar.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Refresh', onclick: loadResults }));
+    needsBox.appendChild(bar);
+    var roster = results.roster.filter(function (r) { return !cls || r.cls === cls; }).sort(function (a, b) { return a.name < b.name ? -1 : 1; });
+    var by = {}; results.answers.forEach(function (a) { (by[a.sid] = by[a.sid] || {})[a.q] = a; });
+    var qs = S.filter(isQ), checks = S.filter(function (s, i) { return phase(L, i)[0] === 'Check' && !s.opt; }), conf = S.filter(function (s) { return s.k === 'conf'; })[0], exit = S.filter(function (s) { return s.k === 'exit'; })[0];
+    function has(sid, s) { var a = by[sid] && by[sid][s.id]; return !!(a && String(a.answer).trim()); }
+    function names(list) { return list.length ? list.map(function (r) { return esc(nice(r.name)); }).join(', ') : '<span class="muted">nobody</span>'; }
+    var none = [], few = [], ready = [], used = {};
+    roster.forEach(function (r) {
+      var n = qs.filter(function (s) { return has(r.sid, s); }).length;
+      if (!n) { none.push(r); used[r.sid] = 1; } else if (n < Math.max(2, Math.ceil(qs.length * 0.4))) few.push(r);
+      else if (checks.length && checks.every(function (s) { var a = by[r.sid][s.id]; return a && a.correct === 'yes'; })) ready.push(r);
+    });
+    var grid = H('div', 'grid2'); needsBox.appendChild(grid);
+    function grp(title, list, todo) { var c = H('div', 'cardp pgrp'); c.appendChild(H('h3', '', esc(title) + ' <span class="muted">(' + list.length + ')</span>')); c.appendChild(H('p', 'names', names(list))); c.appendChild(H('p', 'do', todo)); grid.appendChild(c); }
+    if (!results.answers.length) { needsBox.appendChild(H('p', 'muted', 'No answers yet for this lesson. Run it, then come back: the groups build themselves.')); }
+    grp('Not started: no answers at all', none, 'Was the student signed in and on the right lesson? Next lesson: stand next to them for the retrieval warm-up and get one answer in before you move away. One answer is the goal.');
+    grp('Started, then stopped', few, 'They answered a few questions and then went quiet. Find the question where they stopped: that is where the step got too big. Show them 🪜 Help me start there, and sit them with a we-do partner.');
+    checks.forEach(function (s) {
+      var wrong = roster.filter(function (r) { var a = by[r.sid] && by[r.sid][s.id]; return a && a.correct === 'no'; }), blank = roster.filter(function (r) { return !used[r.sid] && !has(r.sid, s); });
+      grp('Reteach: ' + plain(s.q).slice(0, 70), wrong, 'Small group during practice: redo the we-do example before this question with new numbers, then give them the first ★ extra.' + (blank.length ? ' No answer here: ' + names(blank) + '.' : ''));
+    });
+    if (conf) { var low = roster.filter(function (r) { var a = by[r.sid] && by[r.sid][conf.id]; return a && /^[12]\./.test(String(a.answer)); }); grp('Said "Lost" or "Getting there"', low, 'Believe them. Start next lesson\'s we-do pairs with these students next to a "Got it" partner.'); }
+    if (exit) { var noex = roster.filter(function (r) { return !used[r.sid] && !has(r.sid, exit); }); grp('No exit ticket', noex, 'They were in the lesson but did not write. Tomorrow: sentence starter first (Help me start, step 3), and collect one sentence before they leave.'); }
+    grp('Ready for more: every check right', ready, 'Point them to the ★★ and ★★★ extras, or make them the "explainer" in a we-do pair.');
+  }
+
+  window.SFA_LESSON = function (L) { LES[L.id] = L; };
+  for (var i = 1; i <= MAXL; i++) { var s = document.createElement('script'); s.src = 'lessons/L' + i + '.js?v=' + Date.now().toString(36); s.onload = s.onerror = function () { if (--left === 0) draw(); }; document.head.appendChild(s); }
+})();
+</script>
+</body></html>

@@ -139,7 +139,7 @@
     var looks = {}, here = {};
     (A.consoleAnswers() || []).forEach(function (a) {
       if (!ids[a.sid]) return;
-      if (a.q === 'zlookx1') { var m = String(a.answer).match(/^lk1;([0-9a-z]{1,12});(\d+)/); if (m && (!looks[a.sid] || String(a.time) >= looks[a.sid].t)) looks[a.sid] = { look: m[1], lv: +m[2], t: String(a.time) }; }
+      if (a.q === 'zlookx1') { var m = String(a.answer).match(/^lk1;([0-9a-z]{1,12});(\d+)/); if (m && (!looks[a.sid] || String(a.time) >= looks[a.sid].t)) looks[a.sid] = { look: (AV.fromWire && AV.fromWire(a.answer)) || m[1], lv: +m[2], t: String(a.time) }; }
       if (!A.beforeRun(a)) here[a.sid] = 1;
     });
     var who = Object.keys(here); Object.keys(looks).forEach(function (s) { if (!here[s]) who.push(s); });

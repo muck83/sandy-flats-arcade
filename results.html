@@ -335,6 +335,7 @@ a.btn{text-decoration:none;display:inline-block}
 <div class="wrap">
   <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">My Results</h1></header>
   <div id="body"><p class="muted" style="margin-top:16px">Loading your results…</p></div>
+  <div id="myCard"></div>
 </div>
 <script src="config.js"></script>
 <script>/* Minimal SFA kit for the results pages: storage, DOM helper, toast (same storage namespace as the games). */
@@ -497,4 +498,8 @@ a.btn{text-decoration:none;display:inline-block}
 })();
 </script>
 <script src="sfa-nav.js"></script>
+<!-- the profile card and the effort badges, under the results -->
+<script src="sfa-avatar.js?v=20261119q"></script>
+<script src="sfa-quests.js?v=20261119q"></script>
+<script>if (window.SFA_QUESTS) SFA_QUESTS.shelf(document.getElementById('myCard'));</script>
 </body></html>

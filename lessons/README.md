@@ -42,6 +42,15 @@ Write for a Grade 8 student who doesn't want to do the math: short sentences, on
 | `play` | `title`, `steps` (3-4 lines), `aim` (one line: "Done when..."), `minutes` | open the game and play |
 | `exit` | `id`, `q`, `ph`, optional `model` | the exit ticket: type an answer |
 | `end` | `title`, optional `next` | see how many they answered |
+| `mistake` | `id`, `q`, `lines` (a worked solution, one line each), `ans` (index of the first wrong line), optional `fix` (that line as it should be), `hint`, `why` | **Spot the mistake**: tap the first line that is wrong; they can try again |
+| `order` | `id`, `q`, `steps` (in the right order; shown shuffled and lettered), optional `hint`, `why` | **Put the steps in order**: tap the steps one at a time, then check; right places turn green |
+| `cross` | `id`, `q`, `opts`, `ans` (index of the one that stays), `why`, optional `reasons` (2-4 short reasons) with `because` (the reason index for each option) | **Cross it out**: cross out wrong options one at a time, credit for each; the class screen shows which are crossed out most |
+| `odd` | `id`, `items` (four things), `why` (one true reason for each item, true for that item only), optional `q`, `note` | **Which one doesn't belong?** pick any one, then the reason that fits it; every item can be right |
+| `asn` | `id`, `q` (a statement), `ans` (0 always, 1 sometimes, 2 never), `eg` (the follow-up prompt), `why`, optional `model`, `ph` | **Always, sometimes or never?** tap one, then type an example; examples show on the class screen without names |
+| `est` | `id`, `q`, `lo`, `hi`, `step` (the slider), `ans`, optional `tol`, `near` (how close counts as a good estimate), `hint`, `why` | **Estimate first**: a slider guess, locked in, then the exact answer; the class screen shows how the estimates cluster |
+
+The last six also take `help` and `more`. They save as the older kinds (`poll`, `open`, `number`), so the results script
+needs no change. The Lane Clash and Boss Raid only draw their questions from `number` and `poll` slides.
 
 `id`s are lower-case letters and digits, unique in the lesson, at most 16 characters.
 

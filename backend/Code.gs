@@ -308,6 +308,9 @@ function setLive(req) {
   // the teacher's whiteboard: grid 0-3 and the strokes as base-36 text (sfa-whiteboard.js)
   if (L.wb && L.wb.on) { var ws = String(L.wb.s || ''); if (ws.length <= 40000 && /^[0-9a-z|:]*$/.test(ws)) out.wb = { on: 1, g: Math.max(0, Math.min(3, Math.round(Number(L.wb.g) || 0))), s: ws }; }
   if (L.ex && typeof L.ex === 'object') out.ex = { s: Math.max(0, Math.min(300, Math.round(Number(L.ex.s) || 0))), n: Math.max(0, Math.min(30, Math.round(Number(L.ex.n) || 0))) };
+  // text for the lesson's class features (sfa-together.js): first names on the class mural, think-pair-share partners and
+  // their answers, the spotlight's name. One JSON string, at most 12,000 characters; pages treat it as text, never as code.
+  if (typeof L.x === 'string' && L.x.length <= 12000 && L.x.charAt(0) === '{') out.x = safe(L.x, 12000);
   var json = JSON.stringify(out);
   if (json.length > 90000) throw new Error('too big');
   cache.put('live', json, 21600);

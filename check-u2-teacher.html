@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unit 2 Check Dashboard · Sandy Flats</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css?v=20261118">
+<link rel="stylesheet" href="review-u2.css?v=20261118c">
+<style>
+/* Unit 2 Check dashboard: start code, class table by criterion and skill, flags, paper-proof checklist, regrouping. */
+.dash{max-width:1380px}
+.l0{--lc:#2E2A3D;--lt:#ABA5BC}.l1{--lc:#E8584C;--lt:#2A0703}.l2{--lc:#FF9F45;--lt:#2A1400}.l3{--lc:#FFC94A;--lt:#2A1E00}.l4{--lc:#3BFF8A;--lt:#00260F}
+.muted{color:var(--muted)}
+.bar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-top:12px}
+.bar .grow{flex:1 1 auto}
+.bar input[type=search]{font:600 15px var(--ui);padding:8px 12px;border-radius:999px;border:2px solid var(--line);background:#0E0C14;color:var(--ink);min-width:180px}
+.seg{display:inline-flex;border:2px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{all:unset;cursor:pointer;font:600 13px var(--ui);padding:6px 12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--marquee);color:#231800}
+.seg button:focus-visible{outline:3px solid var(--marquee);outline-offset:-3px}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0;margin-top:14px}
+.panel h2{font-family:var(--display);font-weight:400;letter-spacing:.03em;color:var(--marquee);font-size:20px;margin:0 0 4px}
+.panel .sub{font-size:13px;color:var(--muted);margin:0 0 10px;max-width:95ch}
+.codebox{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center}
+.bigcode{font:600 clamp(40px,7vw,72px)/1 var(--mono);letter-spacing:.18em;color:var(--marquee);background:#0E0C14;border:2px solid var(--line);border-radius:14px;padding:12px 10px 12px 22px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:14px}
+.kpi{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:12px 14px}
+.kpi .k{font:600 12px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.kpi .v{font-family:var(--display);font-size:32px;line-height:1.1;color:var(--marquee)}
+.kpi .s{font-size:13px;color:var(--muted)}
+.kpi.warn .v{color:#FF8E84}
+.heat{overflow-x:auto;margin-top:6px}
+table.hm{border-collapse:separate;border-spacing:3px;min-width:100%}
+.hm th{font:600 11px var(--ui);color:var(--muted);text-align:center;vertical-align:bottom;padding:4px 2px;white-space:nowrap}
+.hm th.sk{height:150px}
+.hm th.sk span{display:inline-block;writing-mode:vertical-rl;transform:rotate(180deg);max-height:146px;overflow:hidden;text-overflow:ellipsis}
+.hm th.cg{font-size:10px;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid var(--line);padding-bottom:3px}
+.hm th.sortable{cursor:pointer}
+.hm th.sortable:hover{color:var(--marquee)}
+.hm td{padding:0}
+.hm td.who{padding:4px 10px 4px 2px;white-space:nowrap;font-size:14px;font-weight:600}
+.hm td.who button{all:unset;cursor:pointer}
+.hm td.who button:hover,.hm td.who button:focus-visible{color:var(--marquee);text-decoration:underline}
+.hm td.who small{color:var(--muted);font-weight:400;margin-left:6px;font-size:11px}
+.hm td.c{width:32px;min-width:28px;height:30px;border-radius:7px;background:var(--lc);text-align:center;font:700 11px var(--mono);color:var(--lt)}
+.hm td.c.cr{width:40px;min-width:36px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
+.hm td.meta{padding:0 8px;font:500 12px var(--mono);color:var(--muted);white-space:nowrap;text-align:right}
+.hm td.sc{font:600 13px var(--mono);padding:0 8px;white-space:nowrap;text-align:right}
+.hm td.fl{padding:0 6px;font-size:12px;white-space:nowrap;text-align:left}
+.tag{display:inline-block;font:700 10px var(--ui);letter-spacing:.04em;text-transform:uppercase;background:#4A1D1A;color:#FF8E84;border-radius:999px;padding:2px 7px;margin:1px 3px 1px 0}
+.tag.soft{background:#3A3550;color:#D9D3EA}
+.badge{flex:none;display:inline-block;font:700 11px var(--ui);padding:3px 9px;border-radius:999px;background:var(--lc);color:var(--lt);white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:12px;height:12px;border-radius:3px;background:var(--lc);display:inline-block}
+.rgroups{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px}
+.rgrp{background:var(--panel2);border-radius:12px;padding:10px 12px;border-top:5px solid var(--lc,#3A3550)}
+.rgrp .gh{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.rgrp .names{font-size:14px;margin-top:4px;line-height:1.6}
+.rgrp small{color:var(--muted)}
+.pp{display:grid;gap:8px}
+.pp details{background:var(--panel2);border-radius:12px;padding:8px 12px}
+.pp summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
+.pp summary b{min-width:11em}
+.pp .code{font:600 14px var(--mono);background:#0E0C14;border-radius:6px;padding:2px 8px}
+.ppq{background:var(--paper);color:var(--paperink);border-radius:12px;padding:12px 14px;margin-top:8px}
+.ppq .gr{max-width:260px}
+.ppq ol.steps{margin:8px 0 0;padding-left:20px}
+.ppq ol.steps li{margin:6px 0}
+.ppq .ans{margin-top:8px;font-weight:700;border-top:2px dashed #CFC7AC;padding-top:8px}
+.drawer{position:fixed;inset:0 0 0 auto;width:min(520px,100vw);background:var(--panel);border-left:2px solid var(--line);box-shadow:-20px 0 50px rgba(0,0,0,.5);z-index:60;overflow-y:auto;padding:18px;transform:translateX(105%);transition:transform .25s ease;visibility:hidden}
+.drawer.open{transform:none;visibility:visible}
+.drawer h2{font-family:var(--display);font-weight:400;color:var(--marquee);margin:0;font-size:24px}
+.drawer h3{margin:16px 0 4px;font-size:15px}
+.drawer .x{float:right}
+.dsk{display:grid;grid-template-columns:1fr auto auto;gap:6px 10px;align-items:center;margin-top:6px;font-size:14px}
+.dsk small{color:var(--muted);font:500 12px var(--mono)}
+table.log{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
+.log th,.log td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.log td.ok{color:var(--green)}.log td.no{color:#FF8E84}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.how{margin-top:14px;color:var(--muted)}
+.how summary{cursor:pointer;color:var(--ink);font-weight:700}
+.how li{margin:5px 0;max-width:100ch}
+body.hide .nmv{filter:blur(6px)}
+@media print{body{background:#fff;color:#000}.bar,.kpis,.drawer,.how,.noprint,.sfanav,.topbar{display:none!important}.panel{border:1px solid #999;background:#fff;color:#000}.pp details{background:#fff;border:1px solid #bbb}.muted,.panel .sub{color:#333}}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+</style>
+</head><body>
+<div class="wrap dash">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Unit 2 Check · Dashboard</h1><div class="chips" id="chips"></div></header>
+  <main id="body"><p class="muted">Loading…</p></main>
+  <div id="app" hidden aria-hidden="true"></div>
+</div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-label="Student detail"></aside>
+<script src="config.js"></script>
+<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261119a"><\/script>'); }</script>
+<script src="sfa-kit.js"></script>
+<script src="review-u2.js?v=20261118e"></script>
+<script src="check-u2.js?v=20261119a"></script>
+<script>
+(function () {
+  'use strict';
+  var SFA = window.SFA, el = SFA.el, CU = window.CU2, CFG = window.SFA_CONFIG || {}, body = document.getElementById('body'), drawer = document.getElementById('drawer');
+  var DEMO = /[?&]demo/.test(location.search), TRY = !!window.CU2_TRY;
+  var CRIT = CU.CRIT, SK = CU.SK, LV = CU.LV, ABBR = ['?', 'L', 'E', 'D', 'D+'], FL = CU.FLAG;
+  var SKN = {}; SK.forEach(function (k) { SKN[k.id] = k; });
+
+  /* ---------- teacher key (shared with Class Results) ---------- */
+  var KEY = 'sfa.classkey';
+  var Key = {
+    get: function () { if (TRY) return 'test'; try { var s = sessionStorage.getItem(KEY); if (s) return s; var r = JSON.parse(localStorage.getItem(KEY) || 'null'); if (r && r.until > Date.now()) return r.k; } catch (e) { } return ''; },
+    set: function (k, remember) { try { sessionStorage.setItem(KEY, k); if (remember) { var d = new Date(); d.setHours(23, 59, 59, 0); localStorage.setItem(KEY, JSON.stringify({ k: k, until: d.getTime() })); } } catch (e) { } },
+    del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
+  };
+  function api(op) {
+    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ op: op, teacherKey: Key.get() }) })
+      .then(function (r) { return r.text(); })
+      .then(function (t) { try { return JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly.'); } })
+      .then(function (j) { if (!j.ok) throw new Error(j.error); return j; });
+  }
+  function pref(k, d) { try { var v = localStorage.getItem('sfa.ckdash.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function setPref(k, v) { try { localStorage.setItem('sfa.ckdash.' + k, JSON.stringify(v)); } catch (e) { } }
+
+  var S = { rows: [], cls: pref('cls', ''), q: '', sort: pref('sort', 'name'), auto: pref('auto', true), at: null, code: null, len: pref('len', 0), day: pref('day', 'all') };
+  var timer = null;
+  function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
+  function hhmm(t) { return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+  function nm(r) { return el('span', { 'class': 'nmv', text: nice(r.name) }); }
+
+  /* ---------- one row per student, rebuilt from the saved summary by the same engine the student page used ---------- */
+  function build(j) {
+    var by = {}; (j.progress || []).forEach(function (p) { if (p.game === CU.KEY) by[p.sid] = p; });
+    return (j.roster || []).map(function (s) {
+      var p = by[s.sid], att = p ? CU.decode(p.levels) : null, r = { sid: s.sid, name: s.name, cls: s.cls || '', p: p, att: att && att.ok ? att : null, updated: p ? p.updated : '' };
+      if (!r.att) return r;
+      var log = r.att.log, sc = r.sc = CU.score(log);
+      var f = r.flags = { away: 0, awaySecs: 0, paste: 0, copy: 0, quick: 0, guess: 0, slow: 0, idk: 0, reloads: r.att.reloads || 0, ext: r.att.ext || 0 };
+      log.forEach(function (e) {
+        if (e.f & FL.away) { f.away++; f.awaySecs += e.a || 0; } if (e.f & FL.paste) f.paste++; if (e.f & FL.copy) f.copy++; if (e.f & FL.slow) f.slow++; if (e.idk) f.idk++;
+        if (e.f & FL.fast) { if (e.ok && e.d >= 3) f.quick++; else if (!e.ok && !e.idk) f.guess++; }
+      });
+      var tags = [];
+      if (f.away) tags.push(['Left tab ×' + f.away + (f.awaySecs ? ' (' + f.awaySecs + ' s)' : ''), f.away >= 2 || f.awaySecs >= 30]);
+      if (f.paste) tags.push(['Paste ×' + f.paste, true]); if (f.copy) tags.push(['Copied question ×' + f.copy, true]);
+      if (f.quick) tags.push(['Very fast and right ×' + f.quick, f.quick >= 2]); if (f.guess >= 3) tags.push(['Rapid guesses ×' + f.guess, false]);
+      if (f.slow) tags.push(['Very slow ×' + f.slow, false]); if (f.reloads > 1) tags.push(['Reloads ×' + f.reloads, false]); if (f.ext) tags.push(['Extra time ×' + f.ext, false]);
+      // right answers while away from the tab, on Developed-level or harder questions: the pattern most worth a paper check
+      var awayRight = log.filter(function (e) { return (e.f & FL.away) && e.ok && e.d >= 3; }).length; if (awayRight) tags.push(['Right after leaving ×' + awayRight, true]);
+      r.tags = tags; r.hot = tags.some(function (t) { return t[1]; });
+      r.state = r.att.state === 'r' ? (Date.now() - Date.parse(r.updated) < 4 * 60000 ? 'Working' : 'Stopped mid-test') : ({ t: 'Finished (time)', s: 'Finished (steady)', m: 'Finished (all questions)', x: 'Ended' })[r.att.state] || 'Finished';
+      r.mins = Math.round((r.att.elapsed || 0) / 60);
+      var cs = CRIT.filter(function (c) { return sc.crit[c.id].level; }).sort(function (a, b) { return sc.crit[a.id].th - sc.crit[b.id].th; });
+      r.weak = cs.length ? cs[0] : null;
+      return r;
+    });
+  }
+  function dayOf(r) { return r.att ? new Date(r.att.t0).toDateString() : ''; }
+  function inScope(r) { return (!S.cls || r.cls === S.cls); }
+  function shown() {
+    var q = S.q.toLowerCase(), r = S.rows.filter(function (x) { return inScope(x) && (!q || nice(x.name).toLowerCase().indexOf(q) >= 0); });
+    var th = function (x) { return x.att ? x.sc.th : -99; };
+    var cmp = { name: function (a, b) { return a.name.localeCompare(b.name); }, low: function (a, b) { return th(a) - th(b) || a.name.localeCompare(b.name); }, high: function (a, b) { return th(b) - th(a) || a.name.localeCompare(b.name); }, flags: function (a, b) { return ((b.tags || []).length + (b.hot ? 10 : 0)) - ((a.tags || []).length + (a.hot ? 10 : 0)) || a.name.localeCompare(b.name); } }[S.sort];
+    return r.sort(cmp);
+  }
+
+  /* ---------- render ---------- */
+  function render() {
+    var all = S.rows.filter(inScope), rows = shown(), done = all.filter(function (r) { return r.att; });
+    body.innerHTML = '';
+    body.appendChild(toolbar());
+    body.appendChild(codePanel());
+    if (!all.length) { body.appendChild(el('p', { 'class': 'muted', text: 'No students on the roster for this class.' })); return; }
+
+    var fin = done.filter(function (r) { return r.att.state !== 'r'; }), lev = done.filter(function (r) { return r.sc.level; });
+    var med = lev.map(function (r) { return r.sc.scale; }).sort(function (a, b) { return a - b; }), mid = med.length ? med[Math.floor((med.length - 1) / 2)] : 0;
+    var devp = lev.filter(function (r) { return r.sc.level >= 3; }).length, hot = done.filter(function (r) { return r.hot; }).length;
+    var cw = CRIT.map(function (c) { var l = done.filter(function (r) { return r.sc.crit[c.id].level; }); return { c: c, n: l.filter(function (r) { return r.sc.crit[c.id].level >= 3; }).length, of: l.length }; }).filter(function (x) { return x.of; }).sort(function (a, b) { return a.n / a.of - b.n / b.of; })[0];
+    body.appendChild(el('div', { 'class': 'kpis' }, [
+      kpi('Started', done.length + '/' + all.length, fin.length + ' finished', false),
+      kpi('Median scale score', mid ? String(mid) : '·', 'cut scores 450 · 550 · 650', false),
+      kpi('At Developed or Deep', lev.length ? devp + '/' + lev.length : '·', 'overall, of those with enough answers', false),
+      kpi('Reteach first', cw ? cw.c.short : '·', cw ? cw.n + ' of ' + cw.of + ' at Developed+' : 'no results yet', !!cw && cw.n < cw.of / 2),
+      kpi('Worth a paper check', String(hot), 'students with strong flags', hot > 0)
+    ]));
+
+    // class table
+    var heat = el('section', { 'class': 'panel' }, [el('h2', { text: 'Class table' }), el('p', { 'class': 'sub', text: 'Wide squares are the four success criteria (estimated from every question in that criterion); small squares are the 13 skills. L Limited · E Emerging · D Developed · D+ Deep · ? not enough evidence (fewer than 3 questions in a criterion or 2 on a skill); a grey ✓ or ✗ is a skill with one question only, right or not right. In 35 minutes most students answer 15 to 25 questions, so many skills get one or two. A skill square rests on only 2 or 3 questions: trust the criteria and the scale score more. Click a name for the full record.' })]);
+    var t = el('table', { 'class': 'hm' }), g = el('tr', {}, [el('th'), el('th'), el('th')]);
+    CRIT.forEach(function (c) { g.appendChild(el('th', { 'class': 'cg', colspan: String(c.skills.length + 1), text: c.short })); });
+    g.appendChild(el('th', { colspan: '3' }));
+    var h = el('tr', {}, [sortTh('Student', 'name'), sortTh('Scale ±', S.sort === 'low' ? 'high' : 'low'), el('th', { text: 'Overall' })]);
+    CRIT.forEach(function (c) { h.appendChild(el('th', { 'class': 'sk', title: c.name }, [el('span', { text: 'CRITERION', style: 'color:var(--ink)' })])); c.skills.forEach(function (id) { h.appendChild(el('th', { 'class': 'sk', title: SKN[id].name }, [el('span', { text: SKN[id].name })])); }); });
+    h.appendChild(el('th', { text: 'Qs' })); h.appendChild(el('th', { text: 'Min' })); h.appendChild(sortTh('Flags', 'flags'));
+    t.appendChild(g); t.appendChild(h);
+    rows.forEach(function (r) {
+      var tr = el('tr', {}, [el('td', { 'class': 'who' }, [el('button', { type: 'button', onclick: function () { openStudent(r); } }, [nm(r)]), S.cls ? null : el('small', { text: r.cls })])]);
+      if (!r.att) { tr.appendChild(el('td', { 'class': 'meta', colspan: String(5 + SK.length + CRIT.length), style: 'text-align:left', text: 'not started' })); t.appendChild(tr); return; }
+      var sc = r.sc;
+      tr.appendChild(el('td', { 'class': 'sc', text: sc.level ? sc.scale + ' ±' + sc.pm : '·', title: 'Scale score, give or take' }));
+      tr.appendChild(el('td', { 'class': 'c cr l' + sc.level, text: ABBR[sc.level], title: nice(r.name) + ' overall: ' + LV[sc.level] }));
+      CRIT.forEach(function (c) {
+        var e = sc.crit[c.id]; tr.appendChild(el('td', { 'class': 'c cr l' + e.level, text: ABBR[e.level], title: c.short + ': ' + LV[e.level] + ' · ' + e.right + ' of ' + e.n + ' right' + (e.level ? ' · ' + e.scale + ' ±' + e.pm : '') }));
+        c.skills.forEach(function (id) { var k = sc.skill[id]; tr.appendChild(el('td', { 'class': 'c l' + k.level, text: k.n === 1 ? (k.right ? '✓' : '✗') : k.n ? ABBR[k.level] : '', title: SKN[id].name + ': ' + (k.n === 1 ? 'one question only (level ' + (k.top || r.att.log.filter(function (e) { return e.s === id; })[0].d) + '), ' + (k.right ? 'right' : 'not right') + ': not enough for a level' : k.n ? LV[k.level] + ' · ' + k.right + ' of ' + k.n + ' right' : 'not reached') })); });
+      });
+      tr.appendChild(el('td', { 'class': 'meta', text: String(sc.n) })); tr.appendChild(el('td', { 'class': 'meta', text: String(r.mins), title: r.state }));
+      tr.appendChild(el('td', { 'class': 'fl' }, r.tags.length ? r.tags.map(function (x) { return el('span', { 'class': 'tag' + (x[1] ? '' : ' soft'), text: x[0] }); }) : [el('span', { 'class': 'muted', text: r.att.state === 'r' ? r.state : '' })]));
+      t.appendChild(tr);
+    });
+    heat.appendChild(el('div', { 'class': 'heat' }, [t]));
+    heat.appendChild(el('div', { 'class': 'legend' }, LV.map(function (l, i) { return el('span', { 'class': 'l' + i }, [el('i'), l]); })));
+    body.appendChild(heat);
+
+    body.appendChild(groupsPanel(done));
+    body.appendChild(paperPanel(done));
+    body.appendChild(how());
+  }
+  function kpi(k, v, s, warn) { return el('div', { 'class': 'kpi' + (warn ? ' warn' : '') }, [el('div', { 'class': 'k', text: k }), el('div', { 'class': 'v', text: v, style: v.length > 9 ? 'font-size:20px;line-height:1.25;padding:6px 0' : '' }), el('div', { 'class': 's', text: s })]); }
+  function sortTh(label, key) { return el('th', { 'class': 'sortable', tabindex: '0', role: 'button', onclick: function () { S.sort = key; setPref('sort', key); render(); }, onkeydown: function (e) { if (e.key === 'Enter') { S.sort = key; render(); } } }, [label + (S.sort === key || (label === 'Scale ±' && (S.sort === 'low' || S.sort === 'high')) ? ' ▾' : '')]); }
+  function copy(t) { try { navigator.clipboard.writeText(t).then(function () { SFA.toast('Names copied'); }, function () { SFA.toast(t, 6000); }); } catch (e) { SFA.toast(t, 6000); } }
+
+  /* ---------- the start code ---------- */
+  function codePanel() {
+    var box = el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Run the check' }), el('p', { 'class': 'sub', text: 'Students open check-u2.html, sign in, and type the start code you read out or put on the board. A code works only today and only for ' + CU.OPEN_MIN + ' minutes after you make it, so the check cannot be started early or at home. A student who has started keeps going after the code closes; the clock runs from their own start, even through a reload. For latecomers, or to give a student who ran out of time 10 more minutes, make a new code.' })]);
+    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Test length' }, CU.LENS.map(function (m, i) { return el('button', { type: 'button', 'aria-pressed': S.len === i ? 'true' : 'false', text: m + ' min' + (i === 0 ? '' : i === 2 ? ' (×1.5)' : i === 3 ? ' (×2)' : ''), onclick: function () { S.len = i; setPref('len', i); S.code = null; render(); } }); }));
+    var live = S.code && CU.readCode(S.code.code, Date.now());
+    var row = el('div', { 'class': 'codebox' }, [el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Test length for this code' }), seg]),
+      el('button', { type: 'button', 'class': 'btn primary', text: S.code ? 'Make a new code' : 'Make a start code', onclick: function () { var now = Date.now(); S.code = { code: CU.makeCode(now, S.len), at: now }; try { sessionStorage.setItem('sfa.ckdash.code', JSON.stringify(S.code)); } catch (e) { } render(); } })]);
+    box.appendChild(row);
+    if (S.code) box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:12px' }, [el('div', { 'class': 'bigcode', text: S.code.code, 'aria-label': 'Start code ' + S.code.code.split('').join(' ') }),
+      el('div', {}, [el('b', { text: live && live.ok ? 'Open: students can start until ' + hhmm(live.closes) : 'This code has closed. Make a new one for anyone still to start.' }), el('div', { 'class': 'muted', text: live && live.ok ? live.len + '-minute test. Extended-time students: make a second code with a longer length and give it to them quietly.' : '' })])]));
+    return box;
+  }
+
+  /* ---------- regrouping for reteaching ---------- */
+  function groupsPanel(done) {
+    var box = el('section', { 'class': 'panel' }, [el('h2', { text: 'Suggested groups for reteaching' }), el('p', { 'class': 'sub', text: 'Each student is placed by their weakest success criterion, if it is at Limited or Emerging. The skill named in a group is the one most of its students were weakest on. Students with every criterion at Developed or Deep go to Extend.' })]);
+    var g = el('div', { 'class': 'rgroups' }), placed = {};
+    function grp(title, cls, who, note) {
+      if (!who.length) return;
+      var names = who.map(function (r) { return nice(r.name); });
+      g.appendChild(el('div', { 'class': 'rgrp ' + cls }, [el('div', { 'class': 'gh' }, [el('div', {}, [el('b', { text: title + ' · ' + who.length }), note ? el('div', {}, [el('small', { text: note })]) : null]), el('button', { 'class': 'btn small noprint', type: 'button', text: 'Copy names', onclick: function () { copy(names.join(', ')); } })]),
+        el('div', { 'class': 'names' }, who.map(function (r, i) { return el('span', {}, [nm(r), i < who.length - 1 ? ', ' : '']); }))]));
+    }
+    CRIT.forEach(function (c) {
+      var who = done.filter(function (r) { return r.weak === c && r.sc.crit[c.id].level <= 2; }).sort(function (a, b) { return a.sc.crit[c.id].th - b.sc.crit[c.id].th; });
+      who.forEach(function (r) { placed[r.sid] = 1; });
+      var tally = {}; who.forEach(function (r) { var w = c.skills.slice().sort(function (a, b) { return r.sc.skill[a].th - r.sc.skill[b].th; })[0]; tally[w] = (tally[w] || 0) + 1; });
+      var top = Object.keys(tally).sort(function (a, b) { return tally[b] - tally[a]; })[0];
+      var lim = who.filter(function (r) { return r.sc.crit[c.id].level === 1; }).length;
+      grp('Reteach: ' + c.short, lim > who.length / 2 ? 'l1' : 'l2', who, top ? 'Start with: ' + SKN[top].name + ' (review-u2.html#' + top + '). ' + lim + ' at Limited, ' + (who.length - lim) + ' at Emerging.' : '');
+    });
+    grp('Extend', 'l4', done.filter(function (r) { return !placed[r.sid] && r.weak && CRIT.every(function (c) { return !r.sc.crit[c.id].level || r.sc.crit[c.id].level >= 3; }); }).map(function (r) { placed[r.sid] = 1; return r; }), 'Every criterion with enough evidence is at Developed or Deep: stretch problems, or pair as a helper.');
+    grp('Not enough evidence', 'l0', done.filter(function (r) { return !placed[r.sid]; }), 'Too few answers to place: check in person, or give a new code to continue.');
+    if (!g.children.length) g.appendChild(el('p', { 'class': 'muted', text: 'Groups appear once students have answered some questions.' }));
+    box.appendChild(g); return box;
+  }
+
+  /* ---------- paper proof ---------- */
+  function paperItems(r) {
+    return (r.att.papers || []).map(function (p) {
+      var e = r.att.log[p.i], q = e ? CU.paper(p.s, e.d, r.att.seed) : null;
+      return { p: p, e: e, q: q, code: CU.paperCode(r.att.seed, p.s), match: !!q && q.chk === p.chk };
+    });
+  }
+  function paperBlock(x) {
+    var d = el('div', { 'class': 'ppq' });
+    if (!x.q) { d.textContent = 'The problem could not be rebuilt here (the review file did not load). Ask the student to show you the question code on their summary screen.'; return d; }
+    if (!x.match) d.appendChild(el('p', { style: 'color:#B3261E;font-weight:700', text: 'Careful: this rebuilt problem may not be the one the student saw (the review file changed since the test). Compare the numbers on the paper before using the solution.' }));
+    var q = el('div', { 'class': 'pq' }); q.innerHTML = x.q.stem; d.appendChild(q);
+    if (x.q.figHtml) { var f = el('div', { 'class': 'fig' }); f.innerHTML = x.q.figHtml; d.appendChild(f); }
+    var ol = el('ol', { 'class': 'steps' }); x.q.steps.forEach(function (s) { var li = el('li'); li.innerHTML = '<span>' + s.q + '</span><br><b>' + s.why + '</b>'; ol.appendChild(li); }); d.appendChild(ol);
+    d.appendChild(el('div', { 'class': 'ans', text: 'Final answer: ' + x.q.answer }));
+    return d;
+  }
+  function paperPanel(done) {
+    var box = el('section', { 'class': 'panel' }, [el('h2', { text: 'Paper-proof checklist' }), el('p', { 'class': 'sub', text: 'Up to three questions per student were "paper questions": the student wrote their name and the code on paper and showed the working there. Each student\'s numbers are different. Open a line to see that student\'s problem and its worked solution, and hold it against their paper. Right on screen with no working, or working that doesn\'t lead to the answer, is worth a conversation; so is a student who is strong on screen and weak on paper.' }),
+      el('div', { 'class': 'bar noprint', style: 'margin:0 0 10px' }, [el('button', { type: 'button', 'class': 'btn small', text: 'Open all', onclick: function () { [].forEach.call(box.querySelectorAll('details'), function (d) { d.open = true; }); } }), el('button', { type: 'button', 'class': 'btn small', text: '🖨 Print this checklist', onclick: function () { [].forEach.call(box.querySelectorAll('details'), function (d) { d.open = true; }); window.print(); } })])]);
+    var list = el('div', { 'class': 'pp' }), n = 0;
+    done.slice().sort(function (a, b) { return (b.hot ? 1 : 0) - (a.hot ? 1 : 0) || a.name.localeCompare(b.name); }).forEach(function (r) {
+      paperItems(r).forEach(function (x) {
+        n++;
+        var d = el('details', {}, [el('summary', {}, [el('b', {}, [nm(r)]), el('span', { 'class': 'code', text: x.code }), el('span', { text: 'Q' + (x.p.i + 1) + ' · ' + SKN[x.p.s].name }), el('span', { 'class': 'badge ' + (x.e && x.e.ok ? 'l4' : 'l1'), text: x.e && x.e.ok ? 'right on screen' : x.e && x.e.idk ? 'skipped on screen' : 'wrong on screen' }), x.e ? el('small', { 'class': 'muted', text: x.e.t + ' s' }) : null, r.hot ? el('span', { 'class': 'tag', text: 'flagged' }) : null])]);
+        d.addEventListener('toggle', function () { if (d.open && !d.querySelector('.ppq')) d.appendChild(paperBlock(x)); });
+        list.appendChild(d);
+      });
+    });
+    if (!n) list.appendChild(el('p', { 'class': 'muted', text: 'No paper questions answered yet.' }));
+    box.appendChild(list); return box;
+  }
+
+  function how() {
+    var st = el('span', { 'class': 'muted' });
+    return el('details', { 'class': 'how' }, [el('summary', { text: 'How the check works, and how far to trust it' }), el('ul', {}, [
+      el('li', { text: 'Adaptive rule: each criterion starts at level 2 of 4 (1 Foundation, 2 Emerging-level, 3 Developed-level = the unit goal, 4 Deep-level). Right moves that criterion up a level, wrong or "I don\'t know yet" moves it down. A skill\'s first question is asked at its criterion\'s current level; after that the skill follows its own last answer.' }),
+      el('li', { text: 'Coverage: questions 1 to 13 visit every skill once and 14 to 26 visit them again, criteria taking turns; later questions go to the skill with the least certain estimate. The test stops at the time limit, at 40 questions, or early (after at least 26) once the overall and criterion estimates have settled.' }),
+      el('li', { text: 'Scoring: an estimate on a scale where 500 is the middle of Emerging-to-Developed; cut scores 450 (Emerging), 550 (Developed), 650 (Deep). The ± is one standard error: the true score is inside it about two times in three. Tap-to-choose questions are discounted for lucky guesses.' }),
+      el('li', { text: 'Criteria here are estimated from all their questions (unlike the review dashboard, which takes the weakest skill). Skill squares rest on 2 or 3 questions each: use them to choose where to look, not as a verdict.' }),
+      el('li', { text: 'Flags are observations, not proof, and nothing is deducted for them. Leaving the tab can be a notification or a calculator app. The strongest signals are "Right after leaving", "Paste", "Very fast and right" on hard questions, and a paper that doesn\'t match the screen.' }),
+      el('li', { text: 'Limits: a phone held beside the laptop, or a classmate, leaves no flag. Numbers are drawn as pictures so they can\'t be copied as text, but a screenshot can still be given to a chatbot. The start code and the timer are checked in the browser, not on a server. The paper questions and your own eyes in the room are the real check.' })
+    ]), el('p', {}, [el('button', { type: 'button', 'class': 'btn small', text: 'Run the question self-check', onclick: function () { st.textContent = ' checking…'; setTimeout(function () { var r = CU.selfTest(40); st.textContent = r.ok ? ' ✓ ' + r.items + ' generated questions and ' + r.paper + ' paper questions verified on this computer.' : ' Problem found: ' + r.failed.concat(r.paperFailed).slice(0, 3).join(' | '); }, 30); } }), st])]);
+  }
+
+  function toolbar() {
+    var classes = []; S.rows.forEach(function (r) { if (r.cls && classes.indexOf(r.cls) < 0) classes.push(r.cls); }); classes.sort();
+    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Class' }, [''].concat(classes).map(function (c) { return el('button', { type: 'button', 'aria-pressed': S.cls === c ? 'true' : 'false', text: c ? 'Class ' + c : 'All classes', onclick: function () { S.cls = c; setPref('cls', c); render(); } }); }));
+    var search = el('input', { type: 'search', placeholder: 'Find a student', value: S.q, 'aria-label': 'Find a student' });
+    search.addEventListener('input', function () { S.q = search.value; var pos = search.selectionStart; render(); var s2 = body.querySelector('input[type=search]'); s2.focus(); try { s2.setSelectionRange(pos, pos); } catch (e) { } });
+    var hidden = document.body.classList.contains('hide');
+    return el('div', { 'class': 'bar noprint' }, [
+      classes.length > 1 ? seg : null, search, el('span', { 'class': 'grow' }),
+      el('span', { 'class': 'live' }, [S.auto && !DEMO ? el('i') : null, DEMO ? 'Sample class (made-up students)' : (TRY ? 'Practice class · ' : '') + 'Updated ' + (S.at ? hhmm(S.at) : '…') + (S.auto ? ' · refreshes every 30 s' : '')]),
+      el('button', { 'class': 'btn small', type: 'button', text: hidden ? '👁 Show names' : '🙈 Hide names', onclick: function () { document.body.classList.toggle('hide'); render(); } }),
+      DEMO ? null : el('button', { 'class': 'btn small', type: 'button', text: S.auto ? '⏸ Auto-refresh' : '▶ Auto-refresh', onclick: function () { S.auto = !S.auto; setPref('auto', S.auto); schedule(); render(); } }),
+      DEMO ? null : el('button', { 'class': 'btn small', type: 'button', text: '↻ Refresh', onclick: function () { load(true); } }),
+      el('button', { 'class': 'btn small', type: 'button', text: '⬇ CSV', onclick: csv })
+    ]);
+  }
+
+  function openStudent(r) {
+    drawer.innerHTML = '';
+    drawer.appendChild(el('button', { 'class': 'btn small x', type: 'button', text: '✕ Close', onclick: closeDrawer }));
+    drawer.appendChild(el('h2', {}, [nm(r)]));
+    if (!r.att) { drawer.appendChild(el('p', { 'class': 'muted', text: 'Has not started the check.' })); }
+    else {
+      var sc = r.sc, a = r.att;
+      drawer.appendChild(el('p', { 'class': 'muted', text: (r.cls ? 'Class ' + r.cls + ' · ' : '') + r.state + ' · started ' + new Date(a.t0).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' with code ' + a.code + ' · ' + sc.n + ' questions (' + sc.right + ' right) in ' + r.mins + ' min' + (a.n > 1 ? ' · attempt ' + a.n : '') }));
+      drawer.appendChild(el('p', {}, [el('span', { 'class': 'badge l' + sc.level, text: LV[sc.level] }), sc.level ? ' Scale ' + sc.scale + ' ± ' + sc.pm : ' Fewer than ' + CU.NEED.all + ' answers.']));
+      if (r.tags.length) drawer.appendChild(el('p', {}, r.tags.map(function (x) { return el('span', { 'class': 'tag' + (x[1] ? '' : ' soft'), text: x[0] }); })));
+      CRIT.forEach(function (c) {
+        var e = sc.crit[c.id];
+        drawer.appendChild(el('h3', { style: 'display:flex;justify-content:space-between;gap:8px' }, [c.name, el('span', { 'class': 'badge l' + e.level, text: LV[e.level] })]));
+        drawer.appendChild(el('div', { 'class': 'dsk' }, [].concat.apply([], c.skills.map(function (id) { var k = sc.skill[id]; return [el('span', { text: SKN[id].name }), el('small', { text: k.n ? k.right + '/' + k.n + (k.top ? ' · top L' + k.top : '') : '' }), el('span', { 'class': 'badge l' + k.level, text: k.n ? LV[k.level] : 'not reached' })]; }))));
+      });
+      var px = paperItems(r);
+      if (px.length) { drawer.appendChild(el('h3', { text: 'Paper questions' })); var pp = el('div', { 'class': 'pp' }); px.forEach(function (x) { var d = el('details', {}, [el('summary', {}, [el('span', { 'class': 'code', text: x.code }), el('span', { text: 'Q' + (x.p.i + 1) + ' · ' + SKN[x.p.s].name }), el('span', { 'class': 'badge ' + (x.e && x.e.ok ? 'l4' : 'l1'), text: x.e && x.e.ok ? 'right on screen' : 'not right on screen' })])]); d.addEventListener('toggle', function () { if (d.open && !d.querySelector('.ppq')) d.appendChild(paperBlock(x)); }); pp.appendChild(d); }); drawer.appendChild(pp); }
+      drawer.appendChild(el('h3', { text: 'Every question, in order' }));
+      var t = el('table', { 'class': 'log' }, [el('tr', {}, ['#', 'Skill', 'Level', '', 'Time', 'Notes'].map(function (x) { return el('th', { text: x }); }))]);
+      a.log.forEach(function (e, i) {
+        var notes = []; if (e.p) notes.push('paper'); if (e.idk) notes.push('"don\'t know"'); if (e.f & FL.away) notes.push('left tab' + (e.b > 1 ? ' ×' + e.b : '') + (e.a ? ' ' + e.a + ' s' : '')); if (e.f & FL.paste) notes.push('paste'); if (e.f & FL.copy) notes.push('copied'); if (e.f & FL.fast) notes.push('very fast'); if (e.f & FL.slow) notes.push('very slow'); if (e.r) notes.push('reload');
+        t.appendChild(el('tr', {}, [el('td', { text: String(i + 1) }), el('td', { text: SKN[e.s].name.length > 26 ? SKN[e.s].name.slice(0, 25) + '…' : SKN[e.s].name, title: SKN[e.s].name }), el('td', { text: 'L' + e.d }), el('td', { 'class': e.ok ? 'ok' : 'no', text: e.ok ? '✓' : '✗' }), el('td', { text: e.t + ' s' }), el('td', { text: notes.join(', ') })]));
+      });
+      drawer.appendChild(el('div', { style: 'overflow-x:auto' }, [t]));
+    }
+    drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); drawer.querySelector('.x').focus();
+  }
+  function closeDrawer() { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+
+  function csv() {
+    var head = ['Student', 'Class', 'Status', 'Started', 'Start code', 'Questions', 'Right', 'Minutes', 'Scale score', 'Plus or minus', 'Overall level']
+      .concat([].concat.apply([], CRIT.map(function (c) { return [c.short + ' (criterion)', c.short + ' scale', c.short + ' questions']; })))
+      .concat(SK.map(function (k) { return k.name; })).concat(SK.map(function (k) { return k.name + ' (right/asked)'; }))
+      .concat(['Left tab (questions)', 'Seconds away', 'Paste', 'Copied question', 'Very fast and right (L3+)', 'Rapid wrong guesses', 'Very slow', 'Don\'t know', 'Reloads', 'Extra time', 'Paper codes', 'Paper on-screen results', 'Suggested group']);
+    var lines = [head].concat(shown().map(function (r) {
+      if (!r.att) return [nice(r.name), r.cls, 'Not started'];
+      var sc = r.sc, f = r.flags, px = paperItems(r);
+      return [nice(r.name), r.cls, r.state, new Date(r.att.t0).toLocaleString(), r.att.code, sc.n, sc.right, r.mins, sc.level ? sc.scale : '', sc.level ? sc.pm : '', LV[sc.level]]
+        .concat([].concat.apply([], CRIT.map(function (c) { var e = sc.crit[c.id]; return [LV[e.level], e.level ? e.scale : '', e.n]; })))
+        .concat(SK.map(function (k) { var e = sc.skill[k.id]; return e.n ? LV[e.level] : 'Not reached'; })).concat(SK.map(function (k) { var e = sc.skill[k.id]; return "'" + e.right + '/' + e.n; }))
+        .concat([f.away, f.awaySecs, f.paste, f.copy, f.quick, f.guess, f.slow, f.idk, f.reloads, f.ext, px.map(function (x) { return x.code; }).join(' '), px.map(function (x) { return x.e && x.e.ok ? 'right' : 'wrong'; }).join(' '), r.weak && r.sc.crit[r.weak.id].level <= 2 ? 'Reteach: ' + r.weak.short : r.weak ? 'Extend' : 'Not enough evidence']);
+    }));
+    var text = lines.map(function (l) { return l.map(function (x) { x = String(x == null ? '' : x); if (/^[=+\-@]/.test(x)) x = "'" + x; return /[",\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; }).join(','); }).join('\n');
+    var a = el('a', { href: URL.createObjectURL(new Blob(['﻿' + text], { type: 'text/csv' })), download: 'unit2-check-results.csv' }); document.body.appendChild(a); a.click(); a.remove();
+    window.CU2_LAST_CSV = text;
+  }
+
+  /* ---------- loading ---------- */
+  function schedule() { clearInterval(timer); if (S.auto && !DEMO) timer = setInterval(function () { if (document.visibilityState === 'visible' && !drawer.classList.contains('open') && !body.querySelector('details[open]') && document.activeElement.tagName !== 'INPUT') load(false); }, 30000); }
+  function askKey(msg) {
+    var inp = el('input', { type: 'password', style: 'font:600 15px var(--mono);padding:9px 12px;border-radius:10px;border:2px solid var(--line);background:#0E0C14;color:var(--ink);width:22em;max-width:100%', autocomplete: 'off', 'aria-label': 'Teacher key' });
+    var rem = el('input', { type: 'checkbox', id: 'remKey' });
+    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Open the dashboard', onclick: function () { Key.set(inp.value.trim(), rem.checked); load(true); } });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go.click(); });
+    body.innerHTML = '';
+    body.appendChild(el('div', { 'class': 'panel', style: 'max-width:640px' }, [
+      el('h2', { text: 'Teacher key' }), el('p', { 'class': 'muted', text: msg || 'The same key as Class Results. It is forgotten when you close this tab, unless you tick the box.' }),
+      el('div', { 'class': 'bar' }, [inp, go]),
+      el('label', { 'for': 'remKey', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' }, [rem, 'Remember on this computer until the end of today']),
+      el('p', { 'class': 'muted', style: 'font-size:13px' }, ['Just looking? ', el('a', { href: '?demo', text: 'Open it with a sample class' }), ', or ', el('a', { href: '?try', text: 'use the practice class' }), ' (students try it at check-u2.html?try with codes AAAAAA, BBBBBB, CCCCCC).'])
+    ]));
+    inp.focus();
+  }
+  function load(loud) {
+    if (DEMO) { if (!S.rows.length) S.rows = build(demo()); S.at = new Date(); render(); return; }
+    if (!CFG.endpoint) { body.textContent = 'Results saving isn\'t switched on for this copy of the arcade.'; return; }
+    if (!Key.get()) return askKey();
+    if (loud && !S.rows.length) body.innerHTML = '<p class="muted">Loading the class…</p>';
+    api('class').then(function (j) { S.rows = build(j); S.at = new Date(); render(); schedule(); }, function (e) {
+      if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); }
+      else if (loud || !S.rows.length) body.innerHTML = '<p style="color:#FF8E84">Couldn\'t reach the results sheet. ' + SFA.esc(e.message) + '</p>';
+    });
+  }
+
+  // a made-up class for ?demo: every student is a real run of the adaptive engine with a pretend ability
+  function demo() {
+    var first = ['Ava', 'Ben', 'Chloe', 'Dev', 'Eli', 'Farah', 'Gus', 'Hana', 'Ivan', 'Jun', 'Kira', 'Leo', 'Maya', 'Noor', 'Omar', 'Pia', 'Quinn', 'Rosa', 'Sami', 'Tara', 'Umar', 'Vera', 'Wes', 'Yara'];
+    var last = ['Khan', 'Lopez', 'Smith', 'Okafor', 'Haddad', 'Nguyen', 'Silva', 'Ito', 'Petrov', 'Mensah', 'Rossi', 'Novak'];
+    var hard = { compute: -.3, convert: .6, represent: .2, explain: 0 }, R = CU.rng(11), roster = [], progress = [], t0 = Date.now() - 50 * 60000;
+    first.forEach(function (f, i) {
+      var sid = 'd' + i; roster.push({ sid: sid, name: last[i % last.length] + ', ' + f, cls: i % 2 ? 'B' : 'A' });
+      if (i % 11 === 7) return;
+      var base = -1.6 + R.f() * 3.6, off = {}; CU.IDS.forEach(function (id) { off[id] = (R.f() - .5) * 1.0; });
+      var att = CU.simulate(1000 + i * 7919, function (sk) { return base - hard[SKN[sk].crit] + off[sk]; }, { t0: t0 + i * 20000, pace: .6 + R.f() * .6, flag: i % 6 === 2 ? .2 : .006, cheat: i === 8 ? .8 : 0, code: 'DEMOX'.replace(/[AEIOU]/g, 'K') });
+      if (i % 9 === 5) { att.end = null; att.log = att.log.slice(0, 9); }
+      var m = CU.summary(att, att.end ? att.end.at : t0 + 12 * 60000);
+      progress.push({ sid: sid, game: CU.KEY, updated: new Date(att.end ? att.end.at : Date.now() - 20000).toISOString(), levelsDone: 0, levelsTotal: 13, coreDone: m.coreDone, coreTotal: m.coreTotal, assisted: m.assisted, tickets: m.tickets, levels: CU.levelsText(m), specials: [] });
+    });
+    return { roster: roster, progress: progress };
+  }
+
+  try { S.code = JSON.parse(sessionStorage.getItem('sfa.ckdash.code') || 'null'); if (S.code && new Date(S.code.at).toDateString() !== new Date().toDateString()) S.code = null; } catch (e) { }
+  setInterval(function () { if (S.code && S.rows.length && !DEMO && !drawer.classList.contains('open') && !body.querySelector('details[open]') && document.activeElement.tagName !== 'INPUT') { var p = body.querySelector('.codebox b'); var live = CU.readCode(S.code.code, Date.now()); if (p && !live.ok && /^Open/.test(p.textContent)) render(); } }, 20000);
+  load(true);
+  window.CU2_DASH = { rows: function () { return S.rows; }, csv: csv };
+})();
+</script>
+<script src="sfa-nav.js"></script>
+</body></html>

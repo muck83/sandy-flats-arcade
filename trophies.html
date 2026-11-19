@@ -27,10 +27,13 @@ body.projector .tro .ic{font-size:72px}body.projector .tro b{font-size:24px}
   <p class="intro">Every boss the class has beaten, every Big Board it has cleared and every Lane Clash battle this term. Trophies are added automatically when a game ends on your console, and they're kept on this computer.</p>
   <div class="filters"><select id="cls" aria-label="Class"></select><button type="button" class="btn" id="proj">📺 Big for the projector</button><button type="button" class="btn" id="csv">Download (CSV)</button></div>
   <div id="out"></div>
+  <div id="myCard"></div>
 </div>
 <script src="config.js?v=20261102a"></script>
 <script src="sfa-kit.js?v=20261102a"></script>
 <script src="sfa-nav.js?v=20261117a"></script>
+<script src="sfa-avatar.js?v=20261119q"></script>
+<script src="sfa-quests.js?v=20261119q"></script>
 <script>
 (function () {
   var esc = SFA.esc, T = (SFA.store.get('teacher.trophies', []) || []).slice().reverse(), sel = document.getElementById('cls'), out = document.getElementById('out');
@@ -69,6 +72,9 @@ body.projector .tro .ic{font-size:72px}body.projector .tro b{font-size:24px}
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'sandy-flats-trophies.csv'; a.click();
   };
   draw();
+  // a signed-in student who opens the shelf sees their own card and badges under the class trophies
+  var mine = SFA.store.get('sync.me', null);
+  if (mine && window.SFA_QUESTS) SFA_QUESTS.shelf(document.getElementById('myCard'));
 })();
 </script>
 </body></html>
