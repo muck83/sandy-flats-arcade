@@ -714,3 +714,18 @@ body:has(.lc) .toast{top:84px;bottom:auto}
 .panel details.fold.alert h3{color:#FF8A7A}
 .panel details.fold.quiet h3{color:var(--muted)}
 .plinks{font-size:12px}
+/* guided notes: blanks in worked examples */
+.blk{display:inline-block;min-width:2.2ch;padding:0 .3em;margin:0 .1em;border-radius:.3em;text-align:center;font:700 1em var(--mono);line-height:1.35;vertical-align:baseline}
+.blk.mt{border-bottom:.14em solid var(--marquee);background:rgba(255,201,74,.08);color:transparent;min-height:1.2em}
+.blk.mt.peek{color:rgba(255,201,74,.45)}
+input.blk.in{background:#0F0E15;color:#F7F3E3;border:2px solid var(--marquee);font-size:1em;padding:.05em .25em;box-sizing:content-box;max-width:9ch}
+input.blk.in:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(61,214,198,.25)}
+.blk.fill{background:rgba(255,201,74,.18);color:var(--marquee);animation:blkpop .45s both}
+.blk.ok{background:rgba(70,214,140,.18);color:var(--green);animation:blkpop .45s both}
+.blk.no{background:rgba(255,99,99,.14);color:var(--marquee);animation:blkpop .45s both}
+.blk.no s{color:var(--red);font-weight:500;margin-right:.25em}
+@keyframes blkpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.15)}}
+.exnext{border:2px dashed rgba(255,201,74,.45);border-radius:.5em;padding:.35em .55em;background:rgba(255,201,74,.05)}
+.exyou{display:block;font:800 .7em var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--marquee);margin-bottom:.2em}
+.exscore{color:var(--green);font-weight:700;margin:.4em 0 0;font-size:.9em}
+.exscore:empty{display:none}

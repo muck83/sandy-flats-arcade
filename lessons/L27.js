@@ -9,23 +9,23 @@ SFA_LESSON({
     { k: 'text', min: 2, title: 'Start and rate', points: ['*Start* (b): the value when x = 0. "A $25 sign-up fee", "a 300-litre tank".', '*Rate* (m): the change for each 1 of x. "$12 per month", "drains 15 litres a minute".', 'Going down? The slope is *negative*.', 'Equation: *y = (rate)·x + (start)*.'] },
     { k: 'ex', min: 2, kick: 'Example 1 of 3 · Story → equation → solve', title: 'Going up', q: 'A gym charges *$30* to join plus *$15* a month. When has Kai paid *$150*?',
       steps: [
-        { t: 'Start: b = 30. Rate: m = 15 per month.', eq: 'y = 15x + 30' },
-        { t: 'Put in what you know: y = 150.', eq: '150 = 15x + 30' },
-        { t: 'Undo the + 30 first.', eq: '120 = 15x' },
-        { t: 'Then divide by 15: x = *8 months*.', eq: 'Check: 15(8) + 30 = 150 ✓' }
+        { t: 'Start: b = [[~30]]. Rate: m = [[~15]] per month.', eq: 'y = [[15]]x + [[30]]' },
+        { t: 'Put in what you know: y = 150.', eq: '[[150]] = 15x + 30' },
+        { t: 'Undo the + 30 first.', eq: '[[120]] = 15x' },
+        { t: 'Then divide by 15: x = [[8]] months.', eq: 'Check: 15([[~8]]) + 30 = 150 ✓' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 2 of 3 · Story → equation → solve', title: 'Going down', q: 'A pool holds *600 L* and drains *40 L* a minute. When are *200 L* left?',
       fig: { kind: 'graph', x: [0, 16], y: [0, 700], xl: 'minutes', yl: 'litres', lines: [{ pts: [[0, 600], [15, 0]] }] },
       steps: [
-        { t: 'Start 600. Going *down* 40 a minute, so m = −40.', eq: 'y = −40x + 600' },
-        { t: 'Set y = 200 and subtract 600.', eq: '200 = −40x + 600  →  −400 = −40x' },
-        { t: 'Divide by −40: x = *10 minutes*.', eq: 'Check: −40(10) + 600 = 200 ✓', fig: { kind: 'graph', x: [0, 16], y: [0, 700], xl: 'minutes', yl: 'litres', lines: [{ pts: [[0, 600], [15, 0]] }, { pts: [[10, 200]], dots: true, only: true }], labels: [[10, 200, '(10, 200)']] } }
+        { t: 'Start [[~600]]. Going [[~down]] 40 a minute, so m = [[~−40]].', eq: 'y = [[−40]]x + [[600]]' },
+        { t: 'Set y = 200 and subtract 600.', eq: '200 = −40x + 600  →  [[−400]] = −40x' },
+        { t: 'Divide by −40: x = [[10]] minutes.', eq: 'Check: −40([[~10]]) + 600 = 200 ✓', fig: { kind: 'graph', x: [0, 16], y: [0, 700], xl: 'minutes', yl: 'litres', lines: [{ pts: [[0, 600], [15, 0]] }, { pts: [[10, 200]], dots: true, only: true }], labels: [[10, 200, '(10, 200)']] } }
       ] },
     { k: 'ex', min: 2, kick: 'Example 3 of 3 · Story → equation → solve', title: 'Two data points', q: 'A plumber charges *$110* for 2 hours and *$190* for 4 hours. What is the call-out fee?',
       steps: [
-        { t: 'The points are (2, 110) and (4, 190). Rate first.', eq: 'm = (190 − 110) ÷ (4 − 2) = 80 ÷ 2 = 40' },
-        { t: 'Put one point into y = mx + b.', eq: '110 = 40(2) + b  →  110 = 80 + b' },
-        { t: 'b = *30*: a $30 call-out fee, then $40 an hour.', eq: 'y = 40x + 30' }
+        { t: 'The points are (2, 110) and (4, 190). Rate first.', eq: 'm = (190 − 110) ÷ (4 − 2) = [[80]] ÷ [[2]] = [[40]]' },
+        { t: 'Put one point into y = mx + b.', eq: '110 = 40(2) + b  →  110 = [[80]] + b' },
+        { t: 'b = [[~30]]: a $[[~30]] call-out fee, then $40 an hour.', eq: 'y = 40x + [[30]]' }
       ] },
     { k: 'number', min: 4, id: 'st1', q: 'A climbing gym charges a *$25* sign-up fee plus *$12* per month. Sam has paid *$121* in total. How many months has Sam been a member?', ans: 8,
       hint: 'y = 12x + 25. Put y = 121, subtract 25, divide by 12.', why: '121 − 25 = 96, and 96 ÷ 12 = 8 months.',
@@ -40,7 +40,7 @@ SFA_LESSON({
       ] },
     { k: 'ex', min: 2, kick: 'Example 1 of 2 · Four representations', title: 'One story, four ways', q: 'Lena has *$40* and saves *$15* a week.',
       steps: [
-        { t: '*Words → equation*: start 40, rate 15.', eq: 'y = 15x + 40' },
+        { t: '*Words → equation*: start [[~40]], rate [[~15]].', eq: 'y = [[15]]x + [[40]]' },
         { t: '*Table*: start at week 0 with $40, then add 15 each row.', fig: { kind: 'table', head: ['weeks', 'dollars'], rows: [[0, 40], [1, 55], [2, 70], [3, 85]], hi: [0] } },
         { t: '*Graph*: crosses the y-axis at 40 and goes up 15 for each week.', fig: { kind: 'graph', x: [0, 6], y: [0, 140], xl: 'weeks', yl: 'dollars', lines: [{ pts: [[0, 40], [6, 130]] }, { pts: [[0, 40], [1, 55], [2, 70], [3, 85]], dots: true, only: true }], labels: [[0, 40, '(0, 40)']] } },
         { t: 'The same two numbers are in every one: *start 40, rate 15*.' }
@@ -48,9 +48,9 @@ SFA_LESSON({
     { k: 'ex', min: 2, kick: 'Example 2 of 2 · Four representations', title: 'Table → equation', q: 'Write the equation for this table.',
       fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 9], [2, 5], [4, 1], [6, -3]] },
       steps: [
-        { t: 'Start: at x = 0, y = 9, so *b = 9*.', fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 9], [2, 5], [4, 1], [6, -3]], hi: [0] } },
-        { t: 'Rate: y goes down 4 while x goes up 2.', eq: 'm = −4 ÷ 2 = −2' },
-        { t: 'Equation: *y = −2x + 9*.' },
+        { t: 'Start: at x = 0, y = 9, so b = [[9]].', fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 9], [2, 5], [4, 1], [6, -3]], hi: [0] } },
+        { t: 'Rate: y goes down 4 while x goes up 2.', eq: 'm = −4 ÷ 2 = [[−2]]' },
+        { t: 'Equation: y = [[~−2]]x + [[~9]].' },
         { t: 'Check a row: (4, 1).', eq: '−2(4) + 9 = 1 ✓', fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 9], [2, 5], [4, 1], [6, -3]], hi: [2] } }
       ] },
     { k: 'poll', min: 3, id: 'rep', q: 'Lena has *$40* and saves *$15* a week. Which table matches her savings?', opts: ['Weeks 0, 1, 2: $40, $55, $70', 'Weeks 0, 1, 2: $15, $55, $95', 'Weeks 0, 1, 2: $0, $15, $30', 'Weeks 1, 2, 3: $40, $55, $70'], ans: 0,
@@ -68,23 +68,23 @@ SFA_LESSON({
     { k: 'text', min: 2, title: 'Inequalities', points: ['*At most*, no more than → *≤*.   *At least*, no less than → *≥*.', 'Solve like an equation. Dividing by a negative? Turn the sign.', 'Graph y ≤ … or y ≥ …: *solid* line. y < … or y > …: *dashed* line.', 'Shade *above* for y > or y ≥, *below* for y < or y ≤. Test (0, 0) to check.'] },
     { k: 'ex', min: 2, kick: 'Example 1 of 3 · Inequalities', title: 'At most', q: 'You have *$40*. A cinema ticket is *$12* and snacks are *$4* each. How many snacks can you buy at most?',
       steps: [
-        { t: '"At most $40" means *≤ 40*.', eq: '12 + 4x ≤ 40' },
-        { t: 'Subtract 12 from both sides.', eq: '4x ≤ 28' },
-        { t: 'Divide by 4.', eq: 'x ≤ 7' },
+        { t: '"At most $40" means *≤ 40*.', eq: '[[12]] + [[4]]x ≤ 40' },
+        { t: 'Subtract 12 from both sides.', eq: '4x ≤ [[28]]' },
+        { t: 'Divide by 4.', eq: 'x ≤ [[7]]' },
         { t: 'At most *7 snacks*. Check: 7 snacks cost 12 + 28 = 40 ✓, 8 snacks cost 44 ✗.' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 2 of 3 · Inequalities', title: 'Turn the sign', q: 'Solve *20 − 3x ≥ 5*.',
       steps: [
-        { t: 'Subtract 20 from both sides.', eq: '−3x ≥ −15' },
-        { t: 'Divide by −3. Dividing by a negative *turns the sign*.', eq: 'x ≤ 5' },
+        { t: 'Subtract 20 from both sides.', eq: '−3x ≥ [[−15]]' },
+        { t: 'Divide by −3. Dividing by a negative *turns the sign*.', eq: 'x ≤ [[5]]' },
         { t: 'Check with a number: x = 0 gives 20 ≥ 5 ✓. x = 6 gives 2 ≥ 5 ✗. So x ≤ 5 is right.' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 3 of 3 · Inequalities', title: 'Graph an inequality', q: 'Graph *y < 2x − 1*.',
       fig: { kind: 'graph', x: [-3, 4], y: [-4, 5], lines: [] },
       steps: [
-        { t: 'Draw y = 2x − 1 as a *dashed* line: < has no "or equal to".', fig: { kind: 'graph', x: [-3, 4], y: [-4, 5], lines: [{ pts: [[-1.5, -4], [3, 5]], dash: true }] } },
-        { t: 'Test (0, 0): is 0 < 2(0) − 1? That is 0 < −1: *false*.', fig: { kind: 'graph', x: [-3, 4], y: [-4, 5], lines: [{ pts: [[-1.5, -4], [3, 5]], dash: true }, { pts: [[0, 0]], dots: true, only: true }], labels: [[0, 0, '(0, 0)', 'l']] } },
-        { t: '(0, 0) is not a solution, so shade the other side: *below* the line.', fig: { kind: 'graph', x: [-3, 4], y: [-4, 5], lines: [{ pts: [[-1.5, -4], [3, 5]], dash: true }, { pts: [[0, 0]], dots: true, only: true }], labels: [[0, 0, '(0, 0)', 'l']], shade: [{ pts: [[-1.5, -4], [3, 5]], above: false }] } }
+        { t: 'Draw y = 2x − 1 as a [[dashed|dotted]] line: < has no "or equal to".', fig: { kind: 'graph', x: [-3, 4], y: [-4, 5], lines: [{ pts: [[-1.5, -4], [3, 5]], dash: true }] } },
+        { t: 'Test (0, 0): is 0 < 2(0) − 1? That is 0 < [[−1]]: [[false|no]].', fig: { kind: 'graph', x: [-3, 4], y: [-4, 5], lines: [{ pts: [[-1.5, -4], [3, 5]], dash: true }, { pts: [[0, 0]], dots: true, only: true }], labels: [[0, 0, '(0, 0)', 'l']] } },
+        { t: '(0, 0) is not a solution, so shade the other side: [[below|under]] the line.', fig: { kind: 'graph', x: [-3, 4], y: [-4, 5], lines: [{ pts: [[-1.5, -4], [3, 5]], dash: true }, { pts: [[0, 0]], dots: true, only: true }], labels: [[0, 0, '(0, 0)', 'l']], shade: [{ pts: [[-1.5, -4], [3, 5]], above: false }] } }
       ] },
     { k: 'number', min: 4, id: 'iq1', q: 'You have *$50* for the fair. Entry is *$8* and each ride is *$6*. What is the *greatest* number of rides you can take?', ans: 7,
       hint: '8 + 6x ≤ 50. Subtract 8, divide by 6, round down.', why: '6x ≤ 42, x ≤ 7. Seven rides cost 8 + 42 = 50, which is allowed.',
@@ -112,14 +112,14 @@ SFA_LESSON({
     { k: 'text', min: 2, title: 'Explain it like a mathematician', points: ['Slope: "For every 1 *[x unit]*, the *[y]* goes *up/down* by *[m]* *[y units]*."', 'y-intercept: "At 0 *[x units]*, the *[y]* is *[b]*."', 'Name both quantities and the units.', 'Check: does your equation give the right value for one data point?'] },
     { k: 'ex', min: 2, kick: 'Example 1 of 2 · Explain', title: 'Going up', q: '*y = 12x + 25* is the cost in dollars of x months of guitar lessons.',
       steps: [
-        { t: '*12 is the slope*: "For every 1 month, the cost goes up by $12."' },
-        { t: '*25 is the y-intercept*: "At 0 months, the cost is $25." It is a starting fee.' },
+        { t: '*12 is the slope*: "For every 1 month, the cost goes [[up]] by $[[12]]."' },
+        { t: '*25 is the y-intercept*: "At [[0]] months, the cost is $[[25]]." It is a starting fee.' },
         { t: 'Check the units: 12 is dollars per month, 25 is dollars.' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 2 of 2 · Explain', title: 'Going down', q: '*y = −3x + 45* is the battery left (%) after x hours of gaming.',
       steps: [
-        { t: '*−3*: "For every 1 hour, the battery goes *down* by 3%."' },
-        { t: '*45*: "At 0 hours, the battery is at 45%."' },
+        { t: '*−3*: "For every 1 hour, the battery goes [[down]] by [[3]]%."' },
+        { t: '*45*: "At [[0]] hours, the battery is at [[45]]%."' },
         { t: 'Weak: "−3 is the slope." Strong: it names both quantities, the direction and the units.' }
       ] },
     { k: 'open', min: 4, id: 'mean', q: 'A pond is modelled by *y = −4x + 90*, where x is days after a storm and y is the depth in cm. Explain what *−4* and *90* mean.', ph: 'The −4 means... The 90 means...',

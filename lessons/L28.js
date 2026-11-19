@@ -11,23 +11,23 @@ SFA_LESSON({
     { k: 'ex', min: 2, kick: 'Example 1 of 3 · Slope and a point', title: 'Walk back to x = 0', q: 'A line has slope *2* and goes through *(3, 4)*. Find b.',
       fig: { kind: 'graph', x: [-2, 5], y: [-3, 6], lines: [{ pts: [[3, 4]], dots: true, only: true }], labels: [[3, 4, '(3, 4)']] },
       steps: [
-        { t: 'Put the point into y = mx + b.', eq: '4 = 2(3) + b' },
-        { t: 'Multiply.', eq: '4 = 6 + b' },
-        { t: 'Undo the 6: b = 4 − 6 = *−2*. On the graph: 3 steps back, down 2 each time.', eq: 'b = −2', fig: { kind: 'graph', x: [-2, 5], y: [-3, 6], lines: [{ pts: [[-0.5, -3], [4, 6]] }, { pts: [[3, 4], [0, -2]], dots: true, only: true }], labels: [[3, 4, '(3, 4)'], [0, -2, '(0, −2)']], arrows: [[3, 4, 0, 4, 'back 3', 1], [0, 4, 0, -2, 'down 6']] } },
-        { t: 'Check: 2(3) − 2 = 4 ✓. The equation is *y = 2x − 2*.' }
+        { t: 'Put the point into y = mx + b.', eq: '[[4]] = 2([[3]]) + b' },
+        { t: 'Multiply.', eq: '4 = [[6]] + b' },
+        { t: 'Undo the 6: b = 4 − 6 = [[~−2]]. On the graph: 3 steps back, down 2 each time.', eq: 'b = [[−2]]', fig: { kind: 'graph', x: [-2, 5], y: [-3, 6], lines: [{ pts: [[-0.5, -3], [4, 6]] }, { pts: [[3, 4], [0, -2]], dots: true, only: true }], labels: [[3, 4, '(3, 4)'], [0, -2, '(0, −2)']], arrows: [[3, 4, 0, 4, 'back 3', 1], [0, 4, 0, -2, 'down 6']] } },
+        { t: 'Check: 2(3) − 2 = 4 ✓. The equation is y = [[2]]x − [[2]].' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 2 of 3 · Slope and a point', title: 'Negative times negative', q: 'A line has slope *−3* and goes through *(−2, 7)*. Find b.',
       steps: [
-        { t: 'Put the point in.', eq: '7 = −3(−2) + b' },
-        { t: '−3 × −2 = *+6*.', eq: '7 = 6 + b' },
-        { t: 'b = 7 − 6 = *1*.', eq: 'y = −3x + 1' },
+        { t: 'Put the point in.', eq: '[[7]] = −3([[−2]]) + b' },
+        { t: '−3 × −2 = [[~+6]].', eq: '7 = [[6]] + b' },
+        { t: 'b = 7 − 6 = [[1]].', eq: 'y = −3x + [[~1]]' },
         { t: 'Check: −3(−2) + 1 = 6 + 1 = 7 ✓' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 3 of 3 · Slope and a point', title: 'A fraction slope', q: 'A line has slope *1/2* and goes through *(4, 1)*. Find b.',
       steps: [
-        { t: 'Put the point in.', eq: '1 = (1/2)(4) + b' },
-        { t: 'Half of 4 is 2.', eq: '1 = 2 + b' },
-        { t: 'b = 1 − 2 = *−1*.', eq: 'y = (1/2)x − 1' }
+        { t: 'Put the point in.', eq: '[[1]] = (1/2)([[4]]) + b' },
+        { t: 'Half of 4 is [[~2]].', eq: '1 = [[2]] + b' },
+        { t: 'b = 1 − 2 = [[−1]].', eq: 'y = (1/2)x − [[~1]]' }
       ] },
     { k: 'number', min: 4, id: 'pt1', q: 'A line has slope *−2* and goes through *(3, 4)*. What is *b*?', ans: 10,
       hint: '4 = −2(3) + b. What is −2 × 3?', why: '4 = −6 + b, so b = 4 + 6 = 10. y = −2x + 10.',
@@ -57,16 +57,16 @@ SFA_LESSON({
     { k: 'ex', min: 2, kick: 'Example 1 of 2 · Two points', title: 'Slope, then b', q: 'A line goes through *(1, 5)* and *(3, 9)*. Find b.',
       fig: { kind: 'graph', x: [-1, 4], y: [-1, 10], lines: [{ pts: [[1, 5], [3, 9]], dots: true, only: true }], labels: [[1, 5, '(1, 5)'], [3, 9, '(3, 9)', 'l']] },
       steps: [
-        { t: 'Slope first.', eq: 'm = (9 − 5) ÷ (3 − 1) = 4 ÷ 2 = 2', fig: { kind: 'graph', x: [-1, 4], y: [-1, 10], lines: [{ pts: [[1, 5], [3, 9]], dots: true, only: true }], labels: [[1, 5, '(1, 5)'], [3, 9, '(3, 9)', 'l']], arrows: [[1, 5, 3, 5, 'right 2'], [3, 5, 3, 9, 'up 4']] } },
-        { t: 'Put one point in: (1, 5).', eq: '5 = 2(1) + b  →  b = 3' },
+        { t: 'Slope first.', eq: 'm = (9 − 5) ÷ (3 − 1) = [[4]] ÷ [[2]] = [[2]]', fig: { kind: 'graph', x: [-1, 4], y: [-1, 10], lines: [{ pts: [[1, 5], [3, 9]], dots: true, only: true }], labels: [[1, 5, '(1, 5)'], [3, 9, '(3, 9)', 'l']], arrows: [[1, 5, 3, 5, 'right 2'], [3, 5, 3, 9, 'up 4']] } },
+        { t: 'Put one point in: (1, 5).', eq: '5 = 2(1) + b  →  b = [[3]]' },
         { t: 'Check with the other point.', eq: '2(3) + 3 = 9 ✓', fig: { kind: 'graph', x: [-1, 4], y: [-1, 10], lines: [{ pts: [[-1, 1], [3.5, 10]] }, { pts: [[1, 5], [3, 9], [0, 3]], dots: true, only: true }], labels: [[1, 5, '(1, 5)'], [3, 9, '(3, 9)', 'l'], [0, 3, '(0, 3)', 'l']] } },
-        { t: 'The equation is *y = 2x + 3*.' }
+        { t: 'The equation is y = [[~2]]x + [[~3]].' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 2 of 2 · Two points', title: 'Going down', q: 'A line goes through *(−2, 1)* and *(2, −7)*. Find b.',
       steps: [
-        { t: 'Slope first.', eq: 'm = (−7 − 1) ÷ (2 − (−2)) = −8 ÷ 4 = −2' },
-        { t: 'Use (−2, 1).', eq: '1 = −2(−2) + b  →  1 = 4 + b' },
-        { t: 'b = *−3*.', eq: 'y = −2x − 3' },
+        { t: 'Slope first.', eq: 'm = (−7 − 1) ÷ (2 − (−2)) = [[−8]] ÷ [[4]] = [[−2]]' },
+        { t: 'Use (−2, 1).', eq: '1 = −2(−2) + b  →  1 = [[4]] + b' },
+        { t: 'b = [[−3]].', eq: 'y = −2x − [[~3]]' },
         { t: 'Check with (2, −7).', eq: '−2(2) − 3 = −7 ✓' }
       ] },
     { k: 'number', min: 4, id: 'two', q: 'A line goes through *(1, 2)* and *(4, 11)*. What is *b*?', ans: -1,
@@ -85,16 +85,16 @@ SFA_LESSON({
     { k: 'ex', min: 2, kick: 'Example 1 of 2 · Tables', title: 'Step back to x = 0', q: 'This table is linear. Find b.',
       fig: { kind: 'table', head: ['x', 'y'], rows: [[4, 9], [5, 11], [6, 13], [7, 15]] },
       steps: [
-        { t: 'Slope: x goes up 1, y goes up 2, so *m = 2*.' },
+        { t: 'Slope: x goes up 1, y goes up [[2]], so m = [[~2]].' },
         { t: 'Step back to x = 0, taking away 2 each time.', fig: { kind: 'table', head: ['x', 'y'], rows: [[0, 1], [1, 3], [2, 5], [3, 7], [4, 9], [5, 11]], hi: [0] } },
-        { t: 'b = *1*. Or work it out: 9 = 2(4) + b, so b = 1 ✓', eq: 'y = 2x + 1' }
+        { t: 'b = [[1]]. Or work it out: 9 = 2(4) + b, so b = [[~1]] ✓', eq: 'y = 2x + [[~1]]' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 2 of 2 · Graphs', title: 'Between the gridlines', q: 'Find b for this line.',
       fig: { kind: 'graph', x: [-2, 5], y: [-1, 4], lines: [{ pts: [[-2, -0.5], [5, 3]] }] },
       steps: [
         { t: 'It crosses the y-axis between gridlines. Do not guess. Find two grid points: *(1, 1)* and *(3, 2)*.', fig: { kind: 'graph', x: [-2, 5], y: [-1, 4], lines: [{ pts: [[-2, -0.5], [5, 3]] }, { pts: [[1, 1], [3, 2]], dots: true, only: true }], labels: [[1, 1, '(1, 1)'], [3, 2, '(3, 2)', 'l']] } },
-        { t: 'Right 2, up 1, so *m = 1/2*.', fig: { kind: 'graph', x: [-2, 5], y: [-1, 4], lines: [{ pts: [[-2, -0.5], [5, 3]] }, { pts: [[1, 1], [3, 2]], dots: true, only: true }], labels: [[1, 1, '(1, 1)'], [3, 2, '(3, 2)', 'l']], arrows: [[1, 1, 3, 1, 'right 2'], [3, 1, 3, 2, 'up 1']] } },
-        { t: 'Put (1, 1) in: 1 = (1/2)(1) + b, so b = *0.5*.', eq: 'y = (1/2)x + 0.5', fig: { kind: 'graph', x: [-2, 5], y: [-1, 4], lines: [{ pts: [[-2, -0.5], [5, 3]] }, { pts: [[1, 1], [3, 2], [0, 0.5]], dots: true, only: true }], labels: [[1, 1, '(1, 1)'], [3, 2, '(3, 2)', 'l'], [0, 0.5, '(0, 0.5)', 'l']] } }
+        { t: 'Right [[2]], up [[1]], so m = [[1/2]].', fig: { kind: 'graph', x: [-2, 5], y: [-1, 4], lines: [{ pts: [[-2, -0.5], [5, 3]] }, { pts: [[1, 1], [3, 2]], dots: true, only: true }], labels: [[1, 1, '(1, 1)'], [3, 2, '(3, 2)', 'l']], arrows: [[1, 1, 3, 1, 'right 2'], [3, 1, 3, 2, 'up 1']] } },
+        { t: 'Put (1, 1) in: 1 = (1/2)(1) + b, so b = [[0.5]].', eq: 'y = (1/2)x + [[~0.5]]', fig: { kind: 'graph', x: [-2, 5], y: [-1, 4], lines: [{ pts: [[-2, -0.5], [5, 3]] }, { pts: [[1, 1], [3, 2], [0, 0.5]], dots: true, only: true }], labels: [[1, 1, '(1, 1)'], [3, 2, '(3, 2)', 'l'], [0, 0.5, '(0, 0.5)', 'l']] } }
       ] },
     { k: 'number', min: 4, id: 'tab', q: 'This table is linear. What is *b*, the value of y when x = 0?', fig: { kind: 'table', head: ['x', 'y'], rows: [[3, 11], [4, 13], [5, 15], [6, 17]] }, ans: 5,
       hint: 'y goes up 2 for each 1 of x. Step back 3 times from (3, 11).', why: 'm = 2. 11 = 2(3) + b, so b = 5. Or step back: 11 → 9 → 7 → 5.',
@@ -109,9 +109,9 @@ SFA_LESSON({
       ] },
     { k: 'ex', min: 2, kick: 'Example · A story', title: 'The joining fee', q: 'A gym costs *$95* for 3 months and *$175* for 7 months. What is the joining fee?',
       steps: [
-        { t: 'The points are (3, 95) and (7, 175). Monthly price first.', eq: 'm = (175 − 95) ÷ (7 − 3) = 80 ÷ 4 = 20' },
-        { t: 'Put one point in.', eq: '95 = 20(3) + b  →  95 = 60 + b' },
-        { t: 'b = *35*: the joining fee is $35, the cost at 0 months.', eq: 'y = 20x + 35' }
+        { t: 'The points are (3, 95) and (7, 175). Monthly price first.', eq: 'm = (175 − 95) ÷ (7 − 3) = [[80]] ÷ [[4]] = [[20]]' },
+        { t: 'Put one point in.', eq: '95 = 20(3) + b  →  95 = [[60]] + b' },
+        { t: 'b = [[35]]: the joining fee is $[[~35]], the cost at 0 months.', eq: 'y = 20x + [[~35]]' }
       ] },
     { k: 'number', min: 4, id: 'story', q: 'A taxi ride of *3 km* costs *$13*. A ride of *7 km* costs *$25*. What is the starting fee (b)?', ans: 4,
       hint: 'The points are (3, 13) and (7, 25). Find the price per km first.', why: 'm = 12 ÷ 4 = $3 per km. 13 = 3(3) + b, so b = $4.',

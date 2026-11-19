@@ -10,22 +10,22 @@ SFA_LESSON({
     { k: 'text', min: 2, title: 'Standard → slope-intercept', points: ['Example: *4x + 2y = 10*.', '1) Subtract 4x from both sides: 2y = −4x + 10.', '2) Divide *every* term by 2: y = −2x + 5.', 'Slope −2, y-intercept 5.'], note: 'The classic slip: dividing the x-term by 2 but forgetting to divide the 10.' },
     { k: 'ex', min: 2, kick: 'Example 1 of 3 · Standard → slope-intercept', title: 'B is 1', q: 'Write *3x + y = 7* as y = mx + b.',
       steps: [
-        { t: 'y is nearly alone. Subtract 3x from both sides.', eq: 'y = −3x + 7' },
-        { t: 'Read it: m = *−3*, b = *7*.' },
-        { t: 'Check a point: x = 1 gives y = 4. In the original: 3(1) + 4 = 7 ✓' }
+        { t: 'y is nearly alone. Subtract 3x from both sides.', eq: 'y = [[−3]]x + [[7]]' },
+        { t: 'Read it: m = [[~−3]], b = [[~7]].' },
+        { t: 'Check a point: x = 1 gives y = [[4]]. In the original: 3(1) + 4 = 7 ✓' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 2 of 3 · Standard → slope-intercept', title: 'Divide every term', q: 'Write *2x + 4y = 12* as y = mx + b.',
       steps: [
-        { t: 'Subtract 2x from both sides.', eq: '4y = −2x + 12' },
+        { t: 'Subtract 2x from both sides.', eq: '4y = [[−2]]x + 12' },
         { t: 'Divide *every* term by 4, the 12 too.', eq: 'y = −(2/4)x + 12/4' },
-        { t: 'Simplify: m = *−1/2*, b = *3*.', eq: 'y = −(1/2)x + 3' },
-        { t: 'Check: x = 2 gives y = 2. In the original: 2(2) + 4(2) = 12 ✓' }
+        { t: 'Simplify: m = [[~−1/2]], b = [[~3]].', eq: 'y = [[−1/2]]x + [[3]]' },
+        { t: 'Check: x = 2 gives y = [[2]]. In the original: 2(2) + 4(2) = 12 ✓' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 3 of 3 · Standard → slope-intercept', title: 'A negative B', q: 'Write *5x − 2y = 8* as y = mx + b.',
       steps: [
-        { t: 'Subtract 5x from both sides.', eq: '−2y = −5x + 8' },
-        { t: 'Divide every term by *−2*: both signs flip.', eq: 'y = (5/2)x − 4' },
-        { t: 'm = *5/2*, b = *−4*.' }
+        { t: 'Subtract 5x from both sides.', eq: '−2y = [[−5]]x + 8' },
+        { t: 'Divide every term by *−2*: both signs flip.', eq: 'y = [[5/2]]x − [[4]]' },
+        { t: 'm = [[~5/2]], b = [[~−4]].' }
       ] },
     { k: 'number', min: 5, id: 'sb1', q: 'Write *6x + 3y = 12* as y = mx + b. What is *b*?', ans: 4,
       hint: '3y = −6x + 12. Divide every term by 3.', why: 'y = −2x + 4, so b = 4.',
@@ -54,21 +54,21 @@ SFA_LESSON({
     { k: 'text', min: 2, title: 'Slope-intercept → standard', points: ['Example: *y = (2/3)x − 1*.', '1) Fraction? Multiply every term by 3: 3y = 2x − 3.', '2) Move the x-term left: −2x + 3y = −3.', '3) A is negative, so multiply every term by −1: *2x − 3y = 3*.'] },
     { k: 'ex', min: 2, kick: 'Example 1 of 3 · Slope-intercept → standard', title: 'Make A positive', q: 'Write *y = 4x − 3* in standard form.',
       steps: [
-        { t: 'Move the x-term to the left: subtract 4x.', eq: '−4x + y = −3' },
-        { t: 'A is negative, so multiply every term by −1.', eq: '4x − y = 3' },
+        { t: 'Move the x-term to the left: subtract 4x.', eq: '[[−4]]x + y = [[−3]]' },
+        { t: 'A is negative, so multiply every term by −1.', eq: '[[4]]x − y = [[3]]' },
         { t: 'Done: A = 4 is positive and every number is whole.' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 2 of 3 · Slope-intercept → standard', title: 'Clear the fraction', q: 'Write *y = −(3/4)x + 2* in standard form.',
       steps: [
-        { t: 'Multiply every term by 4 to clear the fraction.', eq: '4y = −3x + 8' },
-        { t: 'Add 3x to both sides.', eq: '3x + 4y = 8' },
+        { t: 'Multiply every term by 4 to clear the fraction.', eq: '4y = [[−3]]x + [[8]]' },
+        { t: 'Add 3x to both sides.', eq: '[[3]]x + 4y = 8' },
         { t: 'A = 3 is positive: done.' }
       ] },
     { k: 'ex', min: 2, kick: 'Example 3 of 3 · Slope-intercept → standard', title: 'All three moves', q: 'Write *y = (2/5)x − 1* in standard form.',
       steps: [
-        { t: 'Multiply every term by 5.', eq: '5y = 2x − 5' },
-        { t: 'Subtract 2x from both sides.', eq: '−2x + 5y = −5' },
-        { t: 'A is negative: multiply every term by −1.', eq: '2x − 5y = 5' }
+        { t: 'Multiply every term by 5.', eq: '5y = [[2]]x − [[5]]' },
+        { t: 'Subtract 2x from both sides.', eq: '[[−2]]x + 5y = [[−5]]' },
+        { t: 'A is negative: multiply every term by −1.', eq: '2x − 5y = [[5]]' }
       ] },
     { k: 'poll', min: 5, id: 'bs1', q: 'Which is *y = −3x + 4* in standard form?', opts: ['3x + y = 4', '−3x − y = 4', 'y + 4 = 3x', '3x − y = −4'], ans: 0,
       why: 'Add 3x to both sides: 3x + y = 4. A = 3 is positive: done.',
@@ -85,24 +85,24 @@ SFA_LESSON({
     { k: 'ex', min: 2, kick: 'Example 1 of 3 · Graph a line', title: 'Start at b', q: 'Graph *y = 2x − 3*.',
       fig: { kind: 'graph', x: [-3, 5], y: [-5, 6], lines: [] },
       steps: [
-        { t: 'Plot b: the y-intercept is −3, so *(0, −3)*.', fig: { kind: 'graph', x: [-3, 5], y: [-5, 6], lines: [{ pts: [[0, -3]], dots: true, only: true }], labels: [[0, -3, '(0, −3)']] } },
-        { t: 'Slope 2 = 2/1: *up 2, right 1*.', fig: { kind: 'graph', x: [-3, 5], y: [-5, 6], lines: [{ pts: [[0, -3], [1, -1]], dots: true, only: true }], labels: [[0, -3, '(0, −3)'], [1, -1, '(1, −1)']], arrows: [[0, -3, 0, -1, 'up 2'], [0, -1, 1, -1, 'right 1', 1]] } },
-        { t: 'Do it again to get a third point: *(2, 1)*.', fig: { kind: 'graph', x: [-3, 5], y: [-5, 6], lines: [{ pts: [[0, -3], [1, -1], [2, 1]], dots: true, only: true }], labels: [[0, -3, '(0, −3)'], [2, 1, '(2, 1)']], arrows: [[0, -3, 0, -1, 'up 2'], [0, -1, 1, -1, ''], [1, -1, 1, 1, 'up 2'], [1, 1, 2, 1, '']] } },
+        { t: 'Plot b: the y-intercept is [[−3]], so [[~(0, −3)]].', fig: { kind: 'graph', x: [-3, 5], y: [-5, 6], lines: [{ pts: [[0, -3]], dots: true, only: true }], labels: [[0, -3, '(0, −3)']] } },
+        { t: 'Slope 2 = 2/1: up [[2]], right [[1]].', fig: { kind: 'graph', x: [-3, 5], y: [-5, 6], lines: [{ pts: [[0, -3], [1, -1]], dots: true, only: true }], labels: [[0, -3, '(0, −3)'], [1, -1, '(1, −1)']], arrows: [[0, -3, 0, -1, 'up 2'], [0, -1, 1, -1, 'right 1', 1]] } },
+        { t: 'Do it again to get a third point: [[(2, 1)]].', fig: { kind: 'graph', x: [-3, 5], y: [-5, 6], lines: [{ pts: [[0, -3], [1, -1], [2, 1]], dots: true, only: true }], labels: [[0, -3, '(0, −3)'], [2, 1, '(2, 1)']], arrows: [[0, -3, 0, -1, 'up 2'], [0, -1, 1, -1, ''], [1, -1, 1, 1, 'up 2'], [1, 1, 2, 1, '']] } },
         { t: 'Join the points with a ruler.', fig: { kind: 'graph', x: [-3, 5], y: [-5, 6], lines: [{ pts: [[-1, -5], [4.5, 6]] }, { pts: [[0, -3], [1, -1], [2, 1]], dots: true, only: true }], labels: [[0, -3, '(0, −3)'], [2, 1, '(2, 1)']] } }
       ] },
     { k: 'ex', min: 2, kick: 'Example 2 of 3 · Graph a line', title: 'Use the intercepts', q: 'Graph *3x + 2y = 6*.',
       fig: { kind: 'graph', x: [-2, 4], y: [-2, 5], lines: [] },
       steps: [
-        { t: 'Put x = 0: 2y = 6, so y = 3. Plot *(0, 3)*.', fig: { kind: 'graph', x: [-2, 4], y: [-2, 5], lines: [{ pts: [[0, 3]], dots: true, only: true }], labels: [[0, 3, '(0, 3)']] } },
-        { t: 'Put y = 0: 3x = 6, so x = 2. Plot *(2, 0)*.', fig: { kind: 'graph', x: [-2, 4], y: [-2, 5], lines: [{ pts: [[0, 3], [2, 0]], dots: true, only: true }], labels: [[0, 3, '(0, 3)'], [2, 0, '(2, 0)']] } },
-        { t: 'Join them. Check the slope: down 3, right 2 is −3/2, and y = −(3/2)x + 3 ✓', fig: { kind: 'graph', x: [-2, 4], y: [-2, 5], lines: [{ pts: [[-1.33, 5], [3.33, -2]] }, { pts: [[0, 3], [2, 0]], dots: true, only: true }], labels: [[0, 3, '(0, 3)'], [2, 0, '(2, 0)']], arrows: [[0, 3, 0, 0, 'down 3'], [0, 0, 2, 0, 'right 2']] } }
+        { t: 'Put x = 0: 2y = 6, so y = [[3]]. Plot [[~(0, 3)]].', fig: { kind: 'graph', x: [-2, 4], y: [-2, 5], lines: [{ pts: [[0, 3]], dots: true, only: true }], labels: [[0, 3, '(0, 3)']] } },
+        { t: 'Put y = 0: 3x = 6, so x = [[2]]. Plot [[~(2, 0)]].', fig: { kind: 'graph', x: [-2, 4], y: [-2, 5], lines: [{ pts: [[0, 3], [2, 0]], dots: true, only: true }], labels: [[0, 3, '(0, 3)'], [2, 0, '(2, 0)']] } },
+        { t: 'Join them. Check the slope: down 3, right 2 is [[−3/2]], and y = −(3/2)x + 3 ✓', fig: { kind: 'graph', x: [-2, 4], y: [-2, 5], lines: [{ pts: [[-1.33, 5], [3.33, -2]] }, { pts: [[0, 3], [2, 0]], dots: true, only: true }], labels: [[0, 3, '(0, 3)'], [2, 0, '(2, 0)']], arrows: [[0, 3, 0, 0, 'down 3'], [0, 0, 2, 0, 'right 2']] } }
       ] },
     { k: 'ex', min: 2, kick: 'Example 3 of 3 · Graph a line', title: 'A fraction slope', q: 'Graph *y = −(1/3)x + 2*.',
       fig: { kind: 'graph', x: [-2, 7], y: [-2, 4], lines: [] },
       steps: [
-        { t: 'Plot b: *(0, 2)*.', fig: { kind: 'graph', x: [-2, 7], y: [-2, 4], lines: [{ pts: [[0, 2]], dots: true, only: true }], labels: [[0, 2, '(0, 2)']] } },
-        { t: 'Slope −1/3: *down 1, right 3*, to (3, 1).', fig: { kind: 'graph', x: [-2, 7], y: [-2, 4], lines: [{ pts: [[0, 2], [3, 1]], dots: true, only: true }], labels: [[0, 2, '(0, 2)'], [3, 1, '(3, 1)']], arrows: [[0, 2, 0, 1, 'down 1'], [0, 1, 3, 1, 'right 3']] } },
-        { t: 'Again to (6, 0), then join.', fig: { kind: 'graph', x: [-2, 7], y: [-2, 4], lines: [{ pts: [[-2, 2.67], [7, -0.33]] }, { pts: [[0, 2], [3, 1], [6, 0]], dots: true, only: true }], labels: [[0, 2, '(0, 2)'], [3, 1, '(3, 1)'], [6, 0, '(6, 0)']] } }
+        { t: 'Plot b: [[(0, 2)]].', fig: { kind: 'graph', x: [-2, 7], y: [-2, 4], lines: [{ pts: [[0, 2]], dots: true, only: true }], labels: [[0, 2, '(0, 2)']] } },
+        { t: 'Slope −1/3: down [[1]], right [[3]], to [[(3, 1)]].', fig: { kind: 'graph', x: [-2, 7], y: [-2, 4], lines: [{ pts: [[0, 2], [3, 1]], dots: true, only: true }], labels: [[0, 2, '(0, 2)'], [3, 1, '(3, 1)']], arrows: [[0, 2, 0, 1, 'down 1'], [0, 1, 3, 1, 'right 3']] } },
+        { t: 'Again to [[(6, 0)]], then join.', fig: { kind: 'graph', x: [-2, 7], y: [-2, 4], lines: [{ pts: [[-2, 2.67], [7, -0.33]] }, { pts: [[0, 2], [3, 1], [6, 0]], dots: true, only: true }], labels: [[0, 2, '(0, 2)'], [3, 1, '(3, 1)'], [6, 0, '(6, 0)']] } }
       ] },
     { k: 'poll', min: 5, id: 'gr1', q: 'Which graph shows *2x + y = 3*?', fig: { kind: 'graph', x: [-4, 4], y: [-4, 6], lines: [{ pts: [[-1, 5], [3, -3]] }, { pts: [[0, 3], [1, 1]], dots: true, only: true }] },
       opts: ['This one: crosses at (0, 3) and goes down 2 for every 1 right', 'No: 2x + y = 3 crosses at (0, 2)', 'No: its slope is +2, so it goes uphill', 'No: it should cross the x-axis at 3'], ans: 0,

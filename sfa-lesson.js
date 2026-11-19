@@ -226,6 +226,16 @@
   /* ---------------- answers (student) ---------------- */
   var queue = [], flushing = false, sendSeq = 0, backendOld = false, sendErr = '';
   function saveLocal() { SFA.store.set('les.' + LID, mine); }
+  // guided notes in worked examples: what this student typed in each blank, by slide
+  var notes = SFA.store.get('les.notes.' + LID, {}) || {};
+  function saveNotes() { SFA.store.set('les.notes.' + LID, notes); }
+  function normAns(v) { return String(v).toLowerCase().replace(/[−–]/g, '-').replace(/[\s()$%]/g, '').replace(/^\+/, ''); }
+  function numOf(v) { var m = /^(-?\d*\.?\d+)(?:\/(-?\d*\.?\d+))?$/.exec(v); if (!m) return null; var b = m[2] != null ? +m[2] : 1; return b ? +m[1] / b : null; }
+  // right if it matches any accepted answer (a|b), as text or as the same number (1/2 = 0.5, +6 = 6)
+  function blankOk(v, ans) {
+    var a = normAns(v), na = numOf(a); if (!a) return false;
+    return String(ans).split('|').some(function (x) { var b = normAns(x), nb = numOf(b); return a === b || (na != null && nb != null && Math.abs(na - nb) < 1e-9); });
+  }
   // the phone pattern: on a question, the longest stretch with nothing typed, clicked, scrolled or moved, counted from
   // the student's first touch of the slide (so listening to the teacher doesn't count), then a right answer within 8 s
   var still = { slide: -1, act: 0, touched: false, max: 0, end: 0 };
@@ -457,21 +467,61 @@
       var left = H('div', 'st'), ol = H('ol', 'pts exs'), tip = H('p', 'exhint'); left.appendChild(ol); left.appendChild(tip);
       var hasFig = !!s.fig || steps.some(function (x) { return x && x.fig; }), figBox = null;
       if (hasFig) { var c = H('div', 'cols grow'); c.appendChild(left); figBox = H('div', 'st exfig'); c.appendChild(figBox); d.appendChild(c); } else d.appendChild(left);
+      // guided notes: the next step shows with its blanks ([[value]]) before it is revealed. Students type into them;
+      // when the step is revealed each blank is marked. The class screen shows empty boxes, the console faint answers.
+      var mine_ = notes[idx] = notes[idx] || {}, typing = MODE === 'student', built = false, score = H('p', 'exscore');
+      left.appendChild(score);
+      function stepOf(k) { return typeof steps[k] === 'string' ? { t: steps[k] } : steps[k] || {}; }
+      function hasBlank(x) { return /\[\[[^~\]]/.test((x.t || '') + (x.eq || '')); }
+      function withBlanks(str, k, open, j) {
+        return str.split(/(\[\[[^\]]+\]\])/).map(function (part) {
+          var m = /^\[\[(~?)([^\]]+)\]\]$/.exec(part); if (!m) return fmt(part);
+          var ans = m[2], show = esc(ans.split('|')[0]), w = Math.max(2, show.length + 1);
+          if (m[1]) return open ? '<span class="blk mt" style="min-width:' + w + 'ch"></span>' : '<span class="blk fill">' + show + '</span>';
+          var id = k + '.' + (j.n++), v = mine_[id] || '';
+          if (open) return typing ? '<input class="blk in" data-b="' + id + '" value="' + esc(v) + '" style="width:' + (w + 1.5) + 'ch" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Fill in the blank">'
+            : '<span class="blk mt' + (MODE === 'teach' ? ' peek' : '') + '" style="min-width:' + w + 'ch">' + (MODE === 'teach' ? show : '') + '</span>';
+          if (!typing || !v.trim()) return '<span class="blk fill">' + show + '</span>';
+          j.tot++; if (blankOk(v, ans)) { j.ok++; return '<span class="blk ok">' + show + ' ✓</span>'; }
+          return '<span class="blk no"><s>' + esc(v) + '</s> ' + show + '</span>';
+        }).join('');
+      }
+      ol.addEventListener('input', function (e) { var b = e.target.getAttribute && e.target.getAttribute('data-b'); if (b) { mine_[b] = e.target.value.slice(0, 20); saveNotes(); } });
+      ol.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' || !e.target.getAttribute('data-b')) return;
+        var all = [].slice.call(ol.querySelectorAll('input.blk')), i = all.indexOf(e.target);
+        if (all[i + 1]) all[i + 1].focus(); else if (exCanStep(idx)) go(cur + 1, true); else e.target.blur();
+      });
       d._upd = function () {
-        var n = exShown(idx), k;
-        if (n < shown) { ol.innerHTML = ''; shown = 0; }
-        for (k = shown; k < n; k++) {
-          var x = typeof steps[k] === 'string' ? { t: steps[k] } : steps[k], li = H('li', 'exstep', fmt(x.t || ''));
-          if (x.eq) li.appendChild(H('div', 'exeq', fmt(x.eq)));
-          li.style.animationDelay = ((k - shown) * .7) + 's'; ol.appendChild(li);
+        var n = exShown(idx), k, j = { n: 0, ok: 0, tot: 0 };
+        if (built && n === shown) return;   // same step: leave the boxes alone so typing isn't interrupted
+        var focus = document.activeElement && ol.contains(document.activeElement) ? document.activeElement.getAttribute('data-b') : null;
+        ol.innerHTML = '';
+        for (k = 0; k < n; k++) {
+          var x = stepOf(k); j.n = 0;
+          var li = H('li', 'exstep', withBlanks(x.t || '', k, false, j));
+          if (x.eq) li.appendChild(H('div', 'exeq', withBlanks(x.eq, k, false, j)));
+          if (built && k < shown) li.style.animation = 'none'; else li.style.animationDelay = ((built ? k - shown : k) * .7) + 's';
+          ol.appendChild(li);
         }
-        shown = n;
+        var nx = n < steps.length ? stepOf(n) : null, open = nx && hasBlank(nx);
+        if (open) {
+          j.n = 0;
+          var p = H('li', 'exstep exnext', '<span class="exyou">' + (typing ? '✏️ Your turn: fill in the blanks' : MODE === 'teach' ? '✏️ Students fill in the blanks' : '✏️ Fill in the blanks') + '</span>' + withBlanks(nx.t || '', n, true, j));
+          if (nx.eq) p.appendChild(H('div', 'exeq', withBlanks(nx.eq, n, true, j)));
+          ol.appendChild(p);
+          if (focus) { var f0 = ol.querySelector('input[data-b="' + focus + '"]'); if (f0) f0.focus(); }
+        }
+        // a running score once the student has filled in some blanks
+        score.textContent = typing && j.tot ? (n >= steps.length ? 'Your notes: ' : 'So far: ') + j.ok + ' of ' + j.tot + ' blanks right' + (j.ok === j.tot ? ' 🎯' : '.') : '';
+        built = true; shown = n;
         if (figBox) {
           var f = s.fig || null, fi = -1;
           for (k = 0; k < n; k++) if (steps[k] && steps[k].fig) { f = steps[k].fig; fi = k; }
           if (fi !== figAt) { figAt = fi; figBox.innerHTML = ''; if (f) figBox.appendChild(figure(f)); }
         }
-        tip.textContent = n < steps.length && exCanStep(idx) ? (n ? 'Next ▶ shows step ' + (n + 1) + ' of ' + steps.length + '.' : 'Think first: what would you do? Next ▶ shows step 1.') : '';
+        tip.textContent = n >= steps.length ? '' : open && typing ? (exCanStep(idx) ? 'Fill in the blanks, then press Next step ▶ to check them.' : 'Fill in the blanks. They are checked when ' + TEACHER + ' shows the step.')
+          : exCanStep(idx) ? (n ? 'Next ▶ shows step ' + (n + 1) + ' of ' + steps.length + '.' : 'Think first: what would you do? Next ▶ shows step 1.') : '';
       };
       d._upd();
     },
@@ -1893,7 +1943,7 @@
   };
   window.SFA_LESSON = function (L) { LES = L; };
   var sc = document.createElement('script');
-  sc.src = 'lessons/' + LID + '.js';
+  sc.src = 'lessons/' + LID + '.js?v=20261119b';   // bump when lesson files change
   sc.onload = function () { if (!LES) return fail(); document.title = (LES.label || 'Lesson ' + LES.n) + ': ' + LES.title + ' · Sandy Flats'; boot(); };
   sc.onerror = fail;
   function fail() { document.querySelector('.lmain').innerHTML = '<div class="card keybox"><h2>That lesson isn\'t here</h2><p class="muted">Go back to <a href="lessons.html">all lessons</a>.</p></div>'; }
