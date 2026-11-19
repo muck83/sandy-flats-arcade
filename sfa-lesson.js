@@ -1382,9 +1382,9 @@
   function consoleInit() {
     console_ = { on: false, lock: SFA.store.get('teacher.lesson.lock', true) !== false, reveal: {}, spot: null, timer: null, cls: SFA.store.get('teacher.lesson.cls', ''), names: true, peek: false, data: null, since: 0, picked: '', run: 0, auto: SFA.store.get('teacher.lesson.auto', true) !== false, skew: 0 };
     if (!CFG.endpoint) { console_.offline = true; }
+    else if (!Key.get()) return askKey(), false;
     // the whiteboard: a finished stroke, undo, clear or a grid change goes to everyone; the pen mid-stroke only repaints the class screen
     if (window.SFA_WB) SFA_WB.init({ onChange: function (final) { if (final) { pushLive(); consolePanel(); } else broadcast(); } });
-    else if (!Key.get()) return askKey(), false;
     var panel = H('aside', 'panel'); panel.id = 'tpanel';
     document.querySelector('.lmain').appendChild(panel);
     if (bc) bc.onmessage = function (e) { var m = e.data || {}; if (m.t === 'hello') broadcast(); if (m.t === 'nav') go(m.to, true); };
