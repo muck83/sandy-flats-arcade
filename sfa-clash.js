@@ -54,6 +54,7 @@
       else if (k === 'N:') o.names = v.split('|').slice(0, 2).map(function (x) { return x ? x.split(',') : []; });
       else if (k === 'Q:') { o.hl = {}; v.split(',').forEach(function (x) { var q = x.split('~'); if (+q[0]) o.hl[+q[0]] = { look: q[1] || '', n: q[2] || '' }; }); }
       else if (k === 'V:') o.looks = v.split('|').slice(0, 2).map(function (x) { return x ? x.split(',') : []; });
+      else if (k === 'X:') { var px = v.split('~'); o.x = { seq: +px[0], la: px[1] || '', lb: px[2] || '' }; }   // the newest partner combo's two avatars
       else if (k === 'H:') o.heroes = v.split(';').map(function (x) { var p = x.split('~'); return { name: p[0], team: +p[1], gold: +p[2], right: +p[3], lv: +p[4] || 1 }; }).filter(function (a) { return a.name; });
     });
     return o;
@@ -115,13 +116,14 @@
       }
       V.S = snap;
     }
-    V.c = c; V.sp = sp;
+    V.c = c; V.sp = sp; V.pairs = pairsOf(Lv);
     if (sp.hl) { V.heroLooks = V.heroLooks || {}; Object.keys(sp.hl).forEach(function (id) { V.heroLooks[id] = sp.hl[id]; }); }
     var rk = c.rally ? c.rally.no + '.' + c.rally.st : ''; if (rk !== V.rk) { var first = V.rk == null; V.rk = rk; if (!first) onRally(c); }
     if (sp.looks && (sp.looks[0].length || sp.looks[1].length)) { V.looks = sp.looks; if (CL && A.MODE === 'student') CL.looks = sp.looks; }
     if (sp.names && (sp.names[0].length || sp.names[1].length)) { V.names = sp.names; if (CL && A.MODE === 'student' && JSON.stringify(CL.names) !== JSON.stringify(sp.names)) { CL.names = sp.names; keep(); } }
     if (V.S) claimMine(V.S, sp.rej);
     shoutsFromSpot(sp, c);
+    pairSync();
     if (c.state === 2 && !V.over && (sp.mvp.length || sp.awards.length || Date.now() - (V.endSeen || (V.endSeen = Date.now())) > 4000)) showEnd(c, sp);
     hudTick();
   }
@@ -164,6 +166,7 @@
       hud.q = H('div', 'lcq'); low.appendChild(hud.q);
       var side = H('div', 'lcside'); low.appendChild(side);
       hud.mates = H('div', 'lcmates'); side.appendChild(hud.mates);
+      hud.pair = H('div', 'lcpair'); side.appendChild(hud.pair);
       hud.hero = H('div', 'lchero'); side.appendChild(hud.hero);
       hud.emo = H('div', 'lcemo'); side.appendChild(hud.emo); emoteBar();
       hud.cards = H('div', 'lccards'); side.appendChild(hud.cards);
@@ -199,7 +202,7 @@
     keep(); clearTimeout(saveT);
     // the newest placements and how many came before them (n): the results script keeps 600 characters of an answer
     var p = CL.places.map(function (x) { return x.l + '.' + x.t + '.' + x.d + '.' + x.v; }).join(',');
-    A.record({ id: 'zclash', k: 'open' }, 'c3;id:' + Math.round(CL.id / 1000) + ';r:' + CL.right + ';w:' + (CL.wr || 0) + ';e:' + CL.earned + ';b:' + CL.bonus + ';v:' + CL.boost + ';sk:' + (CL.best || 0) + (CL.ping ? ';g:' + CL.ping.l + '.' + CL.ping.t : '') + (CL.raN ? ';ra:' + CL.raN + '.' + CL.raOk : '') + (CL.em ? ';em:' + CL.em + '.' + CL.emi : '') + ';n:' + (CL.total - CL.places.length) + ';p:' + p, null);
+    A.record({ id: 'zclash', k: 'open' }, 'c3;id:' + Math.round(CL.id / 1000) + ';r:' + CL.right + ';w:' + (CL.wr || 0) + ';e:' + CL.earned + ';b:' + CL.bonus + ';v:' + CL.boost + ';sk:' + (CL.best || 0) + (CL.ping ? ';g:' + CL.ping.l + '.' + CL.ping.t : '') + (CL.raN ? ';ra:' + CL.raN + '.' + CL.raOk : '') + (CL.em ? ';em:' + CL.em + '.' + CL.emi : '') + (CL.pr ? ';pr:' + CL.pr.s + '.' + CL.pr.i : '') + (CL.pa ? ';pa:' + CL.pa.n + '.' + CL.pa.v : '') + (CL.pq ? ';pq:' + CL.pq.n + '.' + CL.pq.v : '') + ';n:' + (CL.total - CL.places.length) + ';p:' + p, null);
   }
   function sendSoon() { clearTimeout(saveT); saveT = setTimeout(send, 4000); }
   function pool_() {
@@ -341,12 +344,14 @@
   function xp(n, once) { if (A.hero && CL) A.hero.add('c', String(Math.round(CL.id / 1000)) + (once ? 'e' : ''), n, once); }
   function drawQ() {
     var box = hud.q; if (!box || !CL) return;
-    box.innerHTML = '';
+    box.innerHTML = ''; box.classList.remove('rallyon', 'pairon');
     var pool = pool_(), c = V.c;
     if (c.state === 3) { box.appendChild(H('p', 'q', 'Read the rules: the questions start with the battle.')); return; }
     if (c.state !== 1) { box.appendChild(H('p', 'q', 'The battle is over.')); return; }
     if (!pool.length) { box.appendChild(H('p', 'q', 'No questions in this lesson for the Clash.')); return; }
+    pairBanners(box);
     if (drawRally(box, c)) return;
+    if (drawPair(box, c)) return;
     if (CL.wi == null) { CL.warm = warmQs(); CL.wi = 0; CL.wr = 0; keep(); }
     var warm = CL.wi < CL.warm.length, bonusRound = !warm && CL.qi >= CL.order.length, q = warm ? CL.warm[CL.wi] : pool[CL.order[CL.qi % CL.order.length]];
     box.appendChild(H('p', 'kick', warm ? '🌱 Warm-up ' + (CL.wi + 1) + ' of ' + CL.warm.length + ' · integers · 1 coin' : 'Answer to earn coins · ' + (bonusRound ? 'bonus round: 1 coin' : q.hard ? '★★ hard: 4 coins' : 'right first try: 3 coins') + (CL.streak >= 2 ? ' · 🔥 ' + CL.streak + ' in a row' : '')));
@@ -399,6 +404,186 @@
     sfx('level');
     var un = L.UNITS.filter(function (U) { return U.lv === n; });
     shout({ e: un.length ? un[0].who : 'one', who: 'LEVEL ' + n + '!', text: un.length ? un.map(function (U) { return '<b>' + esc(U.name.toUpperCase()) + '</b>'; }).join(' and ') + ' unlocked. Your characters are stronger.' : 'Your characters are stronger.', team: me, mine: true, gold: true });
+  }
+
+  /* ---------- 🤝 Partner up: two teammates get the same question; both right = a silly combo attack ----------
+     A student asks a teammate (";pr:seq.index" in their running row), the teammate accepts (";pa:n.1") and both answer
+     the same question once (";pq:n.1"). The console referees it all and sends the pairs out in counts.zcp0/zcp1 (two
+     numbers a pair: team*2500 + asker*50 + partner, by place in the team list; status*1000 + quiet*300 + pair no.) and
+     the quiet teammates in counts.zci. Statuses: 1 asked, 2 answering, 3 combo!, 4 fizzled, 5 not now, 6 no answer,
+     7 turned away (busy or too soon). quiet: 1 the partner was quiet, 2 the asker was. All times in battle ticks. */
+  var PR_WAIT = 300, PR_ANS = 600, PR_SHOW = 120, PR_COOL = 600, PR_SAME = 1500, PR_IDLE = 450, PR_IB = 1800, PR_LATE = 500, PR_GAP = 80, PR_DMG = 180, PR_GOLD = 30, PR_WAKE = 20;
+  var COMBOS = [
+    { k: 'bowl', n: 'Burrito Bowling', e: '🌯', a: ['Tuck and roll!', 'Bowl me!'], b: ['Wheeee!', 'STRIKE!'] },
+    { k: 'rocket', n: 'Piggyback Rocket', e: '🚀', a: ['Hop on!', 'Hold on tight!'], b: ['To infinity!', 'WHEEE!'] },
+    { k: 'tornado', n: 'Noodle Tornado', e: '🌪️', a: ['Spin!', 'Faster!'], b: ['I\'m dizzy!', 'Noodle power!'] },
+    { k: 'chicken', n: 'Double Chicken Dance', e: '🐔', a: ['Bawk bawk!', 'Flap it!'], b: ['BAWK!', 'Egg-cellent!'] }
+  ];
+  function pairsOf(Lv) {
+    var c = Lv && Lv.counts, o = { list: [], idle: [] }; if (!c) return o;
+    ['zcp0', 'zcp1'].forEach(function (k) { var a = c[k]; if (!Array.isArray(a)) return; for (var i = 0; i + 1 < a.length; i += 2) { var p = a[i], s = a[i + 1]; o.list.push({ t: Math.floor(p / 2500), a: Math.floor((p % 2500) / 50), b: p % 50, st: Math.floor(s / 1000), idle: Math.floor((s % 1000) / 300), n: s % 1000 % 300 }); } });
+    if (Array.isArray(c.zci)) c.zci.forEach(function (v) { [Math.floor(v / 100), v % 100].forEach(function (x) { if (x) { var t = x > 49 ? 1 : 0; o.idle.push({ t: t, i: x - 1 - t * 49 }); } }); });
+    return o;
+  }
+  function namesNow() { return (V && V.names) || (CL && CL.names) || null; }
+  function nameAt(t, i) { var NM = namesNow(); return NM && NM[t] && NM[t][i] || 'your partner'; }
+  // my place in my team's list (the console's teamLists: first name, plus the last initial when two share it)
+  function myIdx() {
+    var NM = namesNow(); if (!NM || me < 0 || !A.S.me || !NM[me]) return -1;
+    var nm = A.S.me.name || '', f = String(A.first(nm) || '').replace(/[^A-Za-zÀ-ÿ' -]/g, ''), last = String(A.nice(nm) || '').split(' ').slice(1).join(' ');
+    var cands = [last ? (f + ' ' + last[0] + '.').slice(0, 12) : '', f.slice(0, 12)];
+    for (var k = 0; k < 2; k++) { var i = cands[k] ? NM[me].indexOf(cands[k]) : -1; if (i >= 0) return i; }
+    return -1;
+  }
+  function pairView() {
+    var P = (V && V.pairs) || { list: [], idle: [] }, i = myIdx(), out = { i: i, open: null, inc: null, out: null, done: [], idle: {}, busy: {} };
+    P.idle.forEach(function (x) { if (x.t === me) out.idle[x.i] = 1; });
+    P.list.forEach(function (e) {
+      if (e.t !== me) return;
+      if (e.st === 1 || e.st === 2) { out.busy[e.a] = 1; out.busy[e.b] = 1; }
+      if (i < 0 || (e.a !== i && e.b !== i)) return;
+      if (e.st === 1 && e.b === i) out.inc = e; else if (e.st === 1) out.out = e; else if (e.st === 2) out.open = e; else out.done.push(e);
+    });
+    return out;
+  }
+  function pairQ(n) { var P = pool_(); return P.length ? P[(n * 7 + 3) % P.length] : null; }
+  function mateOf(e, pv) { return nameAt(me, e.a === pv.i ? e.b : e.a); }
+  // the student's page: settle finished pairs once (coins for a combo), redraw when my pair changes
+  function pairSync() {
+    if (!CL || A.MODE !== 'student' || !V || !V.c) return;
+    var pv = pairView(); CL.pdone = CL.pdone || {};
+    if (CL.pwait && (pv.out || pv.open)) CL.pwait = null;   // my request arrived
+    pv.done.forEach(function (e) {
+      if (CL.pdone[e.n]) return; CL.pdone[e.n] = e.st;
+      var mate = esc(mateOf(e, pv)), asker = e.a === pv.i, quietMe = e.idle === (asker ? 2 : 1);
+      if (asker) CL.pwait = null;
+      if (e.st === 3) {
+        var got = 4 + (quietMe ? 4 : e.idle ? 2 : 0); CL.coins += got; CL.earned += got; CL.combos = (CL.combos || 0) + 1; xp(quietMe ? 25 : 15); A.confetti();
+        CL.pfb = { ok: true, html: '🤝 <b>Combo with ' + mate + '!</b> +' + got + ' coins' + (quietMe ? ' (💤→⚡ wake-up bonus!)' : e.idle ? ' (team-player bonus for waking up ' + mate + ')' : '') + '.' }; drawCards();
+      } else if (e.st === 4) CL.pfb = { ok: false, html: '🤝 The combo with ' + mate + ' fizzled: you both need it right. Partner up again in a minute.' };
+      else if (asker && e.st === 5) CL.pfb = { ok: false, html: '🤝 ' + mate + ' said not now. Try another teammate.' };
+      else if (asker && e.st === 6) CL.pfb = { ok: false, html: '🤝 No answer from ' + mate + '. Try another teammate.' };
+      else if (asker && e.st === 7) CL.pfb = { ok: false, html: '🤝 ' + mate + ' can\'t partner right now (busy, or you two need a break). Try someone else.' };
+      else return;
+      CL.pcool = Date.now() + (e.st <= 4 ? 60000 : 8000); CL.pfbAt = Date.now(); keep();
+    });
+    var key = [pv.i, pv.inc ? pv.inc.n : '', pv.open ? pv.open.n : '', pv.out ? pv.out.n : '', pv.done.map(function (e) { return e.n + '.' + e.st; }).join()].join('|');
+    if (key !== V.pairKey) { var first = V.pairKey == null; V.pairKey = key; if (pv.inc && !(CL.pa && CL.pa.n === pv.inc.n)) { sfx('ping'); shout({ e: 'gus', img: heroURL(lookByName(mateOf(pv.inc, pv)), 64), who: '🤝 ' + mateOf(pv.inc, pv).toUpperCase(), text: 'wants to <b>partner up</b> with you!', team: me, mine: true, small: true }); } if (!first) { V.noFocus = true; drawQ(); } }
+    drawPairPanel();
+  }
+  function askPartner(i) {
+    if (!CL || CL.pwait) return;
+    CL.pseq = (CL.pseq || 0) + 1; CL.pr = { s: CL.pseq, i: i }; CL.pwait = { i: i, at: Date.now() }; V.pick = false; keep(); send(); sfx('pop'); drawPairPanel();
+  }
+  // the box under the team list: the Partner up button, the teammate picker (quiet ones first), or how my pair is doing
+  function drawPairPanel() {
+    var b = hud.pair; if (!b || !CL || !V || !V.c) return;
+    var c = V.c, pv = pairView(), NM = namesNow(), T0 = nowT(c), html = '', acts = [];
+    if (CL.pwait && Date.now() - CL.pwait.at > 15000) { CL.pwait = null; CL.pfb = { ok: false, html: '🤝 Your partner request didn\'t get through. Try again.' }; CL.pfbAt = Date.now(); }
+    var cool = Math.max(0, Math.ceil(((CL.pcool || 0) - Date.now()) / 1000)), mates = NM && NM[me] ? NM[me].map(function (n, i) { return { n: n, i: i }; }).filter(function (x) { return x.i !== pv.i; }) : [];
+    var quiet = mates.filter(function (x) { return pv.idle[x.i] && !pv.busy[x.i]; });
+    if (c.state !== 1 || pv.i < 0 || !mates.length) html = '';
+    else if (pv.open) html = '<p>🤝 Partnered with <b>' + esc(mateOf(pv.open, pv)) + '</b>: answer your shared question!</p>';
+    else if (pv.inc && !(CL.pa && CL.pa.n === pv.inc.n)) html = '<p>🤝 <b>' + esc(mateOf(pv.inc, pv)) + '</b> wants to partner up! Answer in the question box.</p>';
+    else if (pv.out || CL.pwait) html = '<p>🤝 Waiting for <b>' + esc(nameAt(me, pv.out ? pv.out.b : CL.pwait.i)) + '</b> to say yes…</p>';
+    else if (cool) html = '<p class="muted">🤝 Partner up again in ' + cool + ' s</p>';
+    else if (c.dur - T0 < PR_LATE) html = '<p class="muted">🤝 Partner combos are over for this battle.</p>';
+    else {
+      html = (pv.idle[pv.i] ? '<p class="lcpme">💤 You\'ve been quiet: partner up and get it right for a <b>wake-up bonus</b>!</p>' : '') +
+        '<div class="lcprow"><button type="button" class="btn lcpbtn" data-k="pick">🤝 Partner up</button>' + (quiet.length ? '<button type="button" class="btn lcpbtn wake" data-k="wake">💤 Wake up a teammate</button>' : '') + '</div>' +
+        (quiet.length ? '<p class="lcpidle">💤 ' + quiet.length + ' quiet teammate' + (quiet.length === 1 ? '' : 's') + ' need' + (quiet.length === 1 ? 's' : '') + ' a partner: <b>+' + PR_WAKE + ' bonus gold</b> and extra coins for both of you</p>' : '');
+      if (V.pick) {
+        var order = quiet.concat(mates.filter(function (x) { return !pv.busy[x.i] && !pv.idle[x.i]; })).concat(mates.filter(function (x) { return pv.busy[x.i]; }));
+        html += '<div class="lcplist">' + order.map(function (x) { return '<button type="button" class="lcpmate' + (pv.idle[x.i] ? ' quiet' : '') + '" data-i="' + x.i + '"' + (pv.busy[x.i] ? ' disabled' : '') + '>' + (pv.idle[x.i] ? '💤 ' : '') + esc(x.n) + (pv.busy[x.i] ? ' <small>busy</small>' : pv.idle[x.i] ? ' <small>+bonus</small>' : '') + '</button>'; }).join('') + '</div>';
+      }
+    }
+    var key = html + (CL.pwait ? 'w' : ''); if (b._k === key) return; b._k = key;
+    b.innerHTML = html; b.hidden = !html;
+    [].forEach.call(b.querySelectorAll('[data-k]'), function (x) { x.onclick = function () { if (x.getAttribute('data-k') === 'pick') { V.pick = !V.pick; b._k = ''; drawPairPanel(); } else if (quiet.length) askPartner(quiet[Math.floor(Math.random() * quiet.length)].i); }; });
+    [].forEach.call(b.querySelectorAll('[data-i]'), function (x) { x.onclick = function () { askPartner(+x.getAttribute('data-i')); }; });
+  }
+  // in the question box: a request to answer, my pair's shared question (one try), or how the last pair went
+  // above everything else in the question box (even a rally): how the last pair went, and a request to answer
+  function pairBanners(box) {
+    if (!CL || me < 0) return;
+    var pv = pairView();
+    if (CL.pfb && Date.now() - (CL.pfbAt || 0) < 9000) box.appendChild(H('div', 'lcpfb ' + (CL.pfb.ok ? 'good' : 'try'), CL.pfb.html));
+    if (pv.inc && !(CL.pa && CL.pa.n === pv.inc.n)) {
+      var e0 = pv.inc, ban = H('div', 'lcpask', '<p>🤝 <b>' + esc(mateOf(e0, pv)) + '</b> wants to partner up! You both get the same question: <b>both right = a silly combo attack</b> and bonus gold for your team.' + (e0.idle === 1 ? ' <b class="lcpwake">💤→⚡ Wake-up bonus: extra coins for you!</b>' : '') + '</p>');
+      var row = H('div', 'row'), yes = el('button', { type: 'button', 'class': 'btn primary', text: '🤝 Let\'s go!' }), no = el('button', { type: 'button', 'class': 'btn', text: 'Not now' });
+      var reply = function (v) { CL.pa = { n: e0.n, v: v }; keep(); send(); sfx('pop'); V.noFocus = true; drawQ(); drawPairPanel(); };
+      yes.onclick = function () { reply(1); }; no.onclick = function () { reply(0); };
+      row.appendChild(yes); row.appendChild(no); ban.appendChild(row); box.appendChild(ban);
+    }
+  }
+  function drawPair(box, c) {
+    if (!CL || me < 0) return false;
+    var pv = pairView();
+    if (!pv.open) return false;
+    var e = pv.open, mate = esc(mateOf(e, pv)), q = pairQ(e.n);
+    if (!q) return false;
+    if (CL.pq && CL.pq.n === e.n) { box.appendChild(H('div', 'lcpwait', '🤝 Locked in! Waiting for <b>' + mate + '</b> to answer…')); return false; }
+    box.classList.add('pairon');
+    box.appendChild(H('p', 'kick', '🤝 PARTNER QUESTION · with ' + mate + (e.idle ? ' · 💤 wake-up bonus' : '')));
+    box.appendChild(H('p', 'lcrule', 'You and ' + mate + ' both get this one, one try each. Both right = a combo attack!'));
+    box.appendChild(H('p', 'q', A.fmt(q.q)));
+    if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (er) { } }
+    var answer = function (ok) { CL.pq = { n: e.n, v: ok ? 1 : 0 }; xp(ok ? 5 : 1); keep(); send(); sfx(ok ? 'coin' : 'bonk'); box.classList.remove('pairon'); V.noFocus = true; drawQ(); };
+    if (q.k === 'number') {
+      var inp = el('input', { type: 'text', inputmode: q.ans < 0 ? 'text' : 'decimal', placeholder: 'Type a number', 'aria-label': 'Partner answer', autocomplete: 'off' }), go = el('button', { type: 'button', 'class': 'btn primary', text: '🤝 Answer' }), r2 = H('div', 'row');
+      r2.appendChild(inp); r2.appendChild(go); box.appendChild(r2);
+      var chk = function () { var v = A.numOf(inp.value); if (!inp.value.trim()) return inp.focus(); if (isNaN(v)) { SFA.toast('Type a number, like 12 or -3.'); return; } answer(Math.abs(v - q.ans) <= (q.tol || 1e-9) + 1e-9); };
+      go.onclick = chk; inp.onkeydown = function (ev0) { if (ev0.key === 'Enter') chk(); };
+    } else {
+      var list = H('div', 'opts'); box.appendChild(list);
+      q.opts.forEach(function (o, k) { var bt = el('button', { type: 'button', 'class': 'opt' }); bt.appendChild(H('span', 'L', A.letter(k))); bt.appendChild(H('span', 't', A.fmt(o))); bt.onclick = function () { answer(k === q.ans); }; list.appendChild(bt); });
+    }
+    return true;
+  }
+  // 🎬 the combo, on every screen: both avatars pop in at their fort and pull off something very silly down the lane
+  function comboPop(ev0) {
+    if (!root || !cvs || !V) return;
+    var nm = String(ev0.name || '').split('&'), G = geo(), stage = cvs.parentNode, team = ev0.team, lane = Math.max(0, Math.min(L.LANES - 1, ev0.lane)), mv = COMBOS[ev0.seq % COMBOS.length];
+    var X = V.sp && V.sp.x && V.sp.x.seq === ev0.seq ? V.sp.x : null, pv = A.MODE === 'student' ? pairView() : null, myN = pv && pv.i >= 0 ? nameAt(me, pv.i) : null, AV = window.SFA_AVATAR;
+    var looks = [0, 1].map(function (k) { var n = nm[k] || ''; return X ? (k ? X.lb : X.la) : n === myN && team === me ? myLook() : lookByName(n); });
+    var size = Math.round(Math.max(54, Math.min(130, sizeOf('hero', G) * 1.3))), dir = team ? -1 : 1, x0 = team ? G.w - G.vw - size * 0.7 : G.vw + size * 0.7, y = laneY(G, lane), dist = (G.w - 2 * G.vw - size * 1.6) * dir;
+    var d = H('div', 'lcpx lcpx-' + mv.k); d.style.left = (cvs.offsetLeft + x0) + 'px'; d.style.top = (cvs.offsetTop + y) + 'px'; d.style.setProperty('--s', size + 'px'); d.style.setProperty('--tc', TC[team] || '#fff');
+    var who = function (k) { return '<div class="lcpxw lcpx' + 'ab'[k] + '"><div class="lcembub">' + esc(mv[k ? 'b' : 'a'][0]) + '</div><div class="lcpxbody">' + (AV ? AV.svg(looks[k] || '', { size: size }) : '🙂') + '</div><b class="lcemname">' + esc(nm[k] || '') + '</b></div>'; };
+    d.innerHTML = '<div class="lcpxg">' + who(0) + who(1) + '<i class="lcpxfx">' + mv.e + '</i></div>';
+    var ttl = H('div', 'lcpxt', '<b>🤝 ' + esc(mv.n.toUpperCase()) + '!</b><span>' + esc((nm[0] || '') + ' + ' + (nm[1] || '')) + ' · +' + ev0.n + ' gold' + (ev0.type ? ' · 💤→⚡ wake-up bonus!' : '') + '</span>'); ttl.style.setProperty('--tc', TC[team] || '#fff');
+    stage.appendChild(d); stage.appendChild(ttl);
+    var g = d.querySelector('.lcpxg'), wa = d.querySelector('.lcpxa'), wb = d.querySelector('.lcpxb'), fx = d.querySelector('.lcpxfx'), bubA = wa.querySelector('.lcembub'), bubB = wb.querySelector('.lcembub');
+    var an = function (n, kf, o) { if (n && n.animate) { var a = n.animate(kf, Object.assign({ fill: 'forwards', easing: 'ease-in-out' }, o)); return a; } };
+    var s = size, D = dist, sx = function (v) { return v * dir; };
+    an(d, [{ transform: 'translate(-50%,-100%) scale(.2)', opacity: 0 }, { transform: 'translate(-50%,-100%) scale(1.1)', opacity: 1, offset: 0.6 }, { transform: 'translate(-50%,-100%) scale(1)', opacity: 1 }], { duration: 450, easing: 'cubic-bezier(.3,1.6,.6,1)' });
+    an(wb, [{ transform: 'translateX(' + sx(s * 0.75) + 'px)' }, { transform: 'translateX(' + sx(s * 0.75) + 'px)' }], { duration: 10 });
+    setTimeout(function () { bubA.textContent = mv.a[1]; bubB.textContent = mv.b[1]; }, 1500);
+    if (mv.k === 'bowl') {   // B curls into a burrito and A bowls them down the lane
+      an(wb, [{ transform: 'translateX(' + sx(s * 0.75) + 'px)' }, { transform: 'translateX(' + sx(s * 0.75) + 'px) rotate(' + sx(360) + 'deg) scale(.6)', offset: 0.3 }, { transform: 'translateX(' + sx(s * 0.3) + 'px) rotate(' + sx(400) + 'deg) scale(.6)', offset: 0.42 }, { transform: 'translateX(' + (D + sx(s * 0.3)) + 'px) rotate(' + sx(2160) + 'deg) scale(.6)' }], { duration: 2300, delay: 600, easing: 'cubic-bezier(.5,0,.8,1)' });
+      an(fx, [{ opacity: 0, transform: 'translate(' + sx(s * 0.75) + 'px,-40%) scale(.3)' }, { opacity: 1, transform: 'translate(' + sx(s * 0.75) + 'px,-40%) scale(1.3)', offset: 0.25 }, { opacity: 1, transform: 'translate(' + sx(s * 0.3) + 'px,-40%) scale(1.3)', offset: 0.42 }, { opacity: 1, transform: 'translate(' + (D + sx(s * 0.3)) + 'px,-40%) scale(1.3) rotate(' + sx(1440) + 'deg)' }], { duration: 2300, delay: 600, easing: 'cubic-bezier(.5,0,.8,1)' });
+      an(wa, [{ transform: 'none' }, { transform: 'translateX(' + sx(s * 0.15) + 'px) rotate(' + sx(-25) + 'deg)', offset: 0.5 }, { transform: 'translateY(-30%) rotate(' + sx(10) + 'deg) scaleY(1.1)', offset: 0.75 }, { transform: 'none' }], { duration: 1200, delay: 1100, iterations: 2 });
+    } else if (mv.k === 'rocket') {   // B hops on A's shoulders, a rocket lights under them, and off they go (wobbling)
+      an(wb, [{ transform: 'translateX(' + sx(s * 0.75) + 'px)' }, { transform: 'translate(' + sx(s * 0.35) + 'px,-120%)', offset: 0.6 }, { transform: 'translate(0,-62%)' }], { duration: 700, delay: 500, easing: 'cubic-bezier(.3,1.4,.6,1)' });
+      an(fx, [{ opacity: 0, transform: 'translate(-50%,10%) rotate(' + (team ? -45 : 45) + 'deg) scale(.4)' }, { opacity: 1, transform: 'translate(-50%,10%) rotate(' + (team ? -45 : 45) + 'deg) scale(1.4)' }], { duration: 300, delay: 1300 });
+      an(g, [{ transform: 'none' }, { transform: 'translate(' + sx(-6) + 'px,4px) rotate(' + sx(-8) + 'deg)', offset: 0.12 }, { transform: 'translate(' + (D * 0.5) + 'px,' + (-Math.min(s * 0.9, Math.max(0, y - s * 1.6))) + 'px) rotate(' + sx(12) + 'deg)', offset: 0.55 }, { transform: 'translate(' + D + 'px,0) rotate(' + sx(30) + 'deg)' }], { duration: 1600, delay: 1500, easing: 'cubic-bezier(.4,0,.7,1)' });
+    } else if (mv.k === 'tornado') {   // both spin into a noodle tornado that wobbles down the lane
+      an(wb, [{ transform: 'translateX(' + sx(s * 0.75) + 'px)' }, { transform: 'translateX(' + sx(s * 0.25) + 'px)' }], { duration: 500, delay: 600 });
+      [wa, wb].forEach(function (w, k) { an(w.querySelector('.lcpxbody'), [{ transform: 'scaleX(1)' }, { transform: 'scaleX(-1)' }, { transform: 'scaleX(1)' }], { duration: 260 - k * 40, delay: 900, iterations: 12, easing: 'linear' }); });
+      an(fx, [{ opacity: 0, transform: 'translate(-30%,-30%) scale(.5)' }, { opacity: 0.9, transform: 'translate(-30%,-30%) scale(2.2)' }], { duration: 500, delay: 1000 });
+      an(g, [{ transform: 'none' }, { transform: 'translate(' + (D * 0.25) + 'px,-10px)', offset: 0.25 }, { transform: 'translate(' + (D * 0.5) + 'px,10px)', offset: 0.5 }, { transform: 'translate(' + (D * 0.75) + 'px,-10px)', offset: 0.75 }, { transform: 'translate(' + D + 'px,0)' }], { duration: 1700, delay: 1400 });
+    } else {   // the chicken dance, then a barrage of eggs down the lane
+      [wa, wb].forEach(function (w, k) { an(w.querySelector('.lcpxbody'), [{ transform: 'rotate(-12deg) scaleY(1)' }, { transform: 'rotate(12deg) scaleY(.88) translateY(6%)' }, { transform: 'rotate(-12deg) scaleY(1)' }], { duration: 300, delay: 500 + k * 150, iterations: 8 }); });
+      an(fx, [{ opacity: 0, transform: 'translate(0,-160%) scale(.4)' }, { opacity: 1, transform: 'translate(0,-190%) scale(1.6)' }], { duration: 400, delay: 700 });
+      for (var k2 = 0; k2 < 7; k2++) (function (k2) { var egg = H('i', 'lcpxegg', '🥚'); g.appendChild(egg); an(egg, [{ opacity: 1, transform: 'translate(0,-60%)' }, { opacity: 1, transform: 'translate(' + (D * (0.25 + k2 * 0.11)) + 'px,' + (-s * (0.9 + (k2 % 3) * 0.3)) + 'px) rotate(' + sx(360) + 'deg)', offset: 0.5 }, { opacity: 1, transform: 'translate(' + (D * (0.5 + k2 * 0.08)) + 'px,-10%) rotate(' + sx(720) + 'deg)' }], { duration: 900, delay: 1500 + k2 * 140, easing: 'linear' }); })(k2);
+    }
+    sfx('pop'); setTimeout(function () { sfx('zero'); }, 1400);
+    // the hit lands: the lane shakes, the gold pops up, then everyone tidies away
+    setTimeout(function () {
+      if (!root || !V) return; var G2 = geo(); V.shake = Math.max(V.shake, 12); sfx('win');
+      V.parts.push({ k: 'text', s: 'COMBO! +' + ev0.n, col: TC[team], big: true, x: G2.w / 2 + dist * 0.25, y: laneY(G2, lane) - G2.lh * 0.6, vy: -50, life: 1.6, t: 0 });
+      for (var i = 0; i < 24; i++) V.parts.push({ k: 'confetti', x: G2.w / 2 + dist * 0.35 + (Math.random() - 0.5) * 160, y: laneY(G2, lane) - G2.lh * 0.5, vx: (Math.random() - 0.5) * 260, vy: -160 - Math.random() * 200, life: 1.4, t: 0, g: 400, col: ['#FFC94A', '#5CC8FF', '#E0463C', '#3BFF8A', '#fff'][i % 5] });
+    }, 2700);
+    setTimeout(function () { d.classList.add('out'); ttl.classList.add('out'); }, 3700); setTimeout(function () { d.remove(); ttl.remove(); }, 4200);
   }
 
   /* ---------- the hero panel and the seed-packet cards ---------- */
@@ -540,7 +725,7 @@
     var c = V.c, T0 = nowT(c);
     if (V.S && c.state === 1 && !V.watch) L.advance(V.S, Math.floor(T0), onFx);
     draw(dt, T0);
-    if (Math.floor(ts / 500) !== V.tick) { V.tick = Math.floor(ts / 500); hudTick(); if (CL && A.MODE === 'student') drawCards(); }
+    if (Math.floor(ts / 500) !== V.tick) { V.tick = Math.floor(ts / 500); hudTick(); if (CL && A.MODE === 'student') { drawCards(); drawPairPanel(); } }
   }
   /* a team's fort, drawn as a status board: the banner (gold grabbed, a crown for the leader), and for each lane a gate
      that shows Mux (parked, or a ring counting down while he recharges), red alarm lights when enemy attackers are close,
@@ -752,11 +937,15 @@
     if (wave > V.wave && c.state === 1) { V.wave = wave; sfx('wave'); shout({ e: wave === 2 ? 'max' : 'one', who: wave === 2 ? 'THE FINAL WAVE!' : 'A WAVE IS COMING!', text: wave === 2 ? 'Everyone moves faster. <b>Double gold</b> (triple for the team behind)!' : 'Halfway! Defend your lanes.', team: -1, mine: true, gold: true }); }
     if (S && me >= 0 && c.state === 1) { var cb = L.comeback(S, me); if (cb && !V.cb) shout({ e: 'one', who: '⚡ COMEBACK!', text: 'Your team is behind: <b>bonus coins</b> on every right answer, tougher characters and a faster Mux!', team: me, mine: true }); V.cb = cb; }
     if (A.MODE === 'student') laneButtons();
-    var NMs = V.names || (CL && CL.names), nk = NMs ? JSON.stringify(NMs) + me : '';
+    // the team lists, with 💤 by anyone quiet for a while (a partner for them earns a wake-up bonus) and 🤝 by pairs answering
+    var PRs = V.pairs || (V.watch ? pairsOf(A.live()) : null), qk = {}, pk = {};
+    if (PRs) { PRs.idle.forEach(function (x) { qk[x.t + ':' + x.i] = 1; }); PRs.list.forEach(function (e) { if (e.st === 2 || e.st === 1) { pk[e.t + ':' + e.a] = 1; pk[e.t + ':' + e.b] = 1; } }); }
+    var NMs = V.names || (CL && CL.names), nk = NMs ? JSON.stringify(NMs) + me + Object.keys(qk).join() + '/' + Object.keys(pk).join() : '';
+    var nmTag = function (t, n, i) { return (qk[t + ':' + i] ? '<span class="lcquiet" title="Quiet for a while: partner up with them for a wake-up bonus">💤 ' + esc(n) + '</span>' : pk[t + ':' + i] ? '<span class="lcpaired">🤝 ' + esc(n) + '</span>' : esc(n)); };
     if (nk && nk !== V.namesShown) {
       V.namesShown = nk;
-      if (hud.mates && me >= 0) hud.mates.innerHTML = '<b style="color:' + TC[me] + '">' + T[me].e + ' Your team</b> ' + NMs[me].map(function (n) { return esc(n); }).join(', ');
-      if (hud.rosters) hud.rosters.innerHTML = [0, 1].map(function (t) { return '<p><b style="color:' + TC[t] + '">' + T[t].e + ' ' + esc(T[t].name) + ':</b> ' + NMs[t].map(function (n) { return esc(n); }).join(', ') + '</p>'; }).join('');
+      if (hud.mates && me >= 0) hud.mates.innerHTML = '<b style="color:' + TC[me] + '">' + T[me].e + ' Your team</b> ' + NMs[me].map(function (n, i) { return nmTag(me, n, i); }).join(', ');
+      if (hud.rosters) hud.rosters.innerHTML = [0, 1].map(function (t) { return '<p><b style="color:' + TC[t] + '">' + T[t].e + ' ' + esc(T[t].name) + ':</b> ' + NMs[t].map(function (n, i) { return nmTag(t, n, i); }).join(', ') + '</p>'; }).join('') + (Object.keys(qk).length ? '<p class="lcqhint">💤 = quiet for a while: partner up with them for a <b>wake-up bonus</b>!</p>' : '');
     }
     if (V.watch && V.sp) shoutsFromSpot(V.sp, V.c);
     if (hud.heroes && V.sp) hud.heroes.innerHTML = V.sp.heroes.length ? '<b>Top heroes</b>' + V.sp.heroes.map(function (h, i) { return '<span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + ' ' + T[h.team].e + ' ' + esc(h.name) + ' <small>Lv ' + h.lv + ' · ' + h.gold + ' gold · ' + h.right + ' right</small></span>'; }).join('') : '';
@@ -781,6 +970,7 @@
     bans.push(pics(['sam', 'dunmore', 'pigeon', 'priya', 'zero']) + '<b class="lckick">Defend your lanes</b><p class="lcyours">Each lane has 3 planting spots. <b>Sam</b> and <b>Mr. Dunmore</b> block, <b>Pea Pigeon</b> and <b>Priya</b> shoot, and <b>Zero</b> erases every enemy in a lane.</p>');
     bans.push('<span class="lcbig">⚔️</span><b class="lckick">Counters win battles</b><p class="lcyours">🎯 <b>Shooters</b> beat 🏃 <b>runners</b>. 🦍 <b>Giants</b> shrug off shooters. 🧱 <b>Walls</b> beat giants. 💥 <b>Breakers</b> smash walls and shooters. ⭕ <b>Zero</b> clears a whole lane. Pick a card to see what it\'s good against.</p>');
     bans.push(pics(['hero']) + '<b class="lckick">🌟 Your avatar and 📣 rallies</b><p class="lcyours">After 5 right answers you can send <b>your own Wardrobe avatar</b> down a lane, free, once a battle: the higher your arcade level, the stronger it is. Every 90 seconds a <b>team rally</b> question pops up: if 60% of your team gets it right, you win a free character.</p>');
+    bans.push('<span class="lcbig">🤝</span><b class="lckick">Partner up</b><p class="lcyours">Ask a teammate to partner up. You both get the same question: if you\'re <b>both right</b>, you pull off a silly <b>combo attack</b> that blasts a lane and grabs bonus gold. Partner with a 💤 quiet teammate for a <b>wake-up bonus</b>.</p>');
     bans.push('<span class="lcbig">🏰</span><b class="lckick">Watch your fort</b><p class="lcyours">A red <b>!</b> at a gate means enemies are close. <b>Mux</b> charges the first one to reach a gate. 📣 Call your team for help.</p>');
     bans.push('<span class="lcbig">🔥</span><b class="lckick">Never give up</b><p class="lcyours">The last minute is the <b>final wave</b>: double gold. A team that falls behind gets bonus coins and tougher characters.</p>');
     var words = bans.map(function (h) { return /lcrost/.test(h) ? 14 : h.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length; });
@@ -825,7 +1015,7 @@
     setTimeout(function () { b.remove(); }, A.MODE === 'screen' ? 6600 : 5100);
     if (CL) { CL.intro = true; keep(); }
   }
-  var AWARD = { gold: ['💰', 'Gold Grabber', 'gold'], right: ['🧠', 'Brain Box', 'right'], best: ['🔥', 'On Fire', 'in a row'], def: ['🛡️', 'Wall Builder', 'defenders'], lv: ['🦸', 'Top Hero', ''] };
+  var AWARD = { gold: ['💰', 'Gold Grabber', 'gold'], right: ['🧠', 'Brain Box', 'right'], best: ['🔥', 'On Fire', 'in a row'], def: ['🛡️', 'Wall Builder', 'defenders'], lv: ['🦸', 'Top Hero', ''], pair: ['🤝', 'Dream Teammate', 'partner combos'] };
   function showEnd(c, sp) {
     V.over = true; sfx('win');
     var T = teamNames(c.id), S = V.S || { score: c.score }, win = S.score[0] === S.score[1] ? -1 : S.score[0] > S.score[1] ? 0 : 1;
@@ -870,6 +1060,7 @@
       if (e.k === 'g' && !isMe) shoutQ.push({ e: U.who, who: e.name.toUpperCase() + '\'S ' + U.name.toUpperCase(), text: 'grabbed <b>' + e.n + ' GOLD</b> from ' + esc(T[1 - e.team].name) + '!', team: e.team, mine: mine, gold: true });
       if (e.k === 'p' && (mine || A.MODE === 'screen') && !isMe) shoutQ.push({ e: 'gus', who: '📣 ' + e.name.toUpperCase() + ':', text: '<b>Help in lane ' + (e.lane + 1) + '!</b>', team: e.team, mine: mine, small: true });
       if (e.k === 'm' && !isMe && EMOTES[e.n]) emotePop(e.name, e.team, e.n, false);
+      if (e.k === 'x') { var xn = String(e.name).split('&'), xm = COMBOS[e.seq % COMBOS.length]; comboPop(e); shoutQ.push({ e: 'one', img: heroURL(lookByName(xn[0]), 64), who: '🤝 ' + (xn[0] || '').toUpperCase() + ' & ' + (xn[1] || '').toUpperCase(), text: 'pulled off a <b>' + xm.e + ' ' + esc(xm.n.toUpperCase()) + '</b> in lane ' + (e.lane + 1) + ': <b>+' + e.n + ' gold</b>' + (e.type ? ' · 💤→⚡ wake-up bonus!' : '!'), team: e.team, mine: mine, gold: true }); }
       if (e.k === 't') shoutQ.push({ e: 'max', who: '⏰ +1 MINUTE!', text: A.TEACHER + ' added time to the battle.', team: -1, mine: true });
       if (e.k === 'h') shoutQ.push({ e: 'max', who: e.name.toUpperCase(), text: 'reached <b>HERO LEVEL ' + e.n + '</b>!', team: e.team, mine: mine, gold: true });
     });
@@ -962,7 +1153,7 @@
   function briefLeft(K) { return K.state === 3 ? Math.max(0, Math.ceil(((K.go || K.id) - Date.now()) / 1000)) : 0; }
   // the lesson numbers for one student, from the console's copy of the answers (the same rule the student page uses)
   function statsFor(sid) { var last = {}; (A.consoleAnswers() || []).forEach(function (a) { if (a.sid === sid && !A.beforeRun(a)) last[a.q] = a; }); return lessonStatsFrom(last); }
-  function ev(K, k, name, team, lane, type, n) { K.events.push({ seq: ++K.seq, k: k, name: String(name || '').replace(/[~;#,]/g, '').slice(0, 16), team: team, lane: lane || 0, type: type || 0, n: n || 0 }); if (K.events.length > 6) K.events = K.events.slice(-6); }
+  function ev(K, k, name, team, lane, type, n) { K.events.push({ seq: ++K.seq, k: k, name: String(name || '').replace(/[~;#,]/g, '').slice(0, k === 'x' ? 25 : 16), team: team, lane: lane || 0, type: type || 0, n: n || 0 }); if (K.events.length > 6) K.events = K.events.slice(-6); }
   function agg() {
     var K = C(); if (!K || K.frozen) return;
     var ids = {}; A.rosterIn().forEach(function (r) { ids[r.sid] = r; });
@@ -978,7 +1169,7 @@
       // the student's page counted its own lesson bonus (b) and level boost (v); the console's count can differ (Start fresh,
       // a class filter, answers still on their way), so take the larger, capped at the most a lesson can give
       var myB = Math.min(10, Math.max(bonus.coins, get('b'))), myV = Math.min(2, Math.max(bonus.boost, get('v')));
-      var budget = myB + 9 * r + 3 * Math.min(10, get('w')) + 4, lvMax = L.lvOf(r, myV);
+      var budget = myB + 9 * r + 3 * Math.min(10, get('w')) + 4 + ((K.pr && K.pr.coin[sid]) || 0), lvMax = L.lvOf(r, myV);
       var D = K.diag || (K.diag = { students: {}, placed: 0, turned: {}, last: 0 }); D.students[sid] = 1; D.last = Math.max(D.last, Date.parse(last[sid].time) || 0);
       // turned away: counted for the console, and announced (by the placement's id) so that student gets the coins back
       var turn = function (why, k, code) { D.turned[why] = (D.turned[why] || 0) + 1; K.rej = (K.rej || []).concat([[pid(sid, K.id, k, 0), code]]).slice(-12); };
@@ -993,6 +1184,7 @@
       acc.lvSeen = lvMax;
       var ra = s.match(/;ra:(\d+)\.([01])/), RL = K.rally;
       if (ra && RL && RL.st === 1 && +ra[1] === RL.no && RL.ans[sid] == null) { RL.ans[sid] = +ra[2]; RL.of[team]++; if (+ra[2]) RL.r[team]++; }
+      pairRow(K, sid, s, team, r + get('w'), T0);
       // the row holds the newest placements; n: says how many came before them (rows from before n: start at 0)
       var list = ((s.match(/;p:([0-9.,]*)/) || [, ''])[1]).split(',').filter(Boolean), n0 = get('n');
       if (acc.n < 0) { acc.n = n0 + list.length; return; }   // console reloaded mid-battle: those are already on the board
@@ -1019,6 +1211,86 @@
     });
     K.primed = true;
   }
+  /* 🤝 the partner referee. Fair and hard to farm: one open pair each; a minute's rest after every combo or fizzle; the
+     same two can't pair again for 2½ minutes; partner questions don't count for hero levels or streaks; nothing new in
+     the last 50 s. "Quiet" means here in today's lesson but no right answer in the Clash for 45 s; the wake-up bonus
+     goes to a quiet student at most once every 3 minutes, and a combo ends their quiet spell. */
+  function pairState(K) { return K.pr || (K.pr = { n: Math.floor(Math.random() * 250), list: [], st: {}, coin: {}, pairT: {}, idle: [], combos: 0, wake: 0 }); }
+  function pst(K, sid, s, T0) {
+    var PR = pairState(K), P = PR.st[sid];
+    if (!P) { P = PR.st[sid] = { prs: 0, rw: -1, last: 0, cool: 0, ib: -1e9 }; if (K.primed === false && s) { var m = s.match(/;pr:(\d+)\./); P.prs = m ? +m[1] : 0; P.last = T0 || 0; } }   // after a console reload an old request isn't replayed
+    return P;
+  }
+  function openPair(PR, sid) { for (var i = 0; i < PR.list.length; i++) { var e = PR.list[i]; if ((e.st === 1 || e.st === 2) && (e.a === sid || e.b === sid)) return e; } return null; }
+  function hereToday(K, sid) {
+    if (!K.hereS || Date.now() - (K.hereAt || 0) > 30000) { var now = Date.now() + (A.console_().skew || 0); K.hereS = {}; K.hereAt = Date.now(); Object.keys(K.team || {}).forEach(function (s) { if (strengthOf(s, now).here) K.hereS[s] = 1; }); }
+    return !!K.hereS[sid];
+  }
+  function isIdle(K, sid, T0) {
+    if (K.state !== 1 || T0 < PR_IDLE || !hereToday(K, sid)) return false;
+    var PR = pairState(K), P = PR.st[sid];
+    return T0 - (P ? P.last : 0) >= PR_IDLE && !openPair(PR, sid) && (!P || P.cool <= T0);
+  }
+  function pairRow(K, sid, s, team, rw, T0) {
+    var PR = pairState(K), P = pst(K, sid, s, T0);
+    if (rw !== P.rw) { if (P.rw < 0 ? rw > 0 && K.primed !== false : rw > P.rw) P.last = T0; P.rw = rw; }
+    var m = s.match(/;pr:(\d+)\.(\d+)/);
+    if (m && +m[1] > P.prs) { P.prs = +m[1]; pairAsk(K, sid, team, +m[2], T0); }
+    var a = s.match(/;pa:(\d+)\.([01])/);
+    if (a) PR.list.forEach(function (e) { if (e.st === 1 && e.b === sid && e.n % 300 === +a[1]) { if (+a[2]) { e.st = 2; e.at = T0; } else pairEnd(K, e, 5, T0); } });
+    var q = s.match(/;pq:(\d+)\.([01])/);
+    if (q) PR.list.forEach(function (e) { if (e.st === 2 && e.n % 300 === +q[1]) { if (e.a === sid && e.ra == null) e.ra = +q[2]; if (e.b === sid && e.rb == null) e.rb = +q[2]; } });
+  }
+  function pairAsk(K, sid, team, i, T0) {
+    var PR = pairState(K), TL = teamLists(K)[team] || [], tg = TL[i], ai = -1;
+    TL.forEach(function (x, k) { if (x.sid === sid) ai = k; });
+    var e = { n: ++PR.n, a: sid, b: tg ? tg.sid : '', team: team, ai: ai, bi: i, st: 1, at: T0, idle: 0 }, P = pst(K, sid), Q = tg ? pst(K, tg.sid) : null, key = [sid, e.b].sort().join('|');
+    var ok = ai >= 0 && tg && tg.sid !== sid && K.state === 1 && K.S.dur - T0 > PR_LATE && !openPair(PR, sid) && !openPair(PR, tg.sid) && P.cool <= T0 && Q.cool <= T0 && !(PR.pairT[key] && T0 - PR.pairT[key] < PR_SAME);
+    if (ok) {
+      if (isIdle(K, tg.sid, T0) && T0 - Q.ib >= PR_IB) e.idle = 1;
+      else if (isIdle(K, sid, T0) && T0 - P.ib >= PR_IB) e.idle = 2;
+    }
+    PR.list.push(e);
+    if (!ok) pairEnd(K, e, 7, T0);
+  }
+  function pairEnd(K, e, st, T0) {
+    var PR = pairState(K); e.st = st; e.end = T0;
+    if (st === 3 || st === 4) { [e.a, e.b].forEach(function (s) { pst(K, s).cool = T0 + PR_COOL; }); PR.pairT[[e.a, e.b].sort().join('|')] = T0; }
+    else if (st === 5 || st === 6) pst(K, e.a).cool = Math.max(pst(K, e.a).cool, T0 + PR_GAP);
+  }
+  function pairTick(K) {
+    var PR = K.pr; if (!PR) return;
+    var T0 = K.S.t;
+    PR.list.forEach(function (e) {
+      if (e.st === 1 && T0 > e.at + PR_WAIT) pairEnd(K, e, 6, T0);
+      else if (e.st === 2) {
+        if (e.ra === 1 && e.rb === 1) combo(K, e, T0);
+        else if (e.ra === 0 || e.rb === 0 || T0 > e.at + PR_ANS || K.S.dur - T0 < 20) pairEnd(K, e, 4, T0);
+      }
+    });
+    PR.list = PR.list.filter(function (e) { return e.st <= 2 || T0 - e.end < PR_SHOW; });
+    PR.idle = Object.keys(K.team || {}).filter(function (s) { return isIdle(K, s, T0); });
+  }
+  // both right: the pair's combo hits the lane where the enemy is pushing hardest, and grabs gold straight from their vault
+  function combo(K, e, T0) {
+    var PR = pairState(K), tm = e.team, foe = 1 - tm, S = K.S, press = [], best = 0;
+    for (var l = 0; l < L.LANES; l++) press.push(0);
+    S.units.forEach(function (u) { if (u.team === foe) press[u.lane] += L.UNITS[u.type].kind === 'a' ? 2 + (tm ? L.LEN - u.x : u.x) / L.LEN : 1; });
+    for (l = 1; l < L.LANES; l++) if (press[l] > press[best]) best = l;
+    if (!press[best]) best = Math.floor(Math.random() * L.LANES);
+    var dmg = Math.round(PR_DMG * (e.idle ? 1.25 : 1));
+    S.units = S.units.filter(function (u) { if (u.team !== foe || u.lane !== best) return true; u.hp -= dmg; if (u.hp <= 0) { refFx({ k: 'die', u: u }); return false; } refFx({ k: 'hit', u: u }); return true; });
+    var g = (PR_GOLD + (e.idle ? PR_WAKE : 0)) * (L.frenzy(S.t, S.dur) ? 2 : 1); S.score[tm] = Math.min(9999, S.score[tm] + g);
+    PR.coin[e.a] = (PR.coin[e.a] || 0) + 4 + (e.idle === 2 ? 4 : e.idle ? 2 : 0); PR.coin[e.b] = (PR.coin[e.b] || 0) + 4 + (e.idle === 1 ? 4 : e.idle ? 2 : 0);
+    if (e.idle) { pst(K, e.idle === 1 ? e.b : e.a).ib = T0; PR.wake++; }
+    [e.a, e.b].forEach(function (s, k) { pst(K, s).last = T0; var h = K.hero[s]; if (h) { h.gold += Math.round(g / 2); h.pair = (h.pair || 0) + 1; } });
+    PR.combos++;
+    var TL = teamLists(K)[tm] || [], nm = function (s) { var x = TL.filter(function (y) { return y.sid === s; })[0]; return x ? x.n : (K.hero[s] && K.hero[s].name) || '?'; }, LKs = looksBySid(), lk = function (s) { return LKs[s] || (window.SFA_AVATAR ? SFA_AVATAR.defLook(s) : ''); };
+    ev(K, 'x', nm(e.a).slice(0, 12) + '&' + nm(e.b).slice(0, 12), tm, best, e.idle ? 1 : 0, g);
+    K.lastX = { seq: K.seq, la: lk(e.a), lb: lk(e.b), at: Date.now() };
+    pairEnd(K, e, 3, T0);
+    (A.pushNow || A.pushLive)();
+  }
   // every half second: run the battle to now, send the board out about once a second
   function refFx(e) {
     var K = C(); if (!K) return;
@@ -1030,7 +1302,7 @@
     if (K.state === 3 && Date.now() >= (K.go || K.id)) { K.state = 1; A.pushLive(); A.consolePanel(); }
     if (!K.frozen && K.state === 1) {
       L.advance(K.S, Math.floor(cNow(K)), refFx);
-      rallyTick(K);
+      rallyTick(K); pairTick(K);
       if (K.S.t >= K.S.dur) end();
     }
     if (K.frozen && K.endedAt && Date.now() - K.endedAt > 120000) { A.console_().clash = null; if (root && V && V.watch) close(); (A.pushNow || A.pushLive)(); A.consolePanel(); SFA.toast('The battle results closed. Everyone is back on the slides.', 4000); return; }
@@ -1045,7 +1317,8 @@
     var hs = Object.keys(K.hero).map(function (s) { return K.hero[s]; });
     // each award goes to a different student where possible (the best one not already named), so five students hear their name
     var named = {};
-    K.awards = ['gold', 'right', 'best', 'def', 'lv'].map(function (k) {
+    if (K.pr) K.pr.list.forEach(function (e) { if (e.st <= 2) pairEnd(K, e, e.st === 1 ? 6 : 4, K.S.t); });
+    K.awards = ['gold', 'right', 'best', 'def', 'lv', 'pair'].map(function (k) {
       var ok = hs.filter(function (h) { return h[k] > (k === 'lv' ? 1 : 0); }).sort(function (x, y) { return y[k] - x[k] || y.gold - x.gold; });
       var top = ok.filter(function (h) { return !named[h.name + h.team]; })[0] || ok[0];
       if (top) named[top.name + top.team] = 1;
@@ -1085,6 +1358,22 @@
     out.zcid = A.encRun(K.id); out.zcst = A.encRun(K.id + (A.console_().skew || 0));
     Object.assign(out, L.encode(K.S, K.state, 46));
     out.zcs.push(briefLeft(K));   // zcs[6]: seconds of rules left
+    // 🤝 partners: open pairs first, then the newest finished ones; and the quiet students (two to a number)
+    var PR = K.pr;
+    if (PR && K.state === 1) {
+      var ix = {}; teamLists(K).forEach(function (l) { l.forEach(function (x, i) { ix[x.sid] = i; }); });
+      var es = PR.list.slice().sort(function (a, b) { return ((a.st <= 2 ? 0 : 1) - (b.st <= 2 ? 0 : 1)) || b.n - a.n; }), nums = [];
+      es.forEach(function (e) {
+        var ai = ix[e.a] != null ? ix[e.a] : e.ai, bi = ix[e.b] != null ? ix[e.b] : e.bi;
+        if (!(ai >= 0 && ai < 50 && bi >= 0 && bi < 50) || nums.length >= 24) return;
+        nums.push(e.team * 2500 + ai * 50 + bi, e.st * 1000 + (e.idle || 0) * 300 + e.n % 300);
+      });
+      if (nums.length) out.zcp0 = nums.slice(0, 12);
+      if (nums.length > 12) out.zcp1 = nums.slice(12, 24);
+      var qc = PR.idle.map(function (s) { var i = ix[s]; return i != null && i < 49 && K.team[s] != null ? K.team[s] * 49 + i + 1 : 0; }).filter(Boolean), zq = [];
+      for (var qi = 0; qi < qc.length && zq.length < 12; qi += 2) zq.push(qc[qi] * 100 + (qc[qi + 1] || 0));
+      if (zq.length) out.zci = zq;
+    }
   }
   function lookLvOf(sid) {
     var lv = 1, t = '';
@@ -1121,6 +1410,9 @@
     // who is on which team, by name, whenever there's room (always during the rules)
     var TLs = teamLists(K), NL = TLs.map(function (l) { return l.map(function (x) { return x.n.replace(/[~,#|;]/g, ''); }).join(','); }).join('|'), base = ('U:' + t0).slice(0, 595 - txt.length) + txt;
     var LKs = looksBySid(), HQ = K.S.units.concat(K.S.pend).filter(function (u) { return L.UNITS[u.type] && L.UNITS[u.type].hero; }).slice(-12).map(function (u) { return (u.id % 10000) + '~' + (LKs[u.sid] || (window.SFA_AVATAR ? SFA_AVATAR.defLook(u.sid) : '')) + '~' + String(u.owner || '').replace(/[~,#|;]/g, '').slice(0, 10); }).join(',');
+    // the newest partner combo's two avatars, for its animation (for 15 s)
+    var XL = K.lastX && Date.now() - K.lastX.at < 15000 ? K.lastX.seq + '~' + K.lastX.la + '~' + K.lastX.lb : '';
+    if (XL && base.length + XL.length + 3 <= 598) base += '#X:' + XL;
     if (HQ && base.length + HQ.length + 3 <= 598) base += '#Q:' + HQ;
     var VL = TLs.map(function (l) { return l.map(function (x) { return LKs[x.sid] || (window.SFA_AVATAR ? SFA_AVATAR.defLook(x.sid) : ''); }).join(','); }).join('|');
     if (base.length + NL.length + 3 <= 598) base += '#N:' + NL;
@@ -1149,6 +1441,15 @@
     if (K.state === 1) r.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'End the battle now', onclick: function () { end(); } }));
     r.appendChild(el('button', { type: 'button', 'class': 'btn primary', text: 'Back to the lesson', onclick: function () { A.console_().clash = null; A.pushLive(); A.consolePanel(); } }));
     sec.appendChild(r);
+    // 🤝 partners: combos so far, the pairs answering now, and who has gone quiet
+    var PR = K.pr;
+    if (K.state !== 3) {
+      var nmOf = {}; teamLists(K).forEach(function (l) { l.forEach(function (x) { nmOf[x.sid] = x.n; }); });
+      var nm = function (s) { return esc(nmOf[s] || (K.hero[s] && K.hero[s].name) || '?'); }, openP = PR ? PR.list.filter(function (e) { return e.st === 1 || e.st === 2; }) : [], quiet = PR ? PR.idle : [];
+      sec.appendChild(H('p', 'lcpteach', '🤝 <b>Partner combos: ' + (PR ? PR.combos : 0) + '</b>' + (PR && PR.wake ? ' (' + PR.wake + ' woke up a quiet teammate)' : '') +
+        (openP.length ? ' · working now: ' + openP.map(function (e) { return nm(e.a) + ' + ' + nm(e.b) + (e.st === 1 ? ' <small>(asked)</small>' : ''); }).join(', ') : '') +
+        (quiet.length ? ' · 💤 quiet for 45 s+: ' + quiet.map(nm).join(', ') + ' <small>(teammates who partner with them get a bonus)</small>' : '')));
+    }
     // diagnostics: are students' placements arriving, and are any being turned away?
     var dd = H('div');
     var D = K.diag || { students: {}, placed: 0, turned: {}, last: 0 }, nStu = Object.keys(D.students).length, turned = Object.keys(D.turned).map(function (k) { return D.turned[k] + ' ' + k; }).join(', ');
@@ -1189,7 +1490,27 @@
     '@keyframes lclol{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-16%) rotate(6deg) scaleY(1.06)}}',
     '@keyframes lcfloat{0%{opacity:0;transform:translateY(0) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translateY(-140%) scale(1.1)}}',
     '@keyframes lcdrip{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(180%)}}',
-    '@media (prefers-reduced-motion:reduce){.lcembody,.lcemfx{animation:none!important}}'
+    '@media (prefers-reduced-motion:reduce){.lcembody,.lcemfx{animation:none!important}}',
+    /* 🤝 partner up */
+    '.lcpair{font-size:14px;line-height:1.35;padding:6px 10px;border-radius:10px;background:rgba(124,255,107,.08);border:1px solid rgba(124,255,107,.3)}.lcpair[hidden]{display:none}.lcpair p{margin:2px 0}',
+    '.lcprow{display:flex;flex-wrap:wrap;gap:6px}.lcpbtn{padding:5px 12px;font-size:14px}.lcpbtn.wake{background:#3a2f6b;border-color:#9d8cff;color:#fff}',
+    '.lcpidle{font-size:13px;color:#cfc4ff}.lcpme{color:#FFE14D;font-weight:700}',
+    '.lcplist{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.lcpmate{font:600 13px system-ui;padding:4px 10px;border-radius:99px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;cursor:pointer}.lcpmate.quiet{border-color:#9d8cff;background:rgba(157,140,255,.22)}.lcpmate:disabled{opacity:.4;cursor:default}.lcpmate small{opacity:.75;font-weight:500}',
+    '.lcpask{margin:0 0 8px;padding:8px 12px;border-radius:12px;background:rgba(124,255,107,.12);border:2px solid #7CFF6B;font-size:14px;animation:lcpbump .5s ease}.lcpask p{margin:0 0 6px}.lcpwake{color:#FFE14D}',
+    '.lcpfb{margin:0 0 8px;padding:6px 12px;border-radius:12px;font-size:14px}.lcpfb.good{background:rgba(124,255,107,.16);border:2px solid #7CFF6B}.lcpfb.try{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.25)}',
+    '.lcpwait{margin:0 0 8px;padding:6px 12px;border-radius:12px;background:rgba(124,255,107,.1);border:2px dashed #7CFF6B;font-size:14px}',
+    '.lcq.pairon{border:3px solid #7CFF6B;box-shadow:0 0 0 3px rgba(124,255,107,.25);background:rgba(10,50,20,.6)}.lcq.pairon .kick{color:#7CFF6B;font-weight:800}',
+    '.lcquiet{color:#cfc4ff;font-weight:700;white-space:nowrap}.lcpaired{color:#7CFF6B;font-weight:700;white-space:nowrap}.lcqhint{grid-column:1/-1;font-size:14px;color:#cfc4ff}',
+    '.lcpteach{margin:6px 0}',
+    '.lcpx{position:absolute;transform:translate(-50%,-100%);pointer-events:none;z-index:6;width:var(--s)}.lcpx.out{opacity:0;transition:opacity .45s}',
+    '.lcpxg{position:relative;width:var(--s);height:calc(var(--s) * 1.15)}',
+    '.lcpxw{position:absolute;left:0;bottom:0;width:var(--s);display:flex;flex-direction:column;align-items:center}.lcpxw .lcembub{font-size:14px;padding:3px 9px;margin-bottom:4px}.lcpxw .lcemname{white-space:nowrap}',
+    '.lcpxbody{width:var(--s);transform-origin:50% 90%}.lcpxbody svg{width:100%;height:auto;display:block;filter:drop-shadow(0 4px 0 rgba(0,0,0,.35))}',
+    '.lcpxfx{position:absolute;left:50%;bottom:10%;font-style:normal;font-size:calc(var(--s) * .55);opacity:0;pointer-events:none}.lcpxegg{position:absolute;left:40%;bottom:40%;font-style:normal;font-size:calc(var(--s) * .3)}',
+    '.lcpxt{position:absolute;left:50%;top:14%;transform:translateX(-50%);z-index:7;pointer-events:none;text-align:center;background:rgba(10,10,20,.82);border:4px solid var(--tc);border-radius:18px;padding:8px 22px;animation:lcpxin .5s cubic-bezier(.3,1.6,.6,1) .25s both;max-width:92%}',
+    '.lcpxt b{display:block;font:400 clamp(22px,4vw,44px)/1.05 "Luckiest Guy",system-ui;color:var(--tc);letter-spacing:1px;text-shadow:0 3px 0 #000}.lcpxt span{font:700 14px system-ui;color:#fff}.lc.screen .lcpxt span{font-size:20px}.lcpxt.out{opacity:0;transition:opacity .45s}',
+    '@keyframes lcpxin{from{transform:translateX(-50%) scale(.2) rotate(-8deg);opacity:0}to{transform:translateX(-50%) scale(1) rotate(0);opacity:1}}',
+    '@keyframes lcpbump{0%{transform:scale(.9)}60%{transform:scale(1.04)}100%{transform:scale(1)}}'
   ].join('\n');
   document.head.appendChild(emCss);
   window.SFA_CLASH = { sync: sync, agg: agg, section: section, start: start, counts: counts, spot: spot, restore: restore, clashOf: clashOf, peek: peek };
