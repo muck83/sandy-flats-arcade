@@ -1,5 +1,5 @@
 /* Sandy Flats: Unit 2 Review (Linear Equations and Inequalities), built from the Grade 8 formative task sheet (C1, C2, C3).
-   Four success criteria, twelve skills. Each skill has Learn (the idea plus a worked example), Guided practice
+   Four success criteria, thirteen skills. Each skill has Learn (the idea plus a worked example), Guided practice
    (one step at a time, hints, a full explanation after every step) and Independent practice (the final answer only,
    then the full worked solution). Problems are generated fresh every time.
    Mastery follows the task sheet's rubric: Limited, Emerging, Developed (the goal: 3 of the last 4 independent problems
@@ -99,7 +99,7 @@
     return { c: c, S: S, R: Rt, m: c.dir * Rt, text: c.t(S, Rt), val: function (v) { return c.money ? '$' + ng(v) : ng(v) + ' ' + c.unit; }, u: c.money ? 'dollars' : c.unit };
   }
 
-  /* ---------------- the twelve skills ---------------- */
+  /* ---------------- the thirteen skills ---------------- */
   // each generator returns { q (the problem), fig, steps }. A step: { type, q, ans, hint, why, final, lab }.
   // Guided practice walks every step; independent practice asks only the final steps, then shows every step's why.
   var T = {};
@@ -218,6 +218,43 @@
         check: function (v) { if (!v[0] || !v[1] || !v[2] || v.some(function (f) { return f[1] !== 1; }) || v[0][0] <= 0) return false; var k = v[0][0] / A; return v[1][0] === k * B && v[2][0] === k * C; },
         hint: 'Use the equation from the last step; if A is negative, change every sign.', why: M(stdEq(A, B, C)) + '. Check: solving it for y gives back ' + M(lineEq(m, b)) + '.' });
       return { q: 'Write ' + M(lineEq(m, b)) + ' in standard form, ' + M('Ax + By = C') + '.', steps: steps };
+    } };
+
+  T.b1 = { name: 'Find b and write the equation', crit: 'represent',
+    idea: '<b>b</b> is the y-intercept: where the line crosses the y-axis, the value of y when x = 0. When you cannot read it, work it out: find the slope m, put <b>one point</b> into y = mx + b, and solve for b. Then check with a second point.',
+    formula: 'y = mx + b   →   b = y − m·x        (use any point (x, y) on the line)',
+    tips: ['Do not use the point\'s y as b: that is only right when x = 0.', 'Multiply m·x first, then subtract it. Subtracting a negative is adding.', 'If a graph crosses between gridlines, b can be a fraction. Do not guess: calculate.', 'Check: put the other point into your equation.'],
+    gen: function (h) {
+      var kind = h ? pick([1, 2, 3, 3]) : pick([0, 0, 1, 2]), m, b, xs, ys, tries = 0, ok;
+      function yAt(x) { return fv(m) * x + fv(b); }
+      do {
+        if (kind === 3) { m = F(pick([-3, -1, 1, 3]), 2); b = F(pick([-5, -3, -1, 1, 3, 5]), 2); var a = pick([-5, -3, -1, 1, 3]); xs = [a, a + pick([2, 4])]; }
+        else {
+          var half = h && Math.random() < .5;
+          m = half ? F(pick([-3, -1, 1, 3]), 2) : F(nz(-4, 4)); b = F(ri(-8, 8));
+          var st = half ? 2 : (kind === 2 || !h ? 1 : ri(1, 3)), x0 = kind === 2 ? (h ? ri(2, 4) : ri(1, 3)) * (half ? 2 : 1) : nz(-5, 5) * (half ? 2 : 1);
+          xs = kind === 2 ? [x0, x0 + st, x0 + 2 * st, x0 + 3 * st] : [x0, x0 + st * ri(1, 3)];
+        }
+        ys = xs.map(yAt);
+        ok = ys.every(function (y) { return Number.isInteger(y) && Math.abs(y) <= (kind === 3 ? 7 : 30); }) && xs.every(function (x) { return x !== 0 && Math.abs(x) <= (kind === 3 ? 7 : 12); });
+      } while (!ok && ++tries < 80);
+      if (!ok) { kind = 1; m = F(2); b = F(3); xs = [2, 4]; ys = [7, 11]; }
+      var x1 = xs[0], y1 = ys[0], mx = F(m[0] * x1, m[1]), right = lineEq(m, b), q, fig = '', steps = [];
+      function pf(f) { return f[0] < 0 ? '(' + fs(f) + ')' : fs(f); }
+      function mStep(from) {
+        var dx = xs[1] - xs[0], dy = ys[1] - ys[0];
+        return { type: 'num', lab: 'm =', q: 'Find the slope first, ' + from + '.', ans: [m], hint: M('(' + ng(ys[1]) + ' − ' + par(ys[0]) + ') ÷ (' + ng(xs[1]) + ' − ' + par(xs[0]) + ')'), why: M('m = ' + ng(dy) + '/' + ng(dx) + ' = ' + fs(m)) + '.' };
+      }
+      if (kind === 0) q = 'A line has slope ' + M(fs(m)) + ' and passes through ' + M('(' + ng(x1) + ', ' + ng(y1) + ')') + '. Find b, then the equation.';
+      if (kind === 1) { q = 'A line passes through ' + M('(' + ng(xs[0]) + ', ' + ng(ys[0]) + ')') + ' and ' + M('(' + ng(xs[1]) + ', ' + ng(ys[1]) + ')') + '. Find b, then the equation.'; steps.push(mStep('from the two points')); }
+      if (kind === 2) { fig = table(xs, ys); q = 'This table is linear, but x = 0 is not in it. Find b, then the equation.'; steps.push(mStep('from the first two rows')); }
+      if (kind === 3) { fig = graph({ lines: [{ m: m, b: b }], pts: [{ x: xs[0], y: ys[0], label: '(' + ng(xs[0]) + ', ' + ng(ys[0]) + ')' }, { x: xs[1], y: ys[1], label: '(' + ng(xs[1]) + ', ' + ng(ys[1]) + ')' }] }); q = 'The line crosses the y-axis between gridlines, so you cannot read b. Use the two marked points to find b, then the equation.'; steps.push(mStep('from the two marked points')); }
+      steps.push({ type: 'num', q: 'Put ' + M('(' + ng(x1) + ', ' + ng(y1) + ')') + ' into y = mx + b: ' + M(ng(y1) + ' = ' + pf(m) + '(' + ng(x1) + ') + b') + '. What is ' + M(pf(m) + ' × ' + par(x1)) + '?', ans: [mx], hint: (m[0] < 0) !== (x1 < 0) ? 'One number is negative, so the answer is negative.' : (x1 < 0 ? 'Negative × negative is positive.' : 'Multiply the slope by the x-value.'), why: M(pf(m) + ' × ' + par(x1) + ' = ' + fs(mx)) + ', so ' + M(ng(y1) + ' = ' + fs(mx) + ' + b') + '.' });
+      steps.push({ type: 'num', final: 1, lab: 'b =', q: 'Solve for b: ' + M('b = ' + ng(y1) + ' − ' + pf(mx)) + '. What is b?', ans: [b], hint: mx[0] < 0 ? 'Subtracting a negative is adding: ' + M(ng(y1) + ' + ' + fs(F(-mx[0], mx[1]))) + '.' : M(ng(y1) + ' − ' + fs(mx)) + ' = ?', why: M('b = ' + ng(y1) + ' − ' + pf(mx) + ' = ' + fs(b)) + '. The line crosses the y-axis at ' + M('(0, ' + fs(b) + ')') + '.' });
+      var chk = kind === 0 ? 'Check: ' + M(pf(m) + '(' + ng(x1) + ') + ' + pf(b) + ' = ' + ng(y1)) + ' ✓' : 'Check with the other point: ' + M(pf(m) + '(' + ng(xs[1]) + ') + ' + pf(b) + ' = ' + ng(ys[1])) + ' ✓';
+      var wrong = [lineEq(m, F(y1)), lineEq(m, F(-b[0], b[1])), lineEq(m, F(y1 * mx[1] + mx[0], mx[1])), lineEq(b[0] ? b : F(1), m)];
+      steps.push(mc('Which equation is the line?', right, wrong, { final: 1, hint: 'Slope ' + fs(m) + ', y-intercept ' + fs(b) + '.', why: M(right) + '. ' + chk }));
+      return { q: q, fig: fig, steps: steps };
     } };
 
   T.r1 = { name: 'Model a story with an equation and solve', crit: 'represent',
@@ -386,10 +423,34 @@
       ] };
     } };
 
+  // Khan Academy videos for students who are stuck (short links, checked 18 Nov 2026: each opens the named video)
+  var KA = 'https://www.khanacademy.org/v/';
+  var VIDS = {
+    s1: [['Worked example: slope from two points', 'slope-of-a-line-2']],
+    s2: [['Calculating slope from tables', 'slope-from-table']],
+    s3: [['Finding slope from a graph', 'slope-of-a-line']],
+    s4: [['Slope and y-intercept from an equation', 'less-obvious-slope-intercept-form'], ['Converting to slope-intercept form', 'converting-to-slope-intercept-form']],
+    f1: [['Converting to slope-intercept form', 'converting-to-slope-intercept-form'], ['Intro to standard form', 'standard-form-for-linear-equations']],
+    f2: [['Converting from slope-intercept to standard form', 'converting-from-slope-intercept-to-standard-form'], ['Intro to standard form', 'standard-form-for-linear-equations']],
+    b1: [['Find b from the slope and a point', 'linear-equations-in-slope-intercept-form'], ['Find b from two points', 'equation-of-a-line-3']],
+    r1: [['Writing a linear equation from a story and a table', 'writing-linear-equations-in-two-variables-given-a-table'], ['Slope and intercept meaning in context', 'slope-intercept-meaning']],
+    r2: [['Graph from a slope-intercept equation', 'graphing-a-line-in-slope-intercept-form']],
+    r3: [['Intro to graphing two-variable inequalities', 'graphing-inequalities'], ['Inequality word problem', 'inequalities']],
+    r4: [['Slope-intercept form from a table', 'slope-intercept-form-from-table'], ['Finding slope from a graph', 'slope-of-a-line']],
+    e1: [['Slope and intercept meaning in context', 'slope-intercept-meaning'], ['Linear graphs word problem: cats', 'interpreting-features-of-linear-functions-example']],
+    e2: [['Worked example: slope from two points', 'slope-of-a-line-2'], ['Converting to slope-intercept form', 'converting-to-slope-intercept-form']]
+  };
+  function vidBox(id, lead) {
+    var v = VIDS[id]; if (!v) return null;
+    var b = el('div', { 'class': 'khan' }, [el('b', { text: lead || '🎬 Stuck? Watch a short Khan Academy video:' })]);
+    var ul = el('ul', {}); v.forEach(function (x) { ul.appendChild(el('li', {}, [el('a', { href: KA + x[1], target: '_blank', rel: 'noopener', text: x[0] })])); });
+    b.appendChild(ul); return b;
+  }
+
   var CRIT = [
     { id: 'compute', name: 'Compute slope from tables, equations, graphs and ordered pairs', strand: 'C1 · Concepts and Procedures', topics: ['s1', 's2', 's3', 's4'] },
     { id: 'convert', name: 'Convert between standard form and slope-intercept form', strand: 'C1 · Concepts and Procedures', topics: ['f1', 'f2'] },
-    { id: 'represent', name: 'Represent scenarios graphically, with equations and with words', strand: 'C3 · Problem Solving', topics: ['r1', 'r2', 'r3', 'r4'] },
+    { id: 'represent', name: 'Represent scenarios graphically, with equations and with words', strand: 'C3 · Problem Solving', topics: ['b1', 'r1', 'r2', 'r3', 'r4'] },
     { id: 'explain', name: 'Explain reasoning', strand: 'C2 · Communicating Reasoning', topics: ['e1', 'e2'] }
   ];
   var ORDER = []; CRIT.forEach(function (c) { ORDER = ORDER.concat(c.topics); });
@@ -407,8 +468,26 @@
     return 1;
   }
   function critLvl(c) { return Math.min.apply(null, c.topics.map(lvl)); }
+  // how much practice a skill record holds (more = newer, when two tabs or computers disagree)
+  function work(t) { return t ? (t.n || 0) + (t.g || 0) + (t.s || 0) + (t.tried ? 1 : 0) : -1; }
+  // another tab of the review (opened twice from a lesson) may have saved since this one loaded: keep its newer skills
+  function mergeStored() {
+    var S = SFA.store.get(KEY, null); if (!S || !S.t || S === P) return false;
+    var changed = false;
+    Object.keys(S.t).forEach(function (id) { if (work(S.t[id]) > work(P.t[id])) { P.t[id] = S.t[id]; changed = true; } });
+    return changed;
+  }
+  // every level on screen (the skill's badge, the progress line, the home tiles) follows the saved progress
+  function refreshLevels() {
+    if (view.at === 'home') { var y = window.scrollY; draw(); window.scrollTo(0, y); return; }
+    if (view.at !== 'topic') return;
+    var L = lvl(view.id), old = app.querySelector('.tophead .badge'); if (old) old.parentNode.replaceChild(badge(L), old);
+    var note = app.querySelector('.deepnote'); if (L >= 4 && !note) { var h = app.querySelector('.tophead'); if (h) h.parentNode.insertBefore(deepNote(view.id), h.nextSibling.nextSibling); }
+  }
   function save() {
+    mergeStored();
     SFA.store.set(KEY, P);
+    refreshLevels();
     if (!SFA.sync || !SFA.sync.on) return;
     var levels = ORDER.map(function (id) { var L = lvl(id); return { id: id, tier: ['none', 'limited', 'emerging', 'devel', 'deep'][L], name: T[id].name, done: L >= 3, skipped: false }; });
     var dn = levels.filter(function (L) { return L.done; }).length, deep = ORDER.every(function (id) { return lvl(id) === 4; });
@@ -503,10 +582,25 @@
     return d;
   }
 
+  // after Deep: tell the student they can move on, and point to the next skill that still needs work
+  function nextSkill(id) {
+    var rest = ORDER.filter(function (k) { return k !== id && lvl(k) < 4; });
+    if (!rest.length) return null;
+    var min = Math.min.apply(null, rest.map(lvl));
+    return rest.filter(function (k) { return lvl(k) === min; })[0];
+  }
+  function deepNote(id) {
+    var nx = nextSkill(id), d = el('div', { 'class': 'deepnote', role: 'status' });
+    d.appendChild(html('div', '', '<b>🏆 Deep: you have mastered this skill.</b> You can move on now. ' + (nx ? 'Next up: <b>' + T[nx].name + '</b> (' + LV[lvl(nx)] + ').' : 'Every skill is at Deep. Amazing work!') + ' You can still practise here if you want to.'));
+    if (nx) d.appendChild(el('div', { 'class': 'btns' }, [el('button', { 'class': 'btn primary', type: 'button', text: 'Move on to ' + T[nx].name + ' →', onclick: function () { go({ at: 'topic', id: nx, tab: lvl(nx) ? 'ind' : 'learn' }); } }), el('button', { 'class': 'btn', type: 'button', text: '← All skills', onclick: function () { go({ at: 'home' }); } })]));
+    return d;
+  }
+
   /* ---------------- screens ---------------- */
   var app = document.getElementById('app'), view = { at: 'home' };
   function go(v) { view = v; draw(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   function draw() {
+    mergeStored();
     app.innerHTML = '';
     if (view.at === 'home') home();
     else if (view.at === 'mixed') mixed();
@@ -535,7 +629,7 @@
       row.appendChild(el('div', { 'class': 'tiles' }, c.topics.map(function (id) {
         var l = lvl(id), t = P.t[id];
         return el('button', { 'class': 'tile l' + l, type: 'button', onclick: function () { go({ at: 'topic', id: id, tab: l ? 'ind' : 'learn' }); } }, [
-          el('span', { 'class': 'tn', text: T[id].name }), meter(l), el('span', { 'class': 'ts', text: LV[l] + (t && t.h.length ? ' · ' + t.h.filter(Boolean).length + ' right on your own' : '') })]);
+          el('span', { 'class': 'tn', text: T[id].name }), meter(l), el('span', { 'class': 'ts', text: l >= 4 ? '🏆 Deep: mastered, move on' : LV[l] + (t && t.h.length ? ' · ' + t.h.filter(Boolean).length + ' right on your own' : '') })]);
       })));
       crit.appendChild(row);
     });
@@ -556,6 +650,7 @@
     app.appendChild(head);
     var c = CRIT.filter(function (x) { return x.topics.indexOf(id) >= 0; })[0];
     app.appendChild(el('div', { 'class': 'muted', style: 'font-size:13px;margin-top:4px', text: c.strand + ' · ' + c.name }));
+    if (L >= 4) app.appendChild(deepNote(id));
     var tabs = [['learn', '📖 Learn'], ['guided', '🪜 Guided practice'], ['ind', '🎯 On your own']];
     app.appendChild(el('div', { 'class': 'tabs', role: 'tablist' }, tabs.map(function (x) { return el('button', { 'class': 'chip', type: 'button', role: 'tab', 'aria-pressed': view.tab === x[0] ? 'true' : 'false', text: x[1], onclick: function () { go({ at: 'topic', id: id, tab: x[0] }); } }); })));
     var body = el('div', {}); app.appendChild(body);
@@ -569,6 +664,7 @@
     card.appendChild(html('p', 'idea', D.idea));
     card.appendChild(html('div', 'formula', D.formula));
     card.appendChild(html('ul', 'tips', D.tips.map(function (x) { return '<li>' + x + '</li>'; }).join('')));
+    var vb = vidBox(id, '🎬 Want it explained another way? Khan Academy videos:'); if (vb) card.appendChild(vb);
     host.appendChild(card);
     st(id).tried = 1; save();
     var ex = el('section', { 'class': 'card' }, [html('h2', '', 'Worked example')]);
@@ -629,6 +725,7 @@
       save();
       var d = el('div', { 'class': 'done' + (ok ? '' : ' no') });
       d.appendChild(html('div', '', ok ? '<b>Solved with no “Show me”. Nice.</b> When it feels easy, try one on your own.' : '<b>Done.</b> You used “Show me” ' + reveals + ' time' + (reveals > 1 ? 's' : '') + '. Try another guided problem to lock it in.'));
+      if (!ok) { var gv = vidBox(id); if (gv) d.appendChild(gv); }
       d.appendChild(el('div', { 'class': 'btns' }, [el('button', { 'class': 'btn' + (ok ? '' : ' primary'), type: 'button', text: '🪜 Another guided problem', onclick: function () { host.innerHTML = ''; guided(host, id); } }), el('button', { 'class': 'btn' + (ok ? ' primary' : ''), type: 'button', text: '🎯 Try one on your own', onclick: function () { go({ at: 'topic', id: id, tab: 'ind' }); } })]));
       card.appendChild(d);
     }
@@ -638,7 +735,7 @@
   function progressLine(id) {
     var t = st(id), L = lvl(id), last = t.h.slice(-4), dots = [];
     for (var k = 0; k < 4; k++) dots.push(el('i', { 'class': k < last.length ? (last[k] ? 'y' : 'n') : '' }));
-    var msg = L >= 4 ? 'Deep: you have mastered this skill, stretch problems included.' : L === 3 ? 'Developed ✓. Stretch problems now: ' + t.s + ' of 2 right for Deep.' : 'Goal: 3 of your last 4 right for Developed.';
+    var msg = L >= 4 ? 'Deep: you have mastered this skill. You can move on to another skill.' : L === 3 ? 'Developed ✓. Stretch problems now: ' + t.s + ' of 2 right for Deep.' : 'Goal: 3 of your last 4 right for Developed.';
     return el('div', { 'class': 'mast' }, [el('span', {}, [el('b', { text: 'Last 4 on your own: ' })]), el('div', { 'class': 'dots', 'aria-label': last.filter(Boolean).length + ' of the last ' + last.length + ' right' }, dots), el('span', { 'class': 'muted', text: msg })]);
   }
 
@@ -671,12 +768,14 @@
       save();
       var after = lvl(id);
       fb.className = 'fb ' + (ok ? 'yes' : 'no'); fb.textContent = ok ? '✓ All correct!' : 'Not all right this time. Read the solution, then try another.';
-      if (after > before) SFA.toast('Level up: ' + D.name + ' is now ' + LV[after] + '!', 3600);
+      if (after > before) SFA.toast(after >= 4 ? '🏆 Deep on ' + D.name + '! You can move on to another skill.' : 'Level up: ' + D.name + ' is now ' + LV[after] + '!', after >= 4 ? 5000 : 3600);
       var sol = el('div', { 'class': 'done' + (ok ? '' : ' no') }, [html('div', '', '<b>Full solution</b>')]);
       var sl = el('div', { 'class': 'steps' }); p.steps.forEach(function (s, k) { sl.appendChild(solved(s, k, true)); }); sol.appendChild(sl);
       var nextBtn = el('button', { 'class': 'btn primary', type: 'button', text: 'Next problem →', onclick: function () { if (onNext) onNext(); else { host.innerHTML = ''; independent(host, id, false); } } });
       var extra = !ok && !isMixed ? el('button', { 'class': 'btn', type: 'button', text: '🪜 Guided practice', onclick: function () { go({ at: 'topic', id: id, tab: 'guided' }); } }) : null;
+      if (!ok) { var iv = vidBox(id); if (iv) sol.appendChild(iv); }
       sol.appendChild(el('div', { 'class': 'btns' }, [nextBtn, extra]));
+      if (after >= 4 && before < 4 && !isMixed) { var nx = nextSkill(id); if (nx) { nextBtn.className = 'btn'; nextBtn.textContent = 'Keep practising this skill'; sol.appendChild(el('div', { 'class': 'btns' }, [el('button', { 'class': 'btn primary', type: 'button', text: '🏆 Move on to ' + T[nx].name + ' →', onclick: function () { go({ at: 'topic', id: nx, tab: lvl(nx) ? 'ind' : 'learn' }); } })])); } }
       card.appendChild(sol);
       card.replaceChild(progressLine(id), card.querySelector('.mast'));
     });
@@ -700,7 +799,14 @@
   }
 
   // the account strip can pull newer progress from the class Sheet after sign-in
-  if (SFA.sync && SFA.sync.onChange) SFA.sync.onChange(function () { var srv = SFA.store.get(KEY, null); if (srv && srv.t && srv !== P && JSON.stringify(srv) !== JSON.stringify(P)) { P = srv; if (view.at === 'home') draw(); } });
+  if (SFA.sync && SFA.sync.onChange) SFA.sync.onChange(function () { if (mergeStored()) refreshLevels(); });
+  // another tab saved (the review is often open twice): take its newer skills and update the levels here
+  window.addEventListener('storage', function (e) { if (e.key && e.key.slice(-KEY.length - 1) === '.' + KEY && mergeStored()) refreshLevels(); });
+  // coming back to this tab: make sure the levels are current
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && mergeStored()) refreshLevels(); });
+  // review-u2.html#s1 opens that skill (the review lessons link straight to their skills); #mixed opens the mixed review
+  var hk = (location.hash || '').slice(1);
+  if (T[hk]) view = { at: 'topic', id: hk, tab: lvl(hk) ? 'ind' : 'learn' }; else if (hk === 'mixed') view = { at: 'mixed' };
   draw();
   window.SFA_REVIEW = { T: T, P: function () { return P; }, lvl: lvl };   // for testing
 })();

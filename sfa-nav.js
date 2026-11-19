@@ -31,7 +31,11 @@
     { l: 21, n: 18, label: 'Floor One', game: 'g18-log-book.html' },   // Under the Pond: Units 2 to 4, one floor per plan step
     { l: 22, n: 19, label: 'Floor Two', game: 'g19-station-zero.html' },
     { l: 23, n: 20, label: 'Floor Three', game: 'g20-goat-bridge.html' },
-    { l: 24, n: 21, label: 'Gate A', game: 'g21-last-cart-down.html' }   // the Unit 2 check: one lock per floor
+    { l: 24, n: 21, label: 'Gate A', game: 'g21-last-cart-down.html' },   // the Unit 2 check: one lock per floor
+    { l: 25, n: 21.1, label: 'Review 1', game: 'review-u2.html' },   // the Unit 2 review lessons: no film, they teach the formative's skills and send students to the review
+    { l: 26, n: 21.2, label: 'Review 2', game: 'review-u2.html' },
+    { l: 27, n: 21.3, label: 'Review 3', game: 'review-u2.html' },
+    { l: 28, n: 21.4, label: 'Review 4', game: 'review-u2.html' }
   ];
   var LESSON_OF = {}, NUM = {}, LABEL = {};   // game file -> lesson file number; lesson file number -> number shown; -> its name ("Lesson 12", "Rewind 1")
   PLAN.forEach(function (p) { if (!LESSON_OF[p.game]) LESSON_OF[p.game] = p.l; NUM[p.l] = p.n; LABEL[p.l] = p.label || 'Lesson ' + p.n; });

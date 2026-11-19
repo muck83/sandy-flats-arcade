@@ -137,6 +137,17 @@ body.lesson{min-height:100vh;overflow-x:hidden}
 .ftab th{background:var(--panel2);color:var(--marquee);font:800 .8em var(--ui);letter-spacing:.1em;text-transform:uppercase;padding:.45em 1.2em}
 .ftab td{padding:.4em 1.2em;text-align:center;border-top:.1em solid var(--line);animation:rise .4s both}
 .ftab td.qm{color:var(--marquee)}
+.ftab tr.hi td{background:rgba(255,201,74,.2);color:var(--marquee)}
+/* worked examples */
+.exq{font-size:1.15em;line-height:1.35;margin:.15em 0 .55em;padding:.45em .8em;background:var(--panel2);border-left:.3em solid var(--marquee);border-radius:.4em}
+.exs li{animation:rise .55s both}
+.exeq{font:600 .95em var(--mono);color:var(--teal);margin-top:.2em;white-space:pre-wrap}
+.exhint{color:#ABA5BC;font-size:.85em;margin:.5em 0 0;font-style:italic}
+.exfig .fig{animation:rise .45s both}
+.fig .albl{fill:var(--teal);font:700 15px var(--ui);animation:rise .4s both}
+.fig .plbl{fill:#F7F3E3;font:700 14px var(--mono);animation:rise .4s both;paint-order:stroke;stroke:#1B1A22;stroke-width:4px}
+.fig .shd{fill:var(--marquee);fill-opacity:.16;animation:rise .6s .6s both}
+.fig .ln.dash{stroke-dasharray:10 8;stroke-dashoffset:0;animation:none}
 
 /* bottom nav */
 .lnav{display:flex;align-items:center;gap:12px;width:min(100%,calc((100vh - 150px) * 16 / 9));padding:10px 0 14px}

@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
 <link rel="stylesheet" href="sfa-kit.css?v=20261118">
 <style>
-/* Unit 2 Review dashboard: who is where on each of the 12 review skills, by rubric level. */
+/* Unit 2 Review dashboard: who is where on each of the 13 review skills, by rubric level. */
 .dash{max-width:1320px}
 .l0{--lc:#2E2A3D;--lt:#ABA5BC}.l1{--lc:#E8584C;--lt:#2A0703}.l2{--lc:#FF9F45;--lt:#2A1400}.l3{--lc:#FFC94A;--lt:#2A1E00}.l4{--lc:#3BFF8A;--lt:#00260F}
 .bar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-top:12px}
@@ -95,11 +95,11 @@ body.blur .nmv{filter:blur(6px)}
   'use strict';
   var SFA = window.SFA, el = SFA.el, CFG = window.SFA_CONFIG || {}, body = document.getElementById('body'), drawer = document.getElementById('drawer');
   var DEMO = /[?&]demo/.test(location.search);
-  // the twelve review skills, as review-u2.js saves them (id = level id in the g90 row)
+  // the thirteen review skills, as review-u2.js saves them (id = level id in the g90 row)
   var CRIT = [
     { id: 'compute', short: 'Compute slope', name: 'Compute slope from tables, equations, graphs and ordered pairs', strand: 'C1 Concepts', skills: [['s1', 'Slope from two points'], ['s2', 'Slope from a table'], ['s3', 'Slope from a graph'], ['s4', 'Slope from an equation']] },
     { id: 'convert', short: 'Convert forms', name: 'Convert between standard form and slope-intercept form', strand: 'C1 Concepts', skills: [['f1', 'Standard → slope-intercept'], ['f2', 'Slope-intercept → standard']] },
-    { id: 'represent', short: 'Represent', name: 'Represent scenarios graphically, with equations and with words', strand: 'C3 Problem Solving', skills: [['r1', 'Story → equation, solve'], ['r2', 'Graph a line'], ['r3', 'Inequalities'], ['r4', 'Match representations']] },
+    { id: 'represent', short: 'Represent', name: 'Represent scenarios graphically, with equations and with words', strand: 'C3 Problem Solving', skills: [['b1', 'Find b, write the equation'], ['r1', 'Story → equation, solve'], ['r2', 'Graph a line'], ['r3', 'Inequalities'], ['r4', 'Match representations']] },
     { id: 'explain', short: 'Explain', name: 'Explain reasoning', strand: 'C2 Communicating', skills: [['e1', 'Meaning of slope & intercept'], ['e2', 'Find the mistake']] }
   ];
   var SK = []; CRIT.forEach(function (c) { c.skills.forEach(function (s) { SK.push({ id: s[0], name: s[1], crit: c }); }); });
@@ -173,8 +173,8 @@ body.blur .nmv{filter:blur(6px)}
     var weakest = pct[0];
     body.appendChild(el('div', { 'class': 'kpis' }, [
       kpi('Started the review', started + '/' + all.length, Math.round(100 * started / all.length) + '% of the class', started < all.length / 2),
-      kpi('Ready (all 12 Developed)', String(ready), ready ? 'on track for the formative' : 'nobody yet', false),
-      kpi('Average skills at Developed', avg.toFixed(1), 'out of 12', false),
+      kpi('Ready (all ' + SK.length + ' Developed)', String(ready), ready ? 'on track for the formative' : 'nobody yet', false),
+      kpi('Average skills at Developed', avg.toFixed(1), 'out of ' + SK.length, false),
       kpi('Active this week', String(active), 'practised in the last 7 days', false),
       kpi('Reteach first', weakest.k.name, weakest.n + ' of ' + all.length + ' at Developed', weakest.n < all.length / 2)
     ]));
@@ -211,7 +211,7 @@ body.blur .nmv{filter:blur(6px)}
     rows.forEach(function (r) {
       var tr = el('tr', {}, [
         el('td', { 'class': 'who' }, [el('button', { type: 'button', onclick: function () { openStudent(r); } }, [el('span', { 'class': 'nmv', text: nm(r) })]), S.cls ? null : el('small', { text: r.cls })]),
-        el('td', { 'class': 'ready' }, [el('div', { 'class': 'pillbar', title: r.dev + ' of 12 at Developed', 'aria-label': r.dev + ' of 12 at Developed' }, SK.map(function (k, i) { return el('i', { 'class': i < r.dev ? 'on' : '' }); }))])
+        el('td', { 'class': 'ready' }, [el('div', { 'class': 'pillbar', title: r.dev + ' of ' + SK.length + ' at Developed', 'aria-label': r.dev + ' of ' + SK.length + ' at Developed' }, SK.map(function (k, i) { return el('i', { 'class': i < r.dev ? 'on' : '' }); }))])
       ]);
       SK.forEach(function (k) { var L = r.lv[k.id]; tr.appendChild(el('td', { 'class': 'c l' + L + (S.focus && S.focus !== k.id ? ' dim' : ''), title: nice(r.name) + ' · ' + k.name + ': ' + LV[L], text: ABBR[L] })); });
       tr.appendChild(el('td', { 'class': 'meta', text: ago(r.updated) }));
@@ -264,7 +264,7 @@ body.blur .nmv{filter:blur(6px)}
     drawer.innerHTML = '';
     drawer.appendChild(el('button', { 'class': 'btn small x', type: 'button', text: '✕ Close', onclick: closeDrawer }));
     drawer.appendChild(el('h2', { 'class': 'nmv', text: nm(r) }));
-    drawer.appendChild(el('p', { 'class': 'muted', text: (r.cls ? 'Class ' + r.cls + ' · ' : '') + r.dev + ' of 12 skills at Developed · last practised ' + ago(r.updated) + (r.p ? ' · used Show me ' + r.assisted + ' time' + (r.assisted === 1 ? '' : 's') : '') }));
+    drawer.appendChild(el('p', { 'class': 'muted', text: (r.cls ? 'Class ' + r.cls + ' · ' : '') + r.dev + ' of ' + SK.length + ' skills at Developed · last practised ' + ago(r.updated) + (r.p ? ' · used Show me ' + r.assisted + ' time' + (r.assisted === 1 ? '' : 's') : '') }));
     var next = SK.filter(function (k) { return r.lv[k.id] < 3; }).sort(function (a, b) { return r.lv[b.id] - r.lv[a.id]; })[0];
     if (!r.p) drawer.appendChild(el('div', { 'class': 'rgrp l0' }, ['Hasn\'t opened the review yet. Share the link: ', el('b', { text: 'review-u2.html' })]));
     else if (next) drawer.appendChild(el('div', { 'class': 'rgrp l' + r.lv[next.id] }, [el('b', { text: 'Closest to the next level: ' }), next.name + ' (' + LV[r.lv[next.id]] + ').']));
@@ -318,7 +318,7 @@ body.blur .nmv{filter:blur(6px)}
   function demo() {
     var first = ['Ava', 'Ben', 'Chloe', 'Dev', 'Eli', 'Farah', 'Gus', 'Hana', 'Ivan', 'Jun', 'Kira', 'Leo', 'Maya', 'Noor', 'Omar', 'Pia', 'Quinn', 'Rosa', 'Sami', 'Tara', 'Umar', 'Vera', 'Wes', 'Yara', 'Zane', 'Aiko', 'Bilal', 'Cleo'];
     var last = ['Khan', 'Lopez', 'Smith', 'Okafor', 'Haddad', 'Nguyen', 'Silva', 'Ito', 'Petrov', 'Mensah', 'Rossi', 'Novak', 'Ali', 'Park'];
-    var hard = { s1: 0, s2: .2, s3: .1, s4: .6, f1: 1.2, f2: 1.6, r1: .6, r2: .3, r3: 1.4, r4: .7, e1: .5, e2: 1 }, seed = 7;
+    var hard = { b1: .9, s1: 0, s2: .2, s3: .1, s4: .6, f1: 1.2, f2: 1.6, r1: .6, r2: .3, r3: 1.4, r4: .7, e1: .5, e2: 1 }, seed = 7;
     function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
     var roster = [], progress = [];
     first.forEach(function (f, i) {

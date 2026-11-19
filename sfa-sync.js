@@ -121,7 +121,7 @@
     Object.keys(games || {}).forEach(function (g) {
       if (!GAMEKEY.test(g)) return;
       var local = SFA.store.get(g, null), srv = games[g];
-      var n = function (P) { return P && P.done ? Object.keys(P.done).length : -1; };
+      var n = function (P) { if (P && P.done) return Object.keys(P.done).length; if (P && P.t) { var w = 0; Object.keys(P.t).forEach(function (k) { var t = P.t[k] || {}; w += (t.n || 0) + (t.g || 0) + (t.s || 0); }); return w; } return -1; };   // games count finished levels; the Unit 2 Review counts practice
       if (n(srv) >= n(local)) SFA.store.set(g, srv);
       // remember what the server already has, so it isn't logged again as new
       var sm = sums && sums[g];

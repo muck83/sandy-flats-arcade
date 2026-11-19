@@ -8,7 +8,7 @@
   var SFA = window.SFA, el = SFA.el, esc = SFA.esc, CFG = window.SFA_CONFIG || {}, S = SFA.sync;
   var Q = new URLSearchParams(location.search);
   var MODE = Q.has('teach') ? 'teach' : Q.has('screen') ? 'screen' : 'student';
-  var N = Math.max(1, Math.min(24, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
+  var N = Math.max(1, Math.min(28, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
   var TEACHER = 'Mr. Crowell';
   var LIVE_FRESH = 10 * 60 * 1000;   // a live session counts as running while the console has checked in within 10 minutes
   document.body.classList.add('lesson', 'm-' + MODE);
@@ -140,7 +140,7 @@
       var t = H('table', 'ftab'), tr = H('tr');
       (f.head || []).forEach(function (h) { tr.appendChild(H('th', '', fmt(h))); }); t.appendChild(tr);
       (f.rows || []).forEach(function (r, ri) {
-        var row = H('tr'); r.forEach(function (c) { var td = H('td', String(c) === '?' ? 'qm' : '', esc(String(c).replace(/^-/, '−'))); td.style.animationDelay = (.15 + ri * .12) + 's'; row.appendChild(td); }); t.appendChild(row);
+        var hi = (f.hi || []).indexOf(ri) >= 0, row = H('tr', hi ? 'hi' : ''); r.forEach(function (c) { var td = H('td', String(c) === '?' ? 'qm' : '', esc(String(c).replace(/^-/, '−'))); td.style.animationDelay = (.15 + ri * .12) + 's'; row.appendChild(td); }); t.appendChild(row);
       });
       box.appendChild(t); return box;
     }
@@ -183,7 +183,21 @@
         var p = S_('path', { 'class': 'ln' + c, d: d }, svg); p.style.setProperty('--len', Math.ceil(len) + 2); p.style.animationDelay = (.3 + li * .5) + 's';
       }
       if (ln.dots || ln.only) pts.forEach(function (q, i) { var dt = S_('circle', { 'class': 'pt' + c, cx: X(q[0]), cy: Y(q[1]), r: 5.5 }, svg); dt.style.animationDelay = (.4 + li * .5 + i * .12) + 's'; });
+      if (ln.dash && p) p.classList.add('dash');
     });
+    // worked examples: shaded half-planes, rise and run arrows, and point labels, drawn in after the line
+    (f.shade || []).forEach(function (sh) {
+      var a = sh.pts[0], b = sh.pts[1], m = (b[1] - a[1]) / (b[0] - a[0]), yl = a[1] + m * (x0 - a[0]), yr = a[1] + m * (x1 - a[0]), far = sh.above ? y1 : y0;
+      var pg = S_('polygon', { 'class': 'shd', points: [[x0, yl], [x1, yr], [x1, far], [x0, far]].map(function (q) { return X(q[0]).toFixed(1) + ',' + Y(Math.max(y0, Math.min(y1, q[1]))).toFixed(1); }).join(' ') }, svg);
+      svg.insertBefore(pg, svg.querySelector('.ln') || null);
+    });
+    (f.arrows || []).forEach(function (a, k) {
+      var ax = X(a[0]), ay = Y(a[1]), bx = X(a[2]), by = Y(a[3]), flat = a[1] === a[3];
+      var ar = S_('path', { 'class': 'arr', d: 'M' + ax.toFixed(1) + ',' + ay.toFixed(1) + ' L' + bx.toFixed(1) + ',' + by.toFixed(1) }, svg);
+      ar.style.setProperty('--len', Math.ceil(Math.hypot(bx - ax, by - ay)) + 2); ar.style.animationDelay = (.9 + k * .6) + 's';
+      if (a[4]) { var tl = S_('text', { 'class': 'albl', x: flat ? (ax + bx) / 2 : ax + 8, y: flat ? ay + (a[5] ? -8 : 18) : (ay + by) / 2 + 5, 'text-anchor': flat ? 'middle' : 'start' }, svg); tl.textContent = a[4]; tl.style.animationDelay = (1.3 + k * .6) + 's'; }
+    });
+    (f.labels || []).forEach(function (a, k) { var tl = S_('text', { 'class': 'plbl', x: X(a[0]) + (a[3] === 'l' ? -9 : 9), y: Y(a[1]) - 9, 'text-anchor': a[3] === 'l' ? 'end' : 'start' }, svg); tl.textContent = a[2]; tl.style.animationDelay = (.7 + k * .15) + 's'; });
     box.appendChild(svg); return box;
   }
 
@@ -432,6 +446,34 @@
       }
       d._upd = function () { if (!r.contains(document.getElementById('sfaAccount')) || S.me) draw(); };
       draw();
+    },
+    // a worked example: the problem first, then one step per press of Next (the console drives the class screen and,
+    // with the updated script, every student's screen). A step can swap in a new picture: lines draw, arrows grow.
+    ex: function (s, d) {
+      var w = head(s, d), steps = s.steps || [], idx = LES.slides.indexOf(s), shown = 0, figAt = null;
+      w.appendChild(H('p', 'kick', fmt(s.kick || 'Worked example')));
+      w.appendChild(H('h2', '', fmt(s.title)));
+      if (s.q) w.appendChild(H('p', 'exq', fmt(s.q)));
+      var left = H('div', 'st'), ol = H('ol', 'pts exs'), tip = H('p', 'exhint'); left.appendChild(ol); left.appendChild(tip);
+      var hasFig = !!s.fig || steps.some(function (x) { return x && x.fig; }), figBox = null;
+      if (hasFig) { var c = H('div', 'cols grow'); c.appendChild(left); figBox = H('div', 'st exfig'); c.appendChild(figBox); d.appendChild(c); } else d.appendChild(left);
+      d._upd = function () {
+        var n = exShown(idx), k;
+        if (n < shown) { ol.innerHTML = ''; shown = 0; }
+        for (k = shown; k < n; k++) {
+          var x = typeof steps[k] === 'string' ? { t: steps[k] } : steps[k], li = H('li', 'exstep', fmt(x.t || ''));
+          if (x.eq) li.appendChild(H('div', 'exeq', fmt(x.eq)));
+          li.style.animationDelay = ((k - shown) * .7) + 's'; ol.appendChild(li);
+        }
+        shown = n;
+        if (figBox) {
+          var f = s.fig || null, fi = -1;
+          for (k = 0; k < n; k++) if (steps[k] && steps[k].fig) { f = steps[k].fig; fi = k; }
+          if (fi !== figAt) { figAt = fi; figBox.innerHTML = ''; if (f) figBox.appendChild(figure(f)); }
+        }
+        tip.textContent = n < steps.length && exCanStep(idx) ? (n ? 'Next ▶ shows step ' + (n + 1) + ' of ' + steps.length + '.' : 'Think first: what would you do? Next ▶ shows step 1.') : '';
+      };
+      d._upd();
     },
     text: function (s, d) {
       var w = head(s, d); w.appendChild(H('h2', '', fmt(s.title)));
@@ -783,6 +825,7 @@
 
   function clashSync() {
     if (MODE === 'teach') return;
+    if (window.SFA_WB) SFA_WB.sync(live, MODE);   // the teacher's whiteboard, over the slide while it is open
     noteSkew();
     priceSync();
     lookSync();
@@ -1128,6 +1171,20 @@
 
   /* ---------------- deck ---------------- */
   var deck, dots, counter, prevB, nextB;
+  // worked examples: how many steps are showing on each slide (the console's count travels with the live lesson)
+  var exN = {};
+  function exFollowing(i) { return MODE !== 'teach' && live && isLive() && (MODE === 'screen' || follow) && live.slide === i; }
+  function exShown(i) {
+    var s = LES.slides[i], tot = (s && s.steps || []).length;
+    if (exFollowing(i)) { if (live.ex && live.ex.s === i) return Math.min(tot, live.ex.n); if (MODE === 'student') return tot; }   // an older script drops the count: show every step
+    return Math.min(tot, exN[i] || 0);
+  }
+  function exCanStep(i) { return !(MODE === 'student' && exFollowing(i)); }
+  function exMore() { var s = LES.slides[cur]; return !!s && s.k === 'ex' && exCanStep(cur) && exShown(cur) < (s.steps || []).length; }
+  function exStep() {
+    exN[cur] = exShown(cur) + 1; upd();
+    if (MODE === 'teach') { broadcast(); if (console_ && console_.on) pushLive(); }
+  }
   // Redraws keep whatever a student is in the middle of typing (and where the cursor is).
   document.addEventListener('input', function (e) { if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) e.target.dataset.typed = '1'; }, true);
   function fieldKey(f) { return f.tagName + '|' + (f.getAttribute('aria-label') || f.placeholder || ''); }
@@ -1155,7 +1212,7 @@
     if (counter) counter.textContent = (cur + 1) + ' / ' + LES.slides.length;
     var lk = locked();
     if (prevB) prevB.disabled = cur === 0 || lk;
-    if (nextB) nextB.disabled = cur === LES.slides.length - 1 || lk;
+    if (nextB) { nextB.disabled = cur === LES.slides.length - 1 || lk; nextB.textContent = exMore() ? 'Next step ▶' : 'Next ▶'; }
     if (dots) dots.style.pointerEvents = lk ? 'none' : '';
   }
   function render(i, dir, quiet) {
@@ -1194,6 +1251,7 @@
     if (locked() && byHand) { SFA.toast(TEACHER + ' is moving the slides for everyone right now.'); return; }
     if (MODE === 'student' && byHand && isLive() && follow && i !== live.slide) { follow = false; drawTop(); }
     if (MODE === 'screen' && byHand && bc && consoleSeen) { bc.postMessage({ t: 'nav', to: i }); return; }
+    if (byHand && i === cur + 1 && exMore()) { exStep(); return; }
     render(i, dir);
   }
 
@@ -1324,6 +1382,8 @@
   function consoleInit() {
     console_ = { on: false, lock: SFA.store.get('teacher.lesson.lock', true) !== false, reveal: {}, spot: null, timer: null, cls: SFA.store.get('teacher.lesson.cls', ''), names: true, peek: false, data: null, since: 0, picked: '', run: 0, auto: SFA.store.get('teacher.lesson.auto', true) !== false, skew: 0 };
     if (!CFG.endpoint) { console_.offline = true; }
+    // the whiteboard: a finished stroke, undo, clear or a grid change goes to everyone; the pen mid-stroke only repaints the class screen
+    if (window.SFA_WB) SFA_WB.init({ onChange: function (final) { if (final) { pushLive(); consolePanel(); } else broadcast(); } });
     else if (!Key.get()) return askKey(), false;
     var panel = H('aside', 'panel'); panel.id = 'tpanel';
     document.querySelector('.lmain').appendChild(panel);
@@ -1338,7 +1398,7 @@
     }, 15000);
     if (!console_.offline) tpost('live').then(function (j) {
       console_.climb = j.climb || null;
-      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid' || console_.spot.q === 'zshow' || console_.spot.q === 'zsumo' || console_.spot.q === 'zstand' || console_.spot.q === 'zduel')) console_.spot = null; if (hasDuel(j.live)) { var jd = j.live; duelAssets(function () { if (!SFA_DUEL.restore(jd)) pushLive(); consolePanel(); }); } if (hasStand(j.live)) { var jt = j.live; standAssets(function () { if (!SFA_STAND.restore(jt)) pushLive(); consolePanel(); }); } if (hasSumo(j.live)) { var js2 = j.live; sumoAssets(function () { if (!SFA_SUMO.restore(js2)) pushLive(); consolePanel(); }); } if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
+      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; if (window.SFA_WB) SFA_WB.restore(j.live.wb); console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid' || console_.spot.q === 'zshow' || console_.spot.q === 'zsumo' || console_.spot.q === 'zstand' || console_.spot.q === 'zduel')) console_.spot = null; if (hasDuel(j.live)) { var jd = j.live; duelAssets(function () { if (!SFA_DUEL.restore(jd)) pushLive(); consolePanel(); }); } if (hasStand(j.live)) { var jt = j.live; standAssets(function () { if (!SFA_STAND.restore(jt)) pushLive(); consolePanel(); }); } if (hasSumo(j.live)) { var js2 = j.live; sumoAssets(function () { if (!SFA_SUMO.restore(js2)) pushLive(); consolePanel(); }); } if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
       // opened from the Climb dashboard ("End Climb → Lesson N"): go live straight away, so students' pages move into this lesson
       else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
       else consolePanel();
@@ -1433,7 +1493,7 @@
     if (console_.stand && window.SFA_STAND) { SFA_STAND.counts(counts); spot = SFA_STAND.spot(); }
     if (console_.duel && window.SFA_DUEL) { SFA_DUEL.counts(counts); spot = SFA_DUEL.spot(); }   // the fleets, the missions, the volley   // the grid: the line or the rules, where everyone stands, the scores
     Object.keys(console_.reveal).forEach(function (q) { if (console_.reveal[q] && feed && feed.per[q] && feed.per[q].counts.length && Object.keys(counts).length < 60) counts[q] = feed.per[q].counts; });
-    return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: spot, timer: console_.timer, lock: console_.lock, auto: console_.auto };
+    return { lesson: LID, slide: cur, at: Date.now(), reveal: console_.reveal, counts: counts, spot: spot, timer: console_.timer, lock: console_.lock, auto: console_.auto, wb: window.SFA_WB ? SFA_WB.live() : null, ex: LES.slides[cur] && LES.slides[cur].k === 'ex' ? { s: cur, n: exN[cur] || 0 } : null };
   }
   var pushT = null, lastCounts = '', lastPush = 0;
   function pushLive() {
@@ -1662,6 +1722,12 @@
     // what's needed mid-lesson comes first: the status bar, a running game, then this slide's controls and answers
     statusBar(p);
     var running = runningGame(p);
+    if (window.SFA_WB) {   // the whiteboard: draw for the class, with or without a grid
+      var wbs = H('div', 'sect'), wbr = H('div', 'row'), wbOn = SFA_WB.isOpen();
+      wbr.appendChild(el('button', { type: 'button', 'class': 'btn small' + (wbOn ? ' good' : ' primary'), text: wbOn ? '🖊 Whiteboard is open' : '🖊 Whiteboard', onclick: function () { SFA_WB.open(); } }));
+      wbr.appendChild(H('span', 'muted', wbOn ? 'Students see it over the slide. Close the board to go back.' : 'Draw for the class on a blank board, squares or a coordinate grid.'));
+      wbs.appendChild(wbr); p.appendChild(wbs);
+    }
 
     // this slide
     var sec = H('div', 'sect now'); sec.appendChild(H('h3', '', '📍 This slide <small>· ' + (s.min || 0) + ' min planned</small>'));

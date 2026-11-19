@@ -305,6 +305,9 @@ function setLive(req) {
   Object.keys(L.counts || {}).slice(0, 60).forEach(function (k) { if (QID.test(k) && Array.isArray(L.counts[k])) out.counts[k] = L.counts[k].slice(0, 12).map(num); });
   if (L.spot && QID.test(String(L.spot.q || ''))) out.spot = { q: String(L.spot.q), text: safe(L.spot.text, 600) };
   if (L.timer && Number(L.timer.end) > 0) out.timer = { end: Number(L.timer.end), total: num(L.timer.total) };
+  // the teacher's whiteboard: grid 0-3 and the strokes as base-36 text (sfa-whiteboard.js)
+  if (L.wb && L.wb.on) { var ws = String(L.wb.s || ''); if (ws.length <= 40000 && /^[0-9a-z|:]*$/.test(ws)) out.wb = { on: 1, g: Math.max(0, Math.min(3, Math.round(Number(L.wb.g) || 0))), s: ws }; }
+  if (L.ex && typeof L.ex === 'object') out.ex = { s: Math.max(0, Math.min(300, Math.round(Number(L.ex.s) || 0))), n: Math.max(0, Math.min(30, Math.round(Number(L.ex.n) || 0))) };
   var json = JSON.stringify(out);
   if (json.length > 90000) throw new Error('too big');
   cache.put('live', json, 21600);
