@@ -13,6 +13,9 @@
  *
  * Script properties (Project Settings > Script properties):
  *   TEACHER_KEY   long random string; the class view asks for it once
+ *   COTEACHER_KEY a second, smaller key for a co-teacher (co-teacher.html): she can add students to her own classes,
+ *                 see their codes and see their Unit 2 Check results, nothing else. setup() makes it.
+ *   COTEACHER_CLASSES  the co-teacher's class names, comma-separated (filled in as she adds classes)
  *   AUTH_MODE     google | code | both (setup() sets google)
  *   CLIENT_ID     Google OAuth web client id (google / both)
  *   DOMAIN        school email domain, e.g. aisr.org (google / both)
@@ -41,6 +44,7 @@ function setup() {
   });
   var p = PropertiesService.getScriptProperties();
   if (!p.getProperty('TEACHER_KEY')) p.setProperty('TEACHER_KEY', Utilities.getUuid().replace(/-/g, ''));
+  if (!p.getProperty('COTEACHER_KEY')) p.setProperty('COTEACHER_KEY', Utilities.getUuid().replace(/-/g, '').slice(0, 16));
   if (!p.getProperty('AUTH_MODE')) p.setProperty('AUTH_MODE', 'google');
   if (!p.getProperty('DOMAIN')) p.setProperty('DOMAIN', 'aisr.org');
   if (!p.getProperty('CLIENT_ID')) p.setProperty('CLIENT_ID', 'paste the Client ID here');
@@ -100,8 +104,83 @@ function route(req) {
     case 'climbReply': teacher(req); return climbReply(req);
     case 'studentDay': teacher(req); return studentDay(req);
     case 'report': teacher(req); return reportFor(req);
+    case 'coWho': return coWho(req);
+    case 'coRoster': return coRoster(req);
+    case 'coAdd': return coAdd(req);
+    case 'coClass': return coClass(req);
     default: throw new Error('unknown op');
   }
+}
+
+/* ---------------- co-teacher (co-teacher.html) ----------------
+   The co-teacher key reaches only the co-teacher's own classes: their roster and codes, adding students, and their
+   Unit 2 Check results (game g91). The main teacher key can do all of it for every class. */
+var CO_GAMES = /^g91$/, CO_CLASS = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,19}$/;
+function coClasses() { return prop('COTEACHER_CLASSES').split(',').map(function (c) { return c.trim(); }).filter(Boolean); }
+function coKey() {
+  var p = PropertiesService.getScriptProperties(), k = p.getProperty('COTEACHER_KEY');
+  if (!k) { k = Utilities.getUuid().replace(/-/g, '').slice(0, 16); p.setProperty('COTEACHER_KEY', k); }
+  return k;
+}
+// who is asking: the main teacher (every class) or the co-teacher (her classes only)
+function coTeacher(req) {
+  var g = String(req.teacherKey || ''), t = prop('TEACHER_KEY');
+  if (t && g === t) return { all: true, classes: coClasses() };
+  var k = prop('COTEACHER_KEY');
+  if (!k || g !== k) throw new Error('teacher key');
+  return { all: false, classes: coClasses() };
+}
+function coSees(who, cls) { return who.all || who.classes.indexOf(cls) >= 0; }
+function coWho(req) {
+  var who = coTeacher(req), out = { ok: true, main: who.all, classes: who.classes, authMode: prop('AUTH_MODE') || 'google' };
+  if (who.all) { out.coKey = coKey(); out.allClasses = rosterRows().map(function (r) { return r.cls; }).filter(function (c, i, a) { return c && a.indexOf(c) === i; }); }
+  return out;
+}
+function coRoster(req) {
+  var who = coTeacher(req);
+  return { ok: true, main: who.all, classes: who.classes, authMode: prop('AUTH_MODE') || 'google',
+    roster: rosterRows().filter(function (r) { return coSees(who, r.cls); }).map(function (r) { return { sid: r.sid, name: r.name, cls: r.cls, code: r.code }; }) };
+}
+// add students: [{name, cls}], at most 60 at a time. A co-teacher may add to her own classes or start a new class
+// whose name nobody else uses; a new class joins her list.
+function coAdd(req) {
+  var who = coTeacher(req), list = Array.isArray(req.students) ? req.students.slice(0, 60) : [];
+  if (!list.length) throw new Error('no students');
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    clearRosterCache();
+    var roster = rosterRows(), used = {}, sids = {}, taken = {}, mine = who.classes.slice();
+    roster.forEach(function (r) { used[r.code] = 1; sids[r.sid] = 1; if (r.cls) taken[r.cls] = 1; });
+    var A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', rows = [], out = [];
+    list.forEach(function (x) {
+      var name = String(x && x.name || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60);
+      var cls = String(x && x.cls || '').trim();
+      if (!name) return;
+      if (!CO_CLASS.test(cls)) throw new Error('bad class name: ' + cls);
+      if (!who.all && mine.indexOf(cls) < 0) {
+        if (taken[cls]) throw new Error('class ' + cls + ' belongs to another teacher');
+        mine.push(cls);
+      }
+      var c, sid; do { c = ''; for (var k = 0; k < 6; k++) c += A.charAt(Math.floor(Math.random() * A.length)); } while (used[c]); used[c] = 1;
+      do { sid = 'c' + Utilities.getUuid().replace(/-/g, '').slice(0, 9); } while (sids[sid]); sids[sid] = 1;
+      rows.push([sid, name, cls, '', c]); out.push({ sid: sid, name: name, cls: cls, code: c });
+    });
+    if (!rows.length) throw new Error('no students');
+    var sh = SpreadsheetApp.getActive().getSheetByName('Roster');
+    sh.getRange(sh.getLastRow() + 1, 1, rows.length, 5).setValues(rows);
+    if (!who.all && mine.length !== who.classes.length) PropertiesService.getScriptProperties().setProperty('COTEACHER_CLASSES', mine.join(','));
+    clearRosterCache();
+    return { ok: true, added: out, classes: who.all ? who.classes : mine };
+  } finally { lock.releaseLock(); }
+}
+// the Unit 2 Check dashboard's view for the co-teacher: her students and their check rows only
+function coClass(req) {
+  var who = coTeacher(req), roster = rosterRows().filter(function (r) { return coSees(who, r.cls); }), ids = {};
+  roster.forEach(function (r) { ids[r.sid] = 1; });
+  var sh = progressSheet(), n0 = sh.getLastRow();
+  var prog = (n0 < 2 ? [] : sh.getRange(2, 1, n0 - 1, 12).getValues()).filter(function (r) { return r[0] && ids[String(r[0])] && CO_GAMES.test(String(r[1])); })
+    .map(function (r) { var o = summaryRow(r); o.sid = String(r[0]); return o; });
+  return { ok: true, roster: roster.map(publicStudent), progress: prog, events: [], climb: [] };
 }
 
 /* ---------------- auth ---------------- */

@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My Students · Sandy Flats</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css?v=20261118">
+<style>
+/* Co-teacher page: add students to your classes, hand out their codes, open the Unit 2 Check dashboard for your classes. */
+.cot{max-width:1000px}
+.muted{color:var(--muted)}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:16px}
+.panel h2{margin:0 0 6px;font:800 20px var(--ui)}
+.bar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-top:10px}
+.steps{margin:6px 0 0;padding-left:1.3em;line-height:1.6}
+.inp,.ta,select.inp{font:600 15px var(--ui);padding:9px 12px;border-radius:10px;border:2px solid var(--line);background:#0E0C14;color:var(--ink)}
+.ta{width:100%;min-height:150px;font:500 15px var(--mono);resize:vertical;box-sizing:border-box}
+.key{font-family:var(--mono)}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.seg button{font:700 14px var(--ui);padding:6px 12px;border-radius:999px;border:2px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--marquee);color:#1B1A22;border-color:var(--marquee)}
+table.ros{border-collapse:collapse;width:100%;margin-top:10px;font-size:15px}
+table.ros th,table.ros td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left}
+table.ros th{font:800 12px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+table.ros td.code{font:700 17px var(--mono);letter-spacing:.12em;color:var(--marquee)}
+tr.new td{background:rgba(59,255,138,.08)}
+.warn{background:#3A1E12;border:2px solid #FF8E54;border-radius:12px;padding:10px 14px;margin-top:12px}
+.ok{background:#14281F;border:2px solid var(--green);border-radius:12px;padding:10px 14px;margin-top:12px}
+.err{color:#FF8E84;margin-top:8px}
+.big{font-size:17px}
+/* printable code cards */
+#cards{display:none}
+@media print{
+  body{background:#fff!important;color:#000}
+  .wrap,.topbar{display:none!important}
+  #cards{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .card{border:1px dashed #888;padding:14px 16px;height:2.55in;box-sizing:border-box;page-break-inside:avoid;font-family:Arial,sans-serif;color:#000}
+  .card .nm{font-size:18pt;font-weight:700}
+  .card .cl{font-size:10pt;color:#444}
+  .card .cd{font:700 26pt 'Courier New',monospace;letter-spacing:.18em;margin:8px 0}
+  .card .how{font-size:10.5pt;line-height:1.35}
+}
+@media (max-width:560px){table.ros .hide-s{display:none}}
+</style>
+</head><body>
+<div class="wrap cot">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">My Students</h1><div class="chips" id="chips"></div></header>
+  <main id="body"><p class="muted">Loading…</p></main>
+</div>
+<div id="cards" aria-hidden="true"></div>
+<script src="config.js"></script>
+<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120a"><\/script>'); }</script>
+<script src="sfa-kit.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SFA = window.SFA, el = SFA.el, CFG = window.SFA_CONFIG || {}, body = document.getElementById('body'), chips = document.getElementById('chips');
+  var TRY = !!window.CU2_TRY, Q = TRY ? '?try' : '';
+  var SITE = location.href.replace(/[^/]*$/, '');   // the folder this page lives in, for the link printed on the cards
+  var S = { who: null, roster: [], cls: '', fresh: {}, msg: null };
+
+  /* ---------- key: the co-teacher key, or the main teacher key ---------- */
+  var KEY = 'sfa.cokey';
+  var Key = {
+    get: function () { try { var s = sessionStorage.getItem(KEY); if (s) return s; var r = JSON.parse(localStorage.getItem(KEY) || 'null'); if (r && r.until > Date.now()) return r.k; } catch (e) { } return ''; },
+    set: function (k, remember) { try { sessionStorage.setItem(KEY, k); if (remember) { var d = new Date(); d.setDate(d.getDate() + 30); localStorage.setItem(KEY, JSON.stringify({ k: k, until: d.getTime() })); } } catch (e) { } },
+    del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
+  };
+  function api(op, extra) {
+    var b = { op: op, teacherKey: Key.get() }; Object.keys(extra || {}).forEach(function (k) { b[k] = extra[k]; });
+    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(b) })
+      .then(function (r) { return r.text(); })
+      .then(function (t) { try { return JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly.'); } })
+      .then(function (j) { if (!j.ok) throw new Error(j.error); return j; });
+  }
+  function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim() + ' ' + p[0].trim()).trim(); }
+  function byName(a, b) { return nice(a.name).localeCompare(nice(b.name)); }
+
+  function askKey(msg) {
+    var inp = el('input', { type: 'password', 'class': 'inp key', style: 'width:20em;max-width:100%', autocomplete: 'off', 'aria-label': 'Co-teacher key' });
+    var rem = el('input', { type: 'checkbox', id: 'remKey' });
+    var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Open', onclick: function () { if (inp.value.trim()) { Key.set(inp.value.trim(), rem.checked); load(); } } });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go.click(); });
+    body.innerHTML = '';
+    body.appendChild(el('div', { 'class': 'panel', style: 'max-width:640px' }, [
+      el('h2', { text: 'Your co-teacher key' }),
+      el('p', { 'class': 'muted', text: msg || 'Mr. Crowell gives you this key. It opens your classes only: adding students, their sign-in codes, and their Unit 2 Check results.' }),
+      el('div', { 'class': 'bar' }, [inp, go]),
+      el('label', { 'for': 'remKey', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' }, [rem, 'Remember on this computer for 30 days']),
+      TRY ? el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Practice mode: the key is co (or test for the main teacher view).' }) : null
+    ]));
+    inp.focus();
+  }
+
+  function load() {
+    if (!TRY && !CFG.endpoint) { body.textContent = 'Results saving isn\'t switched on for this copy of the arcade.'; return; }
+    if (!Key.get()) return askKey();
+    body.innerHTML = '<p class="muted">Loading your classes…</p>';
+    Promise.all([api('coWho'), api('coRoster')]).then(function (r) {
+      S.who = r[0]; S.roster = r[1].roster || [];
+      var cl = classes(); if (S.cls && cl.indexOf(S.cls) < 0) S.cls = ''; if (!S.cls && cl.length) S.cls = cl[0];
+      render();
+    }, function (e) {
+      if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it with Mr. Crowell and try again.'); }
+      else if (/unknown op/.test(e.message)) body.innerHTML = '<div class="panel warn"><b>The results script needs updating first.</b> Mr. Crowell: paste the new backend/Code.gs into Apps Script and deploy a new version (see APPS-SCRIPT-UPDATE-PROMPT.txt), then reload this page.</div>';
+      else body.innerHTML = '<p class="err">Couldn\'t reach the results sheet. ' + SFA.esc(e.message) + '</p>';
+    });
+  }
+  function classes() {
+    var out = (S.who && S.who.classes || []).slice();
+    S.roster.forEach(function (r) { if (r.cls && out.indexOf(r.cls) < 0) out.push(r.cls); });
+    return out.sort();
+  }
+
+  function render() {
+    body.innerHTML = '';
+    chips.innerHTML = '';
+    chips.appendChild(el('button', { type: 'button', 'class': 'btn', text: 'Sign out', onclick: function () { Key.del(); S = { who: null, roster: [], cls: '', fresh: {}, msg: null }; askKey(); } }));
+    var main = S.who && S.who.main, cl = classes();
+
+    if (S.who && S.who.authMode === 'google') body.appendChild(el('div', { 'class': 'warn' }, [el('b', { text: 'Student codes are switched off. ' }), 'The results script only accepts Google sign-in, so the codes below won\'t work yet. Mr. Crowell: set the script property AUTH_MODE to both.']));
+
+    // the main teacher sees the key to hand over
+    if (main) body.appendChild(el('section', { 'class': 'panel' }, [
+      el('h2', { text: 'For Mr. Crowell: the co-teacher key' }),
+      el('p', { 'class': 'muted', text: 'You are signed in with the main teacher key, so you see every class. Give your co-teacher this key and the link to this page. Her key only opens the classes she creates here, their codes and their Unit 2 Check results.' }),
+      el('div', { 'class': 'bar' }, [el('code', { 'class': 'key big', text: S.who.coKey || '(not set)' }), el('button', { type: 'button', 'class': 'btn', text: 'Copy key and link', onclick: function () { copy('Sandy Flats co-teacher page: ' + SITE + 'co-teacher.html\nYour key: ' + S.who.coKey, this); } })]),
+      el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Her classes: ' + ((S.who.classes || []).join(', ') || 'none yet') + '. To take a class away from her, edit the script property COTEACHER_CLASSES. To change her key, edit COTEACHER_KEY.' })
+    ]));
+
+    // 1. add students
+    var clsIn = el('input', { 'class': 'inp', style: 'width:9em', maxlength: '20', placeholder: 'e.g. 8C', value: S.cls || '', 'aria-label': 'Class name' });
+    var dl = el('datalist', { id: 'clsList' }); cl.forEach(function (c) { dl.appendChild(el('option', { value: c })); }); clsIn.setAttribute('list', 'clsList');
+    var ta = el('textarea', { 'class': 'ta', placeholder: 'One student per line, for example:\nAisha Rahman\nLucas Martin\nNoor Haddad', 'aria-label': 'Student names, one per line' });
+    var err = el('p', { 'class': 'err', role: 'alert' });
+    var addB = el('button', { type: 'button', 'class': 'btn primary', text: 'Add students and make codes' });
+    addB.onclick = function () {
+      var cls = clsIn.value.trim(), names = ta.value.split(/\r?\n/).map(function (s) { return s.replace(/\s+/g, ' ').trim(); }).filter(Boolean);
+      err.textContent = '';
+      if (!/^[A-Za-z0-9][A-Za-z0-9 ._-]{0,19}$/.test(cls)) { err.textContent = 'Type a class name (letters and numbers, up to 20 characters), e.g. 8C.'; clsIn.focus(); return; }
+      if (!names.length) { err.textContent = 'Type at least one student name.'; ta.focus(); return; }
+      if (names.length > 60) { err.textContent = 'Add up to 60 students at a time.'; return; }
+      var dupes = names.filter(function (n) { return S.roster.some(function (r) { return r.cls === cls && nice(r.name).toLowerCase() === n.toLowerCase(); }); });
+      if (dupes.length && !confirm(dupes.join(', ') + (dupes.length > 1 ? ' are' : ' is') + ' already in ' + cls + '. Add again anyway? (They would get a second code.)')) return;
+      addB.disabled = true; addB.textContent = 'Adding…';
+      api('coAdd', { students: names.map(function (n) { return { name: n, cls: cls }; }) }).then(function (j) {
+        S.fresh = {}; (j.added || []).forEach(function (a) { S.fresh[a.sid] = 1; S.roster.push(a); });
+        if (S.who && j.classes) S.who.classes = j.classes;
+        S.cls = cls; S.msg = (j.added || []).length + ' student' + ((j.added || []).length === 1 ? '' : 's') + ' added to ' + cls + '. Their codes are highlighted below. Codes can take up to 5 minutes to start working.';
+        render();
+      }, function (e) { addB.disabled = false; addB.textContent = 'Add students and make codes'; err.textContent = /belongs to another/.test(e.message) ? 'That class name is already used by another teacher. Pick a different name, e.g. ' + cls + '-2.' : 'Couldn\'t add them: ' + e.message; });
+    };
+    body.appendChild(el('section', { 'class': 'panel' }, [
+      el('h2', { text: '1. Add students' }),
+      el('p', { 'class': 'muted', text: 'Type a class name (a new one or one of yours), then the students\' names, one per line. Each student gets a 6-character sign-in code.' }),
+      el('div', { 'class': 'bar' }, [el('label', { text: 'Class' }), clsIn, dl]),
+      el('div', { style: 'margin-top:10px' }, [ta]),
+      el('div', { 'class': 'bar' }, [addB]), err
+    ]));
+
+    // 2. students and codes
+    var list = S.roster.filter(function (r) { return !S.cls || r.cls === S.cls; }).sort(byName);
+    var sec = el('section', { 'class': 'panel' }, [el('h2', { text: '2. Students and their codes' })]);
+    if (S.msg) { sec.appendChild(el('div', { 'class': 'ok', role: 'status', text: S.msg })); S.msg = null; }
+    if (!cl.length) sec.appendChild(el('p', { 'class': 'muted', text: 'No classes yet. Add your first students above.' }));
+    else {
+      var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Class' });
+      (main ? [''] : []).concat(cl).forEach(function (c) { seg.appendChild(el('button', { type: 'button', 'aria-pressed': S.cls === c ? 'true' : 'false', text: c || 'All classes', onclick: function () { S.cls = c; render(); } })); });
+      sec.appendChild(seg);
+      sec.appendChild(el('div', { 'class': 'bar' }, [
+        el('button', { type: 'button', 'class': 'btn primary', text: '🖨 Print code cards (' + list.length + ')', onclick: function () { printCards(list); } }),
+        el('button', { type: 'button', 'class': 'btn', text: 'Copy as a list', onclick: function () { copy(list.map(function (r) { return nice(r.name) + '\t' + r.cls + '\t' + r.code; }).join('\n'), this); } })
+      ]));
+      var t = el('table', { 'class': 'ros' }, [el('tr', {}, [el('th', { text: 'Student' }), el('th', { 'class': 'hide-s', text: 'Class' }), el('th', { text: 'Code' })])]);
+      list.forEach(function (r) { t.appendChild(el('tr', { 'class': S.fresh[r.sid] ? 'new' : '' }, [el('td', { text: nice(r.name) }), el('td', { 'class': 'hide-s', text: r.cls }), el('td', { 'class': 'code', text: r.code || '–' })])); });
+      if (!list.length) t.appendChild(el('tr', {}, [el('td', { colspan: '3', 'class': 'muted', text: 'No students in this class yet.' })]));
+      sec.appendChild(t);
+      sec.appendChild(el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Spelling mistake or a student who left? Ask Mr. Crowell to fix the row on the Roster tab of the results sheet.' }));
+    }
+    body.appendChild(sec);
+
+    // 3. run the check and see results
+    body.appendChild(el('section', { 'class': 'panel' }, [
+      el('h2', { text: '3. Run the Unit 2 Check and see the results' }),
+      el('ol', { 'class': 'steps' }, [
+        el('li', { text: 'Open the dashboard below and press "Make a start code". Write the code on the board.' }),
+        el('li', {}, ['Students open ', el('b', { text: SITE.replace(/^https?:\/\//, '') + 'check-u2.html' + Q }), ', sign in with their own code from the card, then type the start code. They need paper and a pencil.']),
+        el('li', { text: 'The test takes 35 minutes. The dashboard updates every 30 seconds while they work.' }),
+        el('li', { text: 'Collect the papers at the end. The dashboard lists which questions to check on each student\'s paper.' })
+      ]),
+      el('div', { 'class': 'bar' }, [el('a', { 'class': 'btn primary big', href: 'check-u2-teacher.html?co' + (TRY ? '&try' : ''), text: '🎯 Open the Unit 2 Check dashboard' })]),
+      el('p', { 'class': 'muted', style: 'font-size:13px', text: 'The dashboard opens with the same key. It shows only your classes.' })
+    ]));
+  }
+
+  function copy(text, btn) {
+    var done = function () { var o = btn.textContent; btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = o; }, 1600); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { prompt('Copy this:', text); });
+    else prompt('Copy this:', text);
+  }
+  function printCards(list) {
+    var box = document.getElementById('cards'); box.innerHTML = '';
+    var url = SITE.replace(/^https?:\/\//, '') + 'check-u2.html' + Q;
+    list.forEach(function (r) {
+      box.appendChild(el('div', { 'class': 'card' }, [
+        el('div', { 'class': 'nm', text: nice(r.name) }), el('div', { 'class': 'cl', text: 'Class ' + r.cls + ' · Sandy Flats Arcade' }),
+        el('div', { 'class': 'cd', text: r.code }),
+        el('div', { 'class': 'how' }, ['This is your sign-in code. Keep it private.', el('br'), 'Unit 2 Check: go to ', el('b', { text: url }), ', type this code, then the start code your teacher writes on the board.'])
+      ]));
+    });
+    window.print();
+  }
+
+  load();
+})();
+</script>
+</body></html>

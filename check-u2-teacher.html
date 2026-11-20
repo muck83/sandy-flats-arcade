@@ -85,6 +85,37 @@ table.log{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
 body.hide .nmv{filter:blur(6px)}
 @media print{body{background:#fff;color:#000}.bar,.kpis,.drawer,.how,.noprint,.sfanav,.topbar{display:none!important}.panel{border:1px solid #999;background:#fff;color:#000}.pp details{background:#fff;border:1px solid #bbb}.muted,.panel .sub{color:#333}}
 @media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+/* completed formative task sheets (printed from the dashboard): one page per student */
+#sheets{display:none}
+@media print{
+  body.sheets .wrap,body.sheets .drawer{display:none!important}
+  body.sheets #sheets{display:block}
+  @page{size:letter portrait;margin:.4in}
+  .ts{page-break-after:always;font:9.5pt/1.25 Arial,Helvetica,sans-serif;color:#000;background:#fff}
+  .ts:last-child{page-break-after:auto}
+  .ts h1{font:700 16pt Arial,sans-serif;margin:0}
+  .ts .hd{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:6px}
+  .ts .meta{font-size:9.5pt;color:#333}
+  .ts .who{text-align:right;font-size:11pt}
+  .ts .who b{font-size:13pt}
+  .ts table{width:100%;border-collapse:collapse;margin-top:6px}
+  .ts th,.ts td{border:1px solid #777;padding:2px 4px;vertical-align:top;font-size:7.6pt;line-height:1.2}
+  .ts th{background:#eee;font-size:7.8pt}
+  .ts col.c1{width:24%}.ts col.c2{width:11%}
+  .ts td.cn{font-weight:700;background:#f6f6f6}
+  .ts td.sk{padding-left:12px}
+  .ts td.hit{background:#d9d9d9;outline:2.5px solid #000;outline-offset:-3px;font-weight:700}
+  .ts td.hit:before{content:'✔ '}
+  .ts td.lv{text-align:center;white-space:nowrap;font-weight:700}
+  .ts td.ne{color:#555;font-style:italic;text-align:center}
+  .ts .ov{display:flex;gap:16px;align-items:baseline;margin-top:8px;font-size:11pt}
+  .ts .box{border:1px solid #777;padding:3px 7px;margin-top:5px}
+  .ts .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .ts .box h3{margin:0 0 2px;font:700 10pt Arial,sans-serif}
+  .ts .box ul{margin:1px 0 0;padding-left:1.2em;font-size:8.6pt}
+  .ts .lines{border-bottom:1px solid #999;height:.25in}
+  .ts .fine{font-size:8pt;color:#444;margin-top:5px}
+}
 </style>
 </head><body>
 <div class="wrap dash">
@@ -92,9 +123,10 @@ body.hide .nmv{filter:blur(6px)}
   <main id="body"><p class="muted">Loading…</p></main>
   <div id="app" hidden aria-hidden="true"></div>
 </div>
+<div id="sheets" aria-hidden="true"></div>
 <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Student detail"></aside>
 <script src="config.js"></script>
-<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261119a"><\/script>'); }</script>
+<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120a"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
 <script src="check-u2.js?v=20261119a"></script>
@@ -102,18 +134,19 @@ body.hide .nmv{filter:blur(6px)}
 (function () {
   'use strict';
   var SFA = window.SFA, el = SFA.el, CU = window.CU2, CFG = window.SFA_CONFIG || {}, body = document.getElementById('body'), drawer = document.getElementById('drawer');
-  var DEMO = /[?&]demo/.test(location.search), TRY = !!window.CU2_TRY;
+  var DEMO = /[?&]demo/.test(location.search), TRY = !!window.CU2_TRY, CO = /[?&]co\b/.test(location.search);   // ?co: the co-teacher's view (her key, her classes)
   var CRIT = CU.CRIT, SK = CU.SK, LV = CU.LV, ABBR = ['?', 'L', 'E', 'D', 'D+'], FL = CU.FLAG;
   var SKN = {}; SK.forEach(function (k) { SKN[k.id] = k; });
 
   /* ---------- teacher key (shared with Class Results) ---------- */
-  var KEY = 'sfa.classkey';
+  var KEY = CO ? 'sfa.cokey' : 'sfa.classkey';
   var Key = {
-    get: function () { if (TRY) return 'test'; try { var s = sessionStorage.getItem(KEY); if (s) return s; var r = JSON.parse(localStorage.getItem(KEY) || 'null'); if (r && r.until > Date.now()) return r.k; } catch (e) { } return ''; },
+    get: function () { if (TRY) return CO ? 'co' : 'test'; try { var s = sessionStorage.getItem(KEY); if (s) return s; var r = JSON.parse(localStorage.getItem(KEY) || 'null'); if (r && r.until > Date.now()) return r.k; } catch (e) { } return ''; },
     set: function (k, remember) { try { sessionStorage.setItem(KEY, k); if (remember) { var d = new Date(); d.setHours(23, 59, 59, 0); localStorage.setItem(KEY, JSON.stringify({ k: k, until: d.getTime() })); } } catch (e) { } },
     del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
   };
   function api(op) {
+    if (CO && op === 'class') op = 'coClass';
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ op: op, teacherKey: Key.get() }) })
       .then(function (r) { return r.text(); })
       .then(function (t) { try { return JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly.'); } })
@@ -318,7 +351,8 @@ body.hide .nmv{filter:blur(6px)}
       el('button', { 'class': 'btn small', type: 'button', text: hidden ? '👁 Show names' : '🙈 Hide names', onclick: function () { document.body.classList.toggle('hide'); render(); } }),
       DEMO ? null : el('button', { 'class': 'btn small', type: 'button', text: S.auto ? '⏸ Auto-refresh' : '▶ Auto-refresh', onclick: function () { S.auto = !S.auto; setPref('auto', S.auto); schedule(); render(); } }),
       DEMO ? null : el('button', { 'class': 'btn small', type: 'button', text: '↻ Refresh', onclick: function () { load(true); } }),
-      el('button', { 'class': 'btn small', type: 'button', text: '⬇ CSV', onclick: csv })
+      el('button', { 'class': 'btn small', type: 'button', text: '⬇ CSV', onclick: csv }),
+      el('button', { 'class': 'btn small primary', type: 'button', text: '🖨 Task sheets', title: 'A completed formative task sheet for every student who took the check (this class)', onclick: function () { printSheets(S.rows.filter(function (x) { return inScope(x) && x.att; }).sort(function (a, b) { return a.name.localeCompare(b.name); })); } })
     ]);
   }
 
@@ -330,6 +364,7 @@ body.hide .nmv{filter:blur(6px)}
     else {
       var sc = r.sc, a = r.att;
       drawer.appendChild(el('p', { 'class': 'muted', text: (r.cls ? 'Class ' + r.cls + ' · ' : '') + r.state + ' · started ' + new Date(a.t0).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' with code ' + a.code + ' · ' + sc.n + ' questions (' + sc.right + ' right) in ' + r.mins + ' min' + (a.n > 1 ? ' · attempt ' + a.n : '') }));
+      drawer.appendChild(el('p', { 'class': 'noprint' }, [el('button', { 'class': 'btn small primary', type: 'button', text: '🖨 Task sheet for ' + nice(r.name), onclick: function () { printSheets([r]); } })]));
       drawer.appendChild(el('p', {}, [el('span', { 'class': 'badge l' + sc.level, text: LV[sc.level] }), sc.level ? ' Scale ' + sc.scale + ' ± ' + sc.pm : ' Fewer than ' + CU.NEED.all + ' answers.']));
       if (r.tags.length) drawer.appendChild(el('p', {}, r.tags.map(function (x) { return el('span', { 'class': 'tag' + (x[1] ? '' : ' soft'), text: x[0] }); })));
       CRIT.forEach(function (c) {
@@ -370,6 +405,64 @@ body.hide .nmv{filter:blur(6px)}
     window.CU2_LAST_CSV = text;
   }
 
+  /* ---------- completed formative task sheets ----------
+     One page per student: the four success criteria and every skill (strand) under them, with the level reached marked
+     on the rubric. A level needs enough evidence (2 answers on a skill, 3 on a criterion); otherwise it says so. */
+  var DESC = {
+    compute: ['Finds slope in simple, familiar cases with help; mixes up rise and run or the sign.', 'Finds slope correctly in some simple cases (one or two representations).', 'Finds slope correctly from ordered pairs, tables, graphs and equations in most problems.', 'Chooses an efficient method in any representation, including unfamiliar or less tidy problems.'],
+    convert: ['Begins to rearrange an equation with support; steps or signs often go wrong.', 'Converts simple equations between forms, sometimes reaching the correct form.', 'Converts between standard and slope-intercept form accurately in most problems.', 'Converts fluently, including fractions and negative coefficients, and checks the result.'],
+    represent: ['Begins to connect a situation to a graph, table or equation in familiar problems.', 'Represents simple situations with an equation or graph; sometimes solves correctly.', 'Represents situations with equations, graphs and words and solves them in most problems.', 'Moves flexibly between representations and applies them to unfamiliar situations, including inequalities.'],
+    explain: ['Gives a partial explanation; the meaning of slope or intercept is unclear.', 'Explains simple cases using some correct vocabulary.', 'Explains slope and intercept in context clearly, with units, in most problems.', 'Explains and justifies reasoning precisely, and spots and corrects errors.']
+  };
+  var LVN = ['Limited', 'Emerging', 'Developed', 'Deep'];
+  function printSheets(list) {
+    if (!list.length) { SFA.toast ? SFA.toast('Nobody in this class has taken the check yet.', 3000) : alert('Nobody in this class has taken the check yet.'); return; }
+    var box = document.getElementById('sheets'); box.innerHTML = '';
+    list.forEach(function (r) { box.appendChild(sheet(r)); });
+    document.body.classList.add('sheets');
+    var off = function () { document.body.classList.remove('sheets'); window.removeEventListener('afterprint', off); };
+    window.addEventListener('afterprint', off);
+    window.print();
+    setTimeout(off, 1500);
+  }
+  function sheet(r) {
+    var sc = r.sc, a = r.att, d = new Date(a.end ? a.end.at || a.t0 : a.t0);
+    var pg = el('section', { 'class': 'ts' });
+    pg.appendChild(el('div', { 'class': 'hd' }, [
+      el('div', {}, [el('h1', { text: 'Unit 2 Formative: Linear Relationships' }), el('div', { 'class': 'meta', text: 'Unit 2 Check (adaptive, 35 minutes) · ' + d.toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' }) + ' · ' + sc.n + ' questions answered, ' + sc.right + ' right' })]),
+      el('div', { 'class': 'who' }, [el('b', { text: nice(r.name) }), el('br'), r.cls ? 'Class ' + r.cls : ''])
+    ]));
+    var t = el('table', {}, [el('colgroup', {}, [el('col', { 'class': 'c1' }), el('col', { 'class': 'c2' }), el('col'), el('col'), el('col'), el('col')])]), hr = el('tr', {}, [el('th', { text: 'Success criterion / strand' }), el('th', { text: 'Level reached' })]);
+    LVN.forEach(function (l) { hr.appendChild(el('th', { text: l })); }); t.appendChild(hr);
+    CRIT.forEach(function (c) {
+      var e = sc.crit[c.id], tr = el('tr', {}, [el('td', { 'class': 'cn', text: c.strand + ': ' + c.short }), el('td', { 'class': 'lv', text: e.level ? LVN[e.level - 1] : 'Not enough evidence' })]);
+      DESC[c.id].forEach(function (txt, i) { tr.appendChild(el('td', { 'class': e.level === i + 1 ? 'hit' : '', text: txt })); });
+      t.appendChild(tr);
+      c.skills.forEach(function (id) {
+        var k = sc.skill[id], row = el('tr', {}, [el('td', { 'class': 'sk', text: SKN[id].name }), el('td', { 'class': 'lv', text: k.level ? LVN[k.level - 1] : (k.n ? 'Not enough evidence' : 'Not assessed') })]);
+        if (k.level) for (var i = 1; i <= 4; i++) row.appendChild(el('td', { 'class': k.level === i ? 'hit' : '', text: k.level === i ? (k.right + ' of ' + k.n + ' right') : '' }));
+        else row.appendChild(el('td', { 'class': 'ne', colspan: '4', text: k.n ? k.right + ' of ' + k.n + ' right: one more question is needed for a level' : 'This skill did not come up in the time' }));
+        t.appendChild(row);
+      });
+    });
+    pg.appendChild(t);
+    pg.appendChild(el('div', { 'class': 'ov' }, [el('span', {}, ['Overall: ', el('b', { text: sc.level ? LVN[sc.level - 1] : 'Not enough evidence' })]), sc.level ? el('span', { text: 'Scale score ' + sc.scale + ' (± ' + sc.pm + ')' }) : null]));
+    var good = [], next = [];
+    SK.forEach(function (k) { var x = sc.skill[k.id]; if (x.level >= 3) good.push(k.name); });
+    CRIT.slice().sort(function (p, q) { return (sc.crit[p.id].level || 9) - (sc.crit[q.id].level || 9) || sc.crit[p.id].th - sc.crit[q.id].th; }).forEach(function (c) {
+      if (next.length >= 3) return;
+      var weak = c.skills.filter(function (id) { var x = sc.skill[id]; return x.n && x.level && x.level < 3; }).concat(c.skills.filter(function (id) { var x = sc.skill[id]; return x.n && !x.level && x.right < x.n; }));
+      weak.forEach(function (id) { if (next.length < 3 && next.indexOf(SKN[id].name) < 0) next.push(SKN[id].name); });
+    });
+    var two = el('div', { 'class': 'two' }); pg.appendChild(two);
+    two.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'What you can do' }), good.length ? el('ul', {}, good.slice(0, 6).map(function (g) { return el('li', { text: g }); })) : el('div', { text: 'Keep going: no skill reached Developed yet. Your next steps are below.' })]));
+    two.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'Next steps (practise these in the Unit 2 Review)' }), next.length ? el('ul', {}, next.map(function (g) { return el('li', { text: g }); })) : el('div', { text: 'Try the stretch problems in the Unit 2 Review to reach Deep.' })]));
+    pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'Teacher comment' }), el('div', { 'class': 'lines' }), el('div', { 'class': 'lines' })]));
+    pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'Student reflection: one thing I will do next' }), el('div', { 'class': 'lines' })]));
+    pg.appendChild(el('div', { 'class': 'fine', text: 'Formative: this shows where you are now, not a final grade. Levels come from an adaptive test: a strand needs at least 2 answers (a criterion 3) before a level is given.' }));
+    return pg;
+  }
+
   /* ---------- loading ---------- */
   function schedule() { clearInterval(timer); if (S.auto && !DEMO) timer = setInterval(function () { if (document.visibilityState === 'visible' && !drawer.classList.contains('open') && !body.querySelector('details[open]') && document.activeElement.tagName !== 'INPUT') load(false); }, 30000); }
   function askKey(msg) {
@@ -379,7 +472,7 @@ body.hide .nmv{filter:blur(6px)}
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go.click(); });
     body.innerHTML = '';
     body.appendChild(el('div', { 'class': 'panel', style: 'max-width:640px' }, [
-      el('h2', { text: 'Teacher key' }), el('p', { 'class': 'muted', text: msg || 'The same key as Class Results. It is forgotten when you close this tab, unless you tick the box.' }),
+      el('h2', { text: 'Teacher key' }), el('p', { 'class': 'muted', text: msg || (CO ? 'Your co-teacher key (the one on your Students page). It is forgotten when you close this tab, unless you tick the box.' : 'The same key as Class Results. It is forgotten when you close this tab, unless you tick the box.') }),
       el('div', { 'class': 'bar' }, [inp, go]),
       el('label', { 'for': 'remKey', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' }, [rem, 'Remember on this computer until the end of today']),
       el('p', { 'class': 'muted', style: 'font-size:13px' }, ['Just looking? ', el('a', { href: '?demo', text: 'Open it with a sample class' }), ', or ', el('a', { href: '?try', text: 'use the practice class' }), ' (students try it at check-u2.html?try with codes AAAAAA, BBBBBB, CCCCCC).'])
@@ -420,5 +513,5 @@ body.hide .nmv{filter:blur(6px)}
   window.CU2_DASH = { rows: function () { return S.rows; }, csv: csv };
 })();
 </script>
-<script src="sfa-nav.js"></script>
+<script>if (!/[?&]co\b/.test(location.search)) document.write('<script src="sfa-nav.js"><\/script>'); else document.querySelector('.topbar .chips').insertAdjacentHTML('beforeend', '<a class="btn" href="co-teacher.html' + (/[?&]try\b/.test(location.search) ? '?try' : '') + '">← My students</a>');</script>
 </body></html>
