@@ -112,7 +112,9 @@ body.hide .nmv{filter:blur(6px)}
   .ts .box{border:1px solid #777;padding:3px 7px;margin-top:5px}
   .ts .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
   .ts .box h3{margin:0 0 2px;font:700 10pt Arial,sans-serif}
-  .ts .box ul{margin:1px 0 0;padding-left:1.2em;font-size:8.6pt}
+  .ts .box ul,.ts .box ol{margin:1px 0 0;padding-left:1.4em;font-size:8.6pt}
+  .ts .box li{margin:1px 0}
+  .ts .how2{font-size:8pt;color:#333;margin-top:2px}
   .ts .lines{border-bottom:1px solid #999;height:.25in}
   .ts .fine{font-size:8pt;color:#444;margin-top:5px}
 }
@@ -129,7 +131,7 @@ body.hide .nmv{filter:blur(6px)}
 <script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120d"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
-<script src="check-u2.js?v=20261120g"></script>
+<script src="check-u2.js?v=20261120h"></script>
 <script>
 (function () {
   'use strict';
@@ -372,6 +374,8 @@ body.hide .nmv{filter:blur(6px)}
         drawer.appendChild(el('h3', { style: 'display:flex;justify-content:space-between;gap:8px' }, [c.name, el('span', { 'class': 'badge l' + e.level, text: LV[e.level] })]));
         drawer.appendChild(el('div', { 'class': 'dsk' }, [].concat.apply([], c.skills.map(function (id) { var k = sc.skill[id]; return [el('span', { text: SKN[id].name }), el('small', { text: k.n ? k.right + '/' + k.n + (k.top ? ' · top L' + k.top : '') : '' }), el('span', { 'class': 'badge l' + k.level, text: k.n ? LV[k.level] : 'not reached' })]; }))));
       });
+      var fbx = CU.feedback(sc, a.log), stx = CU.nextSteps(fbx, sc, 3);
+      if (stx.length) { drawer.appendChild(el('h3', { text: 'Next steps the student was given' })); drawer.appendChild(el('ol', { style: 'margin:0;padding-left:20px' }, stx.map(function (x) { return el('li', { style: 'margin:0 0 6px' }, [el('b', { text: x.name + ': ' }), x.next]); }))); }
       var px = paperItems(r);
       if (px.length) { drawer.appendChild(el('h3', { text: 'Worked-out questions' })); var pp = el('div', { 'class': 'pp' }); px.forEach(function (x) { var d = el('details', {}, [el('summary', {}, [el('span', { text: 'Q' + (x.p.i + 1) + ' · ' + SKN[x.p.s].name }), el('span', { 'class': 'badge ' + (x.e && x.e.ok ? 'l4' : 'l1'), text: x.e && x.e.ok ? 'right on screen' : 'not right on screen' })])]); d.addEventListener('toggle', function () { if (d.open && !d.querySelector('.ppq')) d.appendChild(paperBlock(x)); }); pp.appendChild(d); }); drawer.appendChild(pp); }
       drawer.appendChild(el('h3', { text: 'Every question, in order' }));
@@ -408,11 +412,24 @@ body.hide .nmv{filter:blur(6px)}
   /* ---------- completed formative task sheets ----------
      One page per student: the four success criteria and every skill (strand) under them, with the level reached marked
      on the rubric. A level needs enough evidence (2 answers on a skill, 3 on a criterion); otherwise it says so. */
+  // Each descriptor is what the questions at that level of the check actually ask (see the item bank in check-u2.js)
   var DESC = {
-    compute: ['Finds slope in simple, familiar cases with help; mixes up rise and run or the sign.', 'Finds slope correctly in some simple cases (one or two representations).', 'Finds slope correctly from ordered pairs, tables, graphs and equations in most problems.', 'Chooses an efficient method in any representation, including unfamiliar or less tidy problems.'],
-    convert: ['Begins to rearrange an equation with support; steps or signs often go wrong.', 'Converts simple equations between forms, sometimes reaching the correct form.', 'Converts between standard and slope-intercept form accurately in most problems.', 'Converts fluently, including fractions and negative coefficients, and checks the result.'],
-    represent: ['Begins to connect a situation to a graph, table or equation in familiar problems.', 'Represents simple situations with an equation or graph; sometimes solves correctly.', 'Represents situations with equations, graphs and words and solves them in most problems.', 'Moves flexibly between representations and applies them to unfamiliar situations, including inequalities.'],
-    explain: ['Gives a partial explanation; the meaning of slope or intercept is unclear.', 'Explains simple cases using some correct vocabulary.', 'Explains slope and intercept in context clearly, with units, in most problems.', 'Explains and justifies reasoning precisely, and spots and corrects errors.']
+    compute: ['Finds slope only in the simplest cases: whole-number slopes going up, from two points or a table where x goes up by 1. Mixes up rise and run, or the sign.',
+      'Finds whole-number slopes, including negative ones, from two points, a table where x goes up by 2 or 3, a graph with marked points, and y = mx + b.',
+      'Finds fraction slopes from two points, tables, graphs, and equations like 3y = 2x + 6 or 2x + 5y = 10, subtracting in a consistent order and simplifying.',
+      'Uses slope to find a missing coordinate, finds the row that breaks a linear table, reads slope from a graph with no marked points, and orders lines given in different forms.'],
+    convert: ['Recognises the matching equation when y has no number in front of it. Rearranging steps or signs often go wrong.',
+      'Rewrites Ax + By = C as y = mx + b when the numbers divide evenly, and puts the steps of a conversion in the right order.',
+      'Converts both ways with fraction slopes and intercepts: Ax + By = C to y = mx + b exactly, and y = mx + b to whole-number standard form with A positive.',
+      'Converts rearranged equations (… = 0) and clears two different denominators, checking the result.'],
+    represent: ['Matches a story, table or inequality to its equation in familiar cases, and finds the y-intercept of y = mx + b.',
+      'Finds b from a slope and a point, solves stories that go up, graphs whole-number slopes, shades y < mx + b correctly, and matches an equation to its graph.',
+      'Writes the equation through two points, solves stories that go down, graphs fraction slopes, solves word inequalities and rounds sensibly, and matches tables that skip x = 0.',
+      'Builds a model from two data points, finds fractional intercepts, graphs from standard form, flips the symbol when dividing by a negative, and matches graphs to standard form.'],
+    explain: ['Begins to say what the start value of a model means, and spots a swapped rise and run.',
+      'Explains what the slope and y-intercept mean in a story, and spots and explains sign and subtraction-order slips.',
+      'Explains a going-down rate with units, predicts with the model, and spots and explains rearranging mistakes.',
+      'Compares two models and justifies when one overtakes the other; finds any of the mistakes and gives the corrected answer.']
   };
   var LVN = ['Limited', 'Emerging', 'Developed', 'Deep'];
   function printSheets(list) {
@@ -447,19 +464,16 @@ body.hide .nmv{filter:blur(6px)}
     });
     pg.appendChild(t);
     pg.appendChild(el('div', { 'class': 'ov' }, [el('span', {}, ['Overall: ', el('b', { text: sc.level ? LVN[sc.level - 1] : 'Not enough evidence' })]), sc.level ? el('span', { text: 'Scale score ' + sc.scale + ' (± ' + sc.pm + ')' }) : null]));
-    var good = [], next = [];
-    SK.forEach(function (k) { var x = sc.skill[k.id]; if (x.level >= 3) good.push(k.name); });
-    CRIT.slice().sort(function (p, q) { return (sc.crit[p.id].level || 9) - (sc.crit[q.id].level || 9) || sc.crit[p.id].th - sc.crit[q.id].th; }).forEach(function (c) {
-      if (next.length >= 3) return;
-      var weak = c.skills.filter(function (id) { var x = sc.skill[id]; return x.n && x.level && x.level < 3; }).concat(c.skills.filter(function (id) { var x = sc.skill[id]; return x.n && !x.level && x.right < x.n; }));
-      weak.forEach(function (id) { if (next.length < 3 && next.indexOf(SKN[id].name) < 0) next.push(SKN[id].name); });
-    });
-    var two = el('div', { 'class': 'two' }); pg.appendChild(two);
-    two.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'What you can do' }), good.length ? el('ul', {}, good.slice(0, 6).map(function (g) { return el('li', { text: g }); })) : el('div', { text: 'Keep going: no skill reached Developed yet. Your next steps are below.' })]));
-    two.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'Next steps (practise these in the Unit 2 Review)' }), next.length ? el('ul', {}, next.map(function (g) { return el('li', { text: g }); })) : el('div', { text: 'Try the stretch problems in the Unit 2 Review to reach Deep.' })]));
+    // the same feedback the student saw on their finish screen
+    var fb = CU.feedback(sc, a.log), steps = CU.nextSteps(fb, sc, 3);
+    var good = fb.filter(function (x) { return x.can && x.level >= 2; }).sort(function (p, q) { return q.level - p.level; }).slice(0, 5);
+    if (!good.length) good = fb.filter(function (x) { return x.can; }).slice(0, 3);
+    pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'What you can do' }), good.length ? el('ul', {}, good.map(function (x) { return el('li', {}, [el('b', { text: x.name + ' (' + (x.level ? LVN[x.level - 1] : 'first read') + '): ' }), x.can]); })) : el('div', { text: 'Not enough right answers yet to say. Start with the next steps below.' })]));
+    pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'How to improve: your next steps, in this order' }), steps.length ? el('ol', {}, steps.map(function (x) { return el('li', {}, [el('b', { text: x.name + ': ' }), x.next]); })) : el('div', { text: 'Every skill you were asked about is at Developed or Deep. Keep it sharp with the stretch problems and the mixed review in the Unit 2 Review, explaining each step as you go.' }),
+      steps.length ? el('div', { 'class': 'how2', text: 'For each one: open it in the Unit 2 Review, read the Learn tab, do the guided practice, then independent practice until you get 3 of 4 right.' }) : null]));
     pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'Teacher comment' }), el('div', { 'class': 'lines' }), el('div', { 'class': 'lines' })]));
     pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'Student reflection: one thing I will do next' }), el('div', { 'class': 'lines' })]));
-    pg.appendChild(el('div', { 'class': 'fine', text: 'Formative: this shows where you are now, not a final grade. Levels come from an adaptive test: a strand needs at least 2 answers (a criterion 3) before a level is given.' }));
+    pg.appendChild(el('div', { 'class': 'fine', text: 'Levels come from an adaptive test: questions got harder after right answers and easier after wrong ones. A strand needs at least 2 answers (a criterion 3) before a level is given; "first read" means one answer so far.' }));
     return pg;
   }
 

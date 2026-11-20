@@ -427,11 +427,8 @@
     clear(); view = 'summary';
     var a = P.att, sc = CU.score(a.log), mins = Math.max(1, Math.round((a.end.at - a.t0) / 60000));
     var why = { time: 'Time is up.', stable: 'You answered enough questions for a steady result, so the check stopped early.', max: 'You reached the last question.', left: 'The check was ended.' }[a.end.why] || '';
-    var can = [], getting = [], next = [], thin = [];
-    CU.SK.forEach(function (k) { var e = sc.skill[k.id]; if (!e.level) thin.push(k); else if (e.level >= 3) can.push(k); else if (e.level === 2) getting.push(k); else next.push(k); });
-    var practise = next.concat(getting).sort(function (x, y) { return sc.skill[x.id].th - sc.skill[y.id].th; }).slice(0, 3);
-    if (!practise.length) practise = thin.slice(0, 2);
-    function li(k, extra) { return el('li', {}, [el('a', { href: 'review-u2.html#' + k.id, text: k.name }), extra ? el('small', { text: ' ' + extra }) : null]); }
+    var fb = CU.feedback(sc, a.log), practise = CU.nextSteps(fb, sc, 3);
+    function lvTag(x) { return x.level ? badge(x.level) : el('span', { 'class': 'badge l0', text: x.n ? 'First read' : 'Not reached' }); }
     var sync = el('p', { 'class': 'ck-savenote', role: 'status' });
     function showSync() { var st = S.status, un = S.unsent ? S.unsent() : 0; sync.textContent = st === 'saved' && !un ? '✓ Your result has reached Mr. Crowell.' : 'Your result is saved on this device and is still being sent. Keep this page open until it says it has reached Mr. Crowell.'; sync.classList.toggle('warn', !(st === 'saved' && !un)); }
     tick = setInterval(showSync, 1500); showSync();
@@ -439,25 +436,26 @@
     var top = [el('h2', { text: a.log.length ? 'Check finished. Here is where you are.' : 'Check finished' }), el('p', { 'class': 'muted', text: why + ' You answered ' + a.log.length + ' question' + (a.log.length === 1 ? '' : 's') + ' in ' + mins + ' minute' + (mins === 1 ? '' : 's') + '.' })];
     if (sc.level) {
       top.push(el('div', { 'class': 'ck-overall' }, [el('div', {}, [el('div', { 'class': 'k', text: 'Overall, right now' }), badge(sc.level), el('div', { 'class': 'ck-sc' }, [el('b', { text: String(sc.scale) }), ' ± ' + sc.pm + ' on the Unit 2 scale'])]), scaleBar(sc)]));
-      top.push(el('p', { 'class': 'muted', text: 'The ± is honest uncertainty: one short check can\'t pin you down exactly. Developed (550 and up) is the goal for the assessment. This is a snapshot to steer your practice, not a grade.' }));
+      top.push(el('p', { 'class': 'muted', text: 'The ± is honest uncertainty: one check can\'t pin you down exactly. Developed (550 and up) is the goal for Unit 2. Below: what you can do now, and exactly what to work on next.' }));
     } else top.push(el('p', { text: 'There are not enough answers yet for an overall level (at least ' + CU.NEED.all + ' are needed). Whatever you did answer is still below.' }));
     top.push(sync);
     root.appendChild(card(top));
 
-    practiseCard();
-    var cols = [];
-    if (can.length) cols.push(el('div', { 'class': 'ck-col l3' }, [el('h3', { text: '✓ What you can do' }), el('ul', {}, can.map(function (k) { return li(k, sc.skill[k.id].level === 4 ? '(Deep)' : ''); }))]));
-    if (getting.length) cols.push(el('div', { 'class': 'ck-col l2' }, [el('h3', { text: '↗ Nearly there' }), el('ul', {}, getting.map(function (k) { return li(k); }))]));
-    if (next.length) cols.push(el('div', { 'class': 'ck-col l1' }, [el('h3', { text: '○ Not yet: start here' }), el('ul', {}, next.map(function (k) { return li(k); }))]));
-    if (thin.length) cols.push(el('div', { 'class': 'ck-col l0' }, [el('h3', { text: '? Not enough evidence yet' }), el('ul', {}, thin.map(function (k) { return li(k, sc.skill[k.id].n ? '(1 question, ' + (sc.skill[k.id].right ? 'right' : 'not right yet') + ')' : '(not reached)'); }))]));
-    root.appendChild(card([el('h2', { text: 'Skill by skill' }), el('p', { 'class': 'muted', text: 'Each skill had only one to three questions, so treat these as a first read. Every skill links to its page in the Unit 2 Review.' }), el('div', { 'class': 'ck-cols' }, cols)]));
-
     // what to do next comes before the long skill list: on a phone it is the first thing under the result
-    function practiseCard() {
-    if (practise.length) root.appendChild(card([el('h2', { text: 'Practise next' }), el('p', { text: 'Start with these. Open one, read the Learn tab, then do the guided practice.' }),
-      el('div', { 'class': 'ck-next' }, practise.map(function (k) { return el('a', { 'class': 'btn', href: 'review-u2.html#' + k.id, text: '📝 ' + k.name }); }))]));
-    else if (sc.level) root.appendChild(card([el('h2', { text: 'Practise next' }), el('p', {}, ['Every skill you were asked about is at Developed or Deep. Try the stretch problems or the ', el('a', { href: 'review-u2.html#mixed', text: 'mixed review' }), '.'])]));
-    }
+    if (practise.length) root.appendChild(card([el('h2', { text: 'Your next steps' }), el('p', { text: 'Work on these first, in this order. Each one says exactly what to do. Then open it in the Unit 2 Review: read the Learn tab, do the guided practice, and finish with independent practice until you get 3 of 4 right.' }),
+      el('ol', { 'class': 'ck-steps' }, practise.map(function (x) {
+        return el('li', {}, [el('div', { 'class': 'ck-fbh' }, [el('b', { text: x.name }), lvTag(x)]), el('p', { 'class': 'ck-how' }, [el('b', { text: 'How to improve: ' }), x.next]),
+          el('a', { 'class': 'btn small', href: 'review-u2.html#' + x.id, text: '📝 Practise this' })]);
+      }))]));
+    else if (sc.level) root.appendChild(card([el('h2', { text: 'Your next steps' }), el('p', {}, ['Every skill you were asked about is at Developed or Deep. Keep it sharp with the stretch problems or the ', el('a', { href: 'review-u2.html#mixed', text: 'mixed review' }), ', and explain each step as you go.'])]));
+
+    root.appendChild(card([el('h2', { text: 'Skill by skill: what you can do, and what\'s next' }), el('p', { 'class': 'muted', text: 'Each skill had one to three questions. "First read" means only one answer so far, so it is a best guess.' })].concat(CU.CRIT.map(function (c) {
+      return el('div', { 'class': 'ck-fbc' }, [el('h3', { text: c.name }), el('ul', { 'class': 'ck-fb' }, fb.filter(function (x) { return x.crit === c.id; }).map(function (x) {
+        return el('li', { 'class': 'ck-fbi ' + LVC[x.level] }, [el('div', { 'class': 'ck-fbh' }, [el('a', { href: 'review-u2.html#' + x.id, text: x.name }), lvTag(x)]),
+          x.can ? el('p', { 'class': 'ck-can' }, ['✓ ', x.can]) : null,
+          el('p', { 'class': 'ck-how' }, [x.level === 4 ? '★ ' : '→ ', x.next])]);
+      }))]);
+    }))));
 
     root.appendChild(card([el('h2', { text: 'The four success criteria' }), el('div', { 'class': 'ck-crits' }, CU.CRIT.map(function (c) {
       var e = sc.crit[c.id];

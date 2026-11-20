@@ -166,3 +166,15 @@ canvas.ink{display:inline-block;vertical-align:-6px;max-width:100%;height:auto}
 .ck-demo .ck-seg{display:inline-flex;gap:6px;margin-left:4px}
 .ck-demo .ck-seg button{font:700 14px var(--ui);padding:4px 10px;border-radius:999px;border:2px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
 .ck-demo .ck-seg button[aria-pressed=true]{background:var(--marquee);color:#1B1A22;border-color:var(--marquee)}
+/* finish screen: next steps and skill-by-skill feedback (what you can do, how to improve) */
+.ck-steps{margin:10px 0 0;padding-left:22px}
+.ck-steps>li{margin:0 0 14px;padding-left:4px}
+.ck-steps>li::marker{font-weight:800}
+.ck-fbh{display:flex;flex-wrap:wrap;align-items:center;gap:8px;justify-content:space-between}
+.ck-fbh a{font-weight:700}
+.ck-how{margin:6px 0 8px;line-height:1.5}
+.ck-can{margin:6px 0 0;line-height:1.5}
+.ck-fbc h3{margin:16px 0 6px;font-size:15px}
+.ck-fb{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ck-fbi{background:var(--panel2);border-radius:12px;padding:10px 14px;border-left:5px solid var(--lc)}
+.ck-fbi .ck-how{margin:4px 0 0;color:var(--muted)}

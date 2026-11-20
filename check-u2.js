@@ -745,6 +745,138 @@
     return CRIT.every(function (c) { return s.crit[c.id].se <= CU.STABLE.critSe; });
   };
 
+  /* ---------------- feedback: what the student can do, and exactly how to improve ----------------
+     For every skill, CAN[k] says what a student at level k+1 can do (each level matches the questions at that level
+     in the item bank above), and NEXT[k] says how to reach the level above: the method, the usual trap and an example.
+     The student's finish screen and the printed task sheet both use CU.feedback, so they say the same thing. */
+  var STRETCH = 'Keep it sharp: do the stretch problems for this skill in the Unit 2 Review, and explain each step out loud or to a classmate.';
+  var FB = CU.FB = {
+    s1: { can: ['You are starting to find slope from two points when both points have positive whole numbers.',
+      'You can find whole-number slopes from two points, including slopes that go down and points with negative coordinates.',
+      'You can find a fraction slope from any two points, subtracting in the same order on top and bottom, and simplify it.',
+      'You can use a slope to find a missing coordinate, or another point on the line, without drawing it.'],
+      next: ['Write slope = (y₂ − y₁) ÷ (x₂ − x₁) every time, then put the numbers in. Put negative numbers in brackets: 3 − (−2) = 5. A line that goes down has a negative slope.',
+      'When the change in y doesn\'t divide evenly by the change in x, leave a fraction and simplify it: 6 ÷ 4 = 3/2. Subtract in the same order on top and bottom, never top one way and bottom the other.',
+      'Work backwards from the slope: change in y = slope × change in x. Example: the line through (2, 1) and (6, k) has slope 3/4. The change in x is 4, so the change in y is 3, and k = 4.',
+      STRETCH] },
+    s2: { can: ['You are starting to read slope from a table when x goes up by 1.',
+      'You can find a whole-number slope from a table, even when x goes up by 2 or 3.',
+      'You can find a fraction slope from any table by dividing the change in y by the change in x between rows.',
+      'You can check that a table is linear, find the row that breaks the pattern, and give the slope.'],
+      next: ['Always check how much x changes as well as y. If x goes up by 2 and y goes up by 6, the slope is 6 ÷ 2 = 3, not 6. Write both changes beside the table.',
+      'If the change in y doesn\'t divide evenly by the change in x, write the slope as a fraction: y up 5 when x up 2 gives 5/2. Negative change in y means a negative slope.',
+      'Check every pair of rows, not just the first two: a linear table has the same change in y for the same change in x all the way down. The row that breaks this is the wrong one.',
+      STRETCH] },
+    s3: { can: ['You are starting to read slope from a graph with marked points when the line goes up.',
+      'You can find the slope of a graphed line from two marked points, including lines that go down.',
+      'You can find fraction slopes from a graph, and place a point to make a line with a given slope.',
+      'You can find the slope of a line with no points marked, using places where it crosses grid corners exactly.'],
+      next: ['Count from one marked point to the other: the rise (up is +, down is −) over the run to the right. A line that goes down from left to right has a negative slope.',
+      'If you go across more than you go up, the slope is a fraction: up 2, across 3 is 2/3. Simplify, and keep the sign. To build a slope of 2/3, go up 2 and right 3 from the point.',
+      'With no points marked, look for where the line passes exactly through a grid corner. Use two of those, as far apart as you can, and count rise over run.',
+      STRETCH] },
+    s4: { can: ['You are starting to read the slope from y = mx + b.',
+      'You can read the slope from y = mx + b, even when it is written y = b + mx, y = 5 − x, or has a fraction.',
+      'You can find the slope from equations like 3y = 2x + 6 or 2x + 5y = 10 by solving for y first.',
+      'You can find the slope from any form, including standard form with a negative coefficient, and order lines by slope.'],
+      next: ['The slope is the number in front of x, with its sign, wherever x is: in y = 4 − 3x the slope is −3, and in y = 5 − x it is −1.',
+      'If y has a number in front of it, divide every term by that number first: 3y = 2x + 6 gives y = (2/3)x + 2, so the slope is 2/3. In Ax + By = C the slope is −A ÷ B.',
+      'Watch the signs when B is negative: in 3x − 4y = 8 the slope is −3 ÷ (−4) = 3/4. Practise finding the slope of four lines in different forms and putting them in order.',
+      STRETCH] },
+    f1: { can: ['You are starting to recognise a line rewritten as y = mx + b.',
+      'You can rewrite Ax + By = C as y = mx + b when the numbers divide evenly.',
+      'You can rewrite any Ax + By = C as y = mx + b, keeping fraction slopes and intercepts exact.',
+      'You can rewrite rearranged equations, like 2x + 3y − 6 = 0, in slope-intercept form.'],
+      next: ['Get y on its own in two steps: move the x-term to the other side (it changes sign), then divide every term by the number in front of y. 6x + 2y = 8 → 2y = −6x + 8 → y = −3x + 4.',
+      'Do two steps: move the x-term, then divide EVERY term by the number in front of y, the constant too. 5x − 3y = 9 → −3y = −5x + 9 → y = (5/3)x − 3.',
+      'If the equation isn\'t in Ax + By = C yet, get it there first (everything with x or y on the left, the number on the right), then convert as usual.',
+      STRETCH] },
+    f2: { can: ['You are starting to recognise a line written in standard form.',
+      'You can match y = mx + b to its standard form when the slope is a whole number, and put the steps in order.',
+      'You can write y = mx + b with a fraction slope as Ax + By = C with whole numbers and A positive.',
+      'You can clear two different denominators to write standard form with whole numbers.'],
+      next: ['Do the steps in this order: clear any fraction (multiply every term by the denominator), move the x-term to the left side, then make the number in front of x positive by multiplying every term by −1 if needed. y = −2x + 5 becomes 2x + y = 5.',
+      'Clear the fraction first: multiply EVERY term by the denominator. y = (2/3)x + 1 → 3y = 2x + 3 → −2x + 3y = 3 → multiply by −1: 2x − 3y = −3.',
+      'When the slope and the intercept have different denominators, multiply every term by a number both divide into (for 1/2 and 2/3, use 6). Then move the x-term and make A positive.',
+      STRETCH] },
+    b1: { can: ['You are starting to find the y-intercept from a slope and a point.',
+      'You can find b from a slope and a point, or from a table where the row for x = 0 is missing.',
+      'You can find the equation of a line through two points: the slope first, then b.',
+      'You can find a y-intercept that falls between gridlines, as an exact fraction.'],
+      next: ['Put the point into y = mx + b and solve for b. Slope 2 through (3, 11): 11 = 2(3) + b, so b = 11 − 6 = 5. In a table, step back to x = 0 with the slope.',
+      'With two points, find the slope first, then put either point into y = mx + b to find b. Check your equation with the other point.',
+      'Don\'t read b off the graph when it lands between gridlines: work it out exactly with b = y − m·x, keeping fractions.',
+      STRETCH] },
+    r1: { can: ['You are starting to match a story to its equation.',
+      'You can write the equation for a story (start value = b, rate = m) and solve it when the amount goes up.',
+      'You can model and solve stories where the amount goes down, using a negative slope.',
+      'You can build the model from two data points and use it to predict.'],
+      next: ['Find the starting amount (b) and the change each time (m). A $20 sign-up fee plus $15 a month is y = 15x + 20. To solve, set y to the target and undo: 65 = 15x + 20 → 45 = 15x → x = 3.',
+      'If the amount goes down, the slope is negative: a 30 cm candle burning 2 cm an hour is y = −2x + 30. Solve the same way, and check the answer makes sense in the story.',
+      'With two data points, find the rate first: (75 − 55) ÷ (7 − 3) = 5 per week. Work back to the start: 55 − 5(3) = 40. Then write y = 5x + 40 and solve.',
+      STRETCH] },
+    r2: { can: ['You are starting to find where a line crosses the y-axis from its equation.',
+      'You can graph y = mx + b with a whole-number slope: start at b, then step the slope.',
+      'You can graph lines with fraction slopes: up or down the top number, across the bottom number.',
+      'You can graph a line given in standard form by converting it first.'],
+      next: ['Start at (0, b) on the y-axis. Then use the slope as rise over run: slope 2 means up 2, right 1; slope −3 means down 3, right 1. Plot that second point.',
+      'For a fraction slope, the top is the rise and the bottom is the run: 2/3 means up 2, right 3; −1/2 means down 1, right 2.',
+      'From standard form, solve for y first, then graph from b with the slope. Check: put one of your points into the original equation.',
+      STRETCH] },
+    r3: { can: ['You are starting to choose an inequality for a situation.',
+      'You can choose an inequality for a situation and graph y < mx + b with the right line and shading.',
+      'You can solve a word inequality and round to a sensible whole-number answer.',
+      'You can graph inequalities where y has a negative number in front, flipping the symbol when you divide.'],
+      next: ['"At most" and "up to" mean ≤; "at least" means ≥. To graph: ≤ or ≥ gets a solid line, < or > a dashed line. y > … means shade above, y < … means shade below.',
+      'Solve a word inequality like an equation, then decide how to round: you can\'t go over "at most", so round down; you must reach "at least", so round up.',
+      'When you divide by a negative number, flip the symbol: −2y < 4x + 6 becomes y > −2x − 3. Then choose the line and the shading from the new symbol.',
+      STRETCH] },
+    r4: { can: ['You are starting to match a table to its equation.',
+      'You can match a table that starts at x = 0 to its equation, and an equation to its graph.',
+      'You can match a table that doesn\'t start at 0 or go up by 1 to its equation.',
+      'You can match a graph to its equation in standard form.'],
+      next: ['Find the slope (change in y for each 1 in x) and b (the y-value when x = 0), then look for y = mx + b. For a graph, b is where the line crosses the y-axis.',
+      'If x goes up by 2, divide the change in y by 2 for the slope. If x = 0 isn\'t in the table, step back with the slope to find b.',
+      'Read m and b from the graph, write y = mx + b, then rearrange it to Ax + By = C and compare with each option.',
+      STRETCH] },
+    e1: { can: ['You are starting to say what the numbers in a model mean.',
+      'You can say what the slope and the y-intercept mean in a story.',
+      'You can explain a going-down rate with units and use the model to predict.',
+      'You can compare two models and explain when one becomes cheaper than the other.'],
+      next: ['The number on its own (b) is the starting amount, when x = 0. The number in front of x (m) is how much it changes every time x goes up by 1.',
+      'Say the slope as a rate with units and a direction: "the tank loses 15 litres every minute". Then predict by putting x into the equation.',
+      'To compare two models, find where they are equal: the difference in start values ÷ the difference in rates. Then say which is cheaper before and after that point.',
+      STRETCH] },
+    e2: { can: ['You are starting to spot a mistake when rise and run were swapped.',
+      'You can spot sign and order slips in a slope calculation and say what went wrong.',
+      'You can spot rearranging mistakes (not dividing every term, not changing a sign) and say what went wrong.',
+      'You can find any of these mistakes and work out the correct answer.'],
+      next: ['Check each line of working on its own. Watch for subtracting a negative (3 − (−2) = 5, not 1) and for subtracting the x-values in a different order from the y-values.',
+      'When an equation is rearranged, check that EVERY term was divided, and that a term changed sign when it moved to the other side.',
+      'Once you find the mistake, redo that step correctly and carry on to the right answer.',
+      STRETCH] }
+  };
+  // One entry per skill: { id, name, crit, level (0-4), n, right, can, next, sure }.
+  // level 0 = not enough evidence. Then the answers that were given still shape the message, marked sure: false.
+  CU.feedback = function (sc, log) {
+    log = log || [];
+    return SK.map(function (k) {
+      var e = sc.skill[k.id], f = FB[k.id], o = { id: k.id, name: k.name, crit: k.crit, level: e.level, n: e.n, right: e.right, sure: !!e.level };
+      if (e.level) { o.can = f.can[e.level - 1]; o.next = f.next[e.level - 1]; return o; }
+      if (!e.n) { o.can = null; o.next = 'This skill didn\'t come up in the time. Check yourself with its guided practice in the Unit 2 Review. The goal: ' + f.can[2].replace(/^You can /, '').replace(/\.$/, '') + '.'; return o; }
+      var mine = log.filter(function (x) { return x.s === k.id; }), top = 0, low = 5;
+      mine.forEach(function (x) { if (x.ok) top = Math.max(top, x.d); else low = Math.min(low, x.d); });
+      if (top) { o.can = f.can[top - 1]; o.next = f.next[Math.min(3, top - 1)]; }
+      else { o.can = null; o.next = f.next[Math.max(0, Math.min(low, 4) - 2)]; }
+      return o;
+    });
+  };
+  // the skills to work on first: lowest level first (unsure ones with a wrong answer count as low), at most n
+  CU.nextSteps = function (fb, sc, n) {
+    var rank = function (x) { var e = sc.skill[x.id]; if (x.level) return x.level * 10 + e.th; if (x.n && x.right < x.n) return 15 + e.th; return 99; };
+    return fb.filter(function (x) { return x.level < 3 && (x.level || (x.n && x.right < x.n)); }).sort(function (a, b) { return rank(a) - rank(b); }).slice(0, n || 3);
+  };
+
   /* ---------------- pacing and flags ---------------- */
   CU.FLAG = { away: 1, paste: 2, fast: 4, slow: 8, copy: 16 };
   CU.fast = function (t, exp) { return t < Math.max(4, exp * .2); };
