@@ -1,12 +1,13 @@
 /* Sandy Flats: one navigation strip shared by the arcade, the lessons and the teacher pages.
    Students: Arcade · Lessons · My Results (and, on a game, a link to that game's lesson), plus a red
-   "Live now" link whenever the teacher is running a lesson. Teacher pages: Lessons · Class Results ·
-   Participation · Teacher guide · Student view. */
+   "Live now" link whenever the teacher is running a lesson. Teacher pages: Lessons · Planner · Class Results ·
+   Participation · Trophies · Climb · Unit 2 Review · Unit 2 Check · Student day · Report · Teacher guide ·
+   Scaffolds guide · Student view. */
 (function () {
   'use strict';
   var CFG = window.SFA_CONFIG || {}, Q = location.search, page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   if (/[?&]screen/.test(Q)) return;   // the class screen stays clean for screen sharing
-  var teach = /^(class|participation|teacher|climb-teacher|day|report|review-u2-teacher|check-u2-teacher)\.html$/.test(page) || (/^lessons?\.html$/.test(page) && /[?&]teach/.test(Q));
+  var teach = /^(class|participation|teacher|climb-teacher|day|report|review-u2-teacher|check-u2-teacher|planner|scaffold-guide|trophies)\.html$/.test(page) || (/^lessons?\.html$/.test(page) && /[?&]teach/.test(Q));
   var PLAN = [   // film order: lesson file number, the number students see (= film), its game
     { l: 10, n: 1, game: 'g9-try-zero-first.html' },
     { l: 1, n: 2, game: 'g1-crack-the-fair.html' },
@@ -89,6 +90,7 @@
   var liveSlot = document.createElement('span'); liveSlot.style.display = 'contents';
   if (teach) {
     nav.appendChild(link('lessons.html?teach', '📚 Lessons', /^lessons?\.html$/.test(page)));
+    nav.appendChild(link('planner.html', '🗓️ Planner', page === 'planner.html'));
     nav.appendChild(link('class.html', '🏆 Class Results', page === 'class.html'));
     nav.appendChild(link('participation.html', '✋ Participation', page === 'participation.html'));
     nav.appendChild(link('trophies.html', '🏆 Trophies', page === 'trophies.html'));
@@ -98,6 +100,7 @@
     nav.appendChild(link('day.html', '📅 Student day', page === 'day.html'));
     nav.appendChild(link('report.html', '🧾 Report', page === 'report.html'));
     nav.appendChild(link('teacher.html', '🧭 Teacher guide', page === 'teacher.html'));
+    nav.appendChild(link('scaffold-guide.html', '🪜 Scaffolds guide', page === 'scaffold-guide.html'));
     nav.appendChild(link('index.html', '👀 Student view', false));
     nav.appendChild(studentLink());
   } else {

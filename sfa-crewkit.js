@@ -25,8 +25,10 @@
   function sNow() { return Date.now() + (A.srvSkew() || 0); }
   function clean(n) { return String(n || '').replace(/[~,#|;:]/g, '').slice(0, 10); }
   function mmss(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
-  function av(look, size, walk) { return window.SFA_AVATAR ? SFA_AVATAR.svg(look || '', { size: size, walk: !!walk }) : '<span style="font-size:' + Math.round(size * 0.7) + 'px">🙂</span>'; }
-  function ncls(look) { return window.SFA_AVATAR ? SFA_AVATAR.nameCls(look || '') : ''; }
+  // crew lists carry classic 12-character looks; A.fullLook adds each student's extras (hair, outfit…) back when the console sent them
+  function full(look) { return A.fullLook ? A.fullLook(look || '') : look || ''; }
+  function av(look, size, walk) { return window.SFA_AVATAR ? SFA_AVATAR.svg(full(look), { size: size, walk: !!walk }) : '<span style="font-size:' + Math.round(size * 0.7) + 'px">🙂</span>'; }
+  function ncls(look) { return window.SFA_AVATAR ? SFA_AVATAR.nameCls(full(look)) : ''; }
 
   /* ---------------- the questions ---------------- */
   var POOL = null;
@@ -40,6 +42,7 @@
     (L.slides || []).forEach(function (s) {
       if (s.k === 'number' && typeof s.ans === 'number') add('number', s, 0);
       if (s.k === 'poll' && typeof s.ans === 'number' && !s.warm && s.opts && s.opts.length <= 6) add('poll', s, 0);
+      (A.gameForms ? A.gameForms(s) : []).forEach(function (g) { add(g.k, g, 0); });   // cross it out, estimate, spot the mistake, always/sometimes/never
       (s.more || []).forEach(function (m, i) {
         if (m.k === 'number' && typeof m.ans === 'number') add('number', m, i === 0 ? 1 : 2);
         else if (m.k === 'poll' && typeof m.ans === 'number' && m.opts && m.opts.length <= 6) add('poll', m, i === 0 ? 1 : 2);

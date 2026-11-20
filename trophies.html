@@ -31,8 +31,8 @@ body.projector .tro .ic{font-size:72px}body.projector .tro b{font-size:24px}
 </div>
 <script src="config.js?v=20261102a"></script>
 <script src="sfa-kit.js?v=20261102a"></script>
-<script src="sfa-nav.js?v=20261117a"></script>
-<script src="sfa-avatar.js?v=20261119q"></script>
+<script src="sfa-nav.js?v=20261120a"></script>
+<script src="sfa-avatar.js?v=20261120b"></script>
 <script src="sfa-quests.js?v=20261119q"></script>
 <script>
 (function () {
@@ -47,6 +47,7 @@ body.projector .tro .ic{font-size:72px}body.projector .tro b{font-size:24px}
     if (t.k === 'raid') return { win: t.win, ic: t.win ? '🏆' : '💨', title: t.win ? 'Beat ' + t.boss : t.boss + ' got away', sub: (t.mode || 'Boss Raid') + ' · ' + t.n + ' raiders' + (t.win ? '' : ' · ' + t.left + '% health left') };
     if (t.k === 'board') return { win: t.win, ic: t.win ? '🔠' : '🧩', title: t.win ? 'Cleared the Big Board' : 'Big Board: ' + t.found + ' of ' + t.of + ' words', sub: (t.theme || 'Big Board') + ' · ' + t.of + ' words' };
     if (t.k === 'clash') return { win: t.win >= 0, ic: t.win >= 0 ? '⚔️' : '🤝', title: t.win >= 0 ? t.teams[t.win] + ' won' : 'Lane Clash: a draw', sub: t.teams.join(' vs ') + ' · ' + (t.score || []).join(' to ') + ' gold' };
+    if (t.k === 'aloft' || t.k === 'splash') return { win: t.win, ic: t.ic || '🏅', title: t.title || t.k, sub: t.sub || '' };
     if (t.k === 'sumof') return { win: true, ic: '🥇', title: t.champ + ': Sumo grand champion', sub: 'Beat ' + t.vs + ' in the grand final' };
     if (t.k === 'sumo') return { win: true, ic: '🤼', title: t.champ + ' won Sumo Graphing', sub: (t.who ? t.who + ' · ' : '') + t.rec + ' · ' + t.n + ' wrestlers' };
     return { ic: '🏅', title: t.k, sub: '' };

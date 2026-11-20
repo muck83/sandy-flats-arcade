@@ -108,6 +108,7 @@
       L.slides.forEach(function (s) {
         if (s.k === 'number' && s.ans != null) got.push({ k: 'number', q: s.q, ans: s.ans, tol: s.tol, fig: s.fig, why: s.why, from: from });
         if (s.k === 'poll' && s.ans != null && !s.warm) got.push({ k: 'poll', q: s.q, opts: s.opts, ans: s.ans, fig: s.fig, why: s.why, from: from });
+        (A.gameForms ? A.gameForms(s) : []).forEach(function (g) { got.push({ k: g.k, q: g.q, opts: g.opts, ans: g.ans, tol: g.tol, fig: g.fig, why: g.why, from: from }); });   // cross it out, estimate, spot the mistake, always/sometimes/never
         (s.more || []).forEach(function (m) { if ((m.k === 'number' || m.k === 'poll') && m.ans != null) got.push({ k: m.k, q: m.q, opts: m.opts, ans: m.ans, tol: m.tol, fig: m.fig, why: m.why, from: from, star: true }); });
       });
     }

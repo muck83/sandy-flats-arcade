@@ -219,7 +219,7 @@
         var Q = P[T.unpack(b.cq, i, 100, 2) - 1], sent = ST.h.indexOf(i + '.' + R) >= 0;
         if (Q) row.appendChild(H('p', 'wtpeek', '<small>Their question:</small> ' + esc(T.plain(Q.q).slice(0, 150))));
         var hb = el('button', { type: 'button', 'class': 'btn small' + (stuck && !sent && !hinted ? ' glow' : ''), text: sent || hinted ? '💡 Hint sent' : '💡 Send a hint' }); hb.disabled = sent || hinted;
-        hb.onclick = function () { ST.h.push(i + '.' + R); ST.h = ST.h.slice(-6); xp(8); keep(); send(); SFA.toast('💡 Hint sent to ' + (c.n || 'your teammate') + '. +8 XP for helping.', 2500); drawTeam(true); };
+        hb.onclick = function () { ST.h.push(i + '.' + R); ST.h = ST.h.slice(-6); xp(8); keep(); send(); if (window.SFA_AVATAR && SFA_AVATAR.note) try { SFA_AVATAR.note('help'); } catch (err) { }   /* 🤝 "helped a partner" effort credit (quests, sfa-avatar.js) */ SFA.toast('💡 Hint sent to ' + (c.n || 'your teammate') + '. +8 XP for helping.', 2500); drawTeam(true); };
         row.appendChild(hb);
       }
       box.appendChild(row);
@@ -339,7 +339,14 @@
     var nowL = Date.now(); tm.m.forEach(function (sid) { K.act[sid] = nowL; });   // a new question: everyone gets a fresh "still here" clock
     ev(K, { t: t, f: K.idx[flyer], w: w, c: come ? 1 : 0 });
   }
-  function end() { var K = C(); if (!K) return; K.state = 2; K.endedAt = Date.now(); (A.pushNow || A.pushLive)(); A.consolePanel(); }
+  function end() {
+    var K = C(); if (!K) return;
+    // 🏆 the trophy shelf (trophies.html): ic, title and sub are ready to show as they are
+    if (K.state === 1 && K.order.length && A.trophy) {
+      A.trophy({ k: 'splash', id: K.id, win: !!K.win, ic: K.win ? '🌊' : '💦', title: K.win ? 'Splash Squad: the pond overflowed' : 'Splash Squad: ' + Math.round(K.water) + ' L of ' + K.goal + ' L',
+        sub: K.launches + ' launch' + (K.launches === 1 ? '' : 'es') + ' · ' + K.teams.length + ' crew' + (K.teams.length === 1 ? '' : 's') + ' · ' + K.order.length + ' students', water: Math.round(K.water), goal: K.goal, launches: K.launches, crews: K.teams.length, n: K.order.length });
+    }
+    K.state = 2; K.endedAt = Date.now(); (A.pushNow || A.pushLive)(); A.consolePanel(); }
   function tick(force) {
     var K = C(); if (!K) return;
     if (K.restoring) { if (A.rosterIn().length) agg(); return; }

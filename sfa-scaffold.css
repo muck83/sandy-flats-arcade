@@ -3,7 +3,7 @@
 /* a word with a meaning card: dotted underline, tap to open */
 .sg-term{border-bottom:.14em dotted var(--teal,#5CE0B8);cursor:help;border-radius:.2em;transition:background .15s}
 .sg-term:hover,.sg-term:focus-visible{background:rgba(92,224,184,.18);outline:none}
-.sg-reading{outline:.14em solid var(--teal,#5CE0B8);outline-offset:.2em;border-radius:.4em;background:rgba(92,224,184,.08)}
+.sg-reading{outline:.14em solid var(--teal,#5CE0B8);outline-offset:.05em;border-radius:.4em;background:rgba(92,224,184,.08)}
 
 /* the meaning card */
 .sg-pop{position:fixed;z-index:55;width:min(380px,calc(100vw - 16px));background:var(--panel,#1B1824);border:2px solid var(--teal,#5CE0B8);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.55);padding:12px 14px;font:500 15px/1.45 var(--ui,system-ui);color:var(--ink,#F3EFE7);animation:sgIn .18s ease-out both}
@@ -20,6 +20,8 @@
 .sg-exl span{font:800 10px var(--ui,system-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--teal,#5CE0B8);margin-right:4px}
 .sg-tr{font-weight:700;color:var(--teal,#5CE0B8);unicode-bidi:isolate}
 .sg-trl .sg-tr{font-size:1.15em}
+.sg-trh{font-size:18px;line-height:1.2}
+.sg-cardh .sg-mini{margin-left:auto}
 .sg-picw{flex:none;width:112px}
 .sg-pic{display:block;width:100%;height:auto;background:#0d0b13;border-radius:8px}
 .sg-popf{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line,#3A3550);font-size:13px;color:var(--muted,#ABA5BC)}
@@ -57,8 +59,12 @@
 /* top-bar tools */
 .sg-chip b{font-family:var(--ui,system-ui);font-weight:800;color:var(--teal,#5CE0B8)}
 .sg-chip[aria-pressed="true"]{background:var(--teal,#5CE0B8);color:#06261C;border-color:var(--teal,#5CE0B8)}
+/* a phone gets one short word per tool, so the three tools and the name chip share one row and the slide starts higher */
+.sg-chip .sg-n{display:none}
+@media (max-width:560px){.sg-chip .sg-w{display:none}.sg-chip .sg-n{display:inline}.ltop .chips{gap:6px}.sg-chip{padding-left:10px;padding-right:10px}}
 
 /* text size: the lesson player shrinks a slide's text to fit; a student who asks for bigger text gets it, and the slide scrolls */
+body.sg-fs1 .slide,body.sg-fs2 .slide,.slide.sg-open{justify-content:safe center!important}   /* bigger text can overflow: keep the top of the slide reachable */
 body.sg-fs1 .slide{font-size:clamp(15px,2.65cqi,52px)!important}
 body.sg-fs2 .slide{font-size:clamp(17px,3.1cqi,60px)!important}
 @media (max-width:760px){

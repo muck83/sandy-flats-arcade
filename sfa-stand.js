@@ -523,7 +523,8 @@
   function clean(n) { return String(n || '').replace(/[~,#|.;]/g, '').slice(0, 12); }
   function sNow() { return Date.now() + (A.srvSkew() || 0); }
   function clock(s) { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
-  function avSvg(look, size) { return AV ? AV.svg(look || '', { size: size || 64, walk: true }) : '<span class="lavanoav">🙂</span>'; }
+  // looks travel as the classic 12 characters; A.fullLook adds each student's extras (hair, outfit…) back when the console sent them
+  function avSvg(look, size) { return AV ? AV.svg(A && A.fullLook ? A.fullLook(look || '') : look || '', { size: size || 64, walk: true }) : '<span class="lavanoav">🙂</span>'; }
   function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
   function reduced() { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
 

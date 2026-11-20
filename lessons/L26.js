@@ -4,7 +4,7 @@ SFA_LESSON({
   big: 'Same line, different clothes. Ax + By = C to y = mx + b: move the x-term, then divide EVERY term by B. Back again: clear fractions, move x left, make A positive. Then graph from (0, b) with rise over run.',
   slides: [
     { k: 'title', min: 1, kicker: 'Unit 2 Review · 2 of 4', title: 'Change the Form', sub: 'Standard form and slope-intercept form are the same line in different clothes. Today you change them, and graph them.', art: '🔁' },
-    { k: 'signin', min: 1, title: 'Today you will', points: ['Turn Ax + By = C into y = mx + b', 'Turn y = mx + b into Ax + By = C', 'Graph a line from its equation', 'Spot the most common conversion mistakes'] },
+    { k: 'signin', min: 1, title: 'Today you will', points: ['Turn Ax + By = C into y = mx + b', 'Turn y = mx + b into Ax + By = C', 'Graph a line from its equation', 'Spot the most common mistakes when you change form'] },
     { k: 'poll', min: 1, id: 'warm', warm: true, q: 'Same thing, different clothes. Which "translation" do you use most?', opts: ['Two languages at home', 'Texting shortcuts (brb, idk)', 'Emojis instead of words', 'Converting money', 'None, I say it as it is'] },
     // retrieval warm-up: slope from Review 1, and the one algebra move today depends on (retr: true marks them for the planner)
     { k: 'number', min: 1, id: 'r1', retr: true, q: '*Warm-up 1 of 3.* Find the slope through *(1, 3)* and *(3, 11)*.', ans: 4,
@@ -48,7 +48,7 @@ SFA_LESSON({
       ] },
     { k: 'order', min: 2, id: 'ord1', q: 'Put the steps in order to write *3x + 2y = 8* as y = mx + b.',
       steps: ['Start with 3x + 2y = 8', 'Subtract 3x from both sides: 2y = −3x + 8', 'Divide *every* term by 2: y = −(3/2)x + 4', 'Read it off: the slope is −3/2 and the y-intercept is 4'],
-      hint: 'Get the y-term alone first. Divide last.', why: 'Move the x-term, then divide every term by the number with y, then read off m and b.' },
+      hint: 'Get the y-term alone first. Then divide. Read off m and b last.', why: 'Move the x-term, then divide every term by the number with y, then read off m and b.' },
     { k: 'mistake', min: 3, id: 'slip', q: 'Marcus turns *2x + 5y = 15* into y = mx + b. Tap the first line that goes wrong.',
       lines: ['2x + 5y = 15', '5y = −2x + 15', 'y = −(2/5)x + 15'], ans: 2, fix: 'y = −(2/5)x + 3', hint: 'Was *every* term divided by 5?',
       why: 'Every term gets divided by 5: 15 ÷ 5 = 3. y = −(2/5)x + 3.',
@@ -115,8 +115,8 @@ SFA_LESSON({
         { t: 'Slope −1/3: down [[1]], right [[3]], to [[(3, 1)]].', fig: { kind: 'graph', x: [-2, 7], y: [-2, 4], lines: [{ pts: [[0, 2], [3, 1]], dots: true, only: true }], labels: [[0, 2, '(0, 2)'], [3, 1, '(3, 1)']], arrows: [[0, 2, 0, 1, 'down 1'], [0, 1, 3, 1, 'right 3']] } },
         { t: 'Again to [[(6, 0)]], then join.', fig: { kind: 'graph', x: [-2, 7], y: [-2, 4], lines: [{ pts: [[-2, 2.67], [7, -0.33]] }, { pts: [[0, 2], [3, 1], [6, 0]], dots: true, only: true }], labels: [[0, 2, '(0, 2)'], [3, 1, '(3, 1)'], [6, 0, '(6, 0)']] } }
       ] },
-    { k: 'poll', min: 5, id: 'gr1', q: 'Which graph shows *2x + y = 3*?', fig: { kind: 'graph', x: [-4, 4], y: [-4, 6], lines: [{ pts: [[-1, 5], [3, -3]] }, { pts: [[0, 3], [1, 1]], dots: true, only: true }] },
-      opts: ['This one: crosses at (0, 3) and goes down 2 for every 1 right', 'No: 2x + y = 3 crosses at (0, 2)', 'No: its slope is +2, so it goes uphill', 'No: it should cross the x-axis at 3'], ans: 0,
+    { k: 'poll', min: 5, id: 'gr1', q: 'Does this graph show *2x + y = 3*?', fig: { kind: 'graph', x: [-4, 4], y: [-4, 6], lines: [{ pts: [[-1, 5], [3, -3]] }, { pts: [[0, 3], [1, 1]], dots: true, only: true }] },
+      opts: ['Yes: it crosses at (0, 3) and goes down 2 for every 1 right', 'No: 2x + y = 3 crosses at (0, 2)', 'No: its slope is +2, so it goes uphill', 'No: it should cross the x-axis at 3'], ans: 0,
       why: 'y = −2x + 3: y-intercept 3, slope −2. The graph crosses at (0, 3) and goes down 2, right 1 to (1, 1).',
       help: 'Change it to y = mx + b first.',
       more: [
@@ -130,7 +130,7 @@ SFA_LESSON({
     { k: 'asn', min: 2, id: 'asn1', q: 'In Ax + By = C, the number C is the y-intercept.', ans: 1,
       eg: 'Give one equation where it is true, or one where it is false.', ph: 'It is true for... / It is false for...',
       help: 'Try 3x + y = 7. Then try 2x + 4y = 12. Put x = 0 in each.',
-      why: 'Put x = 0: By = C, so y = C ÷ B. The y-intercept is C only when B is 1.', model: 'True for 3x + y = 7 (b = 7). False for 2x + 4y = 12 (b = 12 ÷ 4 = 3).' },
+      why: 'Put x = 0: By = C, so y = C ÷ B. The y-intercept is C only when B is 1 (or when C is 0).', model: 'True for 3x + y = 7 (b = 7). False for 2x + 4y = 12 (b = 12 ÷ 4 = 3).' },
     { k: 'conf', min: 1, id: 'conf', q: 'Changing forms and graphing: how do you feel?' },
     { k: 'play', min: 8, title: 'Practise: Unit 2 Review', steps: ['Open the *Unit 2 Review*.', 'Under *Convert forms*, do both skills.', 'Then *Graph a line* under Represent.', 'Stuck? Guided practice first, or the Khan Academy video on the Learn tab.'], aim: 'Done when one Convert skill is Developed. Keep going at home for the other.', minutes: 8 },
     { k: 'exit', min: 4, id: 'exit', q: 'Write *4x − 2y = 6* in slope-intercept form, then write *y = (1/3)x + 2* in standard form. Show each step.', ph: 'First: ... Second: ...',

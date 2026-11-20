@@ -259,34 +259,43 @@
     });
     return o;
   }
-  function mouth(v) {
-    var s = ' stroke="' + INK + '" stroke-width="4.5" stroke-linecap="round"', smile = '<path d="M48 102 Q60 115 72 102" fill="none"' + s + '/>';
-    var grin = '<path d="M46 100 Q60 122 74 100 Z" fill="' + INK + '"/>';
+  // a dark body (the two deepest skin tones, Midnight, Cherry) hides an ink-coloured mouth, most of all at game size:
+  // there the mouth line is drawn in a warm cream, and a filled mouth gets a cream edge
+  function lumOf(hex) {
+    var m = /^#([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return 1;
+    var n = parseInt(m[1], 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(function (x) { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+  var MLIGHT = '#FFE4CF';
+  function mouth(v, dk) {
+    var MI = dk ? MLIGHT : INK, edge = dk ? ' stroke="' + MLIGHT + '" stroke-width="2.5" stroke-linejoin="round"' : '';
+    var s = ' stroke="' + MI + '" stroke-width="4.5" stroke-linecap="round"', smile = '<path d="M48 102 Q60 115 72 102" fill="none"' + s + '/>';
+    var grin = '<path d="M46 100 Q60 122 74 100 Z" fill="' + INK + '"' + edge + '/>';
     if (v === 1) return grin + '<path d="M49 101 L71 101 L69 106 L51 106 Z" fill="#fff"/>';
-    if (v === 2) return '<ellipse cx="60" cy="107" rx="6" ry="8" fill="' + INK + '"/>';
+    if (v === 2) return '<ellipse cx="60" cy="107" rx="6" ry="8" fill="' + INK + '"' + edge + '/>';
     if (v === 3) return grin + '<ellipse cx="60" cy="112" rx="7" ry="6" fill="#FF6B8A"/>';
     if (v === 4) return '<path d="M50 107 Q62 111 72 99" fill="none"' + s + '/>';
     if (v === 5) return grin + '<path d="M49 101 L71 101 L69 106 L51 106 Z" fill="#fff"/><path d="M50 103.5 L70 103.5" stroke="#8A94A6" stroke-width="1.8"/>' +   // braces
       '<g fill="#8A94A6"><rect x="52" y="102" width="3" height="3"/><rect x="58.5" y="102" width="3" height="3"/><rect x="65" y="102" width="3" height="3"/></g>';
     if (v === 6) return '<path d="M52 105 L54.5 114 L57 107 Z M63 107 L65.5 114 L68 105 Z" fill="#fff"' + ink(2) + '/>' + smile;   // fangs
     if (v === 7) return '<path d="M47 102 Q53.5 111 60 103 Q66.5 111 73 102" fill="none"' + s + ' stroke-linejoin="round"/>';   // :3
-    if (v === 8) return '<ellipse cx="60" cy="105" rx="4" ry="3" fill="' + INK + '"/><g class="avbb"><circle cx="60" cy="112" r="14" fill="#FF8FD1"' + ink(3) + '/>' +   // bubblegum
+    if (v === 8) return '<ellipse cx="60" cy="105" rx="4" ry="3" fill="' + INK + '"' + edge + '/><g class="avbb"><circle cx="60" cy="112" r="14" fill="#FF8FD1"' + ink(3) + '/>' +   // bubblegum
       '<path d="M52 107 Q54 102 59 101" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".85"/></g>';
     if (v === 9) return '<path d="M50 108 Q60 117 70 108" fill="none"' + s + '/>' +   // moustache
       '<path d="M60 97 C54 91 44 92 40 98 C37 102 32 100 31 96 C31 104 40 108 48 104 C53 102 57 100 60 100 C63 100 67 102 72 104 C80 108 89 104 89 96 C88 100 83 102 80 98 C76 92 66 91 60 97 Z" fill="#5B3A1E"' + ink(2.5) + '/>';
-    if (v === 10) return '<path d="M40 98 Q60 132 80 98 Z" fill="' + INK + '"' + ink(2) + '/><ellipse cx="60" cy="117" rx="9" ry="6" fill="#FF6B8A"/><path d="M43 99 L77 99 L75 104 L45 104 Z" fill="#fff"/>';   // laughing
-    if (v === 11) return '<path d="M44 106 L49 102 L54 106 L60 102 L66 106 L71 102 L76 106" fill="none" stroke="' + INK + '" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>';   // nervous
+    if (v === 10) return '<path d="M40 98 Q60 132 80 98 Z" fill="' + INK + '"' + (edge || ink(2)) + '/><ellipse cx="60" cy="117" rx="9" ry="6" fill="#FF6B8A"/><path d="M43 99 L77 99 L75 104 L45 104 Z" fill="#fff"/>';   // laughing
+    if (v === 11) return '<path d="M44 106 L49 102 L54 106 L60 102 L66 106 L71 102 L76 106" fill="none" stroke="' + MI + '" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>';   // nervous
     if (v === 12) return '<rect x="54" y="106" width="6" height="8" rx="1.5" fill="#fff"' + ink(2.2) + '/><rect x="60" y="106" width="6" height="8" rx="1.5" fill="#fff"' + ink(2.2) + '/>' + smile;   // bunny teeth
     if (v === 13) return '<path d="M60 108 C54 100 50 106 54 110 C50 114 54 120 60 112 C66 120 70 114 66 110 C70 106 66 100 60 108 Z" fill="#FF6B8A"' + ink(2.5) + '/>';   // pout
-    if (v === 14) { var z = '<path d="M45 105 L75 105" stroke="' + INK + '" stroke-width="4" stroke-linecap="round"/>';   // zipped
-      for (var zx = 49; zx <= 71; zx += 4) z += '<path d="M' + zx + ' 101.5 L' + zx + ' 108.5" stroke="' + INK + '" stroke-width="2"/>';
+    if (v === 14) { var z = '<path d="M45 105 L75 105" stroke="' + MI + '" stroke-width="4" stroke-linecap="round"/>';   // zipped
+      for (var zx = 49; zx <= 71; zx += 4) z += '<path d="M' + zx + ' 101.5 L' + zx + ' 108.5" stroke="' + MI + '" stroke-width="2"/>';
       return z + '<rect x="74" y="101" width="7" height="10" rx="2" fill="#C9D2DD"' + ink(2) + '/>'; }
     if (v === 15) return '<path d="M44 105 Q49 99 54 105 T64 105 T74 105" fill="none"' + s + '/>';   // wobbly
     if (v === 16) return smile + '<path d="M68 108 L86 120" stroke="' + INK + '" stroke-width="6" stroke-linecap="round"/><path d="M68 108 L86 120" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' +   // lollipop
       '<circle cx="90" cy="123" r="10" fill="#FF5B8A"' + ink(3) + '/><path d="M90 123 a2 2 0 0 1 4 0 a4 4 0 0 1 -8 0 a6 6 0 0 1 12 0" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>';
     if (v === 17) return '<path d="M22 100 Q24 146 60 148 Q96 146 98 100 Q90 124 76 120 Q60 114 44 120 Q30 124 22 100 Z" fill="#6B4423"' + ink(2.5) + '/>' +   // beard
       '<path d="M50 104 Q60 112 70 104" fill="none" stroke="#3A2412" stroke-width="4.5" stroke-linecap="round"/>';
-    if (v === 18) return '<ellipse cx="60" cy="106" rx="5" ry="5.5" fill="' + INK + '"/><text x="82" y="102" font-size="16" fill="' + INK + '" text-anchor="middle">♪</text>';   // whistle
+    if (v === 18) return '<ellipse cx="60" cy="106" rx="5" ry="5.5" fill="' + INK + '"' + edge + '/><text x="82" y="102" font-size="16" fill="' + MI + '" text-anchor="middle">♪</text>';   // whistle
     return smile;
   }
   function hat(v) {
@@ -817,7 +826,7 @@
       '<path d="' + body + '" fill="' + fill + '"' + st + '/>' + extra + kFront(L.k) + fit +
       '<ellipse cx="34" cy="98" rx="6" ry="4" fill="#FF7AA8" opacity=".45"/><ellipse cx="86" cy="98" rx="6" ry="4" fill="#FF7AA8" opacity=".45"/>' +
       (L.f === 15 ? '<g clip-path="url(#' + id + 'c)">' + face(15, fill) + '</g>' : face(L.f, fill)) +
-      eyes(L.e, fill) + mouth(L.m) + hf + all(extraFront, XF) + hat2(L.h, OC) + '</g>';
+      eyes(L.e, fill) + mouth(L.m, !B.fx && lumOf(B.c) < 0.16) + hf + all(extraFront, XF) + hat2(L.h, OC) + '</g>';
     if (ghost) bod = '<g class="avgh">' + bod + '</g>';
     return '<svg class="av' + (o.walk ? ' walk' : '') + '" viewBox="-20 -24 160 184" width="' + w + '" height="' + Math.round(w * 184 / 160) + '" role="img" aria-label="' + (o.label || 'Avatar') + '" xmlns="http://www.w3.org/2000/svg">' +
       (defs ? '<defs>' + defs + '</defs>' : '') + bd[1] +
@@ -894,7 +903,7 @@
   /* quests: three small ones a day (about ten minutes for anyone), two a week. Finished quests are claimed with a tap;
      one left unclaimed is paid out by itself when the day or week turns over, so nothing is ever lost. */
   var QPOOL = [
-    { id: 'r1', e: '↩️', n: 'Try one again after a mistake', d: 'Get one wrong in a lesson or the review, then have another go.', k: 'r', need: 1, c: 15, go: 'review-u2.html' },
+    { id: 'r1', e: '↩️', n: 'Try one again after a mistake', d: 'Get one wrong in a lesson or the review. Then try it again.', k: 'r', need: 1, c: 15, go: 'review-u2.html' },
     { id: 'g1', e: '🕹️', n: 'Finish 1 arcade level', d: 'Any game, any level. The first levels are gentle.', k: 'g', need: 1, c: 15, go: '#games' },
     { id: 'p3', e: '📝', n: 'Do 3 review problems', d: 'Guided or on your own, right or wrong.', k: 'p', need: 3, c: 15, go: 'review-u2.html' },
     { id: 'l3', e: '📚', n: 'Answer 3 lesson questions', d: 'Open any lesson and answer. Right or wrong counts.', k: 'l', need: 3, c: 15, go: 'lessons.html' },
@@ -904,15 +913,15 @@
   function dayQuests(D) {
     var rot = QPOOL[(D.id || 0) % QPOOL.length];
     return [
-      { id: 'show', e: '👋', n: 'Show up', d: 'You are here. That counts.', have: 1, need: 1, c: 5 },
-      { id: 't5', e: '💪', n: 'Have 5 goes at anything', d: 'Lesson questions, review problems and arcade levels all count, right or wrong.', have: D.t || 0, need: 5, c: 15, go: 'lessons.html' },
+      { id: 'show', e: '👋', n: 'Open the arcade', d: 'You are here. That is a start. Now try one thing.', have: 1, need: 1, c: 5 },   // not called "Show up": a day shown up (the streak, the weekly quest) needs one try
+      { id: 't5', e: '💪', n: 'Try 5 questions or levels', d: 'Lesson questions, review problems and arcade levels all count. Right or wrong.', have: D.t || 0, need: 5, c: 15, go: 'lessons.html' },
       { id: rot.id, e: rot.e, n: rot.n, d: rot.d, have: D[rot.k] || 0, need: rot.need, c: rot.c, go: rot.go }
     ].map(function (q) { q.done = q.have >= q.need; q.got = !!(D.c || {})[q.id]; q.have = Math.min(q.have, q.need); return q; });
   }
   function weekQuests(W) {
-    var alt = (W.id || 0) % 2 ? { id: 'wt', e: '🏋️', n: 'Have 25 goes this week', d: 'Anything counts, right or wrong.', have: W.t || 0, need: 25, c: 40 }
+    var alt = (W.id || 0) % 2 ? { id: 'wt', e: '🏋️', n: 'Try 25 questions or levels this week', d: 'Anything counts. Right or wrong.', have: W.t || 0, need: 25, c: 40 }
       : { id: 'wr', e: '🔁', n: 'Try again after 3 mistakes this week', d: 'A wrong answer is a first draft.', have: W.r || 0, need: 3, c: 40 };
-    return [{ id: 'w3', e: '📅', n: 'Show up on 3 days this week', d: 'Any 3 days. A day counts once you have a go at something.', have: W.d || 0, need: 3, c: 40 }, alt]
+    return [{ id: 'w3', e: '📅', n: 'Show up on 3 days this week', d: 'Any 3 days. A day counts when you try one question or level.', have: W.d || 0, need: 3, c: 40 }, alt]
       .map(function (q) { q.done = q.have >= q.need; q.got = !!(W.c || {})[q.id]; q.have = Math.min(q.have, q.need); q.week = true; return q; });
   }
   function pay(E, box, q) { if (!q.done || box.c[q.id]) return 0; box.c[q.id] = 1; E.c += q.c; E.qd++; return q.c; }

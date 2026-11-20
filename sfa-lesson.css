@@ -254,6 +254,10 @@ body.lesson .toast{bottom:auto;top:64px}
 .panel details.fold[open]{gap:8px}
 .panel details.fold>*+*{margin-top:8px}
 .alist .a b .flag{display:inline;margin:0 0 0 6px;cursor:help}
+.alist .a b .flag.ladder{font-size:13px}
+.panel .helpline small{font-weight:600;opacity:.85}
+.panel .reengage{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:6px 0 0;padding:8px 10px;border-radius:10px;border:1px dashed #FFC94A;background:rgba(255,201,74,.08);font:600 13px/1.35 var(--ui)}
+.panel .reengage span{flex:1 1 220px;min-width:0}
 /* differentiation: "Help me start" and the go-further ladder inside a slide */
 .helpb{align-self:flex-start;margin-top:6px}
 .state.help{background:rgba(255,201,74,.12);border-left:4px solid rgba(255,201,74,.8);border-radius:8px;padding:8px 12px;color:inherit}

@@ -116,7 +116,7 @@ table.tl{width:100%;border-collapse:collapse;font-size:14px}
 <script>/* planner.html?mock uses the practice results (teacher key: test), like lesson-practice.html */
 if (/[?&]mock\b/.test(location.search)) document.write('<script src="climb/dev/mock.js"><\/script>');</script>
 <script src="sfa-kit.js"></script>
-<script src="sfa-scaffold.js?v=20261119a"></script>
+<script src="sfa-scaffold.js?v=20261120b"></script>
 <script>
 /* The lesson planner: a printable teaching plan for any lesson, built from the lesson's own data file, so it is never
    out of date. Objective and success criteria, a timeline with a running clock, where the checks for understanding
@@ -224,14 +224,14 @@ if (/[?&]mock\b/.test(location.search)) document.write('<script src="climb/dev/m
         if (dx !== 1 && dy !== s.ans) out.push('An answer of <b>' + num(dy) + '</b> means the y-step was not divided by the x-step (x goes up by ' + num(dx) + ', not 1).');
       }
       var nx = S[i + 1];
-      if (errPoll(nx) && nx.opts && nx.ans != null) out.push('The common mistake here is the next slide\'s question: ' + fmt(nx.opts[nx.ans]) + '.');
+      if (errPoll(nx) && nx.opts && nx.ans != null) out.push('The common mistake here is the next slide\'s question: ' + fmt(String(nx.opts[nx.ans]).split(/\.\s+(?=[A-Za-z])/)[0].replace(/\.$/, '')) + '.');   // the first sentence only: the rest is that slide's own numbers
     }
     // traps the lesson itself names in this block (back to the last text slide)
     for (var j = i - 1; j >= 0 && S[j].k !== 'text'; j--) if (S[j].k === 'ex') (S[j].steps || []).forEach(function (x) { var t = typeof x === 'string' ? x : (x && x.t) || ''; if (/\btrap\b|classic slip|not the slope|turns? the sign|both signs flip|every\*? term/i.test(t) && out.length < 5) out.push('Named in the examples: ' + SG.filled(t)); });
     if (j >= 0 && S[j].note && /slip|trap|same order|forget/i.test(S[j].note)) out.push('From the teaching slide: ' + fmt(S[j].note));
     if (typeof s.why === 'string' && s.why) out.push('The reasoning to bring out: ' + fmt(s.why));
     if (s.note && s.id) out.push('The point of the question: ' + fmt(s.note));
-    if ((s.k === 'open' || s.k === 'exit') && s.model) out.push('Weak answers name a number without saying what it means, or leave out the units. Compare with the model answer.');
+    if ((s.k === 'open' || s.k === 'exit') && s.model) out.push('A weak answer gives a number with no working, or does not say what the number means. Compare with the model answer.');
     var seen = {}; return out.filter(function (x) { if (seen[x]) return false; seen[x] = 1; return true; }).slice(0, 5);
   }
   function noteKey(s, i) { return s.id ? 'q:' + s.id : s.k + ':' + plain(s.title || s.q || '').slice(0, 40); }
@@ -312,9 +312,11 @@ if (/[?&]mock\b/.test(location.search)) document.write('<script src="climb/dev/m
     });
     c1.appendChild(arc);
     g.appendChild(c1);
-    var c2 = H('div', 'cardp'); c2.appendChild(H('p', 'k', 'Success criteria'));
-    var si = S.filter(function (s) { return s.k === 'signin'; })[0], ul = H('ul', 'tight');
-    ((si && si.points) || []).forEach(function (p) { p = plain(p); ul.appendChild(H('li', '', 'I can ' + esc(/^[A-Z][a-z]/.test(p) ? p.charAt(0).toLowerCase() + p.slice(1) : p) + '.')); });
+    // newer lessons list goals on the sign-in slide ("Today you will"): those read as "I can ...". Older lessons list the
+    // agenda there ("Watch the film", "Play the game"), which is not a success criterion, so it is shown as the agenda
+    var si = S.filter(function (s) { return s.k === 'signin'; })[0], ul = H('ul', 'tight'), goals = !!si && /you will/i.test(si.title || '');
+    var c2 = H('div', 'cardp'); c2.appendChild(H('p', 'k', goals || !si ? 'Success criteria' : 'What students are told they will do'));
+    ((si && si.points) || []).forEach(function (p) { p = plain(p); ul.appendChild(H('li', '', goals ? 'I can ' + esc(/^[A-Z][a-z]/.test(p) ? p.charAt(0).toLowerCase() + p.slice(1) : p) + '.' : esc(p))); });
     if (!ul.children.length) ul.appendChild(H('li', '', esc(plain(L.big || ''))));
     c2.appendChild(ul);
     var ev = S.filter(function (s) { return s.k === 'exit'; })[0];

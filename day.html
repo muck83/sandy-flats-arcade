@@ -121,8 +121,12 @@
         });
       });
     }
+    var lastHelp = {}; data.lessons.forEach(function (r) { if (r.q === 'zhelpx1' && !(lastHelp[r.lesson] && lastHelp[r.lesson].time > r.time)) lastHelp[r.lesson] = r; });
     if (st.src.lesson) data.lessons.forEach(function (r) {
       if (r.q === 'here') return out.push({ t: r.time, src: 'lesson', head: true, what: '📺 Joined ' + lessonName(r.lesson) });
+      // 🪜 "Help me start" use: one summary per lesson (the newest), in words
+      if (r.q === 'zhelpx1') { if (lastHelp[r.lesson] !== r) return; var hp = helpOf(r.answer); if (!hp.n) return; return out.push({ t: r.time, src: 'lesson', what: '🪜 ' + lessonName(r.lesson) + ': used Help me start', ans: hp.text, res: null, extra: 'help' }); }
+      if (sysRow(r.q)) return;
       if (r.q === 'zflag') return out.push({ t: r.time, src: 'lesson', what: '⚠ ' + lessonName(r.lesson) + ': focus watch', ans: r.answer, res: ['flag', 'mid'] });
       var s = lessonSlide(r.lesson, r.q), a = r.answer;
       if (s && s.opts && /^\d+$/.test(a) && s.opts[+a] != null) a = s.opts[+a];
@@ -135,6 +139,14 @@
     // a session or lesson heading sorts just before the answers it heads
     out.sort(function (a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : (b.head ? 1 : 0) - (a.head ? 1 : 0); });
     return out;
+  }
+  // the lesson page's own bookkeeping rows (avatar look, strut, reactions, away/back, spotlight and pair replies, help use): not answers
+  function sysRow(q) { return /^z(look|strut|help|act|rx|spin|tpa|tpf)x1$/.test(q) || q === 'zclash'; }
+  // "hp1;<words looked up>;<question>:<steps opened>:<steps there are>[f];…" (sfa-lesson.js) in words
+  function helpOf(v) {
+    var p = String(v || '').split(';'), qs = []; if (p[0] !== 'hp1') return { n: 0, text: '' };
+    p.slice(2).forEach(function (x) { var m = /^([a-z0-9]{1,16}):(\d):(\d)(f?)$/.exec(x); if (m && +m[2] > 0) qs.push((+m[3] ? m[2] + ' of ' + m[3] + ' steps' : m[2] + ' step' + (+m[2] > 1 ? 's' : '')) + (m[4] ? ' + sentence starter' : '')); });
+    return { n: qs.length, text: 'On ' + qs.length + ' question' + (qs.length === 1 ? '' : 's') + ' (' + qs.join('; ') + ')' + (+p[1] ? ' · looked up ' + p[1] + ' word' + (+p[1] === 1 ? '' : 's') : '') };
   }
   function tiles() {
     var t = el('div', { 'class': 'tiles' });
@@ -149,7 +161,7 @@
       if (cr) tile('climb', Math.round(cr.theta), 'growth score now · ' + cr.secure + ' skills secure');
     }
     if (st.src.lesson) {
-      var la = data.lessons.filter(function (r) { return r.q !== 'here' && r.q !== 'zflag'; }), marked = la.filter(function (r) { return r.correct; }), right = marked.filter(function (r) { return r.correct === 'yes'; }).length;
+      var la = data.lessons.filter(function (r) { return r.q !== 'here' && r.q !== 'zflag' && !sysRow(r.q); }), marked = la.filter(function (r) { return r.correct; }), right = marked.filter(function (r) { return r.correct === 'yes'; }).length;
       var joined = {}; data.lessons.forEach(function (r) { if (r.q === 'here') joined[r.lesson] = 1; });
       tile('lesson', Object.keys(joined).length, 'lessons joined' + (Object.keys(joined).length ? ' (' + Object.keys(joined).map(function (l) { return LES[l] ? 'L' + LES[l].n : l; }).join(', ') + ')' : ''));
       tile('lesson', la.length, 'lesson answers');
@@ -240,5 +252,5 @@
   for (var i = 1; i <= 28; i++) { var s = document.createElement('script'); s.src = (window.CLIMB_ROOT || '') + 'lessons/L' + i + '.js'; s.onload = s.onerror = function () { if (--lesLeft === 0) start(); }; document.head.appendChild(s); }
 })();
 </script>
-<script src="sfa-nav.js?v=20261117a"></script>
+<script src="sfa-nav.js?v=20261120a"></script>
 </body></html>

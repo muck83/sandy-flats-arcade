@@ -121,17 +121,17 @@ SFA_LESSON({
         { t: 'Put one point in.', eq: '95 = 20(3) + b  →  95 = [[60]] + b' },
         { t: 'b = [[35]]: the joining fee is $[[~35]], the cost at 0 months.', eq: 'y = 20x + [[~35]]' }
       ] },
-    { k: 'est', min: 4, id: 'story', lo: 0, hi: 13, step: 1, near: 2, q: 'A taxi ride of *3 km* costs *$13*. A ride of *7 km* costs *$25*. *Estimate* the starting fee in dollars first, then work out b exactly.', ans: 4,
-      hint: 'The points are (3, 13) and (7, 25). Find the price per km first.', why: 'm = 12 ÷ 4 = $3 per km. 13 = 3(3) + b, so b = $4.',
+    { k: 'est', min: 4, id: 'story', lo: 0, hi: 11, step: 1, near: 2, q: 'A taxi ride of *2 km* costs *$11*. A ride of *6 km* costs *$23*. *Estimate* the starting fee in dollars first, then work out b exactly.', ans: 5,
+      hint: 'The points are (2, 11) and (6, 23). Find the price per km first.', why: 'm = 12 ÷ 4 = $3 per km. 11 = 3(2) + b, so b = $5.',
       help: 'Write the two rides as points (km, cost).',
       more: [
         { k: 'number', q: 'A candle is *22 cm* after 2 hours and *16 cm* after 5 hours. How tall was it at the start?', ans: 26, hint: 'm = (16 − 22) ÷ (5 − 2).', why: 'm = −2 cm per hour. 22 = −2(2) + b, so b = 26 cm.',
           steps: ['m = −6 ÷ 3 = −2 cm per hour.', '22 = −2(2) + b = −4 + b.', 'b = *26* cm: its height at 0 hours.'] },
         { k: 'number', q: 'A phone plan costs *$38* for 4 GB and *$62* for 10 GB. What is the fixed monthly fee?', ans: 22, hint: 'Price per GB first.', why: 'm = 24 ÷ 6 = $4 per GB. 38 = 4(4) + b, so b = $22.',
           steps: ['m = (62 − 38) ÷ (10 − 4) = 24 ÷ 6 = 4.', '38 = 4(4) + b = 16 + b.', 'b = *$22*.'] },
-        { k: 'open', q: 'In the taxi problem, b = 4. Explain what the 4 means.', ph: 'The 4 means...',
-          model: 'The $4 is the cost of a 0 km ride: the fee you pay just for getting in, before you travel any distance.',
-          steps: ['b is the value when x = 0.', 'x is kilometres, so 0 km.', '*$4 is the cost before you travel at all.*'] }
+        { k: 'open', q: 'In the taxi problem, b = 5. Explain what the 5 means.', ph: 'The 5 means...',
+          model: 'The $5 is the cost of a 0 km ride: the fee you pay just for getting in, before you travel any distance.',
+          steps: ['b is the value when x = 0.', 'x is kilometres, so 0 km.', '*$5 is the cost before you travel at all.*'] }
       ] },
     { k: 'odd', min: 2, id: 'odd1', items: ['y = 2x + 5', 'y = −x + 5', 'y = 2x', 'The line through (0, 5) and (1, 8)'],
       why: ['It is the only one that goes through (1, 7)', 'It is the only one that goes downhill', 'It is the only one that starts at 0 (b = 0)', 'It is the only one with slope 3'],

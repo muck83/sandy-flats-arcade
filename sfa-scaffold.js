@@ -16,7 +16,7 @@
    opt: true (can be skipped when time is short) and wedo: true (a faded example the class finishes together). */
 (function () {
   'use strict';
-  var SFA = window.SFA || {}, VER = '20261119a';
+  var SFA = window.SFA || {}, VER = '20261120b';
   // one script tag is enough: the styles are fetched from next to this file
   (function () {
     var me = document.currentScript, href = (me && me.src ? me.src.replace(/[^\/]*$/, '') : '') + 'sfa-scaffold.css?v=' + VER;
@@ -144,15 +144,23 @@
     asn: 'Try one example with easy numbers. Is it true? Then try to find an example where it is false.',
     est: 'Do not calculate yet. Is the answer nearer the small end or the big end? Slide to your best guess first.'
   };
+  var NEXTMOVE = {
+    odd: 'Check one thing at a time. Write down what is the <b>same</b> for three of them. The one that is left is your answer.',
+    cross: 'Test one option with the numbers in the question. Does it fit? If not, cross it out. Then test the next one.',
+    asn: '<b>Always</b>: true for every example. <b>Never</b>: false for every example. <b>Sometimes</b>: you found one true example and one false example.'
+  };
   function firstMove(s) {
     if (s.help) return s.help;
     if (NEWMOVE[s.k]) return NEWMOVE[s.k];
     if (s.k === 'machine') return 'Feed in 0 first: the output is what the rule adds at the end. Then feed in 1 and see how much the output changes.';
     var q = plain(s.q), pts = q.match(/\(\s*[−-]?\d+(?:\.\d+)?\s*,\s*[−-]?\d+(?:\.\d+)?\s*\)/g);
+    if (s.k === 'exit' && pts && pts.length >= 2) return 'Write the two points down and label them: point 1 is ' + pts[0] + ', point 2 is ' + pts[1] + '. Then do one step at a time.';
     if (s.k === 'number' || s.k === 'poll') {
       if (pts && pts.length >= 2) return 'Write the two points down and label them: point 1 is ' + pts[0] + ', point 2 is ' + pts[1] + '.';
-      if (s.fig && s.fig.kind === 'table') return 'Look at two rows of the table that are next to each other. How much does x change? How much does y change?';
-      if (s.fig && s.fig.kind === 'graph') return 'Find two points on the line that sit exactly on grid corners. Write them down.';
+      // the table and graph moves are slope moves: only offer them when the question is about slope
+      var slopeQ = /slope|steep|\brate\b|\brise\b|\brun\b/i.test(q);
+      if (slopeQ && s.fig && s.fig.kind === 'table') return 'Look at two rows of the table that are next to each other. How much does x change? How much does y change?';
+      if (slopeQ && s.fig && s.fig.kind === 'graph') return 'Find two points on the line that sit exactly on grid corners. Write them down.';
     }
     if (s.k === 'number') return 'Write down each number in the question and what it is: a start, a change, or a total? The answer is one number.';
     if (s.k === 'poll') return s.ans == null ? 'There is no wrong answer here. Pick the one that is closest to what you think.' : 'Cover the options. Say your own answer first. Then look for the option that matches it.';
@@ -160,10 +168,13 @@
   }
   function pieces(q) {
     // split after . ? ! or : when a new sentence starts (a capital, a bracket or a $ follows); "1.5 cm" stays whole
-    var t = plain(q), parts = [], from = 0, m, rx = /[.?!:]\s+(?=[A-Z("“$])/g;
+    // a label such as "Warm-up 1 of 3." is not a piece, and a short question (under three pieces) is already in pieces
+    var t = plain(q).replace(/^\s*Warm-up \d+ of \d+\.\s*/i, ''), parts = [], from = 0, m, rx = /[.?!]\s+(?=[A-Z("“$])/g;
     while ((m = rx.exec(t))) { parts.push(t.slice(from, m.index + 1).trim()); from = m.index + m[0].length; }
     parts.push(t.slice(from).trim()); parts = parts.filter(Boolean);
-    return parts.length >= 2 && parts.length <= 6 ? parts : null;
+    // never cut through the middle of something a character says
+    if (parts.some(function (p) { return (p.match(/["“”]/g) || []).length % 2; })) return null;
+    return parts.length >= 3 && parts.length <= 6 ? parts : null;
   }
   // the worked example a question follows: the first example of the run of examples before it
   function exampleFor(L, idx) {
@@ -194,6 +205,9 @@
     // step 2: one like it
     if (s.k === 'exit') {
       steps.push({ h: 'Look back', html: '<p>This is your exit ticket: show what you can do on your own. Use ◀ Back to look at today\'s examples, then come back.</p>' });
+    } else if (NEXTMOVE[s.k]) {
+      // these three are thinking tasks, not "do the same as the example": the nearest worked example is usually about something else
+      steps.push({ h: 'One more move', html: '<p>' + NEXTMOVE[s.k] + '</p>' });
     } else if (s.k !== 'poll' || s.ans != null || NEWMOVE[s.k]) {
       var ex = exampleFor(L, idx), tx_ = ex ? null : textFor(L, idx);
       if (ex) {
@@ -209,7 +223,7 @@
       var fr = frameFor(s);
       steps.push({ h: 'Start writing', frame: fr, html: '<p class="sg-k">Sentence starter</p><p class="sg-frame">' + esc(fr) + '</p>' });
     } else if ((s.k === 'number' || s.k === 'est' || s.k === 'mistake' || s.k === 'order') && s.hint && s.hint !== s.help) {
-      steps.push({ h: 'Set it up', html: '<p>' + fmt(s.hint) + '</p><p>Work it out on paper, then type your answer.</p>' });
+      steps.push({ h: 'Set it up', html: '<p>' + fmt(s.hint) + '</p><p>' + (s.k === 'mistake' ? 'Now tap the line that is wrong.' : s.k === 'order' ? 'Now put the steps in order.' : 'Work it out on paper, then type your answer.') + '</p>' });
     } else if (s.k === 'poll' && s.ans != null && (s.opts || []).length >= 3) {
       var w = -1; for (var k = s.opts.length - 1; k >= 0; k--) if (k !== s.ans) { w = k; break; }
       steps.push({ h: 'Cross one out', html: '<p>It is <b>not ' + 'ABCDEFGH'.charAt(w) + '</b>: ' + fmt(s.opts[w]) + '.</p><p>Now choose from the others. Check your choice with the numbers.</p>' });
@@ -233,7 +247,8 @@
   var canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 
   /* ---------------- tap-to-define ---------------- */
-  var SKIP = 'button,a,input,textarea,select,svg,script,style,.sg-term,.sg-ui,.blk,.wall,.spot,.names,.timer,.gbtn,.codebox,[contenteditable]';
+  // headings and the small label above a question stay clean: a dotted line under a title reads as decoration, and the same word is in the text below
+  var SKIP = 'button,a,input,textarea,select,svg,script,style,h1,h2,h3,.kick,.kicker,.sg-term,.sg-ui,.blk,.wall,.spot,.names,.timer,.gbtn,.codebox,[contenteditable]';
   function annotate(root) {
     var have = {}; [].forEach.call(root.querySelectorAll('.sg-term'), function (e) { have[e.getAttribute('data-term')] = 1; });
     var ctx = root.textContent, tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), nodes = [], n;
@@ -259,13 +274,13 @@
   function trLine(t) { return '<span class="sg-tr" lang="' + lang + '"' + (lang === 'ar' ? ' dir="rtl"' : '') + '>' + esc(t.tr[lang] || '') + '</span>'; }
   function card(t, big) {
     var c = el('div', 'sg-card');
-    var hd = el('div', 'sg-cardh'); hd.appendChild(el('b', '', esc(t.id)));
+    // the word in the student's own language sits right beside the English word: for many students it is the whole answer
+    var hd = el('div', 'sg-cardh'); hd.appendChild(el('b', '', esc(t.id))); if (t.tr[lang]) hd.appendChild(el('span', 'sg-trh', trLine(t)));
     if (canSpeak) { var sb = el('button', 'sg-mini', '🔊'); sb.type = 'button'; sb.setAttribute('aria-label', 'Hear it'); sb.onclick = function (e) { e.stopPropagation(); say([t.id + '. ' + t.d + (t.ex ? ' For example: ' + t.ex : '')]); }; hd.appendChild(sb); }
     c.appendChild(hd);
     var body = el('div', 'sg-cardb'), txt = el('div');
     txt.appendChild(el('p', 'sg-def', esc(t.d)));
     if (t.ex) txt.appendChild(el('p', 'sg-exl', '<span>Example</span> ' + esc(t.ex)));
-    txt.appendChild(el('p', 'sg-trl', trLine(t)));
     body.appendChild(txt);
     if (t.pic && PICS[t.pic]) body.appendChild(el('div', 'sg-picw', PICS[t.pic]()));
     c.appendChild(body);
@@ -304,6 +319,9 @@
 
   /* ---------------- read aloud ---------------- */
   var speaking = false, sayTok = 0, readChip = null;
+  // chip labels: the full words on a laptop, one short word on a phone so the tools fit on one row
+  function two(ic, wide, narrow) { return ic + ' <span class="sg-w">' + wide + '</span><span class="sg-n">' + narrow + '</span>'; }
+  function readLbl(on) { if (readChip) readChip.innerHTML = on ? two('⏹', 'Stop reading', 'Stop') : two('🔊', 'Read to me', 'Read'); }
   function speakable(s) {
     return String(s).replace(/✓/g, ' correct. ').replace(/✗/g, ' not correct. ')
       .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}️]/gu, ' ')
@@ -316,7 +334,7 @@
       .replace(/→/g, ', then ').replace(/[·★▶◀]/g, ', ').replace(/\s+/g, ' ').trim();
   }
   function voice() { var v = speechSynthesis.getVoices().filter(function (x) { return /^en[-_]/i.test(x.lang); }); return v.filter(function (x) { return /en[-_]US/i.test(x.lang) && x.localService; })[0] || v[0] || null; }
-  function stopSay() { sayTok++; speaking = false; if (canSpeak) speechSynthesis.cancel(); [].forEach.call(document.querySelectorAll('.sg-reading'), function (e) { e.classList.remove('sg-reading'); }); if (readChip) { readChip.textContent = '🔊 Read to me'; readChip.setAttribute('aria-pressed', 'false'); } }
+  function stopSay() { sayTok++; speaking = false; if (canSpeak) speechSynthesis.cancel(); [].forEach.call(document.querySelectorAll('.sg-reading'), function (e) { e.classList.remove('sg-reading'); }); if (readChip) { readLbl(false); readChip.setAttribute('aria-pressed', 'false'); } }
   // items: strings, or [element, text] pairs (the element is highlighted while its text is read)
   function say(items) {
     if (!canSpeak) return;
@@ -324,7 +342,7 @@
     (function next() {
       [].forEach.call(document.querySelectorAll('.sg-reading'), function (e) { e.classList.remove('sg-reading'); });
       if (tok !== sayTok) return;
-      if (i >= items.length) { speaking = false; if (readChip) { readChip.textContent = '🔊 Read to me'; readChip.setAttribute('aria-pressed', 'false'); } return; }
+      if (i >= items.length) { speaking = false; if (readChip) { readLbl(false); readChip.setAttribute('aria-pressed', 'false'); } return; }
       var it = items[i++], node = Array.isArray(it) ? it[0] : null, text = speakable(Array.isArray(it) ? it[1] : it);
       if (!text) return next();
       var u = new SpeechSynthesisUtterance(text), v = voice(); if (v) u.voice = v; u.lang = v ? v.lang : 'en-US'; u.rate = 0.88;
@@ -348,7 +366,7 @@
     });
     if (!items.length) return;
     say(items);
-    readChip.textContent = '⏹ Stop reading'; readChip.setAttribute('aria-pressed', 'true');
+    readLbl(true); readChip.setAttribute('aria-pressed', 'true');
   }
 
   /* ---------------- the ladder on the slide ---------------- */
@@ -422,9 +440,9 @@
   function tools() {
     var chips = document.querySelector('.ltop .chips'); if (!chips || chips.querySelector('.sg-chip')) return;
     function chip(txt, title, fn) { var b = el('button', 'chip sg-chip sg-ui', txt); b.type = 'button'; b.title = title; b.onclick = fn; chips.appendChild(b); return b; }
-    if (canSpeak) { readChip = chip('🔊 Read to me', 'Read this slide aloud', function () { if (speaking) stopSay(); else readSlide(); }); readChip.setAttribute('aria-pressed', 'false'); }
+    if (canSpeak) { readChip = chip(two('🔊', 'Read to me', 'Read'), 'Read this slide aloud', function () { if (speaking) stopSay(); else readSlide(); }); readChip.setAttribute('aria-pressed', 'false'); }
     var fsChip = chip('', 'Make the slide text bigger', function () { fs = (fs + 1) % 3; store.set('sg.fs', fs); applyFs(); nm(); });
-    function nm() { fsChip.innerHTML = fs === 0 ? '<b>A</b> Text size' : fs === 1 ? '<b>A+</b> Bigger text' : '<b>A++</b> Biggest text'; }
+    function nm() { fsChip.innerHTML = fs === 0 ? two('<b>A</b>', 'Text size', 'Size') : fs === 1 ? two('<b>A+</b>', 'Bigger text', 'Size') : two('<b>A++</b>', 'Biggest text', 'Size'); }
     nm();
     chip('📖 Words', 'The math words in this lesson, with meanings', wordSheet);
   }

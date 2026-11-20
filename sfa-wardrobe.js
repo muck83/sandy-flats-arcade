@@ -44,7 +44,7 @@
       '.wd .wdparts{width:100%;margin:6px 0 0;padding:0;list-style:none;text-align:left;font-size:14px}.wd .wdparts li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid #3A3550}.wd .wdparts li small{display:block;color:#ABA5BC;font-size:12px}.wd .wdparts b{color:#FFC94A;white-space:nowrap}',
       '.wd details summary{cursor:pointer;font-weight:800}.wd .wdstate{font-size:13px;color:#ABA5BC;margin:6px 0 0}',
       '.wd .wdhint{font-size:13px;color:#ABA5BC;margin:0 0 10px}.wd .wdhint b{color:#F3EFE7}',
-      '.wd .wdgrp{display:flex;gap:6px;margin-bottom:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}',
+      '.wd .wdgrp{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding-bottom:4px}',   // wraps: a row that scrolls sideways hid Friends, Moves and Card on a narrow laptop
       '.wd .wdg{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:58px;padding:6px 8px;border-radius:14px;border:2px solid #3A3550;background:#24202F;font-weight:800;font-size:12px;cursor:pointer}',
       '.wd .wdg span{font-size:22px;line-height:1.1}.wd .wdg.on{border-color:#FFC94A;background:#3a2f14;color:#FFC94A}',
       '.wd .wdtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.wd .wdtab{padding:7px 12px;border-radius:99px;border:2px solid #3A3550;background:#24202F;color:#F3EFE7;font-weight:800;font-size:14px;cursor:pointer}.wd .wdtab.on{border-color:#B48CFF;background:#2f2450;color:#E3D4FF}',
@@ -137,7 +137,14 @@
       L.x = []; for (var n = Math.floor(Math.random() * 3); n > 0 && xs.length; n--) L.x = AV.wear(L.x, xs.splice(Math.floor(Math.random() * xs.length), 1)[0]);
       wearIt(AV.encode(L)); draw();
     }
+    // a redraw empties the box for a moment; hold its height and the page's place so a pick far down the list doesn't jump the page to the top
     function draw() {
+      var sy = window.pageYOffset, h = box.offsetHeight;
+      if (h) box.style.minHeight = h + 'px';
+      try { paint(); } finally { box.style.minHeight = ''; }
+      if (h && Math.abs(window.pageYOffset - sy) > 2) window.scrollTo(0, Math.min(sy, Math.max(0, document.documentElement.scrollHeight - window.innerHeight)));
+    }
+    function paint() {
       var P = AV.profile(), look = AV.myLook(P, seed()), show = tryLook || look, W = wallet(P);
       var lv = AV.level(P.xp || 0), a = AV.need(lv), b = AV.need(lv + 1), keepScroll = box.querySelector('.wdgrp') ? box.querySelector('.wdgrp').scrollLeft : 0;
       box.innerHTML = '';

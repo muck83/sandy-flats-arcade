@@ -257,7 +257,7 @@
     root.appendChild(card([el('h2', { text: 'Sign in first' }), el('p', { text: 'The Unit 2 Check saves to your name, so sign in with your student code in the box above. Then this page will show the start screen.' })]));
   }
 
-  var RECORDED = ['Your answer to every question, and how long each one took.', 'If you leave this tab or window during a question, and for how long.', 'If something is pasted into an answer box, or the question is copied.', 'Answers that are much faster or much slower than expected.'];
+  var RECORDED = ['Your answers, and how long each one took.', 'If you leave this tab or window during a question.', 'If you paste into an answer box or copy a question.', 'Answers that are very fast or very slow.'];
   function intro(again) {
     clear(); view = 'intro';
     var inp = el('input', { type: 'text', 'class': 'ck-code', maxlength: '5', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'Start code', placeholder: '•••••' });
@@ -272,23 +272,24 @@
     }
     root.appendChild(card([
       el('h2', { text: again ? 'A new attempt' : 'Unit 2 Check: Linear Equations and Inequalities' }),
-      el('p', { 'class': 'ck-lead', text: 'Hi ' + nice(me().name).split(' ')[0] + '. This check finds out what you can already do and what to practise next. It is not a race, and it adjusts to you: the questions get harder when you are right and easier when you are not, so it is normal to meet questions you can\'t do yet.' }),
+      el('p', { 'class': 'ck-lead', text: 'Hi ' + nice(me().name).split(' ')[0] + '. This check shows what you can do now and what to practise next. It is not a race. The questions get harder when you are right and easier when you are wrong. So everyone meets questions they can\'t do yet. That is normal.' }),
       el('div', { 'class': 'ck-grid' }, [
         el('div', {}, [el('h3', { text: 'How it works' }), el('ul', { 'class': 'ck-list' }, [
-          el('li', { text: 'About 35 minutes, one question at a time. You can\'t go back, so check before you press Submit.' }),
-          el('li', { text: 'Everyone gets different numbers, so do your own thinking.' }),
-          el('li', { text: 'Some questions ask you to tap a graph, a table row or a line of working. Read each instruction.' }),
-          el('li', { text: 'If you really don\'t know, choose "I don\'t know yet". That is useful information, not a failure.' }),
-          el('li', {}, [el('b', { text: 'You need paper and a pencil. ' }), 'Three questions are paper questions: you show your working on paper with your name and the code on the screen, and hand the paper in.'])
+          el('li', { text: 'About 35 minutes. One question at a time. You can\'t go back, so check before you press Submit.' }),
+          el('li', { text: 'Everyone gets different numbers. Do your own thinking.' }),
+          el('li', { text: 'Read each instruction. Sometimes you type. Sometimes you tap a graph, a table or a line of working.' }),
+          el('li', { text: 'Stuck? Choose "I don\'t know yet". That helps Mr. Crowell help you. It is not a failure.' }),
+          el('li', {}, [el('b', { text: 'You need paper and a pencil. ' }), 'Three questions are paper questions. Write your name, the code on the screen and your working on the paper. Then hand it in.'])
         ])]),
-        el('div', {}, [el('h3', { text: 'What is recorded' }), el('ul', { 'class': 'ck-list' }, RECORDED.map(function (t) { return el('li', { text: t }); })), el('p', { 'class': 'muted', text: 'These are notes for Mr. Crowell to look at, not penalties. Nothing is taken off your result automatically. A calculator is fine; other tabs, apps and AI helpers are not.' })])
+        el('div', {}, [el('h3', { text: 'What is recorded' }), el('ul', { 'class': 'ck-list' }, RECORDED.map(function (t) { return el('li', { text: t }); })), el('p', { 'class': 'muted', text: 'These are notes for Mr. Crowell. They do not change your result. A calculator is fine. Other tabs, apps and AI helpers are not.' })])
       ]),
       el('div', { 'class': 'ck-start' }, [el('label', {}, ['Start code from Mr. Crowell ', inp]), go]),
       msg,
       TRY ? el('p', { 'class': 'muted' }, ['Practice mode: ', el('button', { type: 'button', 'class': 'btn small', text: 'Use a practice code', onclick: function () { inp.value = CU.makeCode(Date.now(), 0); } }), ' (the real code comes from the teacher dashboard).']) : null
     ]));
     if (P.past.length) root.appendChild(el('p', { 'class': 'muted', text: 'Earlier attempts: ' + P.past.map(function (x) { return new Date(x.t0).toLocaleDateString() + ' (scale ' + x.scale + ')'; }).join(', ') }));
-    inp.focus();
+    // on a phone, focusing the code box scrolls past the instructions: let the student read from the top first
+    try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); }
   }
 
   function begin(r) {
@@ -438,6 +439,7 @@
 
     if (a.papers.length) root.appendChild(card([el('h2', { text: 'Hand in your paper' }), el('p', {}, ['Check that your name is on it, with these codes next to your working: ', el('b', { text: a.papers.map(function (p) { return CU.paperCode(a.seed, p.s) + ' (question ' + (p.i + 1) + ')'; }).join(', ') }), '.'])], 'ck-paperc'));
 
+    practiseCard();
     var cols = [];
     if (can.length) cols.push(el('div', { 'class': 'ck-col l3' }, [el('h3', { text: '✓ What you can do' }), el('ul', {}, can.map(function (k) { return li(k, sc.skill[k.id].level === 4 ? '(Deep)' : ''); }))]));
     if (getting.length) cols.push(el('div', { 'class': 'ck-col l2' }, [el('h3', { text: '↗ Nearly there' }), el('ul', {}, getting.map(function (k) { return li(k); }))]));
@@ -445,9 +447,12 @@
     if (thin.length) cols.push(el('div', { 'class': 'ck-col l0' }, [el('h3', { text: '? Not enough evidence yet' }), el('ul', {}, thin.map(function (k) { return li(k, sc.skill[k.id].n ? '(1 question, ' + (sc.skill[k.id].right ? 'right' : 'not right yet') + ')' : '(not reached)'); }))]));
     root.appendChild(card([el('h2', { text: 'Skill by skill' }), el('p', { 'class': 'muted', text: 'Each skill had only one to three questions, so treat these as a first read. Every skill links to its page in the Unit 2 Review.' }), el('div', { 'class': 'ck-cols' }, cols)]));
 
-    if (practise.length) root.appendChild(card([el('h2', { text: 'Practise next' }), el('p', { text: 'These will move you forward fastest. Open one, read the Learn tab, then do the guided practice.' }),
+    // what to do next comes before the long skill list: on a phone it is the first thing under the result
+    function practiseCard() {
+    if (practise.length) root.appendChild(card([el('h2', { text: 'Practise next' }), el('p', { text: 'Start with these. Open one, read the Learn tab, then do the guided practice.' }),
       el('div', { 'class': 'ck-next' }, practise.map(function (k) { return el('a', { 'class': 'btn', href: 'review-u2.html#' + k.id, text: '📝 ' + k.name }); }))]));
     else if (sc.level) root.appendChild(card([el('h2', { text: 'Practise next' }), el('p', {}, ['Every skill you were asked about is at Developed or Deep. Try the stretch problems or the ', el('a', { href: 'review-u2.html#mixed', text: 'mixed review' }), '.'])]));
+    }
 
     root.appendChild(card([el('h2', { text: 'The four success criteria' }), el('div', { 'class': 'ck-crits' }, CU.CRIT.map(function (c) {
       var e = sc.crit[c.id];

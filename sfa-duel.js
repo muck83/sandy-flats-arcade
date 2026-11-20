@@ -322,7 +322,9 @@
 
   /* ---------- the battlefield: one canvas, drawn every frame ---------- */
   var IMG = {};
+  function fullLk(look) { return A.fullLook ? A.fullLook(look || '') : look; }   // the fleet travels as classic looks; the console sends each student's extras (hair, outfit…) alongside
   function imgOf(look) {
+    look = fullLk(look);
     var k = look || '-'; if (IMG[k]) return IMG[k];
     var im = new Image(); if (AV) im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(AV.svg(look || '', { size: 120 }));
     IMG[k] = im; return im;
@@ -648,7 +650,7 @@
   }
   function mvpHTML(o) {
     if (!o.mvp.length) return '';
-    return '<div class="dlmvps">' + o.mvp.map(function (m, i) { return '<figure style="--c:' + TC[m.t] + '">' + (AV ? AV.svg(m.look, { size: 110, walk: true }) : '') + '<figcaption><b>' + ['🥇', '🥈', '🥉'][i] + ' ' + esc(m.n) + '</b><small>' + m.dmg + ' damage · ' + m.hits + ' hit' + (m.hits === 1 ? '' : 's') + ' · ' + m.zaps + ' clash' + (m.zaps === 1 ? '' : 'es') + '</small></figcaption></figure>'; }).join('') + '</div>';
+    return '<div class="dlmvps">' + o.mvp.map(function (m, i) { return '<figure style="--c:' + TC[m.t] + '">' + (AV ? AV.svg(fullLk(m.look), { size: 110, walk: true }) : '') + '<figcaption><b>' + ['🥇', '🥈', '🥉'][i] + ' ' + esc(m.n) + '</b><small>' + m.dmg + ' damage · ' + m.hits + ' hit' + (m.hits === 1 ? '' : 's') + ' · ' + m.zaps + ' clash' + (m.zaps === 1 ? '' : 'es') + '</small></figcaption></figure>'; }).join('') + '</div>';
   }
   function winner(o) { return o.score[0] === o.score[1] ? -1 : o.score[0] > o.score[1] ? 0 : 1; }
   function scrEnd() {

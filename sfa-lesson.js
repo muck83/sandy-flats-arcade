@@ -230,11 +230,11 @@
   var notes = SFA.store.get('les.notes.' + LID, {}) || {};
   function saveNotes() { SFA.store.set('les.notes.' + LID, notes); }
   function normAns(v) { return String(v).toLowerCase().replace(/[−–]/g, '-').replace(/[\s()$%]/g, '').replace(/^\+/, ''); }
-  function numOf(v) { var m = /^(-?\d*\.?\d+)(?:\/(-?\d*\.?\d+))?$/.exec(v); if (!m) return null; var b = m[2] != null ? +m[2] : 1; return b ? +m[1] / b : null; }
+  function blankNum(v) { var m = /^(-?\d*\.?\d+)(?:\/(-?\d*\.?\d+))?$/.exec(v); if (!m) return null; var b = m[2] != null ? +m[2] : 1; return b ? +m[1] / b : null; }
   // right if it matches any accepted answer (a|b), as text or as the same number (1/2 = 0.5, +6 = 6)
   function blankOk(v, ans) {
-    var a = normAns(v), na = numOf(a); if (!a) return false;
-    return String(ans).split('|').some(function (x) { var b = normAns(x), nb = numOf(b); return a === b || (na != null && nb != null && Math.abs(na - nb) < 1e-9); });
+    var a = normAns(v), na = blankNum(a); if (!a) return false;
+    return String(ans).split('|').some(function (x) { var b = normAns(x), nb = blankNum(b); return a === b || (na != null && nb != null && Math.abs(na - nb) < 1e-9); });
   }
   // the phone pattern: on a question, the longest stretch with nothing typed, clicked, scrolled or moved, counted from
   // the student's first touch of the slide (so listening to the teacher doesn't count), then a right answer within 8 s
@@ -300,7 +300,7 @@
   function loadMine() {
     if (MODE !== 'student' || !saving || !S.me) return;
     S.call('myAnswers', { lesson: LID }).then(function (j) {
-      Object.keys(j.answers || {}).forEach(function (q) { if (q === 'zflag') return; if (!mine[q]) mine[q] = { answer: j.answers[q].answer, correct: j.answers[q].correct === 'yes' ? true : j.answers[q].correct === 'no' ? false : null, sent: true, restored: true }; });
+      Object.keys(j.answers || {}).forEach(function (q) { if (q === 'zflag' || q === 'zhelpx1') return; if (!mine[q]) mine[q] = { answer: j.answers[q].answer, correct: j.answers[q].correct === 'yes' ? true : j.answers[q].correct === 'no' ? false : null, sent: true, restored: true }; });
       saveLocal(); render(cur, 0, true); flush();
     }, function (e) { if (/unknown op/.test(e.message)) { backendOld = true; upd(); } else flush(); });
   }
@@ -337,6 +337,42 @@
     watchLast = Date.now();
     S.call('answer', { lesson: LID, q: 'zflag', kind: 'open', answer: v, correct: null }).then(function () { watchSent = v; }, function () { clearTimeout(watchT); watchT = setTimeout(watchSend, 20000); });
   }
+  /* 🪜 Help use (student): sfa-scaffold.js keeps which "Help me start" steps a student opened in the store
+     ('les.help.<lesson>'). One summary row per student (q 'zhelpx1', left out of reports like the other …x1 rows) goes to
+     the Responses tab when it changes, at most every 20 s, after the student's answers; the console shows it.
+     "hp1;<words looked up>;<question>:<steps opened>:<steps there are>[f];…"  (f: took the sentence starter) */
+  var helpSent = '', helpLast = 0, helpT = null;
+  function helpEnc() {
+    var h = SFA.store.get('les.help.' + LID, null); if (!h || typeof h !== 'object') return '';
+    var run = liveRun(), parts = [], w = 0;
+    Object.keys(h._words || {}).forEach(function (k) { w += +h._words[k] || 0; });
+    Object.keys(h).forEach(function (q) {
+      var o = h[q]; if (q === '_words' || !o || !(o.n > 0) || !/^[a-z0-9]{1,16}$/.test(q)) return;
+      if (run && o.at && o.at + (srvSkewV || 0) < run - 600000) return;   // from an earlier run of this lesson
+      parts.push(q + ':' + Math.min(9, Math.round(o.n)) + ':' + Math.min(9, Math.round(o.of) || 0) + (o.frame ? 'f' : ''));
+    });
+    if (!parts.length) return '';
+    var v = 'hp1;' + Math.min(999, w); parts.forEach(function (p) { if (v.length + p.length < 590) v += ';' + p; });
+    return v;
+  }
+  function helpSend() {
+    if (MODE !== 'student' || !saving || !S.me || backendOld) return;
+    var v = helpEnc(); if (!v || v === helpSent) return;
+    var wait = flushing || Object.keys(mine).some(function (k) { return !mine[k].sent; }) ? 8000 : Math.max(0, helpLast + 20000 - Date.now());
+    clearTimeout(helpT);
+    if (wait) { helpT = setTimeout(helpSend, wait + Math.random() * 3000); return; }
+    helpLast = Date.now();
+    S.call('answer', { lesson: LID, q: 'zhelpx1', kind: 'open', answer: v, correct: null }).then(function () { helpSent = v; }, function () { });
+  }
+  if (MODE === 'student') setInterval(helpSend, 6000);
+  // the console's side: "hp1;…" → { q: { n, of, frame } } with the words count in _w
+  function decHelp(v) {
+    var out = {}, parts = String(v || '').split(';'); if (parts[0] !== 'hp1') return out;
+    out._w = +parts[1] || 0;
+    parts.slice(2).forEach(function (part) { var m = /^([a-z0-9]{1,16}):(\d):(\d)(f?)$/.exec(part); if (m && +m[2] > 0) out[m[1]] = { n: +m[2], of: +m[3], frame: !!m[4] }; });
+    return out;
+  }
+  function helpTxt(h) { return h ? 'Used 🪜 Help me start: ' + (h.of ? h.n + ' of ' + h.of + ' steps' : h.n + ' step' + (h.n > 1 ? 's' : '')) + (h.frame ? ', took the sentence starter' : '') : ''; }
   function watchInit() {
     var w0 = SFA.store.get('les.watch.' + LID, null); if (w0 && w0.q) watch = w0;
     function onSlide() { var s = LES.slides[cur]; return s && s.id && slideEl ? s : null; }
@@ -687,6 +723,22 @@
      They save through record() as the older kinds 'poll', 'open' or 'number', so the results script needs no change. */
   var NEWK = { mistake: 1, order: 1, cross: 1, odd: 1, asn: 1, est: 1 };
   var ASN = ['Always true', 'Sometimes true', 'Never true'];
+  /* 🎮 The games' question pools (Lane Clash, Boss Raid, the Big Board, All Aboard, Splash Squad) take number and
+     multiple-choice questions. gameForms(s) gives a slide of one of the kinds above in that shape when it has one, so a
+     slide changed to a new kind stays in the games: cross → which option stays; est → the exact answer; mistake → which
+     line goes wrong first; asn → always, sometimes or never. order and odd have no single multiple-choice answer and
+     stay out. The result is the same on every device (a question's place in a pool has to match everywhere). */
+  function gameForms(s) {
+    if (!s || !NEWK[s.k] || s.warm || typeof s.ans !== 'number' || !(s.ans >= 0)) return [];
+    var q = String(s.q || ''), o = null;
+    if (s.k === 'cross' && s.opts && s.opts.length >= 2 && s.opts.length <= 6 && s.ans < s.opts.length) o = { k: 'poll', q: q + ' Which one *stays*?', opts: s.opts, ans: s.ans };
+    else if (s.k === 'est') o = { k: 'number', q: q, ans: s.ans, tol: s.tol };
+    else if (s.k === 'mistake' && s.lines && s.lines.length >= 2 && s.lines.length <= 6 && s.ans < s.lines.length) o = { k: 'poll', q: q, opts: s.lines, ans: s.ans };
+    else if (s.k === 'asn' && s.ans <= 2) o = { k: 'poll', q: '*Always, sometimes or never true?* ' + q, opts: ASN, ans: s.ans };
+    if (!o || !q) return [];
+    o.fig = s.fig; o.why = (s.k === 'mistake' && s.fix ? 'It should be: ' + s.fix + '. ' : '') + (s.why || ''); o.hint = s.hint || s.help || '';
+    return [o];
+  }
   function nOpts(s) { return s.k === 'conf' ? 4 : s.k === 'mistake' ? (s.lines || []).length : s.k === 'odd' ? (s.items || []).length : s.k === 'asn' ? 3 : s.k === 'est' ? 10 : s.k === 'order' ? 0 : s.opts ? s.opts.length : 0; }
   function slideOfQ(q) { for (var i = 0; LES && i < LES.slides.length; i++) if (LES.slides[i].id === q) return LES.slides[i]; return null; }
   // which tally boxes an answer counts in: one option for most kinds, every crossed-out option for cross, a tenth of the line for est
@@ -999,7 +1051,7 @@
           var cb = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' }), r2 = H('div', 'row'); r2.appendChild(inp); r2.appendChild(cb); box.appendChild(r2);
           if (a.correct === false) box.appendChild(H('div', 'fb try', 'Not yet. ' + fmt(s.hint || 'Check your working and try again.')));
           var chk = function () {
-            var v = numOf(normAns(inp.value)); if (!inp.value.trim()) return inp.focus();
+            var v = numOf(inp.value); if (!inp.value.trim()) return inp.focus();
             if (v == null || isNaN(v)) { SFA.toast('Type a number, like 12 or -3.'); return; }
             var ok = Math.abs(v - s.ans) <= (s.tol || 1e-9) + 1e-9; draft = '';
             if (ok && near) tgXp(s.id + 'near', 3, '🎯 Close estimate');
@@ -1163,7 +1215,7 @@
   }
 
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261119s', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261120a', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }
@@ -1186,7 +1238,7 @@
   // the server's clock as seen from here: live.at is server time when the console last updated; the closest sample wins
   function noteSkew() { if (MODE !== 'student' || !live || !live.at) return; var k = live.at - Date.now(); if (srvSkewV == null || k > srvSkewV || k < srvSkewV - 30000) srvSkewV = k; }
   // 🔠 the Big Board (sfa-board.js): the class crossword at the start of a lesson, loaded and synced like the Clash
-  var BOARD_V = '20261108a', boardLoading = null;
+  var BOARD_V = '20261120a', boardLoading = null;
   function boardAssets(cb) {
     if (window.SFA_BOARD) return cb();
     if (boardLoading) { boardLoading.push(cb); return; }
@@ -1314,6 +1366,8 @@
     setTimeout(function () { o.classList.add('out'); }, 3200); setTimeout(function () { o.remove(); }, 3700);
   }
   var HERO = { add: heroAdd, info: heroInfo, need: heroNeed, unlock: HERO_UNLOCK, title: heroTitle };
+  // 👗 a classic (12-character) look from a game's packed state → the student's full look, when the console sent the extras (sfa-together.js)
+  function fullLook(look) { return window.SFA_TOGETHER && SFA_TOGETHER.fullLook ? SFA_TOGETHER.fullLook(look) : look; }
 
   /* ---------- 👕 the lobby: the first slide while the class joins ----------
      Students dress their avatar (the Wardrobe, sfa-wardrobe.js) and can pay coins to strut across every screen.
@@ -1393,7 +1447,8 @@
   }
   function lobbyDraw(st) {
     st = st || (slideEl && slideEl.querySelector('.lobbystrip')); if (!st || !window.SFA_AVATAR) return;
-    var J = lobby.joined, key = J.map(function (j) { return j.n + j.look; }).join(','); if (st._k === key) return; st._k = key;
+    // the line-up travels as classic looks (so a whole class fits in the spotlight text); fullLook adds each student's extras back
+    var J = lobby.joined.map(function (j) { return { n: j.n, look: fullLook(j.look) }; }), key = J.map(function (j) { return j.n + j.look; }).join(','); if (st._k === key) return; st._k = key;
     var sz = J.length > 24 ? 40 : J.length > 12 ? 52 : 64;
     st.innerHTML = '<h3>👋 ' + (J.length ? J.length + ' here' : 'Waiting for the class to join…') + '</h3>' + J.map(function (j) { return '<div class="lbav">' + SFA_AVATAR.svg(j.look, { size: sz }) + '<span class="lbn ' + SFA_AVATAR.nameCls(j.look) + '">' + esc(j.n) + '</span></div>'; }).join('');
   }
@@ -1425,7 +1480,7 @@
       if (!ids[a.sid]) return;
       if (!beforeRun(a)) here[a.sid] = 1;
       if (a.q === 'zlookx1') { var m = String(a.answer).match(/^lk1;([0-9a-z]{1,12})/); if (m && (!looks[a.sid] || String(a.time) >= looks[a.sid].t)) looks[a.sid] = { look: (SFA_AVATAR.fromWire && SFA_AVATAR.fromWire(a.answer)) || m[1], t: String(a.time) }; }
-      if (a.q === 'zstrutx1') { var m2 = String(a.answer).match(/^st1;(\d+);([0-9a-z]{1,12})/); if (m2 && (!strs[a.sid] || +m2[1] > strs[a.sid].n)) strs[a.sid] = { n: +m2[1], look: m2[2], t: Date.parse(a.time) || 0 }; }
+      if (a.q === 'zstrutx1') { var m2 = String(a.answer).match(/^st1;(\d+);([0-9a-z]{1,40})/); if (m2 && (!strs[a.sid] || +m2[1] > strs[a.sid].n)) strs[a.sid] = { n: +m2[1], look: m2[2], t: Date.parse(a.time) || 0 }; }
     });
     var nm = function (sid) { return String(first(ids[sid].name) || '').replace(/[^A-Za-zÀ-ÿ' -]/g, '').slice(0, 10); };
     Object.keys(strs).forEach(function (sid) {
@@ -1447,13 +1502,13 @@
   function lobbySpot() {
     var K = console_.lobby; if (!K || lobbyBusy()) return null;
     var S2 = K.cur ? '#S:' + K.seq + '~' + K.cur.n + '~' + K.cur.look : '#S:' + K.seq, J = '';
-    if (cur <= 1) { var list = []; (lobby.joined || []).forEach(function (j) { var t = j.n.replace(/[~,#|]/g, '') + '~' + j.look; if ((list.join(',') + t).length < 560 - S2.length) list.push(t); }); J = 'J:' + list.join(','); }
+    if (cur <= 1) { var list = []; (lobby.joined || []).forEach(function (j) { var t = j.n.replace(/[~,#|]/g, '') + '~' + String(j.look).slice(0, 12); if ((list.join(',') + t).length < 560 - S2.length) list.push(t); }); J = 'J:' + list.join(','); }
     return { q: 'zlobby', text: (J + S2).slice(0, 600) };
   }
   every(function () { if (MODE === 'teach' && console_.on) lobbyTick(); }, 1000);
 
   // 👗 the fashion show (sfa-show.js): every student's avatar on the catwalk, on the class screen and every device
-  var SHOW_V = '20261120a', showLoading = null;
+  var SHOW_V = '20261120b', showLoading = null;
   function showAssets(cb) {
     if (window.SFA_SHOW) return cb();
     if (showLoading) { showLoading.push(cb); return; }
@@ -1469,7 +1524,7 @@
     if ((isLive() || MODE === 'screen') && hasShow(live) && live.counts.zfs[0] === 1 && !(MODE === 'student' && saving && !S.me)) showAssets(function () { SFA_SHOW.sync(); });
   }
 
-  var RAID_V = '20261108a', raidLoading = null;
+  var RAID_V = '20261120a', raidLoading = null;
   function raidAssets(cb) {
     if (window.SFA_RAID) return cb();
     if (raidLoading) { raidLoading.push(cb); return; }
@@ -1494,7 +1549,7 @@
   }
 
   // 🚀 Laser Lines (sfa-duel.js): fleets on a grid in space; secret missions to write the line to an enemy; every laser fires at once
-  var DUEL_V = '20261118a', duelLoading = null;
+  var DUEL_V = '20261120a', duelLoading = null;
   function duelAssets(cb) {
     if (window.SFA_DUEL) return cb();
     if (duelLoading) { duelLoading.push(cb); return; }
@@ -1515,7 +1570,7 @@
     if ((isLive() || MODE === 'screen') && freshDuel(live) && !(MODE === 'student' && saving && !S.me)) duelAssets(function () { SFA_DUEL.sync(); });
   }
   // 🤼 Sumo Graphing (sfa-sumo.js): teams of two graph lines; every 30 s their work becomes a sumo bout on every screen
-  var SUMO_V = '20261110a', sumoLoading = null;
+  var SUMO_V = '20261120a', sumoLoading = null;
   function sumoAssets(cb) {
     if (window.SFA_SUMO) return cb();
     if (sumoLoading) { sumoLoading.push(cb); return; }
@@ -1537,7 +1592,7 @@
   }
 
   // 🌋 The Floor Is Lava (sfa-stand.js; it hands a version 1 Stand on the Line game, keys zk*, to sfa-stand-v1.js): the whole class on one grid
-  var STAND_V = '20261115c', standLoading = null;
+  var STAND_V = '20261120a', standLoading = null;
   function standAssets(cb) {
     if (window.SFA_STAND) return cb();
     if (standLoading) { standLoading.push(cb); return; }
@@ -1562,7 +1617,7 @@
      The two "everyone is needed" games. Each loads sfa-crewkit.js first. Everything they need from this file is in this
      block, plus the one-line crew…() calls marked "crew games" (clashSync, the console's restore, fetchAnswers, liveObj,
      runningGame, lobbyBusy) and their two tiles in gamesTray. */
-  var CREW_V = '20261119a', crewLoading = {};
+  var CREW_V = '20261120b', crewLoading = {};
   var CREW = { aloft: { g: 'SFA_ALOFT', f: 'sfa-aloft.js', s: 'zups', id: 'zupid', st: 'zupst', q: 'zup', n: 'All Aboard' }, splash: { g: 'SFA_SPLASH', f: 'sfa-splash.js', s: 'zwets', id: 'zwetid', st: 'zwetst', q: 'zwet', n: 'Splash Squad' } };
   function crewAssets(k, cb) {
     var G = CREW[k];
@@ -1841,7 +1896,7 @@
     }, 15000);
     if (!console_.offline) tpost('live').then(function (j) {
       console_.climb = j.climb || null;
-      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; if (window.SFA_WB) SFA_WB.restore(j.live.wb); console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid' || console_.spot.q === 'zshow' || console_.spot.q === 'zsumo' || console_.spot.q === 'zstand' || console_.spot.q === 'zduel')) console_.spot = null; crewRestore(j.live); if (hasDuel(j.live)) { var jd = j.live; duelAssets(function () { if (!SFA_DUEL.restore(jd)) pushLive(); consolePanel(); }); } if (hasStand(j.live)) { var jt = j.live; standAssets(function () { if (!SFA_STAND.restore(jt)) pushLive(); consolePanel(); }); } if (hasSumo(j.live)) { var js2 = j.live; sumoAssets(function () { if (!SFA_SUMO.restore(js2)) pushLive(); consolePanel(); }); } if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
+      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; if (window.SFA_WB) SFA_WB.restore(j.live.wb); console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zlobby' || console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid' || console_.spot.q === 'zshow' || console_.spot.q === 'zsumo' || console_.spot.q === 'zstand' || console_.spot.q === 'zduel')) console_.spot = null; crewRestore(j.live); if (hasDuel(j.live)) { var jd = j.live; duelAssets(function () { if (!SFA_DUEL.restore(jd)) pushLive(); consolePanel(); }); } if (hasStand(j.live)) { var jt = j.live; standAssets(function () { if (!SFA_STAND.restore(jt)) pushLive(); consolePanel(); }); } if (hasSumo(j.live)) { var js2 = j.live; sumoAssets(function () { if (!SFA_SUMO.restore(js2)) pushLive(); consolePanel(); }); } if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
       // opened from the Climb dashboard ("End Climb → Lesson N"): go live straight away, so students' pages move into this lesson
       else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
       else consolePanel();
@@ -1884,19 +1939,20 @@
       for (var i = 0; i < n; i++) { p.counts.push(0); p.who.push([]); }
       (s.more || []).forEach(function (m, j) { per[xid(s, j)] = { n: 0, right: 0, counts: [], who: [], list: [], sids: {}, extra: true }; });
     });
-    var flags = {}, hidden = { cls: 0, fresh: 0 }, allIds = {};
+    var flags = {}, helps = {}, hidden = { cls: 0, fresh: 0 }, allIds = {};
     ((console_.data && console_.data.roster) || []).forEach(function (r) { allIds[r.sid] = 1; });
     ((console_.data && console_.data.answers) || []).forEach(function (a) {
       if (!ids[a.sid]) { if (allIds[a.sid] && a.q !== 'here' && a.q !== 'zflag' && !beforeRun(a)) hidden.cls++; return; }
       if (beforeRun(a)) { hidden.fresh++; return; }   // from before "Start fresh"
       if (a.q === 'zflag') { flags[a.sid] = decFlags(a.answer); return; }
+      if (a.q === 'zhelpx1') { helps[a.sid] = decHelp(a.answer); return; }
       var p = per[a.q]; if (!p) return;
       p.n++; p.sids[a.sid] = 1; if (a.correct === 'yes') p.right++;
       if (p.counts.length) idxOf(a.q, a.answer).forEach(function (k) { if (k >= 0 && k < p.counts.length) { p.counts[k]++; p.who[k].push(first(name[a.sid])); } });
       p.list.push({ sid: a.sid, name: name[a.sid], answer: a.answer, correct: a.correct, time: a.time });
     });
     feed = { total: roster.length, per: per };
-    console_.flags = flags; console_.hidden = hidden;
+    console_.flags = flags; console_.helps = helps; console_.hidden = hidden;
   }
   // a student's focus-watch summary: "v1;q:left,secs,pastes,chars,copies,shots;…" → { q: { left, secs, pastes, chars, copies, shots } }
   function decFlags(v) {
@@ -2204,12 +2260,17 @@
           c.appendChild(H('b', '', esc(a.name || a.sid) + (a.correct === 'yes' ? ' ✓' : a.correct === 'no' ? ' ✗' : '') + (lit ? ' · on screen now' : '')));
           var fl = console_.flags && console_.flags[a.sid] && console_.flags[a.sid][s.id];
           if (flagStrong(fl)) { var fb2 = H('span', 'flag strong', '⚠'); fb2.title = 'Possible AI help: ' + flagTxt(fl) + '. Details under "AI-use alerts" below.'; c.firstChild.appendChild(fb2); }
+          var hp = console_.helps && console_.helps[a.sid] && console_.helps[a.sid][s.id];
+          if (hp) { var hb2 = H('span', 'flag ladder', '🪜'); hb2.title = helpTxt(hp); c.firstChild.appendChild(hb2); }
           c.appendChild(document.createTextNode(niceAns(s, a.answer)));
           if (s.k === 'open' || s.k === 'exit') { var rr = H('div', 'row'); rr.appendChild(el('button', { type: 'button', 'class': 'btn small', text: 'Spotlight (no name)', onclick: function () { console_.spot = { q: s.id, text: a.answer }; pushLive(); consolePanel(); } })); c.appendChild(rr); }
           al.appendChild(c);
         });
         sec.appendChild(al);
       }
+      // 🪜 who opened "Help me start" on this question (every kind of question, answered yet or not)
+      var hu = rosterIn().filter(function (r) { return console_.helps && console_.helps[r.sid] && console_.helps[r.sid][s.id]; });
+      if (hu.length) sec.appendChild(H('p', 'muted helpline', '🪜 <b>' + hu.length + '</b> used Help me start: ' + hu.map(function (r) { var h = console_.helps[r.sid][s.id]; return esc(nice(r.name)) + ' <small>(' + h.n + (h.of ? '/' + h.of : '') + (h.frame ? ' ✍️' : '') + (f && f.sids[r.sid] ? '' : ', no answer yet') + ')</small>'; }).join(', ')));
       var not = rosterIn().filter(function (r) { return !(f && f.sids[r.sid]); });
       if (window.SFA_TOGETHER && SFA_TOGETHER.notYet(sec, s, not)) { }   // names with a nudge button and an activity dot
       else if (not.length && f && f.list.length) {
@@ -2262,7 +2323,7 @@
     if (classes.length > 1) {
       var sel = el('select', { 'class': 'sel', 'aria-label': 'Class' }); sel.appendChild(el('option', { value: '', text: 'All classes' }));
       classes.sort().forEach(function (c) { var o = el('option', { value: c, text: 'Class ' + c }); if (c === console_.cls) o.selected = true; sel.appendChild(o); });
-      sel.onchange = function () { console_.cls = sel.value; SFA.store.set('teacher.lesson.cls', sel.value); computeFeed(); consolePanel(); upd(); broadcast(); pushCountsIfChanged(); };
+      sel.onchange = function () { console_.cls = sel.value; SFA.store.set('teacher.lesson.cls', sel.value); computeFeed(); if (window.SFA_TOGETHER) SFA_TOGETHER.agg(); lobbyAgg(); consolePanel();   /* the class goal, mural and line-up follow the class filter straight away */ upd(); broadcast(); pushCountsIfChanged(); };
       st.appendChild(H('p', 'muted', 'Class shown here and on the class screen:')); st.appendChild(sel);
     }
 
@@ -2340,7 +2401,7 @@
   window.SFA_LESSON_API = {
     LID: LID, MODE: MODE, TEACHER: TEACHER, S: S, every: every, standV2: true, pushNow: function () { clearTimeout(pushT); var L = liveObj(); live = L; broadcast(); if (!console_.on || console_.offline) return; lastCounts = JSON.stringify(L.counts); lastPush = Date.now(); var t0 = Date.now(); tpost('setLive', { live: L }).then(function (j) { if (j && j.live && j.live.at) console_.skew = j.live.at - Math.round((t0 + Date.now()) / 2); }).catch(function () { }); }, H: H, el: el, fmt: fmt, figure: figure, confetti: confetti, numOf: numOf, numTxt: numTxt, letter: letter, first: first, nice: nice, xid: xid,
     decRun: decRun, encRun: encRun, record: record, beforeRun: beforeRun, tpost: tpost, pushLive: pushLive, consolePanel: consolePanel, rosterIn: rosterIn,
-    hero: HERO, trophy: trophy, fold: fold, live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
+    hero: HERO, trophy: trophy, fold: fold, fullLook: fullLook, gameForms: gameForms, live: function () { return live; }, isLive: isLive, saving: function () { return saving; }, mine: function () { return mine; }, LES: function () { return LES; },
     srvSkew: function () { return MODE === 'screen' ? 0 : srvSkewV || 0; }, console_: function () { return console_; }, consoleAnswers: function () { return console_ && console_.data && console_.data.answers; }
   };
   window.SFA_LESSON_API.tg = { cur: function () { return cur; }, feed: function () { return feed; }, liveRun: liveRun, upd: upd, broadcast: function () { broadcast(); }, go: go, reveal: reveal, heroLv: heroLv, pushCounts: function () { pushCountsIfChanged(); },
@@ -2348,11 +2409,11 @@
     sendZ: function (id, text) { mine[id] = { answer: String(text), correct: null, sent: false, kind: 'open', run: liveRun() }; saveLocal(); flush(); } };
   window.SFA_LESSON = function (L) { LES = L; };
   var sc = document.createElement('script');
-  sc.src = 'lessons/' + LID + '.js?v=20261120a';   // bump when lesson files change
+  sc.src = 'lessons/' + LID + '.js?v=20261120b';   // bump when lesson files change
   sc.onload = function () { if (!LES) return fail(); document.title = (LES.label || 'Lesson ' + LES.n) + ': ' + LES.title + ' · Sandy Flats'; boot(); };
   sc.onerror = fail;
   function fail() { document.querySelector('.lmain').innerHTML = '<div class="card keybox"><h2>That lesson isn\'t here</h2><p class="muted">Go back to <a href="lessons.html">all lessons</a>.</p></div>'; }
-  var tgs = document.createElement('script'); tgs.src = 'sfa-together.js?v=20261119a';
+  var tgs = document.createElement('script'); tgs.src = 'sfa-together.js?v=20261120a';
   tgs.onload = tgs.onerror = function () { document.head.appendChild(sc); };
   document.head.appendChild(tgs);
 })();

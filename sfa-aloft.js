@@ -250,7 +250,15 @@
     if (changed) { tick(true); }
   }
   function litNow(K, now) { return K.order.filter(function (sid) { return (K.burn[sid] || 0) > now; }).length; }
-  function end() { var K = C(); if (!K) return; K.state = 2; K.endedAt = Date.now(); (A.pushNow || A.pushLive)(); A.consolePanel(); }
+  function end() {
+    var K = C(); if (!K) return;
+    // 🏆 the trophy shelf (trophies.html): ic, title and sub are ready to show as they are
+    if (K.state === 1 && K.order.length && A.trophy) {
+      var lit1 = Object.keys(K.first || {}).length;
+      A.trophy({ k: 'aloft', id: K.id, win: !!K.win, ic: K.win ? '🌕' : '🎈', title: K.win ? 'All Aboard: the class reached the Moon' : 'All Aboard: ' + Math.round(K.alt) + ' m of ' + K.goal + ' m',
+        sub: lit1 + ' of ' + K.order.length + ' burners were lit · ' + (K.sparks || 0) + ' comeback spark' + (K.sparks === 1 ? '' : 's'), alt: Math.round(K.alt), goal: K.goal, n: K.order.length, lit: lit1, sparks: K.sparks || 0 });
+    }
+    K.state = 2; K.endedAt = Date.now(); (A.pushNow || A.pushLive)(); A.consolePanel(); }
   function tick(force) {
     var K = C(); if (!K) return;
     if (K.restored && !force && A.rosterIn().length) { agg(); if (K.restored) delete K.restored; }   // the console was reloaded: pick the crew back up straight away
@@ -361,6 +369,8 @@
       '@keyframes upmoonhop{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-22vh) rotate(8deg)}}',
       '@keyframes upchute{0%{transform:translateY(-70vh) rotate(-6deg)}50%{transform:translateY(-34vh) rotate(6deg)}100%{transform:translateY(0) rotate(0)}}',
       '.upparty.chute .uphop{animation-iteration-count:1;animation-fill-mode:both;animation-timing-function:ease-out}',
+      // a narrow screen: the gondola would run under the altitude gauge, so the ship keeps to the right of a slimmer gauge
+      '@media (max-width:560px){.upship{left:48px;right:4px}.upgauge{left:4px;width:26px}.upgauge b{font-size:17px}.upgauge i{width:12px}.upgauge s{left:10px;font-size:12px}.upgauge s:before{left:-12px;width:14px}.upgon{padding:6px 6px 5px;border-width:3px}}',
       '@media (prefers-reduced-motion:reduce){.upship.upgo,.uphop,.upgoat,.upseat i{animation:none}}'
     ].join('\n');
     document.head.appendChild(c);

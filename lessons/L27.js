@@ -4,8 +4,8 @@ SFA_LESSON({
   big: 'Every linear story has a start (b) and a rate (m). Write y = mx + b, then solve for what you don\'t know. "At most" is ≤, "at least" is ≥. Explain with both quantities and their units.',
   slides: [
     { k: 'title', min: 1, kicker: 'Unit 2 Review · 3 of 4', title: 'Tell the Whole Story', sub: 'Words, a table, a graph and an equation can all tell the same story. Today you translate between them, add inequalities, and explain what the numbers mean.', art: '📖' },
-    { k: 'signin', min: 1, title: 'Today you will', points: ['Write an equation from a story and solve for an unknown', 'Write, solve and graph an inequality', 'Explain what the slope and y-intercept mean, with units', 'Find and fix a mistake in someone\'s work'] },
-    { k: 'poll', min: 1, id: 'warm', warm: true, q: 'Your phone is at 80% and loses 5% every hour. What do you do?', opts: ['Charge it now', 'Wait until 20%', 'Low power mode', 'Let it die, it builds character'] },
+    { k: 'signin', min: 1, title: 'Today you will', points: ['Write an equation from a story and solve for an unknown', 'Write, solve and graph an inequality', 'Explain what the slope and y-intercept mean, with units', 'Know when an inequality sign turns around'] },
+    { k: 'poll', min: 1, id: 'warm', warm: true, q: 'Your phone is at 80% and loses 5% every hour. What do you do?', opts: ['Charge it now', 'Wait until 20%', 'Low power mode', 'Let it run out'] },
     // retrieval warm-up: slope, b and changing form from Reviews 1 and 2 (retr: true marks them for the planner)
     { k: 'number', min: 1, id: 'r1', retr: true, q: '*Warm-up 1 of 3.* What is the slope of the line through *(0, 4)* and *(2, 10)*?', ans: 3,
       hint: 'Top: 10 − 4. Bottom: 2 − 0.', why: '(10 − 4) ÷ (2 − 0) = 6 ÷ 2 = 3.', help: 'Change in y goes on top. Change in x goes on the bottom.' },
@@ -29,11 +29,11 @@ SFA_LESSON({
         { t: 'Set y = 200 and subtract 600.', eq: '200 = −40x + 600  →  [[−400]] = −40x' },
         { t: 'Divide by −40: x = [[10]] minutes.', eq: 'Check: −40([[~10]]) + 600 = 200 ✓', fig: { kind: 'graph', x: [0, 16], y: [0, 700], xl: 'minutes', yl: 'litres', lines: [{ pts: [[0, 600], [15, 0]] }, { pts: [[10, 200]], dots: true, only: true }], labels: [[10, 200, '(10, 200)']] } }
       ] },
-    { k: 'ex', min: 2, opt: true, kick: 'Extra example · Story → equation → solve', title: 'Two data points', q: 'A plumber charges *$110* for 2 hours and *$190* for 4 hours. What is the call-out fee?',
+    { k: 'ex', min: 2, opt: true, kick: 'Extra example · Story → equation → solve', title: 'Two data points', q: 'A plumber charges *$110* for 2 hours and *$190* for 4 hours. What is the visit fee (the cost before any work)?',
       steps: [
         { t: 'The points are (2, 110) and (4, 190). Rate first.', eq: 'm = (190 − 110) ÷ (4 − 2) = [[80]] ÷ [[2]] = [[40]]' },
         { t: 'Put one point into y = mx + b.', eq: '110 = 40(2) + b  →  110 = [[80]] + b' },
-        { t: 'b = [[~30]]: a $[[~30]] call-out fee, then $40 an hour.', eq: 'y = 40x + [[30]]' }
+        { t: 'b = [[~30]]: a $[[~30]] visit fee, then $40 an hour.', eq: 'y = 40x + [[30]]' }
       ] },
     { k: 'number', min: 4, id: 'st1', q: 'A climbing gym charges a *$25* sign-up fee plus *$12* per month. Sam has paid *$121* in total. How many months has Sam been a member?', ans: 8,
       hint: 'y = 12x + 25. Put y = 121, subtract 25, divide by 12.', why: '121 − 25 = 96, and 96 ÷ 12 = 8 months.',
@@ -95,10 +95,10 @@ SFA_LESSON({
         { t: '(0, 0) is not a solution, so shade the other side: [[below|under]] the line.', fig: { kind: 'graph', x: [-3, 4], y: [-4, 5], lines: [{ pts: [[-1.5, -4], [3, 5]], dash: true }, { pts: [[0, 0]], dots: true, only: true }], labels: [[0, 0, '(0, 0)', 'l']], shade: [{ pts: [[-1.5, -4], [3, 5]], above: false }] } }
       ] },
     { k: 'order', min: 2, id: 'ord1', q: 'A phone plan costs *$20* a month plus *$5* per GB. You can spend *at most $45*. Put the steps in order to find the most GB you can use.',
-      steps: ['Write it: 20 + 5x ≤ 45', 'Subtract 20 from both sides: 5x ≤ 25', 'Divide both sides by 5: x ≤ 5', 'Say it in words: at most 5 GB', 'Check: 5 GB costs 20 + 25 = $45 ✓, and 6 GB would cost $50 ✗'],
+      steps: ['Write it: 20 + 5x ≤ 45', 'Subtract 20 from both sides: 5x ≤ 25', 'Divide both sides by 5: x ≤ 5', 'So the answer in words: at most 5 GB', 'Last, check it: 5 GB costs 20 + 25 = $45 ✓, and 6 GB would cost $50 ✗'],
       hint: 'Write the inequality first. The check comes last.', why: 'Write it, undo the + 20, undo the × 5, answer in words, then check. Dividing by a positive number: the sign stays.' },
     { k: 'number', min: 4, id: 'iq1', q: 'You have *$50* for the fair. Entry is *$8* and each ride is *$6*. What is the *greatest* number of rides you can take?', ans: 7,
-      hint: '8 + 6x ≤ 50. Subtract 8, divide by 6, round down.', why: '6x ≤ 42, x ≤ 7. Seven rides cost 8 + 42 = 50, which is allowed.',
+      hint: '8 + 6x ≤ 50. Subtract 8, then divide by 6.', why: '6x ≤ 42, x ≤ 7. Seven rides cost 8 + 42 = 50, which is allowed.',
       help: '"Have $50" means you can spend at most 50. Which symbol?',
       more: [
         { k: 'number', q: 'You need *at least 100* points. You have *28* and earn *8* per puzzle. What is the *fewest* puzzles?', ans: 9, hint: '28 + 8x ≥ 100.', why: '8x ≥ 72, x ≥ 9.',
@@ -133,7 +133,7 @@ SFA_LESSON({
         { t: '*45*: "At [[0]] hours, the battery is at [[45]]%."' },
         { t: 'Weak: "−3 is the slope." Strong: it names both quantities, the direction and the units.' }
       ] },
-    { k: 'open', min: 4, id: 'mean', q: 'A pond is modelled by *y = −4x + 90*, where x is days after a storm and y is the depth in cm. Explain what *−4* and *90* mean.', ph: 'The −4 means... The 90 means...',
+    { k: 'open', min: 4, id: 'mean', q: 'The depth of a pond follows *y = −4x + 90*, where x is days after a storm and y is the depth in cm. Explain what *−4* and *90* mean.', ph: 'The −4 means... The 90 means...',
       model: 'The −4 means the pond gets 4 cm shallower every day. The 90 means the pond was 90 cm deep right after the storm (day 0).',
       help: 'Which number is the rate and which is the start? Use "cm" and "day".',
       more: [
@@ -147,7 +147,7 @@ SFA_LESSON({
     { k: 'asn', min: 3, opt: true, id: 'fix', q: 'When you solve an inequality, the sign turns around.', ans: 1,
       eg: 'When does it turn? Give an example.', ph: 'It turns when...',
       why: 'Only when you multiply or divide both sides by a *negative* number. 30 − 4x ≥ 6 → −4x ≥ −24 → x ≤ 6 (turned). But 2x + 4 ≥ 10 → 2x ≥ 6 → x ≥ 3 (not turned).',
-      model: 'Marcus solved 30 − 4x ≥ 6 and wrote x ≥ 6. He divided by −4 without turning the sign. Check x = 7: 30 − 28 = 2, which is not ≥ 6. It should be x ≤ 6.',
+      model: 'It turns only when you multiply or divide both sides by a negative number. Example: −2x > 6 gives x < −3 (turned). But 2x > 6 gives x > 3 (not turned).',
       help: 'Try one where you divide by a negative number, and one where you divide by a positive number.',
       more: [
         { k: 'poll', q: 'Doug writes *"at most 12"* as *x ≥ 12*. Is that right?', opts: ['No: at most means x ≤ 12', 'Yes', 'No: it means x < 12', 'No: it means x = 12'], ans: 0, why: 'At most 12: 12 or less, so ≤.',
@@ -162,6 +162,6 @@ SFA_LESSON({
     { k: 'play', min: 8, title: 'Practise: Unit 2 Review', steps: ['Open the *Unit 2 Review*.', 'Do the *Represent* and *Explain* skills.', 'Then try *🔀 Mixed review*: it is like the assessment.', 'Stuck? Guided practice, or the Khan Academy video on the Learn tab.'], aim: 'Done when every success criterion shows Emerging or better.', minutes: 8 },
     { k: 'exit', min: 3, id: 'exit', q: 'A tank starts with *200 L* and fills at *25 L* per minute. Write the equation, explain what each number means, and find when it holds *at least 450 L*.', ph: 'Equation... The 25 means... The 200 means... At least 450 L when...',
       model: 'y = 25x + 200. 25 means 25 more litres every minute; 200 means the tank had 200 L at the start. 25x + 200 ≥ 450 → 25x ≥ 250 → x ≥ 10: after 10 minutes or more.' },
-    { k: 'end', title: 'Ready for Unit 2.', next: 'Next: *Review 4, Find the Start*. Working out b, the y-intercept, when you cannot just read it.' }
+    { k: 'end', title: 'Three reviews done.', next: 'Next: *Review 4, Find the Start*. Working out b, the y-intercept, when you cannot just read it.' }
   ]
 });

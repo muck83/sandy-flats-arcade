@@ -99,7 +99,7 @@
     if (b.state === 2) {   // the finale: everyone takes a bow
       root.appendChild(H('div', 'fsend', '<h1>THAT\'S THE SHOW!</h1><p>' + b.n + ' looks on the catwalk. Give yourselves a round of applause.</p>'));
       var g = H('div', 'fsgroup'), sz = Math.max(44, Math.min(110, Math.floor(window.innerWidth * 0.9 / Math.max(1, Math.min(b.group.length, 14)))));
-      b.group.forEach(function (look) { var d = document.createElement('div'); d.innerHTML = AV.svg(look, { size: sz }); g.appendChild(d.firstChild); });
+      b.group.forEach(function (look) { var d = document.createElement('div'); d.innerHTML = AV.svg(A.fullLook ? A.fullLook(look) : look, { size: sz }); g.appendChild(d.firstChild); });
       root.appendChild(g); clapBtn(); A.confetti(); return;
     }
     if (!b.w) return;
@@ -164,7 +164,7 @@
   }
   function spot() {
     var K = C(), w = K.order[K.i], nx = K.order[K.i + 1];
-    if (K.state === 2) return { q: 'zshow', text: ('G:' + K.order.map(function (o) { return o.look; }).join(',')).slice(0, 598) };
+    if (K.state === 2) return { q: 'zshow', text: ('G:' + K.order.map(function (o) { return String(o.look).slice(0, 12); }).join(',')).slice(0, 598) };   // classic looks, so the whole class fits; fullLook adds the extras back
     return { q: 'zshow', text: 'W:' + w.n + '~' + w.look + '~' + w.lv + '~' + sh3(w.sid) + (nx ? '#Q:' + nx.n : '') };
   }
   function watchState() { var out = {}; counts(out); return showOf({ lesson: A.LID, counts: out, spot: spot() }); }

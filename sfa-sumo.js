@@ -55,7 +55,8 @@
   function nm(n) { return n < 0 ? '−' + (-n) : String(n); }
   function pt(x, y) { return '(' + nm(x) + ', ' + nm(y) + ')'; }
   function clock(s) { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
-  function avSvg(look, size) { return AV ? AV.svg(look || '', { size: size || 90 }) : '<span class="smnoav">🙂</span>'; }
+  // looks travel as the classic 12 characters; A.fullLook adds each student's extras (hair, outfit…) back when the console sent them
+  function avSvg(look, size) { return AV ? AV.svg(A.fullLook ? A.fullLook(look || '') : look || '', { size: size || 90 }) : '<span class="smnoav">🙂</span>'; }
   function teamName(t, id) { if (t === BOT) return 'Sumo-Bot 3000'; if (t >= 90) { var F = V && V.o && V.o.fin && V.o.fin[t - 90]; return F ? F.n : 'Finalist'; } var k = Math.round(id / 1000) % 20; return STA[(t + k) % STA.length] + ' ' + STB[(t * 3 + k) % STB.length]; }
   function pack(arr) { var out = []; for (var i = 0; i < arr.length && out.length < 12; i += 4) out.push((arr[i] || 0) * 1000 + (arr[i + 1] || 0) * 100 + (arr[i + 2] || 0) * 10 + (arr[i + 3] || 0)); return out; }
   function unpack(a, n) { var out = []; (a || []).forEach(function (v) { out.push(Math.floor(v / 1000) % 10, Math.floor(v / 100) % 10, Math.floor(v / 10) % 10, v % 10); }); return out.slice(0, n); }

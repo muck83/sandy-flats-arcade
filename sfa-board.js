@@ -431,6 +431,7 @@
       L.slides.forEach(function (s) {
         if (s.k === 'number' && s.ans != null) got.push({ k: 'number', q: s.q, ans: s.ans, tol: s.tol, fig: s.fig, why: s.why, from: from, lv: lv(s) });
         if (s.k === 'poll' && s.ans != null && !s.warm) got.push({ k: 'poll', q: s.q, opts: s.opts, ans: s.ans, fig: s.fig, why: s.why, from: from, lv: lv(s) });
+        (A.gameForms ? A.gameForms(s) : []).forEach(function (g) { got.push({ k: g.k, q: g.q, opts: g.opts, ans: g.ans, tol: g.tol, fig: g.fig, why: g.why, from: from, lv: lv(g) }); });   // cross it out, estimate, spot the mistake, always/sometimes/never
         (s.more || []).forEach(function (m) { if ((m.k === 'number' || m.k === 'poll') && m.ans != null) got.push(Object.assign({ from: from }, m, { lv: lv(m, true), star: true })); });
       });
     }

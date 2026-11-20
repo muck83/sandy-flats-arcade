@@ -210,6 +210,7 @@
     A.LES().slides.forEach(function (s) {
       if (s.k === 'number' && s.ans != null) out.push({ k: 'number', q: s.q, ans: s.ans, tol: s.tol, fig: s.fig, why: s.why, hard: false });
       if (s.k === 'poll' && s.ans != null && !s.warm) out.push({ k: 'poll', q: s.q, opts: s.opts, ans: s.ans, fig: s.fig, why: s.why, hard: false });
+      (A.gameForms ? A.gameForms(s) : []).forEach(function (g) { out.push({ k: g.k, q: g.q, opts: g.opts, ans: g.ans, tol: g.tol, fig: g.fig, why: g.why, hard: false }); });   // cross it out, estimate, spot the mistake, always/sometimes/never
       (s.more || []).forEach(function (m, i) { if ((m.k === 'number' || m.k === 'poll') && m.ans != null) out.push(Object.assign({}, m, { hard: i >= 1 })); });
     });
     return out;
@@ -548,7 +549,7 @@
     var looks = [0, 1].map(function (k) { var n = nm[k] || ''; return X ? (k ? X.lb : X.la) : n === myN && team === me ? myLook() : lookByName(n); });
     var size = Math.round(Math.max(54, Math.min(130, sizeOf('hero', G) * 1.3))), dir = team ? -1 : 1, x0 = team ? G.w - G.vw - size * 0.7 : G.vw + size * 0.7, y = laneY(G, lane), dist = (G.w - 2 * G.vw - size * 1.6) * dir;
     var d = H('div', 'lcpx lcpx-' + mv.k); d.style.left = (cvs.offsetLeft + x0) + 'px'; d.style.top = (cvs.offsetTop + y) + 'px'; d.style.setProperty('--s', size + 'px'); d.style.setProperty('--tc', TC[team] || '#fff');
-    var who = function (k) { return '<div class="lcpxw lcpx' + 'ab'[k] + '"><div class="lcembub">' + esc(mv[k ? 'b' : 'a'][0]) + '</div><div class="lcpxbody">' + (AV ? AV.svg(looks[k] || '', { size: size }) : '🙂') + '</div><b class="lcemname">' + esc(nm[k] || '') + '</b></div>'; };
+    var who = function (k) { return '<div class="lcpxw lcpx' + 'ab'[k] + '"><div class="lcembub">' + esc(mv[k ? 'b' : 'a'][0]) + '</div><div class="lcpxbody">' + (AV ? AV.svg(fullLk(looks[k]), { size: size }) : '🙂') + '</div><b class="lcemname">' + esc(nm[k] || '') + '</b></div>'; };
     d.innerHTML = '<div class="lcpxg">' + who(0) + who(1) + '<i class="lcpxfx">' + mv.e + '</i></div>';
     var ttl = H('div', 'lcpxt', '<b>🤝 ' + esc(mv.n.toUpperCase()) + '!</b><span>' + esc((nm[0] || '') + ' + ' + (nm[1] || '')) + ' · +' + ev0.n + ' gold' + (ev0.type ? ' · 💤→⚡ wake-up bonus!' : '') + '</span>'); ttl.style.setProperty('--tc', TC[team] || '#fff');
     stage.appendChild(d); stage.appendChild(ttl);
@@ -598,10 +599,12 @@
   }
   // 🌟 the avatar hero: each student's Wardrobe look, as a card picture and as a sprite on the board
   var heroImgs = {};
-  function heroURL(look, size) { var AV = window.SFA_AVATAR; return AV ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(AV.svg(look || '', { size: size || 64 })) : ''; }
+  // the battle's packed text carries classic 12-character looks; fullLk adds each student's extras (hair, outfit…) back when the console sent them
+  function fullLk(look) { return A.fullLook ? A.fullLook(look || '') : look || ''; }
+  function heroURL(look, size) { var AV = window.SFA_AVATAR; return AV ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(AV.svg(fullLk(look), { size: size || 64 })) : ''; }
   function myLook() { var AV = window.SFA_AVATAR; return AV && A.S.me ? AV.myLook(AV.profile(), A.S.me.sid) : ''; }
   function heroSp(look) {
-    look = look || ''; var h = heroImgs[look];
+    look = fullLk(look); var h = heroImgs[look];
     if (!h) { h = heroImgs[look] = { ok: false }; var img = new Image(); img.onload = function () { h.ok = true; }; img.src = heroURL(look, 160); h.sp = { frames: [img], w: 160, h: 184 }; }
     return h.ok ? h.sp : null;
   }
@@ -961,7 +964,7 @@
     if (NM && (NM[0].length || NM[1].length)) {
       var many = NM[0].length + NM[1].length, asz = many > 24 ? 34 : many > 14 ? 44 : 56;
       bans.push('<b class="lckick">👥 The teams</b><div class="lcrost">' + [0, 1].map(function (t) { return '<div class="t' + t + (t === me ? ' mine' : '') + '"><b style="color:' + TC[t] + '">' + T[t].e + ' ' + esc(T[t].name) + '</b><p>' + NM[t].map(function (n, i) {
-        var lk = LK && LK[t] && LK[t][i], av = AVc && lk ? '<i class="lcav" style="animation-delay:' + (0.15 * i).toFixed(2) + 's">' + AVc.svg(lk, { size: asz, walk: true }) + '</i>' : '';
+        var lk = LK && LK[t] && LK[t][i] ? fullLk(LK[t][i]) : '', av = AVc && lk ? '<i class="lcav" style="animation-delay:' + (0.15 * i).toFixed(2) + 's">' + AVc.svg(lk, { size: asz, walk: true }) + '</i>' : '';
         return '<span' + (av ? ' class="hasav"' : '') + '>' + av + '<em class="' + (AVc && lk ? AVc.nameCls(lk) : '') + '">' + esc(n) + '</em></span>'; }).join('') + '</p></div>'; }).join('') + '</div>');
     }
     if (CL && A.MODE === 'student') bans.push('<span class="lcbig">🎁</span><b class="lckick">Your lesson bonus</b><p class="lcyours">You start with <b>' + CL.bonus + ' coins</b>' + (CL.boost ? ' at <b>hero level ' + (1 + CL.boost) + '</b>' : '') + ' for your work in today\'s lesson. Effort counts most!</p>');
@@ -1060,7 +1063,9 @@
       if (e.k === 'g' && !isMe) shoutQ.push({ e: U.who, who: e.name.toUpperCase() + '\'S ' + U.name.toUpperCase(), text: 'grabbed <b>' + e.n + ' GOLD</b> from ' + esc(T[1 - e.team].name) + '!', team: e.team, mine: mine, gold: true });
       if (e.k === 'p' && (mine || A.MODE === 'screen') && !isMe) shoutQ.push({ e: 'gus', who: '📣 ' + e.name.toUpperCase() + ':', text: '<b>Help in lane ' + (e.lane + 1) + '!</b>', team: e.team, mine: mine, small: true });
       if (e.k === 'm' && !isMe && EMOTES[e.n]) emotePop(e.name, e.team, e.n, false);
-      if (e.k === 'x') { var xn = String(e.name).split('&'), xm = COMBOS[e.seq % COMBOS.length]; comboPop(e); shoutQ.push({ e: 'one', img: heroURL(lookByName(xn[0]), 64), who: '🤝 ' + (xn[0] || '').toUpperCase() + ' & ' + (xn[1] || '').toUpperCase(), text: 'pulled off a <b>' + xm.e + ' ' + esc(xm.n.toUpperCase()) + '</b> in lane ' + (e.lane + 1) + ': <b>+' + e.n + ' gold</b>' + (e.type ? ' · 💤→⚡ wake-up bonus!' : '!'), team: e.team, mine: mine, gold: true }); }
+      if (e.k === 'x') { var xn = String(e.name).split('&'), xm = COMBOS[e.seq % COMBOS.length]; comboPop(e);
+        // 🤝 both partners get the "helped a partner" effort credit on their own device (quests, sfa-avatar.js)
+        if (A.MODE === 'student' && mine) { var pvx = pairView(), myNx = pvx && pvx.i >= 0 ? nameAt(me, pvx.i) : null; if (myNx && xn.indexOf(myNx) >= 0 && window.SFA_AVATAR && SFA_AVATAR.note) try { SFA_AVATAR.note('help'); } catch (err) { } } shoutQ.push({ e: 'one', img: heroURL(lookByName(xn[0]), 64), who: '🤝 ' + (xn[0] || '').toUpperCase() + ' & ' + (xn[1] || '').toUpperCase(), text: 'pulled off a <b>' + xm.e + ' ' + esc(xm.n.toUpperCase()) + '</b> in lane ' + (e.lane + 1) + ': <b>+' + e.n + ' gold</b>' + (e.type ? ' · 💤→⚡ wake-up bonus!' : '!'), team: e.team, mine: mine, gold: true }); }
       if (e.k === 't') shoutQ.push({ e: 'max', who: '⏰ +1 MINUTE!', text: A.TEACHER + ' added time to the battle.', team: -1, mine: true });
       if (e.k === 'h') shoutQ.push({ e: 'max', who: e.name.toUpperCase(), text: 'reached <b>HERO LEVEL ' + e.n + '</b>!', team: e.team, mine: mine, gold: true });
     });
@@ -1093,7 +1098,7 @@
     x = Math.max(90, Math.min(G.w - 90, x));   // a long saying stays on the board
     var look = mine ? myLook() : lookByName(name), size = Math.round(Math.max(56, sizeOf('hero', G) * 1.35)), AVm = window.SFA_AVATAR;
     var d = H('div', 'lcemote lcem-' + m.k); d.style.left = (cvs.offsetLeft + x) + 'px'; d.style.top = (cvs.offsetTop + y) + 'px'; d.style.setProperty('--tc', TC[team] || '#fff'); d.style.setProperty('--s', size + 'px');
-    d.innerHTML = '<div class="lcembub">' + esc(m.say[Math.floor(Math.random() * m.say.length)]) + '</div><div class="lcembody">' + (AVm ? AVm.svg(look || '', { size: size }) : '<span style="font-size:' + size / 2 + 'px">' + m.e + '</span>') + '</div><b class="lcemname">' + esc(mine ? 'You' : name) + ' ' + m.e + '</b>';
+    d.innerHTML = '<div class="lcembub">' + esc(m.say[Math.floor(Math.random() * m.say.length)]) + '</div><div class="lcembody">' + (AVm ? AVm.svg(fullLk(look), { size: size }) : '<span style="font-size:' + size / 2 + 'px">' + m.e + '</span>') + '</div><b class="lcemname">' + esc(mine ? 'You' : name) + ' ' + m.e + '</b>';
     for (var k = 0; k < 4; k++) { var f = H('i', 'lcemfx', m.fx); f.style.left = (15 + k * 23) + '%'; f.style.animationDelay = (k * 0.22) + 's'; d.appendChild(f); }
     [].slice.call(stage.querySelectorAll('.lcemote')).slice(0, -3).forEach(function (o) { o.remove(); });   // four at once at most
     stage.appendChild(d); sfx('pop');

@@ -144,6 +144,9 @@
       '.tgei .tgs{font:600 13.5px/1.3 var(--ui,system-ui);color:#e9e4ff}.tgei.need{border-color:#FFE14D;animation:tgneed 2.4s ease-in-out infinite}.tgei.need .tgs{color:#FFE9A8}',
       '@keyframes tgneed{50%{box-shadow:0 0 0 4px rgba(255,225,77,.25)}}',
       'body.m-screen .tgei{position:fixed;right:1vw;bottom:1vw;z-index:40;width:23vw;flex-direction:column;align-items:stretch;gap:.6vw;padding:.8vw;margin:0;background:rgba(22,14,44,.92);box-shadow:0 10px 40px rgba(0,0,0,.5)}',
+      // names on the class screen have to be read from the back of the room: bigger letters, and a bigger mural for a class of more than 20 (the slide keeps clear of it)
+      'body.m-screen .tgei .tgpc b{font-size:calc(100cqi / var(--c) / 4.3);padding:0 .22em;letter-spacing:-.01em}',
+      'body.m-screen.tg-big .tgei{width:29vw}body.m-screen.tg-ei.tg-big .slide{padding-right:31vw}',
       'body.m-screen .tgei .tgmu{width:100%}body.m-screen .tgei .tgh{font-size:1.25vw}body.m-screen .tgei .tgh em{font-size:1.05vw}body.m-screen .tgei .tgs{font-size:1.05vw}body.m-screen .tgei .tgh small{font-size:.95vw}',
       '.tgparty{position:fixed;inset:0;z-index:88;display:grid;place-items:center;background:rgba(10,8,20,.8);padding:16px;animation:tgfade .3s}',
       '.tgparty .card{width:min(92vw,760px);text-align:center;background:#1d1438;border:3px solid #FFE14D;border-radius:22px;padding:16px 18px;color:#fff;animation:tgpop .5s cubic-bezier(.2,1.6,.4,1)}',
@@ -221,7 +224,29 @@
       else if (a.q === 'ztpax1' || a.q === 'ztpfx1') { m = /^tp1;(\d+);([\s\S]*)$/.exec(v); if (m) (a.q === 'ztpax1' ? d.tpa : d.tpf)[a.sid] = { id: +m[1], text: m[2], t: t }; }
     });
     d.here = ros.filter(function (r) { return d.hereSet[r.sid]; });
-    D = d; step();
+    D = d; lxT = lookExt(); step();
+  }
+  /* 👗 Extended looks in the games. A game packs each avatar into its short spotlight text as the classic look (12
+     characters); the extra part (hair, outfit, title…) rides in live.x as { classic: extra } for everyone who is here,
+     and fullLook() joins the two again wherever an avatar is drawn. Two students with the same classic look but different
+     extras are left out (they show the classic look), and so is everyone when an older results script drops live.x. */
+  var lxT = {};
+  function pad12(l) { l = String(l || ''); while (l.length < 12) l += '0'; return l; }
+  function lookExt() {
+    var o = {}, seen = {}, bad = {};
+    D.here.forEach(function (r) {
+      var l = D.looks[r.sid] || (window.SFA_AVATAR ? SFA_AVATAR.defLook(r.sid) : ''); if (!l) return;
+      var k = pad12(l.slice(0, 12)), e = l.slice(12, 40);
+      if (seen[k] != null && seen[k] !== e) bad[k] = 1;
+      seen[k] = e; if (e) o[k] = e;
+    });
+    Object.keys(bad).forEach(function (k) { delete o[k]; });
+    return o;
+  }
+  function fullLook(look) {
+    look = String(look || ''); if (!look || look.length > 12) return look;
+    var m = MODE === 'teach' ? lxT : X().lx, k = pad12(look), e = m && m[k];
+    return typeof e === 'string' && /^[0-9a-z]{1,28}$/.test(e) ? k + e : look;
   }
   function isAway(sid) { return !!(D.away[sid] && D.away[sid] >= (D.last[sid] || 0) - 500); }
   // active: answered this question, or busy in the last minute or so. quiet: here, but nothing from them. away: their device left the lesson page.
@@ -262,7 +287,7 @@
         t.allIn[e.s.id] = 1; t.streak++; t.best = Math.max(t.best || 0, t.streak); t.hits++; t.hitSlide = G.cur(); t.reward = 10 + 5 * Math.min(6, t.streak - 1); redraw = true;
         SFA.toast('🤝 Everybody In! ' + e.n + ' of ' + e.present + ' answered' + (t.streak > 1 ? ' · streak ×' + t.streak : '') + ' · +' + t.reward + ' XP each', 4000);
       }
-      if (e.n >= e.present && !t.full[e.s.id]) { t.full[e.s.id] = 1; t.fulls++; redraw = true; }
+      if (e.n >= e.present && e.present >= 2 && !t.full[e.s.id]) { t.full[e.s.id] = 1; t.fulls++; redraw = true; }   // one student alone is not a "Masterpiece"
     }
     // nudges show for 20 seconds
     var n0 = t.nudges.length; t.nudges = t.nudges.filter(function (x) { return now - x.at < 20000; }); if (t.nudges.length !== n0) redraw = true;
@@ -314,6 +339,7 @@
       }
       o.tp = tp;
     }
+    if (Object.keys(lxT).length) o.lx = lxT;
     var s = JSON.stringify(o); return s.length > 2 && s.length <= 12000 ? s : undefined;
   }
   function pairFinal(p) { var t = TS(), best = null; p.forEach(function (sid) { var f = D.tpf[sid]; if (f && t.tps && f.id === t.tps.id && (!best || f.t > best.t)) best = { text: f.text, t: f.t, sid: sid }; }); return best; }
@@ -378,6 +404,39 @@
     t.tps.pairs = pairs; t.tps.ph = 2; step(); API.consolePanel();
   }
 
+  /* ---- 💡 Re-engage: one suggested next move from what the class is doing right now ----
+     Only a suggestion with one button; nothing happens until the teacher taps it. The first rule that fits wins:
+     many 🆘 lost → back to the worked example (or think-pair-share when there is none before this slide);
+     many quiet or away → All Aboard (a quiet student coming back lifts the whole class's balloon);
+     one or two students have missed 3 questions in a row → a private nudge;
+     a question open for over a minute and still under the goal → nudge everyone who hasn't answered;
+     many 🤔 not sure → think-pair-share. */
+  function reengage(s, v) {
+    var c = con(), t = TS(); if (!c || !c.on || v.ros.length < 2) return null;
+    var here = v.ros.length, sug = null, i, btn = function (text, fn) { return el('button', { type: 'button', 'class': 'btn small primary', text: text, onclick: fn }); };
+    var quiet = v.st.quiet.concat(v.st.away), miss = v.ros.filter(function (r) { return !isAway(r.sid) && missed(r.sid) >= 3; }), e = ei();
+    if (v.lost.length >= Math.max(2, Math.ceil(here * 0.2))) {
+      var exAt = -1, sl = LES().slides; for (i = G.cur() - 1; i >= 0 && i >= G.cur() - 12; i--) if (sl[i].k === 'ex') { exAt = i; break; }
+      var dq = s && s.q ? String(s.q).replace(/[*_]/g, '') : '';
+      if (exAt >= 0) sug = { t: '🆘 <b>' + v.lost.length + ' of ' + here + '</b> say they are lost. Go through the worked example again?', b: btn('◀ Back to the worked example (slide ' + (exAt + 1) + ')', function () { G.go(exAt, true); }) };
+      else if (!t.tps && dq) sug = { t: '🆘 <b>' + v.lost.length + ' of ' + here + '</b> say they are lost. Let them talk it through with a partner?', b: btn('👥 Start think-pair-share', function () { tpsStart(dq); }) };
+      else sug = { t: '🆘 <b>' + v.lost.length + ' of ' + here + '</b> say they are lost. Work one on the whiteboard, then ask again.', b: null };
+    } else if (quiet.length >= Math.max(3, Math.ceil(here * 0.3))) {
+      sug = { t: '😶 <b>' + quiet.length + ' of ' + here + '</b> are quiet or away. A game where everyone is needed pulls them back in.', b: btn('🎈 Set up All Aboard', function () { c.gamePick = 'aloft'; API.consolePanel(); SFA.toast('All Aboard is open under 🎮 Games: pick a length and start it.', 3500); }) };
+    } else if (miss.length && miss.length <= 2) {
+      var m0 = miss.filter(function (r) { return !t.nudges.some(function (x_) { return x_.sid === r.sid; }); });
+      if (m0.length) sug = { t: '👀 <b>' + esc(miss.map(function (r) { return API.first(r.name); }).join(' and ')) + '</b> ' + (miss.length === 1 ? 'has' : 'have') + ' missed ' + Math.max.apply(null, miss.map(function (r) { return missed(r.sid); })) + ' questions in a row.', b: btn('👋 Nudge ' + (m0.length === 1 ? API.first(m0[0].name) : 'them') + ' (only their device)', function () { m0.forEach(function (r) { nudge(r.sid); }); }) };
+    } else if (e && e.n < e.need && !t.na && Date.now() - t.slideAt > 60000) {
+      sug = { t: '⏳ Over a minute on this question: <b>' + (e.present - e.n) + '</b> still to answer, ' + (e.need - e.n) + ' short of the class goal.', b: btn('👋 Nudge everyone who hasn\'t answered', nudgeAll) };
+    } else if (v.unsure.length >= Math.max(3, Math.ceil(here * 0.3)) && !t.tps && s && s.q) {
+      var dq2 = String(s.q).replace(/[*_]/g, '');
+      sug = { t: '🤔 <b>' + v.unsure.length + ' of ' + here + '</b> are not sure. A minute with a partner often settles it.', b: btn('👥 Start think-pair-share', function () { tpsStart(dq2); }) };
+    }
+    if (!sug) return null;
+    var d = H('div', 'reengage', '<span>💡 <b>Re-engage:</b> ' + sug.t + '</span>'); d.setAttribute('role', 'note'); if (sug.b) d.appendChild(sug.b);
+    return d;
+  }
+
   /* ---- the console's sections ---- */
   function panel(p, s, running) {
     var c = con(); if (!c || !c.data) return;
@@ -404,13 +463,17 @@
       });
       sec.appendChild(w);
     }
+    // 🪜 who opened "Help me start" (sfa-scaffold.js; the lesson page sends each student's summary)
+    var hp = c.helps || {}, hq = s && s.id ? ros.filter(function (r) { return hp[r.sid] && hp[r.sid][s.id]; }) : [], hAny = ros.filter(function (r) { return hp[r.sid] && Object.keys(hp[r.sid]).some(function (k) { return k !== '_w'; }); });
+    if (hAny.length) sec.appendChild(H('p', 'muted', '🪜 Help me start: <b>' + hq.length + '</b> on this question · ' + hAny.length + ' student' + (hAny.length === 1 ? '' : 's') + ' so far today' + (hAny.length <= 8 ? ' (' + esc(hAny.map(function (r) { return API.first(r.name); }).join(', ')) + ')' : '')));
+    if (!running) { var ra = reengage(s, { lost: l, unsure: n, st: st, ros: ros }); if (ra) sec.appendChild(ra); }
     p.appendChild(sec);
     if (running) return;
 
     // whole-class moves
     var mv = H('div', 'sect'); mv.appendChild(H('h3', '', '✨ Whole-class moves'));
     var e = ei();
-    if (e) mv.appendChild(H('p', 'muted', '🤝 Everybody In: <b>' + e.n + ' of ' + e.present + '</b> in · goal ' + e.need + (t.streak ? ' · 🔥 streak ×' + t.streak : '') + (t.allIn[e.s.id] ? ' · ✓ goal reached' : '') + (t.full[e.s.id] ? ' · 🖼️ picture complete' : '') + ' · <i>' + esc(PICS[picFor(e.s.id)].t) + '</i>'));
+    if (e) mv.appendChild(H('p', 'muted', '🤝 Everybody In: <b>' + e.n + ' of ' + e.present + '</b> in · goal ' + e.need + (t.streak > 1 ? ' · 🔥 streak ×' + t.streak : '') + (t.allIn[e.s.id] ? ' · ✓ goal reached' : '') + (t.full[e.s.id] ? ' · 🖼️ picture complete' : '') + ' · <i>' + esc(PICS[picFor(e.s.id)].t) + '</i>'));
     else if (!opt('on', true)) mv.appendChild(H('p', 'muted', '🤝 Everybody In is switched off (Settings).'));
     var row = H('div', 'row');
     if (!t.spin) {
@@ -526,6 +589,7 @@
     var z = C().zei, s = curQ(), deck = document.querySelector('.deck');
     var on = !!(z && z[0] === 1 && s && z[6] === G.cur() && (MODE !== 'student' || API.isLive()) && !gameOn());
     document.body.classList.toggle('tg-ei', on && !!(z && z[11] === 1));
+    document.body.classList.toggle('tg-big', on && !!(z && z[11] === 1 && z[1] > 20));
     if (!on) { if (eiEl) eiEl.hidden = true; stripFit(); return; }
     if (!eiEl) {
       eiEl = H('div', 'tgei'); eiEl.setAttribute('role', 'status');
@@ -564,7 +628,7 @@
   function hits() {
     var z = C().zei; if (!z || (MODE === 'student' && !API.isLive())) return;
     var L = LS(); if (L.hits == null) { L.hits = z[5]; L.fulls = z[9]; saveL(); return; }
-    var hit = z[5] > L.hits, full = z[9] > (L.fulls || 0); if (!hit && !full) return;
+    var hit = z[5] > L.hits, full = z[9] > (L.fulls || 0) && !(z[0] === 1 && z[1] < 2); if (!hit && !full) { L.fulls = z[9]; return; }
     L.hits = z[5]; L.fulls = z[9];
     var sl = LES().slides[z[8] - 1], amt = z[7], streak = z[4], pic = PICS[(z[10] || 0) % PICS.length].t, sub = '', small = '';
     if (MODE === 'student') {
@@ -573,7 +637,7 @@
       if (full) { var g2 = xp('full:' + z[9], 10); small = '🖼️ ' + esc(pic) + ' is complete: every single piece. +' + (g2 || 10) + ' XP bonus'; }
     } else { if (hit) sub = (streak > 1 ? '🔥 Streak ×' + streak + ' · ' : '') + '+' + amt + ' XP each'; if (full) small = '🖼️ ' + esc(pic) + ' is complete: every single piece.'; }
     saveL();
-    party(full ? '🖼️ Masterpiece!' : '🎉 Everybody In!', sub || (full ? 'Everyone here answered.' : ''), small || (hit && !full ? 'Fill every piece to finish the picture.' : ''));
+    party(full ? '🖼️ Masterpiece!' : '🎉 Everybody In!', sub || (full ? 'Everyone here answered.' : ''), small || (hit && !full && !(z[0] === 1 && z[2] >= z[1]) ? 'Fill every piece to finish the picture.' : ''));
   }
 
   /* ---- nudges (private) ---- */
@@ -773,5 +837,5 @@
   else setInterval(sync, 1000);
   if (MODE === 'student') watchAway();
 
-  window.SFA_TOGETHER = { sync: sync, agg: agg, counts: countsOut, x: x, pushed: pushed, onAnswer: onAnswer, xp: xp, notYet: notYet, panel: panel, settings: settings, screenData: screenData, fromConsole: fromConsole, pics: PICS, _state: function () { return { T: T, D: D, L: Lc, scr: scr }; } };
+  window.SFA_TOGETHER = { sync: sync, agg: agg, counts: countsOut, x: x, pushed: pushed, fullLook: fullLook, onAnswer: onAnswer, xp: xp, notYet: notYet, panel: panel, settings: settings, screenData: screenData, fromConsole: fromConsole, pics: PICS, _state: function () { return { T: T, D: D, L: Lc, scr: scr }; } };
 })();

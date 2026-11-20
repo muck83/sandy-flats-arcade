@@ -161,7 +161,7 @@ SFA_LESSON({
         { k: 'number', q: 'What is the slope of *5x − 2y = 10*?', ans: 2.5, tol: 0.01, hint: 'Subtract 5x, then divide by −2.', why: '−2y = −5x + 10, so y = 2.5x − 5.',
           steps: ['Subtract 5x: −2y = −5x + 10.', 'Divide every term by −2: y = (5/2)x − 5.', 'm = *5/2*. Shortcut: −A ÷ B = −5 ÷ −2 = 5/2.'] }
       ] },
-    { k: 'odd', min: 2, id: 'odd1', items: ['y = 3x + 6', 'y = 3x − 2', 'y = −3x + 6', 'y = x + 6'],
+    { k: 'odd', min: 2, opt: true, id: 'odd1', items: ['y = 3x + 6', 'y = 3x − 2', 'y = −3x + 6', 'y = x + 6'],
       why: ['It is the only one that goes through (−2, 0)', 'It is the only one with a negative y-intercept', 'It is the only one that goes downhill (negative slope)', 'It is the only one that goes up just 1 for every 1 across'],
       note: 'Slope and y-intercept are two different things about a line. Three of these have slope 3 or −3, and three have b = 6.' },
     { k: 'cross', min: 3, opt: true, id: 'match', q: 'Cross out every one that does *not* have the same slope as the line through (0, 1) and (2, 7).', opts: ['y = 3x − 4', 'y = 7x + 1', 'A table where x goes 1, 2, 3 and y goes 4, 6, 8', 'x + 3y = 6'], ans: 0,

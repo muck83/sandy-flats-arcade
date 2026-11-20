@@ -221,7 +221,12 @@ body.hide .nmv{filter:blur(6px)}
 
   /* ---------- the start code ---------- */
   function codePanel() {
-    var box = el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Run the check' }), el('p', { 'class': 'sub', text: 'Students open check-u2.html, sign in, and type the start code you read out or put on the board. A code works only today and only for ' + CU.OPEN_MIN + ' minutes after you make it, so the check cannot be started early or at home. A student who has started keeps going after the code closes; the clock runs from their own start, even through a reload. For latecomers, or to give a student who ran out of time 10 more minutes, make a new code.' })]);
+    var box = el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Run the check' }), el('ol', { 'class': 'sub', style: 'margin:0 0 10px;padding-left:20px' }, [
+      el('li', { text: 'Students need paper and a pencil. They open the arcade front page, press 🎯 Unit 2 Check (or go straight to check-u2.html) and sign in.' }),
+      el('li', { text: 'Pick the test length, press Make a start code, and put the code on the board. Students type it to start.' }),
+      el('li', { text: 'The code works today only, for ' + CU.OPEN_MIN + ' minutes, so nobody can start early or at home. A student who has started keeps going after the code closes: the clock runs from their own start, even through a reload.' }),
+      el('li', { text: 'A latecomer, or a student who ran out of time and needs 10 more minutes? Make a new code.' }),
+      el('li', { text: 'At the end, collect the papers. The paper-proof checklist below shows each student\'s problem and solution.' })])]);
     var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Test length' }, CU.LENS.map(function (m, i) { return el('button', { type: 'button', 'aria-pressed': S.len === i ? 'true' : 'false', text: m + ' min' + (i === 0 ? '' : i === 2 ? ' (×1.5)' : i === 3 ? ' (×2)' : ''), onclick: function () { S.len = i; setPref('len', i); S.code = null; render(); } }); }));
     var live = S.code && CU.readCode(S.code.code, Date.now());
     var row = el('div', { 'class': 'codebox' }, [el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Test length for this code' }), seg]),
