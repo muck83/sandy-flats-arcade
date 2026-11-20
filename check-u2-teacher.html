@@ -128,7 +128,7 @@ body.hide .nmv{filter:blur(6px)}
 <div id="sheets" aria-hidden="true"></div>
 <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Student detail"></aside>
 <script src="config.js"></script>
-<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120d"><\/script>'); }</script>
+<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120f"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
 <script src="check-u2.js?v=20261120i"></script>
@@ -147,9 +147,10 @@ body.hide .nmv{filter:blur(6px)}
     set: function (k, remember) { try { sessionStorage.setItem(KEY, k); if (remember) { var d = new Date(); d.setHours(23, 59, 59, 0); localStorage.setItem(KEY, JSON.stringify({ k: k, until: d.getTime() })); } } catch (e) { } },
     del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
   };
-  function api(op) {
+  function api(op, extra) {
     if (CO && op === 'class') op = 'coClass';
-    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ op: op, teacherKey: Key.get() }) })
+    var b = { op: op, teacherKey: Key.get() }; Object.keys(extra || {}).forEach(function (k) { b[k] = extra[k]; });
+    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(b) })
       .then(function (r) { return r.text(); })
       .then(function (t) { try { return JSON.parse(t); } catch (e) { throw new Error('The results script didn\'t answer properly.'); } })
       .then(function (j) { if (!j.ok) throw new Error(j.error); return j; });
@@ -254,15 +255,27 @@ body.hide .nmv{filter:blur(6px)}
   function sortTh(label, key) { return el('th', { 'class': 'sortable', tabindex: '0', role: 'button', onclick: function () { S.sort = key; setPref('sort', key); render(); }, onkeydown: function (e) { if (e.key === 'Enter') { S.sort = key; render(); } } }, [label + (S.sort === key || (label === 'Scale ±' && (S.sort === 'low' || S.sort === 'high')) ? ' ▾' : '')]); }
   function copy(t) { try { navigator.clipboard.writeText(t).then(function () { SFA.toast('Names copied'); }, function () { SFA.toast(t, 6000); }); } catch (e) { SFA.toast(t, 6000); } }
 
+  /* ---------- open / closed: students can start only while Mr. Crowell has the Check open ---------- */
+  function gatePanel() {
+    var g = DEMO ? { open: true } : S.gate || {}, msg = el('span', { 'class': 'muted', role: 'status' });
+    var old = /unknown op/.test(g.err || '');
+    function set(on) { msg.textContent = ' Saving…'; api('checkGate', { open: on }).then(function (j) { S.gate = j; render(); }, function (e) { msg.textContent = ' ' + e.message; }); }
+    var state = el('div', {}, [el('b', { style: 'font-size:18px;color:' + (g.open ? '#7BE0A0' : '#FF8E84'), text: g.open ? '🟢 The Check is OPEN' : '🔴 The Check is CLOSED' }),
+      el('div', { 'class': 'muted', style: 'font-size:13px', text: old ? 'The results script needs updating before the switch works: paste the new backend/Code.gs and deploy a new version.' : g.err ? 'Couldn\'t read the switch: ' + g.err : g.open ? 'Students can start it with a start code until you close it (it closes itself at midnight). Students already working keep going after you close it.' : CO ? 'Students can\'t start it until Mr. Crowell opens it from his dashboard.' : 'Students see "closed" and can\'t start, even with a start code. Open it when the class is ready.' })]);
+    var btn = CO || DEMO || old ? null : g.open ? el('button', { type: 'button', 'class': 'btn', text: 'Close the Check', onclick: function () { set(false); } }) : el('button', { type: 'button', 'class': 'btn primary', text: 'Open the Check', onclick: function () { set(true); } });
+    return el('div', { 'class': 'codebox', style: 'margin-bottom:12px' }, [state, btn, msg]);
+  }
+
   /* ---------- the start code ---------- */
   function codePanel() {
     var box = el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Run the check' }), el('ol', { 'class': 'sub', style: 'margin:0 0 10px;padding-left:20px' }, [
       el('li', { text: 'Students need scrap paper and a pencil for working things out. They open the arcade front page, press 🎯 Unit 2 Check (or go straight to check-u2.html) and sign in.' }),
-      el('li', { text: 'Pick the test length, press Make a start code, and put the code on the board. Students type it to start.' }),
+      el('li', { text: CO ? 'Ask Mr. Crowell to open the Check (the switch below must say OPEN). Then pick the test length, press Make a start code, and put the code on the board. Students type it to start.' : 'Press Open the Check. Then pick the test length, press Make a start code, and put the code on the board. Students type it to start. Close the Check when everyone has started.' }),
       el('li', { text: 'The code works today only, for ' + CU.OPEN_MIN + ' minutes, so nobody can start early or at home. A student who has started keeps going after the code closes: the clock runs from their own start, even through a reload.' }),
       el('li', { text: 'A latecomer, or a student who ran out of time and needs 10 more minutes? Make a new code.' }),
       el('li', { text: 'Up to three questions per student ask them to work it out on paper first. Nothing is handed in. The worked-out questions list below shows each student\'s problem and its full solution, for talking through their thinking.' })])]);
     var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Test length' }, CU.LENS.map(function (m, i) { return el('button', { type: 'button', 'aria-pressed': S.len === i ? 'true' : 'false', text: m + ' min' + (i === 0 ? '' : i === 2 ? ' (×1.5)' : i === 3 ? ' (×2)' : ''), onclick: function () { S.len = i; setPref('len', i); S.code = null; render(); } }); }));
+    box.appendChild(gatePanel());
     var live = S.code && CU.readCode(S.code.code, Date.now());
     var row = el('div', { 'class': 'codebox' }, [el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Test length for this code' }), seg]),
       el('button', { type: 'button', 'class': 'btn primary', text: S.code ? 'Make a new code' : 'Make a start code', onclick: function () { var now = Date.now(); S.code = { code: CU.makeCode(now, S.len), at: now }; try { sessionStorage.setItem('sfa.ckdash.code', JSON.stringify(S.code)); } catch (e) { } render(); } })]);
@@ -498,7 +511,7 @@ body.hide .nmv{filter:blur(6px)}
     if (!CFG.endpoint) { body.textContent = 'Results saving isn\'t switched on for this copy of the arcade.'; return; }
     if (!Key.get()) return askKey();
     if (loud && !S.rows.length) body.innerHTML = '<p class="muted">Loading the class…</p>';
-    api('class').then(function (j) { S.rows = build(j); S.at = new Date(); render(); schedule(); }, function (e) {
+    api('checkState').then(function (g) { S.gate = g; }, function (e) { S.gate = { err: e.message }; }).then(function () { return api('class'); }).then(function (j) { S.rows = build(j); S.at = new Date(); render(); schedule(); }, function (e) {
       if (/teacher key/.test(e.message)) { Key.del(); askKey('That key didn\'t work. Check it and try again.'); }
       else if (loud || !S.rows.length) body.innerHTML = '<p style="color:#FF8E84">Couldn\'t reach the results sheet. ' + SFA.esc(e.message) + '</p>';
     });

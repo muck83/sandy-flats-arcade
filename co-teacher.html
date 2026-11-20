@@ -52,7 +52,7 @@ select.xt.saved{border-color:var(--green)}
 <div id="cards" aria-hidden="true"></div>
 <script src="config.js"></script>
 <script>if (/[?&]demo\b/.test(location.search)) { window.CU2_COTRY_DEMO = 1; try { sessionStorage.setItem('sfa.cokey', 'co'); } catch (e) { } }
-if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120d"><\/script>'); }</script>
+if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120f"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script>
 (function () {
@@ -198,7 +198,7 @@ if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.wri
     body.appendChild(el('section', { 'class': 'panel' }, [
       el('h2', { text: '3. Run the Unit 2 Check and see the results' }),
       el('ol', { 'class': 'steps' }, [
-        el('li', { text: 'Open the dashboard below and press "Make a start code". Write the code on the board.' }),
+        el('li', { text: 'Ask Mr. Crowell to open the Check: students can only start it while he has it open. Then open the dashboard below and press "Make a start code". Write the code on the board.' }),
         el('li', {}, ['Students open ', el('b', { text: SITE.replace(/^https?:\/\//, '') + 'check-u2.html' + Q }), ', sign in with their own code from the card, then type the start code. They need scrap paper and a pencil for working things out.']),
         el('li', { text: 'The test takes 35 minutes. The dashboard updates every 30 seconds while they work.' }),
         el('li', { text: 'Nothing is handed in. The dashboard shows each student\'s worked-out questions with full solutions, for talking through their thinking.' })

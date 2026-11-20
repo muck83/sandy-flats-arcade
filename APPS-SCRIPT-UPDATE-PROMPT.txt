@@ -25,18 +25,20 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
      Logger.log('coWho ok: ' + w.ok + ', co-teacher key: ' + w.coKey + ', her classes: ' + (w.classes.join(', ') || 'none yet') + ', AUTH_MODE: ' + w.authMode);
      var k = route({ op: 'coClass', teacherKey: w.coKey });
      Logger.log('coClass with the co-teacher key ok: ' + k.ok + ', her students: ' + k.roster.length);
+     Logger.log('checkState ok: ' + route({ op: 'checkState' }).ok + ', open: ' + route({ op: 'checkState' }).open);
    }
    Expected: {"ok":true,...}, "climbClass ok: true ... questions today: 0", "report ok: true",
-   "coWho ok: true, co-teacher key: (16 letters and numbers) ... AUTH_MODE: code" (or both), and "coClass ... ok: true".
+   "coWho ok: true, co-teacher key: (16 letters and numbers) ... AUTH_MODE: code" (or both), "coClass ... ok: true" and "checkState ok: true, open: false".
    If it says "unknown op", the old code is still in Code.gs. If AUTH_MODE says google, change it to both in step 2.
    Write down the co-teacher key: it is also shown on co-teacher.html when I open it with my teacher key.
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
-   Description "Co-teacher page, extra time, class mural" > Deploy. Do NOT use "New deployment" (that changes the URL).
+   Description "Unit 2 Check open/close switch, co-teacher page, extra time" > Deploy. Do NOT use "New deployment" (that changes the URL).
 
 5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
 
-Latest change: extra time on the Unit 2 Check. New operation coExtra (teacher or co-teacher key) saves a student's extra time (25, 50 or 100 percent) in a new script property EXTRA_TIME (JSON, made automatically), and every student object the script returns now carries "extra" when it is set.
+Latest change: an open/closed switch for the Unit 2 Check. New operations checkState (anyone; returns open and until) and checkGate (main teacher key only; {open: true} opens it until the end of today, {open: false} closes it), stored in a new script property CHECK_OPEN (made automatically). Students can start the Check only while it is open.
+Before that: extra time on the Unit 2 Check. New operation coExtra (teacher or co-teacher key) saves a student's extra time (25, 50 or 100 percent) in a new script property EXTRA_TIME (JSON, made automatically), and every student object the script returns now carries "extra" when it is set.
 Before that: a co-teacher page (co-teacher.html). New operations coWho, coRoster, coAdd and coClass, and two new script properties: COTEACHER_KEY (a second, smaller key; run setup once, or the page makes it the first time Mr. Crowell opens it with the main teacher key) and COTEACHER_CLASSES (filled in automatically as the co-teacher adds classes). coAdd appends rows to the Roster tab with new student codes. Student codes only work when AUTH_MODE is code or both.
 Before that: one new optional field for live lessons. setLive also keeps "x" (one JSON string of text, at most 12,000 characters) and live returns it. It carries the text for the lesson's whole-class features (sfa-together.js): students' first names on the class mural, think-pair-share partners and what each partner wrote, and the name in the spotlight spin. No new operations, tabs or script properties: nothing to set up. Until this version is deployed everything still runs; the only differences are that the mural shows names on the class screen but not on students' own devices, and in think-pair-share students are told to pair up with someone near them instead of being shown a partner (the console says so).
 Before that: worked-example steps. setLive also keeps a new optional "ex" field (the slide number and how many steps of a worked example are showing), and live returns it, so students' screens show the same steps as the class screen. The same update also keeps the lesson whiteboard: the lesson whiteboard. setLive keeps a new optional "wb" field (grid 0-3 and the strokes as base-36 text, at most 40,000 characters), and live returns it, so students see the teacher's whiteboard on their own devices. Nothing to set up.

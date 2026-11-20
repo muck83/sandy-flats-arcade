@@ -110,6 +110,8 @@ function route(req) {
     case 'coAdd': return coAdd(req);
     case 'coClass': return coClass(req);
     case 'coExtra': return coExtra(req);
+    case 'checkState': return checkState();
+    case 'checkGate': teacher(req); return checkGate(req);
     default: throw new Error('unknown op');
   }
 }
@@ -197,6 +199,17 @@ function coClass(req) {
   var prog = (n0 < 2 ? [] : sh.getRange(2, 1, n0 - 1, 12).getValues()).filter(function (r) { return r[0] && ids[String(r[0])] && CO_GAMES.test(String(r[1])); })
     .map(function (r) { var o = summaryRow(r); o.sid = String(r[0]); return o; });
   return { ok: true, roster: roster.map(publicStudent), progress: prog, events: [], climb: [] };
+}
+
+/* ---------------- the Unit 2 Check open/closed switch ----------------
+   Students can start the Check only while Mr. Crowell has it open (main teacher key only, not the co-teacher key).
+   It closes itself at the end of the day it was opened. A student already in the middle of an attempt keeps going. */
+function checkState() { var u = Number(prop('CHECK_OPEN')) || 0, on = u > Date.now(); return { ok: true, open: on, until: on ? u : 0 }; }
+function checkGate(req) {
+  var p = PropertiesService.getScriptProperties();
+  if (req.open) { var d = new Date(); d.setHours(23, 59, 0, 0); p.setProperty('CHECK_OPEN', String(d.getTime())); }
+  else p.deleteProperty('CHECK_OPEN');
+  return checkState();
 }
 
 /* ---------------- auth ---------------- */

@@ -17,6 +17,13 @@
     if (String(url) !== EP) return inner(url, opts);
     var r; try { r = JSON.parse(opts.body); } catch (e) { return inner(url, opts); }
     if (window.CU2_MOCK_OFFLINE) return Promise.reject(new TypeError('offline (practice)'));
+    // the open/closed switch: open unless the practice teacher (key "test") closed it
+    if (r.op === 'checkState' || r.op === 'checkGate') {
+      var dg = db();
+      if (r.op === 'checkGate') { if (r.teacherKey !== 'test') return Promise.resolve(reply({ ok: false, error: 'teacher key' })); dg.gate = r.open ? 1 : -1; put(dg); }
+      var eod = new Date(); eod.setHours(23, 59, 0, 0);
+      return Promise.resolve(reply({ ok: true, open: dg.gate !== -1, until: dg.gate !== -1 ? eod.getTime() : 0 }));
+    }
     // co-teacher practice: key "co" (or the teacher key "test"); her classes start empty; added students live in this browser
     var CO = /^(coWho|coRoster|coAdd|coClass|coExtra)$/.test(r.op);
     if (CO) {

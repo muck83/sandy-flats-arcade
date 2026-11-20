@@ -250,7 +250,7 @@
     if (!me()) return gate();
     if (a && a.sid && a.sid !== me().sid) { P = fresh(); a = null; }
     if (a && !a.end && Date.now() >= deadline(a)) finish('time', deadline(a));
-    if (!a) return intro();
+    if (!a) { if (!GATE.open) return closed(); if (!DEMO && Date.now() - GATE.at > 60000) gateCheck().then(function (on) { if (!on && view === 'intro') render(); }); return intro(); }
     if (a.end) return summary();
     test();
   }
@@ -258,6 +258,26 @@
   function gate() {
     clear(); view = 'gate';
     root.appendChild(card([el('h2', { text: 'Sign in first' }), el('p', { text: 'The Unit 2 Check saves to your name, so sign in with your student code in the box above. Then this page will show the start screen.' })]));
+  }
+
+  /* the open/closed switch: a new attempt can start only while Mr. Crowell has the Check open */
+  var GATE = { open: DEMO, known: DEMO, at: 0 };
+  function gateCheck() {
+    if (DEMO) return Promise.resolve(true);
+    return S.call('checkState', {}).then(function (j) { GATE.open = !!j.open; GATE.known = true; GATE.at = Date.now(); return GATE.open; },
+      function (e) { if (e.server) { GATE.open = false; GATE.known = true; } return GATE.open; });   // offline: keep the last answer
+  }
+  function closed() {
+    clear(); view = 'closed';
+    var msg = el('p', { 'class': 'ck-msg', role: 'status', 'aria-live': 'polite' });
+    root.appendChild(card([el('h2', { text: GATE.known ? 'The Unit 2 Check is closed' : 'Checking whether the Check is open…' }),
+      GATE.known ? el('p', { 'class': 'ck-lead', text: 'Mr. Crowell opens the Unit 2 Check in class. Keep this page open: it starts by itself when he opens it.' }) : null,
+      GATE.known ? el('p', {}, [el('a', { 'class': 'btn', href: 'review-u2.html', text: '📝 Practise with the Unit 2 Review' }), ' ', el('button', { type: 'button', 'class': 'btn', text: 'Check again', onclick: function () { msg.textContent = 'Checking…'; poll(); } })]) : null,
+      msg]));
+    var wasKnown = GATE.known;
+    function poll() { gateCheck().then(function (on) { if (view !== 'closed') return; if (on || !wasKnown || !GATE.known) render(); else msg.textContent = 'Still closed.'; }); }
+    if (!GATE.known) poll();
+    tick = setInterval(poll, 15000);
   }
 
   var demoLen = 10;
@@ -273,7 +293,8 @@
       if (DEMO) return begin({ ok: true, code: 'DEMOX', len: demoLen, lenIdx: 0, demo: true });
       var r = CU.readCode(inp.value, Date.now());
       if (!r.ok) { msg.textContent = r.why; inp.focus(); return; }
-      begin(r);
+      go.disabled = true; msg.textContent = 'Starting…';
+      gateCheck().then(function (on) { go.disabled = false; if (on) begin(r); else render(); });
     }
     root.appendChild(card([
       el('h2', { text: again ? 'A new attempt' : 'Unit 2 Check: Linear Equations and Inequalities' }),
@@ -464,7 +485,7 @@
 
     var more = [el('a', { 'class': 'btn', href: 'review-u2.html', text: '📝 Open the Unit 2 Review' }), el('a', { 'class': 'btn', href: 'index.html', text: '🕹️ Back to the arcade' })];
     var codeIn = el('input', { type: 'text', 'class': 'ck-code small', maxlength: '5', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'New start code', placeholder: '•••••' }), cm = el('span', { 'class': 'ck-msg', role: 'status' });
-    function withCode(f) { var r = CU.readCode(codeIn.value, Date.now()); if (!r.ok) { cm.textContent = ' ' + r.why; return; } f(r); }
+    function withCode(f) { var r = CU.readCode(codeIn.value, Date.now()); if (!r.ok) { cm.textContent = ' ' + r.why; return; } gateCheck().then(function (on) { if (on) f(r); else cm.textContent = ' The Check is closed. Mr. Crowell opens it in class.'; }); }
     var tools = el('details', { 'class': 'ck-tools' }, [el('summary', { text: 'Mr. Crowell gave you a new code?' }), el('p', { 'class': 'muted', text: 'A new start code can give you 10 more minutes on this attempt (if it ended because time ran out today) or start a fresh attempt with new numbers.' }),
       el('div', { 'class': 'ck-start' }, [codeIn,
         a.end.why === 'time' && a.log.length < CU.MAX_ITEMS ? el('button', { type: 'button', 'class': 'btn small', text: '+10 minutes', onclick: function () { withCode(function () { a.ext = (a.ext || 0) + 1; a.extMs = Date.now() + 600000 - a.t0 - a.lenMs; a.end = null; save(); render(); }); } }) : null,
