@@ -27,7 +27,6 @@ body.ck-run #sfaAccount{display:none}
 .ck-stem p{margin:0}
 canvas.ink{display:inline-block;vertical-align:-6px;max-width:100%;height:auto}
 .ck-paper{background:#FFE9A8;border:2px solid #C99A1C;border-radius:12px;padding:10px 12px;margin:0 0 10px;font-size:15px;line-height:1.5}
-.ck-pcode{font:700 17px var(--mono);background:#1B1A22;color:#FFE9A8;border-radius:6px;padding:2px 8px;white-space:nowrap;-webkit-user-select:text;user-select:text}
 .ck-body{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:flex-start;margin-top:10px}
 .ck-fig:empty{display:none}
 .ck-fig{flex:0 1 340px;min-width:0}

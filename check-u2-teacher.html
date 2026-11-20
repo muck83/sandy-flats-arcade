@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="sfa-kit.css?v=20261118">
 <link rel="stylesheet" href="review-u2.css?v=20261118c">
 <style>
-/* Unit 2 Check dashboard: start code, class table by criterion and skill, flags, paper-proof checklist, regrouping. */
+/* Unit 2 Check dashboard: start code, class table by criterion and skill, flags, worked-out questions, regrouping. */
 .dash{max-width:1380px}
 .l0{--lc:#2E2A3D;--lt:#ABA5BC}.l1{--lc:#E8584C;--lt:#2A0703}.l2{--lc:#FF9F45;--lt:#2A1400}.l3{--lc:#FFC94A;--lt:#2A1E00}.l4{--lc:#3BFF8A;--lt:#00260F}
 .muted{color:var(--muted)}
@@ -129,7 +129,7 @@ body.hide .nmv{filter:blur(6px)}
 <script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120d"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
-<script src="check-u2.js?v=20261119a"></script>
+<script src="check-u2.js?v=20261120g"></script>
 <script>
 (function () {
   'use strict';
@@ -178,7 +178,7 @@ body.hide .nmv{filter:blur(6px)}
       if (f.paste) tags.push(['Paste ×' + f.paste, true]); if (f.copy) tags.push(['Copied question ×' + f.copy, true]);
       if (f.quick) tags.push(['Very fast and right ×' + f.quick, f.quick >= 2]); if (f.guess >= 3) tags.push(['Rapid guesses ×' + f.guess, false]);
       if (f.slow) tags.push(['Very slow ×' + f.slow, false]); if (f.reloads > 1) tags.push(['Reloads ×' + f.reloads, false]); if (f.ext) tags.push(['Extra time ×' + f.ext, false]);
-      // right answers while away from the tab, on Developed-level or harder questions: the pattern most worth a paper check
+      // right answers while away from the tab, on Developed-level or harder questions: the pattern most worth a conversation
       var awayRight = log.filter(function (e) { return (e.f & FL.away) && e.ok && e.d >= 3; }).length; if (awayRight) tags.push(['Right after leaving ×' + awayRight, true]);
       r.tags = tags; r.hot = tags.some(function (t) { return t[1]; });
       r.state = r.att.state === 'r' ? (Date.now() - Date.parse(r.updated) < 4 * 60000 ? 'Working' : 'Stopped mid-test') : ({ t: 'Finished (time)', s: 'Finished (steady)', m: 'Finished (all questions)', x: 'Ended' })[r.att.state] || 'Finished';
@@ -214,7 +214,7 @@ body.hide .nmv{filter:blur(6px)}
       kpi('Median scale score', mid ? String(mid) : '·', 'cut scores 450 · 550 · 650', false),
       kpi('At Developed or Deep', lev.length ? devp + '/' + lev.length : '·', 'overall, of those with enough answers', false),
       kpi('Reteach first', cw ? cw.c.short : '·', cw ? cw.n + ' of ' + cw.of + ' at Developed+' : 'no results yet', !!cw && cw.n < cw.of / 2),
-      kpi('Worth a paper check', String(hot), 'students with strong flags', hot > 0)
+      kpi('Worth a conversation', String(hot), 'students with strong flags', hot > 0)
     ]));
 
     // class table
@@ -255,11 +255,11 @@ body.hide .nmv{filter:blur(6px)}
   /* ---------- the start code ---------- */
   function codePanel() {
     var box = el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Run the check' }), el('ol', { 'class': 'sub', style: 'margin:0 0 10px;padding-left:20px' }, [
-      el('li', { text: 'Students need paper and a pencil. They open the arcade front page, press 🎯 Unit 2 Check (or go straight to check-u2.html) and sign in.' }),
+      el('li', { text: 'Students need scrap paper and a pencil for working things out. They open the arcade front page, press 🎯 Unit 2 Check (or go straight to check-u2.html) and sign in.' }),
       el('li', { text: 'Pick the test length, press Make a start code, and put the code on the board. Students type it to start.' }),
       el('li', { text: 'The code works today only, for ' + CU.OPEN_MIN + ' minutes, so nobody can start early or at home. A student who has started keeps going after the code closes: the clock runs from their own start, even through a reload.' }),
       el('li', { text: 'A latecomer, or a student who ran out of time and needs 10 more minutes? Make a new code.' }),
-      el('li', { text: 'At the end, collect the papers. The paper-proof checklist below shows each student\'s problem and solution.' })])]);
+      el('li', { text: 'Up to three questions per student ask them to work it out on paper first. Nothing is handed in. The worked-out questions list below shows each student\'s problem and its full solution, for talking through their thinking.' })])]);
     var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Test length' }, CU.LENS.map(function (m, i) { return el('button', { type: 'button', 'aria-pressed': S.len === i ? 'true' : 'false', text: m + ' min' + (i === 0 ? '' : i === 2 ? ' (×1.5)' : i === 3 ? ' (×2)' : ''), onclick: function () { S.len = i; setPref('len', i); S.code = null; render(); } }); }));
     var live = S.code && CU.readCode(S.code.code, Date.now());
     var row = el('div', { 'class': 'codebox' }, [el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Test length for this code' }), seg]),
@@ -294,17 +294,17 @@ body.hide .nmv{filter:blur(6px)}
     box.appendChild(g); return box;
   }
 
-  /* ---------- paper proof ---------- */
+  /* ---------- worked-out questions (the "work it out on paper" questions) ---------- */
   function paperItems(r) {
     return (r.att.papers || []).map(function (p) {
       var e = r.att.log[p.i], q = e ? CU.paper(p.s, e.d, r.att.seed) : null;
-      return { p: p, e: e, q: q, code: CU.paperCode(r.att.seed, p.s), match: !!q && q.chk === p.chk };
+      return { p: p, e: e, q: q, match: !!q && q.chk === p.chk };
     });
   }
   function paperBlock(x) {
     var d = el('div', { 'class': 'ppq' });
-    if (!x.q) { d.textContent = 'The problem could not be rebuilt here (the review file did not load). Ask the student to show you the question code on their summary screen.'; return d; }
-    if (!x.match) d.appendChild(el('p', { style: 'color:#B3261E;font-weight:700', text: 'Careful: this rebuilt problem may not be the one the student saw (the review file changed since the test). Compare the numbers on the paper before using the solution.' }));
+    if (!x.q) { d.textContent = 'The problem could not be rebuilt here (the review file did not load). Reload the page and try again.'; return d; }
+    if (!x.match) d.appendChild(el('p', { style: 'color:#B3261E;font-weight:700', text: 'Careful: this rebuilt problem may not be the one the student saw (the review file changed since the test). Check the numbers with the student before using the solution.' }));
     var q = el('div', { 'class': 'pq' }); q.innerHTML = x.q.stem; d.appendChild(q);
     if (x.q.figHtml) { var f = el('div', { 'class': 'fig' }); f.innerHTML = x.q.figHtml; d.appendChild(f); }
     var ol = el('ol', { 'class': 'steps' }); x.q.steps.forEach(function (s) { var li = el('li'); li.innerHTML = '<span>' + s.q + '</span><br><b>' + s.why + '</b>'; ol.appendChild(li); }); d.appendChild(ol);
@@ -312,18 +312,18 @@ body.hide .nmv{filter:blur(6px)}
     return d;
   }
   function paperPanel(done) {
-    var box = el('section', { 'class': 'panel' }, [el('h2', { text: 'Paper-proof checklist' }), el('p', { 'class': 'sub', text: 'Up to three questions per student were "paper questions": the student wrote their name and the code on paper and showed the working there. Each student\'s numbers are different. Open a line to see that student\'s problem and its worked solution, and hold it against their paper. Right on screen with no working, or working that doesn\'t lead to the answer, is worth a conversation; so is a student who is strong on screen and weak on paper.' }),
-      el('div', { 'class': 'bar noprint', style: 'margin:0 0 10px' }, [el('button', { type: 'button', 'class': 'btn small', text: 'Open all', onclick: function () { [].forEach.call(box.querySelectorAll('details'), function (d) { d.open = true; }); } }), el('button', { type: 'button', 'class': 'btn small', text: '🖨 Print this checklist', onclick: function () { [].forEach.call(box.querySelectorAll('details'), function (d) { d.open = true; }); window.print(); } })])]);
+    var box = el('section', { 'class': 'panel' }, [el('h2', { text: 'Worked-out questions' }), el('p', { 'class': 'sub', text: 'Up to three questions per student asked them to work it out on paper first, one step at a time, before typing the answer. Each student\'s numbers are different. Open a line to see that student\'s problem and its full worked solution, ready for a conversation about their thinking: where their steps went, and where they changed direction.' }),
+      el('div', { 'class': 'bar noprint', style: 'margin:0 0 10px' }, [el('button', { type: 'button', 'class': 'btn small', text: 'Open all', onclick: function () { [].forEach.call(box.querySelectorAll('details'), function (d) { d.open = true; }); } }), el('button', { type: 'button', 'class': 'btn small', text: '🖨 Print this list', onclick: function () { [].forEach.call(box.querySelectorAll('details'), function (d) { d.open = true; }); window.print(); } })])]);
     var list = el('div', { 'class': 'pp' }), n = 0;
     done.slice().sort(function (a, b) { return (b.hot ? 1 : 0) - (a.hot ? 1 : 0) || a.name.localeCompare(b.name); }).forEach(function (r) {
       paperItems(r).forEach(function (x) {
         n++;
-        var d = el('details', {}, [el('summary', {}, [el('b', {}, [nm(r)]), el('span', { 'class': 'code', text: x.code }), el('span', { text: 'Q' + (x.p.i + 1) + ' · ' + SKN[x.p.s].name }), el('span', { 'class': 'badge ' + (x.e && x.e.ok ? 'l4' : 'l1'), text: x.e && x.e.ok ? 'right on screen' : x.e && x.e.idk ? 'skipped on screen' : 'wrong on screen' }), x.e ? el('small', { 'class': 'muted', text: x.e.t + ' s' }) : null, r.hot ? el('span', { 'class': 'tag', text: 'flagged' }) : null])]);
+        var d = el('details', {}, [el('summary', {}, [el('b', {}, [nm(r)]), el('span', { text: 'Q' + (x.p.i + 1) + ' · ' + SKN[x.p.s].name }), el('span', { 'class': 'badge ' + (x.e && x.e.ok ? 'l4' : 'l1'), text: x.e && x.e.ok ? 'right on screen' : x.e && x.e.idk ? 'skipped on screen' : 'wrong on screen' }), x.e ? el('small', { 'class': 'muted', text: x.e.t + ' s' }) : null, r.hot ? el('span', { 'class': 'tag', text: 'flagged' }) : null])]);
         d.addEventListener('toggle', function () { if (d.open && !d.querySelector('.ppq')) d.appendChild(paperBlock(x)); });
         list.appendChild(d);
       });
     });
-    if (!n) list.appendChild(el('p', { 'class': 'muted', text: 'No paper questions answered yet.' }));
+    if (!n) list.appendChild(el('p', { 'class': 'muted', text: 'No worked-out questions answered yet.' }));
     box.appendChild(list); return box;
   }
 
@@ -334,9 +334,9 @@ body.hide .nmv{filter:blur(6px)}
       el('li', { text: 'Coverage: questions 1 to 13 visit every skill once and 14 to 26 visit them again, criteria taking turns; later questions go to the skill with the least certain estimate. The test stops at the time limit, at 40 questions, or early (after at least 26) once the overall and criterion estimates have settled.' }),
       el('li', { text: 'Scoring: an estimate on a scale where 500 is the middle of Emerging-to-Developed; cut scores 450 (Emerging), 550 (Developed), 650 (Deep). The ± is one standard error: the true score is inside it about two times in three. Tap-to-choose questions are discounted for lucky guesses.' }),
       el('li', { text: 'Criteria here are estimated from all their questions (unlike the review dashboard, which takes the weakest skill). Skill squares rest on 2 or 3 questions each: use them to choose where to look, not as a verdict.' }),
-      el('li', { text: 'Flags are observations, not proof, and nothing is deducted for them. Leaving the tab can be a notification or a calculator app. The strongest signals are "Right after leaving", "Paste", "Very fast and right" on hard questions, and a paper that doesn\'t match the screen.' }),
-      el('li', { text: 'Limits: a phone held beside the laptop, or a classmate, leaves no flag. Numbers are drawn as pictures so they can\'t be copied as text, but a screenshot can still be given to a chatbot. The start code and the timer are checked in the browser, not on a server. The paper questions and your own eyes in the room are the real check.' })
-    ]), el('p', {}, [el('button', { type: 'button', 'class': 'btn small', text: 'Run the question self-check', onclick: function () { st.textContent = ' checking…'; setTimeout(function () { var r = CU.selfTest(40); st.textContent = r.ok ? ' ✓ ' + r.items + ' generated questions and ' + r.paper + ' paper questions verified on this computer.' : ' Problem found: ' + r.failed.concat(r.paperFailed).slice(0, 3).join(' | '); }, 30); } }), st])]);
+      el('li', { text: 'Flags are observations, not proof, and nothing is deducted for them. Leaving the tab can be a notification or a calculator app. The strongest signals are "Right after leaving", "Paste", and "Very fast and right" on hard questions.' }),
+      el('li', { text: 'Limits: a phone held beside the laptop, or a classmate, leaves no flag. Numbers are drawn as pictures so they can\'t be copied as text, but a screenshot can still be given to a chatbot. The start code and the timer are checked in the browser, not on a server. Asking a student to talk you through their working, and your own eyes in the room, are the real check.' })
+    ]), el('p', {}, [el('button', { type: 'button', 'class': 'btn small', text: 'Run the question self-check', onclick: function () { st.textContent = ' checking…'; setTimeout(function () { var r = CU.selfTest(40); st.textContent = r.ok ? ' ✓ ' + r.items + ' generated questions and ' + r.paper + ' worked-out questions verified on this computer.' : ' Problem found: ' + r.failed.concat(r.paperFailed).slice(0, 3).join(' | '); }, 30); } }), st])]);
   }
 
   function toolbar() {
@@ -373,11 +373,11 @@ body.hide .nmv{filter:blur(6px)}
         drawer.appendChild(el('div', { 'class': 'dsk' }, [].concat.apply([], c.skills.map(function (id) { var k = sc.skill[id]; return [el('span', { text: SKN[id].name }), el('small', { text: k.n ? k.right + '/' + k.n + (k.top ? ' · top L' + k.top : '') : '' }), el('span', { 'class': 'badge l' + k.level, text: k.n ? LV[k.level] : 'not reached' })]; }))));
       });
       var px = paperItems(r);
-      if (px.length) { drawer.appendChild(el('h3', { text: 'Paper questions' })); var pp = el('div', { 'class': 'pp' }); px.forEach(function (x) { var d = el('details', {}, [el('summary', {}, [el('span', { 'class': 'code', text: x.code }), el('span', { text: 'Q' + (x.p.i + 1) + ' · ' + SKN[x.p.s].name }), el('span', { 'class': 'badge ' + (x.e && x.e.ok ? 'l4' : 'l1'), text: x.e && x.e.ok ? 'right on screen' : 'not right on screen' })])]); d.addEventListener('toggle', function () { if (d.open && !d.querySelector('.ppq')) d.appendChild(paperBlock(x)); }); pp.appendChild(d); }); drawer.appendChild(pp); }
+      if (px.length) { drawer.appendChild(el('h3', { text: 'Worked-out questions' })); var pp = el('div', { 'class': 'pp' }); px.forEach(function (x) { var d = el('details', {}, [el('summary', {}, [el('span', { text: 'Q' + (x.p.i + 1) + ' · ' + SKN[x.p.s].name }), el('span', { 'class': 'badge ' + (x.e && x.e.ok ? 'l4' : 'l1'), text: x.e && x.e.ok ? 'right on screen' : 'not right on screen' })])]); d.addEventListener('toggle', function () { if (d.open && !d.querySelector('.ppq')) d.appendChild(paperBlock(x)); }); pp.appendChild(d); }); drawer.appendChild(pp); }
       drawer.appendChild(el('h3', { text: 'Every question, in order' }));
       var t = el('table', { 'class': 'log' }, [el('tr', {}, ['#', 'Skill', 'Level', '', 'Time', 'Notes'].map(function (x) { return el('th', { text: x }); }))]);
       a.log.forEach(function (e, i) {
-        var notes = []; if (e.p) notes.push('paper'); if (e.idk) notes.push('"don\'t know"'); if (e.f & FL.away) notes.push('left tab' + (e.b > 1 ? ' ×' + e.b : '') + (e.a ? ' ' + e.a + ' s' : '')); if (e.f & FL.paste) notes.push('paste'); if (e.f & FL.copy) notes.push('copied'); if (e.f & FL.fast) notes.push('very fast'); if (e.f & FL.slow) notes.push('very slow'); if (e.r) notes.push('reload');
+        var notes = []; if (e.p) notes.push('worked out'); if (e.idk) notes.push('"don\'t know"'); if (e.f & FL.away) notes.push('left tab' + (e.b > 1 ? ' ×' + e.b : '') + (e.a ? ' ' + e.a + ' s' : '')); if (e.f & FL.paste) notes.push('paste'); if (e.f & FL.copy) notes.push('copied'); if (e.f & FL.fast) notes.push('very fast'); if (e.f & FL.slow) notes.push('very slow'); if (e.r) notes.push('reload');
         t.appendChild(el('tr', {}, [el('td', { text: String(i + 1) }), el('td', { text: SKN[e.s].name.length > 26 ? SKN[e.s].name.slice(0, 25) + '…' : SKN[e.s].name, title: SKN[e.s].name }), el('td', { text: 'L' + e.d }), el('td', { 'class': e.ok ? 'ok' : 'no', text: e.ok ? '✓' : '✗' }), el('td', { text: e.t + ' s' }), el('td', { text: notes.join(', ') })]));
       });
       drawer.appendChild(el('div', { style: 'overflow-x:auto' }, [t]));
@@ -391,14 +391,14 @@ body.hide .nmv{filter:blur(6px)}
     var head = ['Student', 'Class', 'Status', 'Started', 'Start code', 'Questions', 'Right', 'Minutes', 'Scale score', 'Plus or minus', 'Overall level']
       .concat([].concat.apply([], CRIT.map(function (c) { return [c.short + ' (criterion)', c.short + ' scale', c.short + ' questions']; })))
       .concat(SK.map(function (k) { return k.name; })).concat(SK.map(function (k) { return k.name + ' (right/asked)'; }))
-      .concat(['Left tab (questions)', 'Seconds away', 'Paste', 'Copied question', 'Very fast and right (L3+)', 'Rapid wrong guesses', 'Very slow', 'Don\'t know', 'Reloads', 'Extra time', 'Paper codes', 'Paper on-screen results', 'Suggested group']);
+      .concat(['Left tab (questions)', 'Seconds away', 'Paste', 'Copied question', 'Very fast and right (L3+)', 'Rapid wrong guesses', 'Very slow', 'Don\'t know', 'Reloads', 'Extra time', 'Worked-out questions (results)', 'Suggested group']);
     var lines = [head].concat(shown().map(function (r) {
       if (!r.att) return [nice(r.name), r.cls, 'Not started'];
       var sc = r.sc, f = r.flags, px = paperItems(r);
       return [nice(r.name), r.cls, r.state, new Date(r.att.t0).toLocaleString(), r.att.code, sc.n, sc.right, r.mins, sc.level ? sc.scale : '', sc.level ? sc.pm : '', LV[sc.level]]
         .concat([].concat.apply([], CRIT.map(function (c) { var e = sc.crit[c.id]; return [LV[e.level], e.level ? e.scale : '', e.n]; })))
         .concat(SK.map(function (k) { var e = sc.skill[k.id]; return e.n ? LV[e.level] : 'Not reached'; })).concat(SK.map(function (k) { var e = sc.skill[k.id]; return "'" + e.right + '/' + e.n; }))
-        .concat([f.away, f.awaySecs, f.paste, f.copy, f.quick, f.guess, f.slow, f.idk, f.reloads, f.ext, px.map(function (x) { return x.code; }).join(' '), px.map(function (x) { return x.e && x.e.ok ? 'right' : 'wrong'; }).join(' '), r.weak && r.sc.crit[r.weak.id].level <= 2 ? 'Reteach: ' + r.weak.short : r.weak ? 'Extend' : 'Not enough evidence']);
+        .concat([f.away, f.awaySecs, f.paste, f.copy, f.quick, f.guess, f.slow, f.idk, f.reloads, f.ext, px.map(function (x) { return 'Q' + (x.p.i + 1) + ' ' + (x.e && x.e.ok ? 'right' : 'wrong'); }).join(', '), r.weak && r.sc.crit[r.weak.id].level <= 2 ? 'Reteach: ' + r.weak.short : r.weak ? 'Extend' : 'Not enough evidence']);
     }));
     var text = lines.map(function (l) { return l.map(function (x) { x = String(x == null ? '' : x); if (/^[=+\-@]/.test(x)) x = "'" + x; return /[",\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; }).join(','); }).join('\n');
     var a = el('a', { href: URL.createObjectURL(new Blob(['﻿' + text], { type: 'text/csv' })), download: 'unit2-check-results.csv' }); document.body.appendChild(a); a.click(); a.remove();

@@ -199,9 +199,9 @@ if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.wri
       el('h2', { text: '3. Run the Unit 2 Check and see the results' }),
       el('ol', { 'class': 'steps' }, [
         el('li', { text: 'Open the dashboard below and press "Make a start code". Write the code on the board.' }),
-        el('li', {}, ['Students open ', el('b', { text: SITE.replace(/^https?:\/\//, '') + 'check-u2.html' + Q }), ', sign in with their own code from the card, then type the start code. They need paper and a pencil.']),
+        el('li', {}, ['Students open ', el('b', { text: SITE.replace(/^https?:\/\//, '') + 'check-u2.html' + Q }), ', sign in with their own code from the card, then type the start code. They need scrap paper and a pencil for working things out.']),
         el('li', { text: 'The test takes 35 minutes. The dashboard updates every 30 seconds while they work.' }),
-        el('li', { text: 'Collect the papers at the end. The dashboard lists which questions to check on each student\'s paper.' })
+        el('li', { text: 'Nothing is handed in. The dashboard shows each student\'s worked-out questions with full solutions, for talking through their thinking.' })
       ]),
       el('div', { 'class': 'bar' }, [el('a', { 'class': 'btn primary big', href: 'check-u2-teacher.html?co' + (TRY ? '&try' : ''), text: '🎯 Open the Unit 2 Check dashboard' })]),
       el('p', { 'class': 'muted', style: 'font-size:13px', text: 'The dashboard opens with the same key. It shows only your classes.' })

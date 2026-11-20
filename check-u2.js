@@ -85,7 +85,7 @@
   CU.DNAME = ['', 'Foundation', 'Emerging-level', 'Developed-level', 'Deep-level'];
   // the chance of a lucky right answer, by skill and question level (tap-to-choose questions can be guessed; typed and plotted ones can't)
   var GUESS = CU.GUESS = { s1: [0, 0, 0, 0], s2: [0, 0, 0, 0], s3: [0, 0, 0, 0], s4: [0, 0, 0, 0], f1: [.25, 0, 0, .25], f2: [.25, .05, 0, 0], b1: [0, 0, 0, 0], r1: [.25, 0, 0, 0], r2: [0, 0, 0, 0], r3: [.25, .25, 0, .25], r4: [.25, .25, .25, .25], e1: [.25, .25, 0, .25], e2: [.33, .08, .08, 0] };
-  // skills whose working is worth seeing on paper: one from each pair becomes a "paper proof" question
+  // skills where working it out on paper pays off: one from each pair becomes a "work it out on paper" question
   var PAPER_PAIRS = [['s1', 's4'], ['f1', 'f2'], ['b1', 'r1']];
 
   /* ---------------- story contexts ---------------- */
@@ -619,11 +619,24 @@
     return null;
   };
 
-  /* ---------------- paper-proof questions: the review's own independent problems ----------------
-     The numbers come from the student's seed, so the dashboard can rebuild the same problem and show its worked
-     solution for the teacher to hold against the student's paper. */
+  /* ---------------- work-it-out-on-paper questions: the review's own independent problems ----------------
+     The student is encouraged to write out their thinking on paper before typing the final answer. Nothing is handed
+     in. The numbers come from the student's seed, so the dashboard can rebuild the same problem and show its worked
+     solution, for talking a student through their thinking. */
   function reviewT() { return window.SFA_REVIEW && window.SFA_REVIEW.T; }
   function strip(h) { return String(h || '').replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'); }
+  // The review's step prompts are written for guided practice, one step at a time ("Solve for b: b = 14 − 16"). Here all
+  // the final boxes show together, so a prompt with numbers in it can give away the working or an earlier box's answer.
+  // Keep a prompt only if it has no numbers; otherwise keep its last sentence ("What is b?"), or ask by the box label.
+  function plainQ(q, labs) {
+    var t = strip(q).replace(/\s+/g, ' ').trim();
+    if (!/\d/.test(t)) return q;
+    var bits = t.match(/[^.?!]+[.?!]?/g) || [], last = (bits[bits.length - 1] || '').trim();
+    if (last && !/\d/.test(last)) return last;
+    var lab = labs && labs[0] ? String(labs[0]).replace(/\s*=\s*$/, '') : '';
+    return lab ? 'What is ' + lab + '?' : 'Your answer:';
+  }
+  CU.plainQ = plainQ;
   CU.paperOK = function (sk) { var T = reviewT(); return !!(T && T[sk] && typeof T[sk].gen === 'function'); };
   CU.paper = function (sk, d, seed) {
     var T = reviewT(); if (!T || !T[sk]) return null;
@@ -634,13 +647,13 @@
       try {
         var p = T[sk].gen(d >= 4), finals = p.steps.filter(function (s) { return s.final; });
         var subs = finals.map(function (s) {
-          if (s.type === 'num') return { kind: 'num', q: s.q, html: 1, labs: s.labs || [s.lab || 'Answer'], ans: s.ans, check: s.check || null, key: s.check ? s.ans.map(fs) : null };
-          if (s.type === 'mc') return { kind: 'mc', q: s.q, html: 1, opts: s.choices.map(function (c) { return I(strip(c)); }), truth: s.choices.map(function (c, i) { return i === s.ans; }), ans: s.ans };
+          if (s.type === 'num') return { kind: 'num', q: plainQ(s.q, s.labs || [s.lab]), html: 1, labs: s.labs || [s.lab || 'Answer'], ans: s.ans, check: s.check || null, key: s.check ? s.ans.map(fs) : null };
+          if (s.type === 'mc') return { kind: 'mc', q: plainQ(s.q), html: 1, opts: s.choices.map(function (c) { return I(strip(c)); }), truth: s.choices.map(function (c, i) { return i === s.ans; }), ans: s.ans };
           return null;
         });
         if (subs.length && subs.every(Boolean) && subs.every(function (s) { return checkPart(s, keyOf(s)) && !checkPart(s, wrongOf(s)); })) {
           var ansText = finals.map(function (s) { return s.at || (s.type === 'num' ? (s.labs || [s.lab || '']).map(function (l, i) { return (l + ' ' + fs(s.ans[i])).trim(); }).join(', ') : strip(s.choices[s.ans])); }).join(';  ');
-          out = { skill: sk, d: d, paper: 1, c: 0, html: 1, stem: p.q, figHtml: p.fig || '', fig: null, exp: (d >= 4 ? 210 : 160), parts: [{ kind: 'multi', q: 'Do the working on your paper first, then type your final answer here.', subs: subs }],
+          out = { skill: sk, d: d, paper: 1, c: 0, html: 1, stem: p.q, figHtml: p.fig || '', fig: null, exp: (d >= 4 ? 210 : 160), parts: [{ kind: 'multi', q: 'Work it out on paper first, one step at a time. Then type your final answer here.', subs: subs }],
             steps: p.steps.map(function (s) { return { q: s.q, why: s.why, final: !!s.final }; }), answer: ansText, chk: hash(ansText) % 36, verify: function () { return true; }, work: [] };
         }
       } catch (e) { out = null; }
@@ -654,7 +667,6 @@
     return PAPER_PAIRS.map(function (pr) { return ord.indexOf(pr[0]) > ord.indexOf(pr[1]) ? pr[0] : pr[1]; });
   }
   CU.paperSkills = paperSkills;
-  CU.paperCode = function (seed, sk) { var h = hash(seed + '|code|' + sk), A = 'BCDFGHJKLMNPQRSTVWXZ', s = ''; for (var i = 0; i < 3; i++) { s += A[h % 20]; h = Math.floor(h / 20); } return 'U2-' + s + (h % 90 + 10); };
 
   /* ---------------- the adaptive rule ---------------- */
   // one round visits all thirteen skills, mixed so the four criteria take turns

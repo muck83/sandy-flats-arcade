@@ -284,7 +284,7 @@
           el('li', { text: 'Everyone gets different numbers. Do your own thinking.' }),
           el('li', { text: 'Read each instruction. Sometimes you type. Sometimes you tap a graph, a table or a line of working.' }),
           el('li', { text: 'Stuck? Choose "I don\'t know yet". That helps Mr. Crowell help you. It is not a failure.' }),
-          el('li', {}, [el('b', { text: 'You need paper and a pencil. ' }), 'Three questions are paper questions. Write your name, the code on the screen and your working on the paper. Then hand it in.'])
+          el('li', {}, [el('b', { text: 'Have paper and a pencil ready. ' }), 'Some questions ask you to work it out on paper first. Write out your thinking one step at a time, then type your answer. Writing it out is how you catch your own mistakes.'])
         ])]),
         el('div', {}, [el('h3', { text: 'What is recorded' }), el('ul', { 'class': 'ck-list' }, RECORDED.map(function (t) { return el('li', { text: t }); })), el('p', { 'class': 'muted', text: 'These are notes for Mr. Crowell. They do not change your result. A calculator is fine. Other tabs, apps and AI helpers are not.' })])
       ]),
@@ -354,7 +354,7 @@
     tick = setInterval(clock, 1000);
 
     var head = el('h2', { 'class': 'ck-h', tabindex: '-1', text: 'Question ' + (c.i + 1) }), kids = [el('div', { 'class': 'ck-meta' }, [head, el('span', { 'class': 'ck-skill', text: sk.name })])];
-    if (c.p) kids.push(el('div', { 'class': 'ck-paper', role: 'note' }, [el('b', { text: '✍ Paper question. ' }), 'On your paper write your name and this code: ', el('span', { 'class': 'ck-pcode', text: CU.paperCode(a.seed, c.s) }), '. Show every step of your working on the paper, then type your final answer here. You will hand the paper in.']));
+    if (c.p) kids.push(el('div', { 'class': 'ck-paper', role: 'note' }, [el('b', { text: '✍ Work it out on paper. ' }), 'Take your time with this one. Write out each step of your thinking, check that each step follows from the last, then type your final answer here.']));
     kids.push(it.html ? inkHtml(it.stem, 'div', 'ck-stem') : rich(it.stem, 'p', 'ck-stem'));
     var body = el('div', { 'class': 'ck-body' }), figBox = el('div', { 'class': 'ck-fig' }), partsBox = el('div', { 'class': 'ck-parts' });
     if (it.figHtml) { figBox.appendChild(inkHtml(it.figHtml, 'div', 'fig')); }
@@ -443,8 +443,6 @@
     } else top.push(el('p', { text: 'There are not enough answers yet for an overall level (at least ' + CU.NEED.all + ' are needed). Whatever you did answer is still below.' }));
     top.push(sync);
     root.appendChild(card(top));
-
-    if (a.papers.length) root.appendChild(card([el('h2', { text: 'Hand in your paper' }), el('p', {}, ['Check that your name is on it, with these codes next to your working: ', el('b', { text: a.papers.map(function (p) { return CU.paperCode(a.seed, p.s) + ' (question ' + (p.i + 1) + ')'; }).join(', ') }), '.'])], 'ck-paperc'));
 
     practiseCard();
     var cols = [];
