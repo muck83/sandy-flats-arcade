@@ -29,6 +29,11 @@
   function full(look) { return A.fullLook ? A.fullLook(look || '') : look || ''; }
   function av(look, size, walk) { return window.SFA_AVATAR ? SFA_AVATAR.svg(full(look), { size: size, walk: !!walk }) : '<span style="font-size:' + Math.round(size * 0.7) + 'px">🙂</span>'; }
   function ncls(look) { return window.SFA_AVATAR ? SFA_AVATAR.nameCls(full(look)) : ''; }
+  // the shared effects kit (sfa-fx.js), if the page has it: fx('burst', el, {…}), fx('sfx', 'right')… Never needed, never throws.
+  function fx(name) { var F = window.SFA_FX; if (!F || typeof F[name] !== 'function') return undefined; try { return F[name].apply(F, [].slice.call(arguments, 1)); } catch (e) { return undefined; } }
+  function still() { try { return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; } }
+  // answers right in a row, in words
+  function runTxt(n) { return n >= 7 ? '🔥🔥🔥 ' + n + ' in a row: ON FIRE!' : n >= 4 ? '🔥🔥 ' + n + ' in a row: so hot!' : n >= 2 ? '🔥 ' + n + ' in a row!' : ''; }
 
   /* ---------------- the questions ---------------- */
   var POOL = null;
@@ -70,9 +75,9 @@
      right(first, Q) → the feedback html (the game does its own scoring there), tried(Q, kind) kind 1 a miss with a retry,
      2 the answer had to be shown }. */
   function Quiz(o) {
-    var P = pool(), ords = {};
+    var P = pool(), ords = {}, lastBox = null;
     function Z() {
-      var ST = o.st(); if (!ST.qz) ST.qz = { tier: startTier(), cur: -1, tries: 0, elim: [], fb: null, streak: 0, rev: 0, used: [], sure: 0, xh: 0, n: 0, cool: 0 };
+      var ST = o.st(); if (!ST.qz) ST.qz = { tier: startTier(), cur: -1, tries: 0, elim: [], fb: null, streak: 0, rev: 0, used: [], sure: 0, xh: 0, n: 0, cool: 0, run: 0 };
       return ST.qz;
     }
     function order(t) { if (!ords[t]) ords[t] = shuffle(P.filter(function (q) { return q.tier === t; }).map(function (q) { return q.ci; }), rng(o.seed + t * 7919)); return ords[t]; }
@@ -113,7 +118,7 @@
     /* d: { kick: the small line over the question, go: the answer button's words, after(box): what goes under a right
        answer (a Next button, or the game's waiting panel) } */
     function draw(box, d) {
-      box.innerHTML = '';
+      box.innerHTML = ''; lastBox = box;
       var z = Z(), Q = q();
       if (!Q) { box.appendChild(H('p', 'crwq', 'This lesson has no number or multiple-choice questions for a game.')); return; }
       box.appendChild(H('p', 'crwkick', (d.kick || '') + (z.sure ? ' · 🎯 a sure one: keep going until it\'s right' : '')));
@@ -133,22 +138,29 @@
         var first = z.tries === 0 && !z.sure && !z.elim.length;
         z.n++; z.streak = first ? z.streak + 1 : 0; z.rev = 0; z.sure = 0;
         if (z.streak >= 2 && z.tier < 2) { z.tier++; z.streak = 0; }
-        z.fb = { ok: true, end: true, html: o.right(first, Q) || '<b>✓ Right!</b>' };
+        z.run = first ? (z.run || 0) + 1 : 0;
+        var rt = runTxt(z.run), tier = fx('streak', z.run) || '';
+        z.fb = { ok: true, end: true, html: (o.right(first, Q, z.run) || '<b>✓ Right!</b>') + (rt ? '<span class="crwrun' + (tier ? ' fx-streak-' + tier : '') + '">' + rt + '</span>' : '') };
         o.keep(); o.redraw();
+        // the moment it lands: a pop, a burst and a sound (bigger as the streak grows)
+        var fb = lastBox && lastBox.isConnected ? lastBox.querySelector('.crwfb.good') : null;
+        if (fb) { fx('pop', fb); fx('burst', fb, { count: Math.min(26, 10 + z.run * 3), spread: 150 + Math.min(120, z.run * 20), emoji: z.run >= 4 ? ['🔥', '⭐'] : z.run >= 2 ? ['⭐'] : null, colors: ['#FFE14D', '#5CE0B8', '#fff'] }); }
+        fx('sfx', z.run >= 4 && z.run % 2 === 0 ? 'combo' : 'right');
       }
+      function oops() { var b = lastBox && lastBox.isConnected ? lastBox : null; if (b) fx('shake', b, { power: 5, ms: 320 }); fx('sfx', 'wrong'); }
       function miss(k) {
         z.n++;
         if (z.sure) {   // a sure question never runs out of tries
           if (Q.k === 'poll') { z.elim.push(k); z.fb = { html: '<b>Not that one.</b> It\'s crossed out: try another.' }; }
           else z.fb = { html: shown(Q) + ' <i>Type it in to lock it in.</i>' };
-          o.tried(Q, 1); o.keep(); o.redraw(); return;
+          o.tried(Q, 1); o.keep(); o.redraw(); oops(); return;
         }
         if (z.tries === 0) {
           z.tries = 1; if (Q.k === 'poll') z.elim.push(k);
           z.fb = { html: '<b>Not yet: one more try.</b> ' + (Q.hint ? '💡 ' + A.fmt(Q.hint) : Q.k === 'poll' ? '💡 That choice is crossed out. Read the others again.' : '💡 Check the signs, then go through it one step at a time.') };
-          o.tried(Q, 1); o.keep(); o.redraw(); return;
+          o.tried(Q, 1); o.keep(); o.redraw(); oops(); return;
         }
-        z.streak = 0; z.tier = Math.max(0, z.tier - 1); z.rev++; if (z.rev >= 2) z.sure = 1;
+        z.streak = 0; z.run = 0; z.tier = Math.max(0, z.tier - 1); z.rev++; if (z.rev >= 2) z.sure = 1;
         z.cool = Date.now() + 3500;
         z.fb = { ok: false, end: true, html: shown(Q) + '<p class="crwsoft">No problem: read it, then the next one is yours.</p>' };
         o.tried(Q, 2); o.keep(); o.redraw();
@@ -158,6 +170,7 @@
         row.appendChild(inp); row.appendChild(go); box.appendChild(row);
         var check = function () { var v = numOf(inp.value); if (!inp.value.trim() || isNaN(v)) { inp.focus(); return; } if (Math.abs(v - Q.ans) <= (Q.tol || 1e-9) + 1e-9) right(); else miss(-1); };
         go.onclick = check; inp.onkeydown = function (e) { if (e.key === 'Enter') check(); };
+        if (d.focus && !z.fb && !z.xh) try { inp.focus({ preventScroll: true }); } catch (e) { }
       } else {
         var list = H('div', 'opts'); box.appendChild(list);
         Q.opts.forEach(function (op, k) {
@@ -237,6 +250,24 @@
     return { say: function (html, kind, ms) { if (q.length > 4) q.shift(); q.push({ html: html, kind: kind, ms: ms }); next(); }, clear: function () { q = []; [].forEach.call(document.querySelectorAll('.crwban'), function (x) { x.remove(); }); cur = null; } };
   }
 
+  // a 3-2-1 when the game opens in its first seconds (once a game on each screen)
+  var introFor = 0;
+  function intro(b, go, sub) {
+    if (!b || b.state !== 1 || introFor === b.id || A.MODE === 'teach') return; introFor = b.id;
+    var e = (sNow() - b.start) / 1000; if (e > 25 || e < -5) return;
+    fx('countdown', { from: 3, go: go, sub: sub });
+  }
+  // the last 30 seconds: the clock turns red on every screen, one banner, and a tick for each of the last ten
+  function lastCall(root, V, left, on, what) {
+    var hot = !!on && left <= 30 && left > 0;
+    if (root.classList.contains('last30') !== hot) root.classList.toggle('last30', hot);
+    if (left > 40) V.said30 = 0;
+    if (!hot) return;
+    if (!V.said30) { V.said30 = 1; fx('banner', '30 SECONDS!', { sub: what || '', tone: 'warn', ms: 1500 }); fx('sfx', 'whoosh'); }
+    if (left <= 10 && left !== V.tick10) { V.tick10 = left; fx('sfx', 'tick'); }
+  }
+  function speaker(hud) { var F = window.SFA_FX; if (!hud || !F || !F.speaker || hud.querySelector('.fx-speaker')) return; try { hud.appendChild(F.speaker('crwspk')); } catch (e) { } }
+
   (function css() {
     if (document.getElementById('sfaCrewCss')) return;
     var c = document.createElement('style'); c.id = 'sfaCrewCss';
@@ -244,9 +275,18 @@
       'body.crwing{overflow:hidden}',
       '.crw{position:fixed;inset:0;z-index:90;overflow:auto;color:#F3EFE7;font-family:"Bricolage Grotesque",system-ui,sans-serif;display:flex;flex-direction:column}',
       '.crw *{box-sizing:border-box}',
-      '.crwhud{position:relative;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:8px 14px;background:rgba(12,10,24,.72);backdrop-filter:blur(3px)}',
-      '.crwhud h1{margin:0;font:400 clamp(20px,3vw,34px) "Luckiest Guy",system-ui;color:#FFE14D;letter-spacing:.02em}',
-      '.crwhud .crwpill{padding:4px 12px;border-radius:99px;background:rgba(255,255,255,.12);font-weight:800;font-size:clamp(13px,1.6vw,20px);white-space:nowrap}',
+      '.crwhud{position:relative;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:8px 14px;background:linear-gradient(180deg,#1a1538,#0e0c20);border-bottom:3px solid #FFC94A;box-shadow:0 6px 18px rgba(0,0,0,.45)}',
+      '.crwhud h1{margin:0;font:400 clamp(18px,2.6vw,30px) "Luckiest Guy",system-ui;color:#FFE14D;letter-spacing:.02em;text-shadow:0 2px 0 #7a4d00;white-space:nowrap}',
+      '.crwhud .crwpill{padding:4px 12px;border-radius:99px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);font-weight:800;font-size:clamp(13px,1.5vw,19px);white-space:nowrap;font-variant-numeric:tabular-nums}',
+      // the class screen is read from the back of the room
+      '.crw.screen .crwhud{padding:10px 22px;gap:8px 16px;flex-wrap:nowrap}.crw.screen .crwhud h1{font-size:clamp(22px,2.6vw,50px)}',
+      '.crw.screen .crwhud .crwpill{font-size:clamp(15px,1.7vw,33px);padding:.18em .7em;flex:none}.crw.screen .crwhud .crwpill.crwstat{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}.crw.screen .crwhud .crwpill.time{font-size:clamp(19px,2.2vw,42px);flex:none}',
+      '.crwhud .crwpill.time{background:#0b0920;border-color:#5CE0B8}.crwhud .crwpill.time b{color:#5CE0B8}',
+      '.crw.last30 .crwhud .crwpill.time{background:#C8232C;border-color:#FF9A9A;animation:crwurg .5s ease-in-out infinite alternate}.crw.last30 .crwhud .crwpill.time b{color:#fff}',
+      '@keyframes crwurg{from{transform:scale(1)}to{transform:scale(1.1)}}',
+      '.crwvig{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;box-shadow:inset 0 0 12vw 2vw rgba(230,40,50,.75);transition:opacity .6s}.crw.last30 .crwvig{opacity:1;animation:crwvig 1s ease-in-out infinite alternate}@keyframes crwvig{from{opacity:.35}to{opacity:1}}',
+      '.crwhud .crwspk{flex:none}',
+      '.crwrun{display:inline-block;margin:6px 0 0;padding:2px 10px;border-radius:99px;background:rgba(0,0,0,.35);font:400 1.05em "Luckiest Guy",system-ui;letter-spacing:.02em;color:#FFE14D;animation:crwbin2 .5s cubic-bezier(.2,1.6,.4,1) both}',
       '.crwhud .crwpill:empty{display:none}',
       '.crwhud .crwpill b{color:#FFE14D}.crwhud .crwpill.hot{background:#FF7A3D;color:#231000}.crwhud .crwpill.hot b{color:#231000}',
       '.crwhud .crwsp{flex:1}',
@@ -254,10 +294,10 @@
       '.crwscene{position:relative;flex:1;min-height:260px;overflow:hidden}',
       '.crwside{position:relative;z-index:4;width:min(46vw,520px);flex:none;overflow:auto;padding:12px 14px 20px;background:rgba(14,12,28,.86);display:flex;flex-direction:column;gap:10px}',
       '.crw.screen .crwside{display:none}',
-      '.crwcard{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.14);border-radius:16px;padding:12px 14px}',
+      '.crwcard{background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.05));border:2px solid rgba(255,255,255,.16);border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(0,0,0,.28)}',
       '.crwkick{margin:0 0 4px;font-weight:800;font-size:13px;letter-spacing:.03em;color:#9FE8FF;text-transform:uppercase}',
       '.crwq{margin:0 0 10px;font-size:clamp(17px,2.2vw,22px);font-weight:600;line-height:1.3}.crwq b{color:#FFE14D}',
-      '.crwfig{background:#fff;border-radius:12px;padding:6px;margin:0 0 10px;max-width:420px}.crwfig svg{max-width:100%;height:auto;display:block}',
+      '.crwfig{background:#fff;color:#141428;border-radius:12px;padding:6px;margin:0 0 10px;max-width:420px}.crwfig svg{max-width:100%;height:auto;display:block}',
       '.crwrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}',
       '.crwrow input{flex:1;min-width:120px;font:700 20px "IBM Plex Mono",monospace;padding:9px 12px;border-radius:12px;border:2px solid #6c6690;background:#14122a;color:#fff}',
       '.crwrow input:focus{outline:none;border-color:#FFE14D}',
@@ -270,18 +310,21 @@
       '.crwban b{color:#FFE14D}.crwban.spark{background:#5a1f00;border-color:#FF9A3D}.crwban.good{background:#0d3b2c;border-color:#5CE0B8}.crwban.out{opacity:0;transition:opacity .3s}',
       '@keyframes crwbin{from{transform:translateX(-50%) scale(.6);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}',
       '.crwend{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:3vh 16px 0;pointer-events:none}',
-      '.crwend h1{margin:0;font:400 clamp(34px,7vw,96px) "Luckiest Guy",system-ui;color:#FFE14D;text-shadow:0 5px 0 rgba(0,0,0,.45);animation:crwbin2 .6s cubic-bezier(.2,1.6,.4,1) both}',
-      '.crwend p{margin:6px 0 0;font-size:clamp(16px,2.4vw,30px);font-weight:700;text-shadow:0 2px 6px rgba(0,0,0,.7);max-width:1000px}',
+      '.crwend h1{margin:0;font:400 clamp(34px,7vw,96px) "Luckiest Guy",system-ui;color:#FFE14D;-webkit-text-stroke:.035em #141428;paint-order:stroke fill;text-shadow:0 .07em 0 #141428,0 0 .5em rgba(0,0,0,.35);animation:crwbin2 .6s cubic-bezier(.2,1.6,.4,1) both}',
+      '.crwend p{margin:6px 0 0;font-size:clamp(15px,2.2vw,34px);font-weight:700;max-width:1100px;padding:.25em .9em;border-radius:.8em;background:rgba(10,8,30,.6)}',
+      '.crwchips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 12px;margin-top:10px}.crwchips span{padding:.2em .8em;border-radius:99px;background:rgba(10,8,30,.72);border:2px solid #FFC94A;font-weight:800;font-size:clamp(13px,1.7vw,30px);white-space:nowrap;animation:crwbin2 .5s cubic-bezier(.2,1.6,.4,1) both}.crwchips span:nth-child(2){animation-delay:.25s}.crwchips span:nth-child(3){animation-delay:.5s}.crwchips span b{color:#FFE14D}',
       '@keyframes crwbin2{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}',
       '.crwname{font-weight:800;font-size:.72em;line-height:1.1;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.8)}',
       '.crwwatchx{position:fixed;top:8px;right:8px;z-index:98}',
       '@media (max-width:820px){.crwbody{flex-direction:column}.crwside{width:auto;flex:1 0 auto;order:2}.crwscene{flex:none;height:34vh;min-height:200px}.crw.screen .crwscene{flex:1;height:auto}}',
-      '@media (prefers-reduced-motion:reduce){.crwban,.crwend h1{animation:none}}'
+      // a phone: one tidy line at the top, nothing cut off
+      '@media (max-width:560px){.crw:not(.screen) .crwhud{padding:6px 8px;gap:4px 6px;border-bottom-width:2px}.crw:not(.screen) .crwhud h1{font-size:16px}.crw:not(.screen) .crwhud .crwsp{display:none}.crw:not(.screen) .crwhud .crwpill{font-size:12.5px;padding:3px 8px}.crw:not(.screen) .crwx{display:none}.crw:not(.screen) .crwhud .crwspk{min-width:30px;height:26px;padding:0 5px;font-size:14px}.crwside{padding:8px 8px 16px;gap:8px}.crwcard{padding:10px 12px}.crwban{top:46px;font-size:14px;padding:7px 14px}}',
+      '@media (prefers-reduced-motion:reduce){.crwban,.crwend h1,.crwrun,.crw.last30 .crwhud .crwpill.time,.crw.last30 .crwvig{animation:none}}'
     ].join('\n');
     document.head.appendChild(c);
   })();
 
-  window.SFA_CREW = { rng: rng, shuffle: shuffle, hash: hash, sh3: sh3, fpn: fpn, sNow: sNow, clean: clean, mmss: mmss, av: av, ncls: ncls, pool: pool, plain: plain, Quiz: Quiz,
+  window.SFA_CREW = { fx: fx, still: still, intro: intro, lastCall: lastCall, speaker: speaker, rng: rng, shuffle: shuffle, hash: hash, sh3: sh3, fpn: fpn, sNow: sNow, clean: clean, mmss: mmss, av: av, ncls: ncls, pool: pool, plain: plain, Quiz: Quiz,
     crewPage: crewPage, Crew: Crew, encBits: encBits, bit: bit, encPack: encPack, unpack: unpack,
     active: active, nameOf: nameOf, looks: looks, lookOf: lookOf, strengths: strengths, rows: rows, getN: getN, fold: fold, Banners: Banners };
 })();

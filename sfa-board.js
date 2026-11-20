@@ -16,6 +16,19 @@
   if (!A || !SFA) return;
   var H = A.H, el = A.el, esc = SFA.esc;
   var QID = 'zboardx1', SPARE = 3, MAXW = 39, PUSH_MS = 1500, VOWELS = 'AEIOU';
+  // ✨ the shared effects kit (sfa-fx.js): every call is safe when it isn't there
+  function fx(name) { var F = window.SFA_FX; if (!F || !F[name]) return ''; try { return F[name].apply(F, [].slice.call(arguments, 1)); } catch (e) { return ''; } }
+  /* ⚡ Letter rush: twice a game, for 20 seconds, every right answer earns one extra letter. Every screen works out the
+     same two moments from the board's seed and length, so nothing extra travels through the Sheet and it is the same for
+     everyone: a reason to look up, and a push for anyone who has slowed down. */
+  var RUSH = 20;
+  function rushTimes(b) { var r = rng((b.seed || 1) * 7 + 3); return [Math.round(b.dur * (0.26 + r() * 0.1)), Math.round(b.dur * (0.6 + r() * 0.1))]; }
+  function rushLeft(b) {
+    if (!b || b.state !== 1 || b.all) return 0;
+    var e = (sNow() - b.start) / 1000, t = rushTimes(b);
+    for (var i = 0; i < t.length; i++) if (e >= t[i] && e < t[i] + RUSH) return Math.ceil(t[i] + RUSH - e);
+    return 0;
+  }
 
   /* ---------------- themes: [WORD, clue] ---------------- */
   var THEMES = [
@@ -361,10 +374,11 @@
     }
     // what's new since the last update: a banner for every word solved and every gift letter sent
     if (V.prev) {
-      Object.keys(b.solved).forEach(function (i) { if (!V.prev.solved[i] && V.B.words[i]) { var it = V.B.words[i]; banner('⚡ <b>' + esc(b.names[i] || 'Someone') + '</b> cracked ' + it.no + (it.d === 'A' ? ' ACROSS' : ' DOWN') + ': <b>' + it.w + '</b>!', 'solve'); } });
+      Object.keys(b.solved).forEach(function (i) { if (!V.prev.solved[i] && V.B.words[i]) { var it = V.B.words[i]; V.fresh = V.fresh || {}; V.fresh[i] = 1; banner('⚡ <b>' + esc(b.names[i] || 'Someone') + '</b> cracked ' + it.no + (it.d === 'A' ? ' ACROSS' : ' DOWN') + ': <b>' + it.w + '</b>!', 'solve'); } });
+      if (b.state === 2 && V.prev.state === 1) { V.bq = []; [].forEach.call(document.querySelectorAll('.bbban'), function (x) { x.remove(); }); V.bbusy = false; if (!b.all) snd('lose'); }   // over: nothing queued may cover the ending
       b.gifts.forEach(function (g, i) { if (g > (V.prev.gifts[i] || 0) && b.owners[i] && b.owners[i].length && !b.solved[i]) banner('🎁 <b>' + esc(b.names[i] || 'A classmate') + '</b> got a gift letter!', 'gift'); });
     }
-    V.prev = { solved: Object.assign({}, b.solved), gifts: b.gifts.slice() };
+    V.prev = { solved: Object.assign({}, b.solved), gifts: b.gifts.slice(), state: b.state };
     var sig = [b.state, b.all, Object.keys(b.solved).join('.'), b.owners.map(function (o) { return o.join('+'); }).join(','), ST.w, A.MODE === 'student' ? ST.giftSeen : '', b.state === 1 && leftOf(b) < 60].join('|');
     if (sig !== V.sig) { V.sig = sig; draw(); }
   }
@@ -374,9 +388,84 @@
     ST = saved && saved.id === b.id ? saved : { id: b.id, w: -1, guessed: {}, gifted: {}, credits: 1, right: 0, streak: 0, misses: 0, solved: false, qi: 0, tries: 0, fb: null, cool: 0, solveCool: 0, giftCred: 0, gifts: [], giftSeen: 0 };
     V = { id: b.id, b: b, B: build(b.theme, b.seed, b.n) };
     root = H('div', 'bb' + (A.MODE === 'screen' ? ' screen' : '')); root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-label', 'The Big Board: class crossword');
-    document.body.appendChild(root); document.body.classList.add('boarding');
+    document.body.appendChild(root); document.body.classList.add('boarding'); css(); fit();
     if (A.MODE === 'student') loadPool();
     V.tick = setInterval(function () { if (root) drawTop(); }, 1000);
+    // the board has just opened: a 3-2-1 so the room looks up
+    if (b.state === 1 && !b.all && sNow() - b.start < 12000 && !(saved && saved.id === b.id && saved.right)) fx('countdown', { from: 3, go: 'GO!', sub: V.B.theme.e + ' The Big Board: find your word!' });
+  }
+  // the class screen is read from the back of the room: everything is drawn for a 1280 × 720 page and scaled up to fit
+  function zoomOf() { if (A.MODE === 'student') return 1; var w = window.innerWidth || 1280, h = window.innerHeight || 720; return w < 1100 ? 1 : Math.max(1, Math.min(2.6, w / 1280, h / 720)); }
+  function fit() { if (!root) return; var z = zoomOf(); root.style.zoom = z === 1 ? '' : z; root.style.setProperty('--z', z); }
+  var fitT = 0; window.addEventListener('resize', function () { if (!root) return; clearTimeout(fitT); fitT = setTimeout(function () { if (root && A.MODE !== 'student') { fit(); draw(); } }, 200); });
+  // the look of the board, round 3 (kept here so the game travels as one file; sfa-lesson.css has the base)
+  function css() {
+    if (document.getElementById('sfa-board-css3')) return;
+    var s = document.createElement('style'); s.id = 'sfa-board-css3';
+    s.textContent = [
+      '.bb{background:radial-gradient(ellipse at 50% -10%,#35427e 0%,#141936 48%,#0a0c1c 100%)}',
+      '.bbtop{position:relative;z-index:2}.bbtitle{text-shadow:0 2px 0 #a5520e}',
+      '.bbbar{height:14px;box-shadow:inset 0 2px 5px rgba(0,0,0,.5)}.bbbar i{box-shadow:inset 0 3px 0 rgba(255,255,255,.35);border-radius:99px}',
+      '.bbclock{background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.16);border-radius:12px;padding:2px 10px;min-width:64px;text-align:center;font-variant-numeric:tabular-nums}',
+      '.bb.final .bbclock{color:#FF6B6B;border-color:#FF3B3B;animation:brpulse .5s ease-in-out infinite alternate}',
+      '.bb.final::after{content:"";position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 110px 16px rgba(255,40,40,.36);animation:bbvig 1s ease-in-out infinite alternate;z-index:1}',
+      '@keyframes bbvig{from{opacity:.3}to{opacity:1}}',
+      '.bbrush{padding:3px 12px;border-radius:99px;background:linear-gradient(180deg,#FFE96B,#FFC93A);color:#1b1a22;font:800 14px var(--ui,system-ui);animation:bbpulse .6s ease-in-out infinite alternate;white-space:nowrap}',
+      '.bb.rush .bbq{border-color:#FFE14D;box-shadow:0 0 0 3px rgba(255,225,77,.22),0 0 30px rgba(255,225,77,.25)}',
+      '.bb.rush .bbbig{border-color:rgba(255,225,77,.6)!important}',
+      '.bbban{font-family:var(--ui,system-ui);font-weight:600;background:linear-gradient(180deg,#22306a,#151c44)}.bbban b{color:#FFE14D}',
+      '.bbban.rush{border-color:#FFE14D;background:linear-gradient(180deg,#4a4210,#2c2708)}.bbban.alarm{border-color:#FF3B3B;background:linear-gradient(180deg,#6a1018,#3c0a10)}',
+      '.bbmine,.bbq,.bbmini,.bbclues{box-shadow:0 8px 24px rgba(0,0,0,.3)}',
+      '.bbtiles,.bbtiles.long{display:grid;grid-template-columns:repeat(var(--n,10),minmax(0,46px));gap:clamp(2px,1vw,6px)}',
+      '.bbtile,.bbtiles.long .bbtile{width:auto;height:auto;aspect-ratio:5/6;box-sizing:border-box;font-size:clamp(14px,calc(62vw / var(--n,10)),32px);box-shadow:inset 0 -4px 0 rgba(0,0,0,.35)}',
+      '.bbsolve{flex-wrap:nowrap}.bbsolve .btn{flex:0 0 auto}',
+      '.bbtile.on{animation:none;background:linear-gradient(180deg,#3d4a98,#27307a)}.bbtile.gift{background:linear-gradient(180deg,#4a3a12,#33270a)}',
+      '.bbtile.on.fresh{animation:bbflip2 .5s cubic-bezier(.2,.9,.3,1.3) both}',
+      '@keyframes bbflip2{0%{transform:rotateX(90deg) scale(.8);background:#FFE14D;color:#1b1a22}55%{transform:rotateX(-14deg) scale(1.18);background:#FFE14D;color:#1b1a22}100%{transform:none}}',
+      '.bbtile.late{color:#9aa3d0;border-style:dashed;border-color:#6a74a8}',
+      '.bbkey{transition:transform .08s,background .12s;box-shadow:0 3px 0 rgba(0,0,0,.4);padding:9px 0}',
+      '.bbkey:active:not(:disabled){transform:translateY(2px) scale(.96)}.bbkey:not(:disabled):not(.poor):hover{background:rgba(255,255,255,.2)}',
+      '.bbstat b{display:inline-block;color:#FFE14D;font-size:1.25em}',
+      '.bbcell{border-radius:calc(var(--cs)*.12);background:linear-gradient(180deg,#f6f8fd,#d9deee);box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)}',
+      '.bbcell.on{animation:none;background:linear-gradient(180deg,#FFE96B,#FFC93A)}',
+      '.bbcell.on.fresh{animation:bbpop .5s ease both}',
+      '.bbcell.mine{box-shadow:inset 0 0 0 3px #2fd67a}',
+      '.bbwho{background:rgba(10,14,34,.88);padding:0 5px;border-radius:6px;z-index:2}.bbwho.fresh{animation:fxRise .5s .4s both}',
+      '.bbbig .bbgrid{margin-top:18px}',
+      '.bbminit{margin:0 0 8px;font-size:13px;color:#BFC7E6}',
+      '.bbstk{font-weight:800;color:#FFC94D}.bbstk.hot{color:#FF9D4D}.bbstk.fire{color:#FF6B57}',
+      '.bbq.stk-hot{--fxc:rgba(255,140,60,.55)}.bbq.stk-fire{--fxc:rgba(255,80,60,.75)}',
+      '.bbq .row,.bbsolve{display:flex;flex-wrap:nowrap;gap:8px;align-items:stretch}.bbq .row input,.bbsolve input{flex:1 1 0;width:auto;min-width:0;font:700 18px var(--ui,system-ui);padding:10px 12px;border-radius:12px;border:2px solid rgba(255,225,77,.5);background:#0d1024;color:#fff}',
+      '.bbq .row input:focus,.bbsolve input:focus{outline:none;border-color:#FFE14D;box-shadow:0 0 0 3px rgba(255,225,77,.25)}.bbsolve input{text-transform:uppercase}.bbsolve input::placeholder{text-transform:none;font-weight:500;font-size:15px}',
+      '.bbq .fb{animation:fxRise .3s cubic-bezier(.2,.9,.3,1.2) both}.bbq .fb i{display:block;margin-top:4px;opacity:.85}',
+      '.bb.screen .bbclass{grid-template-columns:minmax(0,1.9fr) minmax(0,1fr)}',
+      '.bb.screen .bbbig{padding:6px 4px;background:rgba(8,10,26,.45);border-radius:18px;border:2px solid rgba(255,255,255,.09);min-height:calc(100vh / var(--z,1) - 96px);align-items:center;box-sizing:border-box}',
+      '.bb.screen .bbpic{max-height:190px;width:auto;max-width:100%;display:block;margin:0 auto;box-sizing:border-box}',
+      '.bb.screen .bbclues p{font-size:17px;line-height:1.25;margin:0 0 6px}.bb.screen .bbclues h3{font-size:22px}',
+      '.bb.screen .bbprog{font-size:20px}.bb.screen .bbprog b{font-size:30px}.bb.screen .bbwho{font-size:13px}',
+      '.bbparty{overflow:auto;justify-content:flex-start;background:radial-gradient(ellipse at center,rgba(34,44,110,.96),rgba(6,8,20,.97))}.bbparty .in{margin:auto}',
+      '.bbtime h1{color:#9BDCFF;text-shadow:0 6px 0 #1d3a6b}',
+      '.bbbadge{font-size:clamp(56px,9vw,110px);line-height:1;animation:bbhop .6s ease-in-out infinite alternate}',
+      '.bbmeter{width:min(520px,80vw);height:22px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin:10px auto 14px}.bbmeter i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#7CF2A2,#FFE14D);animation:bbgrow 1.3s ease-out both}@keyframes bbgrow{from{width:0}}',
+      '.bbfound{margin:8px 0;font-weight:800;color:#FFE14D}',
+      '.bbnames{margin:0 auto}.bbnames span{animation:fxRise .4s both}.bbnames span:nth-child(2n){animation-delay:.12s}.bbnames span:nth-child(3n){animation-delay:.24s}.bbnames span:nth-child(5n){animation-delay:.36s}',
+      '.bbmineend{display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(255,255,255,.09);border-radius:14px;padding:8px 14px;margin:14px auto 0;max-width:520px;font-size:18px!important}.bbmineend img{width:60px;height:60px;flex:0 0 auto}',
+      '.bbsee{margin-top:16px}',
+      '@media (max-width:820px){.bbbody{grid-template-columns:minmax(0,1fr)}.bbleft{display:contents}.bbmine{order:1}.bbq{order:2}.bbmini{order:3}',
+      '.bb{padding:10px 10px 20px;gap:10px}.bbtop{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 8px;align-items:center}.bbtitle{grid-column:1;grid-row:1;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bbclock{grid-column:2;grid-row:1;font-size:22px;min-width:58px}.bbtop .bbsnd{grid-column:3;grid-row:1}.bbprog{grid-column:1;grid-row:2;font-size:14px}.bbprog b{font-size:17px}.bbbar{grid-column:2/-1;grid-row:2;width:100%;min-width:90px}.bbrush,.bbtogo{grid-column:1/-1;justify-self:start}.bbq .q{font-size:19px}.bbparty h1{font-size:40px}.bbparty p{font-size:16px}}',
+      '@media (prefers-reduced-motion:reduce){.bb.final::after,.bb.final .bbclock,.bbrush,.bbtile.on.fresh,.bbcell.on.fresh,.bbwho.fresh,.bbbadge,.bbmeter i,.bbnames span{animation:none}}'
+    ].join('\n');
+    document.head.appendChild(s);
+  }
+  // my own answer, the moment I give it: the box flashes, the reward floats up, a wrong answer shakes
+  function juice(ok, txt, big) {
+    if (!root) return; var q = root.querySelector('.bbq'), at = (q && q.querySelector('.fb')) || q;
+    if (ok) { fx('flash', q, 'rgba(124,242,162,.4)'); fx('float', at, txt, { color: big ? '#FFE14D' : '#7CF2A2', size: big ? 40 : 30 }); fx('burst', at, { count: big ? 20 : 10, spread: big ? 240 : 150, emoji: big ? ['🔤', '⭐'] : null }); fx('pop', root.querySelector('.bbstat b')); snd(big ? 'combo' : 'right'); }
+    else { fx('shake', q, { power: 8 }); fx('flash', q, 'rgba(255,80,80,.4)'); snd('wrong'); }
+  }
+  // I cracked my word: the big moment
+  function cracked() {
+    A.confetti(); fx('confetti', { ms: 2600, emoji: ['⭐', V.B.theme.e] }); fx('banner', 'WORD CRACKED!', { sub: (V.B.words[ST.w] || {}).w || '', ms: 2200, tone: 'win' }); snd('party');
   }
   // a classmate sent gift letters to my word: reveal that many letters I don't have yet
   function receiveGifts(b) {
@@ -391,7 +480,7 @@
     }
     if (news.length) { SFA.toast('🎁 A classmate sent you ' + (news.length === 1 ? 'a letter: ' : 'letters: ') + news.join(', '), 4000); snd('gift'); }
     var all = true; for (var j = 0; j < it.len; j++) if (!shown(j)) all = false;
-    if (all && !ST.solved) { ST.solved = true; A.confetti(); send(); }
+    if (all && !ST.solved) { ST.solved = true; cracked(); send(); }
     keep();
   }
   // banners across the top of every screen: who cracked what, who got a gift
@@ -400,20 +489,14 @@
     if (!root || V.bbusy || !V.bq || !V.bq.length) return;
     var o = V.bq.shift(); V.bbusy = true; snd(o.kind);
     var b = H('div', 'bbban ' + o.kind + (A.MODE === 'screen' ? ' big' : ''), o.html); document.body.appendChild(b);   // outside the board, so a redraw can't wipe it
+    var z = zoomOf(); if (z !== 1) b.style.zoom = z;
     setTimeout(function () { b.classList.add('out'); }, A.MODE === 'screen' ? 2600 : 2000);
     setTimeout(function () { b.remove(); if (V) { V.bbusy = false; nextBanner(); } }, A.MODE === 'screen' ? 3000 : 2400);
   }
-  // sound: little synthesised effects, off until someone turns them on
-  var AC = null;
-  function soundOn() { return !!SFA.store.get('board.sound', false); }
-  function snd(k) {
-    if (!soundOn()) return;
-    try {
-      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-      var t = AC.currentTime, notes = { solve: [523, 659, 784], gift: [880, 1175], tick: [440], party: [523, 659, 784, 1047, 1319] }[k] || [600];
-      notes.forEach(function (f, i) { var o = AC.createOscillator(), g = AC.createGain(); o.type = k === 'tick' ? 'square' : 'triangle'; o.frequency.value = f; o.connect(g); g.connect(AC.destination); var t0 = t + i * 0.11; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(k === 'tick' ? 0.05 : 0.12, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.28); o.start(t0); o.stop(t0 + 0.3); });
-    } catch (e) { }
-  }
+  // sound: the shared kit's little synthesised effects (on for the class screen, off on a student's device until they turn it on)
+  var SND = { solve: 'levelup', gift: 'coin', rush: 'whoosh', alarm: 'whoosh', tick: 'tick', party: 'win', lose: 'lose', right: 'right', wrong: 'wrong', combo: 'combo', hit: 'coin', miss: 'tap' };
+  function soundOn() { return !!window.SFA_FX && !SFA_FX.muted(); }
+  function snd(k) { fx('sfx', SND[k] || k); }
   function close() { if (!root) return; clearInterval(V.tick); [].forEach.call(document.querySelectorAll('.bbban'), function (x) { x.remove(); }); root.remove(); root = null; V = null; document.body.classList.remove('boarding'); }
 
   /* spiral review: number and multiple-choice questions (and their ★ go-further extras) from the five lessons before this
@@ -476,6 +559,16 @@
     t.querySelector('.bbbar i').style.width = (sc.of ? Math.round(100 * sc.n / sc.of) : 0) + '%';
     var rem = sc.of - sc.n, tg = t.querySelector('.bbtogo');
     tg.hidden = !(b.state === 1 && rem > 0 && rem <= 3); tg.textContent = rem === 1 ? '1 WORD TO GO!' : rem + ' WORDS TO GO!';
+    // ⚡ letter rush: a chip that counts down, and a banner when it starts
+    var rl = rushLeft(b), chip = t.querySelector('.bbrush');
+    if (chip) { chip.hidden = !rl; if (rl) chip.textContent = '⚡ LETTER RUSH +1 · ' + rl + ' s'; }
+    if (rl && !V.rushOn) { V.rushOn = 1; root.classList.add('rush'); if (rl > RUSH - 6) { banner('⚡ <b>LETTER RUSH!</b> For ' + RUSH + ' seconds every right answer earns an extra letter!', 'rush'); fx('flash', null, 'rgba(255,225,77,.3)'); } }
+    if (!rl && V.rushOn) { V.rushOn = 0; root.classList.remove('rush'); }
+    // the last 30 seconds: the clock turns red, the edges of the screen pulse, one loud call
+    var fin = b.state === 1 && !b.all && left > 0 && left <= 30; root.classList.toggle('final', fin);
+    if (fin && !V.f30 && left > 12) { V.f30 = 1; banner('⏰ <b>30 SECONDS!</b> ' + (rem > 0 ? rem + ' word' + (rem === 1 ? '' : 's') + ' to go!' : 'Keep going!'), 'alarm'); }
+    // the progress bar bumps when a word comes in
+    if (V.scn != null && sc.n > V.scn) { fx('pop', t.querySelector('.bbprog')); } V.scn = sc.n;
     // the last ten seconds, huge
     var cd = root.querySelector('.bbcount');
     if (b.state === 1 && left > 0 && left <= 10 && !b.all) { if (!cd) { cd = H('div', 'bbcount'); root.appendChild(cd); } if (cd.textContent !== String(left)) { cd.textContent = left; cd.classList.remove('beat'); void cd.offsetWidth; cd.classList.add('beat'); snd('tick'); } }
@@ -483,27 +576,36 @@
   }
   function grid(B, b, opts) {
     opts = opts || {};
-    var cs = opts.cell || 34, wrap = H('div', 'bbgrid' + (cs < 13 ? ' tiny' : ''));   // tiny: too small for clue numbers
-    wrap.style.width = (B.cols * cs) + 'px'; wrap.style.height = (B.rows * cs) + 'px'; wrap.style.setProperty('--cs', cs + 'px');
     var mine = opts.mine >= 0 ? B.words[opts.mine] : null, mineCells = {};
     if (mine) cellsOf(mine).forEach(function (rc, k) { mineCells[rc[0] + ',' + rc[1]] = k; });
     var owned = function (i) { return i != null && b.owners[i] && b.owners[i].length; };
-    Object.keys(B.cells).forEach(function (kk) {
-      var g = B.cells[kk]; if (!owned(g.A) && !owned(g.D) && !(kk in mineCells)) return;
+    // only the words someone has are drawn, so the board is fitted to those (spare words would leave empty edges)
+    var keys = Object.keys(B.cells).filter(function (kk) { var g = B.cells[kk]; return owned(g.A) || owned(g.D) || (kk in mineCells); });
+    var r0 = 1e9, c0 = 1e9, r1 = -1, c1 = -1;
+    keys.forEach(function (kk) { var rc = kk.split(',').map(Number); r0 = Math.min(r0, rc[0]); r1 = Math.max(r1, rc[0]); c0 = Math.min(c0, rc[1]); c1 = Math.max(c1, rc[1]); });
+    if (!keys.length) { r0 = c0 = 0; r1 = B.rows - 1; c1 = B.cols - 1; }
+    var nr = r1 - r0 + 1, nc = c1 - c0 + 1, F = opts.fit;
+    var cs = F ? Math.max(F.min || 14, Math.min(F.max || 46, Math.floor(Math.min(F.w / nc, F.h / nr)))) : opts.cell || 34, wrap = H('div', 'bbgrid' + (cs < 13 ? ' tiny' : ''));   // tiny: too small for clue numbers
+    wrap.style.width = (nc * cs) + 'px'; wrap.style.height = (nr * cs) + 'px'; wrap.style.setProperty('--cs', cs + 'px');
+    keys.forEach(function (kk) {
+      var g = B.cells[kk];
       var rc = kk.split(',').map(Number), on = (g.A != null && b.solved[g.A]) || (g.D != null && b.solved[g.D]);
       var cell = H('div', 'bbcell' + (on ? ' on' : '') + (kk in mineCells ? ' mine' : ''));
-      cell.style.left = (rc[1] * cs) + 'px'; cell.style.top = (rc[0] * cs) + 'px';
+      // a word that has just come in fills letter by letter
+      var fw = V.fresh && ((g.A != null && V.fresh[g.A]) ? B.words[g.A] : (g.D != null && V.fresh[g.D]) ? B.words[g.D] : null);
+      if (on && fw) { cell.classList.add('fresh'); cell.style.animationDelay = ((fw.d === 'A' ? rc[1] - fw.c : rc[0] - fw.r) * 70) + 'ms'; }
+      cell.style.left = ((rc[1] - c0) * cs) + 'px'; cell.style.top = ((rc[0] - r0) * cs) + 'px';
       if (B.numAt[kk]) cell.appendChild(H('small', '', String(B.numAt[kk])));
       var showCh = on || (kk in mineCells && opts.shown && opts.shown(mineCells[kk]));
       if (showCh) cell.appendChild(H('b', '', g.ch));
       wrap.appendChild(cell);
     });
     // who found each word (class screen and the teacher's view)
-    if (opts.names) B.words.forEach(function (it, i) { if (!b.solved[i] || !b.names[i]) return; var tg = H('span', 'bbwho', esc(b.names[i])); tg.style.left = (it.c * cs) + 'px'; tg.style.top = (it.r * cs - 16) + 'px'; wrap.appendChild(tg); });
+    if (opts.names) B.words.forEach(function (it, i) { if (!b.solved[i] || !b.names[i]) return; var tg = H('span', 'bbwho' + (V.fresh && V.fresh[i] ? ' fresh' : ''), esc(b.names[i])); tg.style.left = ((it.c - c0) * cs) + 'px'; tg.style.top = ((it.r - r0) * cs - 16) + 'px'; wrap.appendChild(tg); });
     return wrap;
   }
   // cell size so the whole crossword fits w × h (the words are long, so a full class board is often 30+ cells across)
-  function fitGrid(B, w, h, min) { return Math.max(min || 14, Math.min(46, Math.floor(Math.min(w / B.cols, h / B.rows)))); }
+  function fitGrid(B, w, h, min, max) { return Math.max(min || 14, Math.min(max || 46, Math.floor(Math.min(w / B.cols, h / B.rows)))); }
 
   function draw() {
     if (!root) return;
@@ -512,11 +614,13 @@
     [].forEach.call(root.querySelectorAll('input'), function (x) { typed[x.getAttribute('aria-label')] = x.value; });
     root.innerHTML = '';
     setTimeout(function () { if (!root) return; [].forEach.call(root.querySelectorAll('input'), function (x) { var k = x.getAttribute('aria-label'); if (typed[k]) x.value = typed[k]; if (k === focus) x.focus({ preventScroll: true }); }); nextBanner(); }, 0);
-    var top = H('div', 'bbtop', '<span class="bbtitle">' + T.e + ' THE BIG BOARD <small>' + esc(T.name) + '</small></span><span class="bbprog"><b></b> words found</span><span class="bbbar"><i></i></span><span class="bbtogo" hidden></span><span class="bbclock"></span><button type="button" class="bbsnd" title="Sound effects">' + (soundOn() ? '🔊' : '🔇') + '</button>');
+    var top = H('div', 'bbtop', '<span class="bbtitle">' + T.e + ' THE BIG BOARD <small>' + esc(T.name) + '</small></span><span class="bbprog"><b></b> words found</span><span class="bbbar"><i></i></span><span class="bbrush" hidden></span><span class="bbtogo" hidden></span><span class="bbclock"></span><button type="button" class="bbsnd" title="Sound effects">' + (soundOn() ? '🔊' : '🔇') + '</button>');
     root.appendChild(top);
-    top.querySelector('.bbsnd').onclick = function () { SFA.store.set('board.sound', !soundOn()); this.textContent = soundOn() ? '🔊' : '🔇'; snd('gift'); };
+    top.querySelector('.bbsnd').onclick = function () { if (window.SFA_FX) SFA_FX.mute(!SFA_FX.muted()); this.textContent = soundOn() ? '🔊' : '🔇'; snd('gift'); };
     drawTop();
+    var freshNow = V.fresh; setTimeout(function () { if (V && V.fresh === freshNow) V.fresh = null; }, 0);   // each new word sparkles once
     if (b.all) { party(); }
+    else if (b.state === 2) timeUp();
     if (A.MODE !== 'student') return drawClass();
     var body = H('div', 'bbbody'); root.appendChild(body);
     var it = B.words[ST.w];
@@ -532,11 +636,14 @@
     var mineBox = H('div', 'bbmine');
     mineBox.appendChild(H('p', 'bbclue', '<b>' + it.no + (it.d === 'A' ? ' across' : ' down') + '</b> · ' + esc(it.clue) + ' <span>(' + it.len + ' letters)</span>'));
     var tiles = H('div', 'bbtiles' + (it.len >= 10 ? ' long' : '')), free = freeLetters(B, ST.w, b.solved);
-    for (var k = 0; k < it.len; k++) { var sh = shown(k); tiles.appendChild(H('span', 'bbtile' + (sh ? ' on' : '') + (sh && !ST.solved && ((free[k] && !ST.guessed[it.w[k]]) || (ST.gifted && ST.gifted[it.w[k]])) ? ' gift' : ''), sh ? it.w[k] : '')); }
+    tiles.style.setProperty('--n', it.len);
+    var over = b.state === 2 && !(ST.solved || b.solved[ST.w]), nf = 0;   // time is up: show the word, so nobody leaves wondering
+    for (var k = 0; k < it.len; k++) { var sh = shown(k), tl = H('span', 'bbtile' + (sh ? ' on' : over ? ' late' : '') + (sh && !ST.solved && ((free[k] && !ST.guessed[it.w[k]]) || (ST.gifted && ST.gifted[it.w[k]])) ? ' gift' : ''), sh || over ? it.w[k] : ''); if (sh && V.just === it.w[k]) { tl.classList.add('fresh'); tl.style.animationDelay = (nf++ * 90) + 'ms'; } tiles.appendChild(tl); }
     mineBox.appendChild(tiles);
+    if (over) mineBox.appendChild(H('p', 'bbstat', 'Time! Your word was <b>' + it.w + '</b>. ' + (ST.right ? 'You got ' + ST.right + ' question' + (ST.right === 1 ? '' : 's') + ' right.' : '')));
     var solvedNow = ST.solved || b.solved[ST.w];
     if (solvedNow) { mineBox.appendChild(H('p', 'bbwin', '🎉 You found it! It\'s on the class board now, and its letters are helping the words that cross it.')); helper(mineBox); }
-    else {
+    else if (!over) {
       mineBox.appendChild(H('p', 'bbstat', '🔤 <b>' + ST.credits + '</b> letter guess' + (ST.credits === 1 ? '' : 'es') + ' · a vowel costs 2 · misses ' + '●'.repeat(Math.min(ST.misses, 8)) + '<span class="off">' + '●'.repeat(Math.max(0, 5 - ST.misses % 5)) + '</span>'));
       if (Object.keys(free).length || (ST.gifted && Object.keys(ST.gifted).length)) mineBox.appendChild(H('p', 'bbgifttxt', '🎁 Gold letters came free from your classmates: words that cross yours, and gifts.'));
       // the letter keys
@@ -557,8 +664,9 @@
     }
     left.appendChild(mineBox);
     // the class crossword, my word outlined
-    var vw = window.innerWidth || 800, gb = H('div', 'bbmini'), cs = vw <= 820 ? fitGrid(B, vw - 64, 340, 9) : fitGrid(B, Math.min(600, vw * 0.44), 340, 10);
-    gb.appendChild(grid(B, b, { cell: cs, mine: ST.w, shown: shown })); left.appendChild(gb);
+    var vw = window.innerWidth || 800, gb = H('div', 'bbmini');
+    gb.appendChild(H('p', 'bbminit', '🧩 The class crossword · your word has the green edge'));
+    gb.appendChild(grid(B, b, { fit: vw <= 820 ? { w: vw - 56, h: 340, min: 9 } : { w: Math.min(600, vw * 0.44), h: 340, min: 10 }, mine: ST.w, shown: shown })); left.appendChild(gb);
     // questions: the only way to earn letters
     var qb = H('div', 'bbq'); body.appendChild(qb); drawQ(qb);
   }
@@ -622,7 +730,9 @@
     if (!warm && !POOL.length) { box.appendChild(H('p', 'q', 'No questions found.')); return; }
     var q = warm ? ST.easy[ST.ei] : POOL[ST.qi % POOL.length];
     var lv = q.lv || 1, big = !warm && lv >= 3;   // levels 3 and 4: right first time earns 2 letter guesses
-    box.appendChild(H('p', 'kick', (warm ? '🌱 Warm-up ' + (ST.ei + 1) + ' of ' + ST.easy.length + ' · integers · answer to earn letters' : 'Level ' + lv + ' of 4 · ' + '★'.repeat(lv) + (big ? ' · right first time: 2 letters' : '') + ' · from ' + esc(q.from || 'earlier')) + (ST.streak >= 2 ? ' · 🔥 ' + ST.streak + ' in a row' : '')));
+    var tier = fx('streak', ST.streak);
+    box.appendChild(H('p', 'kick', (warm ? '🌱 Warm-up ' + (ST.ei + 1) + ' of ' + ST.easy.length + ' · integers · answer to earn letters' : 'Level ' + lv + ' of 4 · ' + '★'.repeat(lv) + (big ? ' · right first time: 2 letters' : '') + ' · from ' + esc(q.from || 'earlier')) + (ST.streak >= 2 ? ' · <span class="bbstk' + (tier ? ' ' + tier : '') + '">' + (tier === 'fire' ? '🔥🔥🔥 ' : tier === 'hot' ? '🔥🔥 ' : '🔥 ') + ST.streak + ' in a row</span>' : '')));
+    if (tier === 'hot' || tier === 'fire') box.classList.add('fx-glow', 'stk-' + tier); else box.classList.remove('fx-glow', 'stk-hot', 'stk-fire');
     box.appendChild(H('p', 'q', A.fmt(q.q)));
     if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (e) { } }
     if (ST.fb) {
@@ -634,18 +744,20 @@
     }
     function right() {
       var first = !ST.tries; ST.streak = first ? ST.streak + 1 : 0; ST.right++; xp(warm ? 4 : first ? 10 : 5);
-      var bonus = first && big, three = first && ST.streak % 3 === 0;
-      var got = (bonus ? 2 : 1) + (three ? 1 : 0), helping = ST.solved || V.b.solved[ST.w] || ST.w < 0;
+      var bonus = first && big, three = first && ST.streak % 3 === 0, rush = rushLeft(V.b) > 0;
+      var got = (bonus ? 2 : 1) + (three ? 1 : 0) + (rush ? 1 : 0), helping = ST.solved || V.b.solved[ST.w] || ST.w < 0;
       if (helping) ST.giftCred = (ST.giftCred || 0) + got; else ST.credits += got;
-      ST.fb = { ok: true, html: '<b>Yes! +' + got + (helping ? ' gift letter' + (got > 1 ? 's' : '') + ' to send' : ' letter guess' + (got > 1 ? 'es' : '')) + '.</b>' + (bonus ? ' ⭐ Level ' + lv + ' bonus!' : '') + (three ? ' 🔥 Three in a row!' : '') };
+      ST.fb = { ok: true, html: '<b>Yes! +' + got + (helping ? ' gift letter' + (got > 1 ? 's' : '') + ' to send' : ' letter guess' + (got > 1 ? 'es' : '')) + '.</b>' + (bonus ? ' ⭐ Level ' + lv + ' bonus!' : '') + (three ? ' 🔥 Three in a row!' : '') + (rush ? ' ⚡ Letter rush: +1!' : '') + (helping ? '' : ' Now pick a letter.') };
       sendSoon(); keep(); draw();
+      juice(true, '+' + got + (helping ? ' 🎁' : ' 🔤'), got > 1);
+      if (first && (ST.streak === 4 || ST.streak === 7)) fx('banner', ST.streak >= 7 ? 'ON FIRE!' : 'HOT STREAK!', { sub: ST.streak + ' in a row', ms: 1200, tone: 'win' });
     }
-    function wrong() { xp(1); ST.streak = 0; ST.cool = Date.now() + 4000; ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') }; keep(); draw(); }
+    function wrong() { var lost = ST.streak; xp(1); ST.streak = 0; ST.cool = Date.now() + 4000; ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') + (lost >= 3 ? ' <i>Streak of ' + lost + ' over. Start a new one!</i>' : '') }; keep(); draw(); juice(false); }
     if (q.k === 'number') {
       var inp = el('input', { type: 'text', inputmode: 'decimal', placeholder: 'Type a number', 'aria-label': 'Answer', autocomplete: 'off' }), go = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' }), row = H('div', 'row');
       row.appendChild(inp); row.appendChild(go); box.appendChild(row);
       if (ST.tries) box.appendChild(H('p', 'state', 'Not yet: one more try.'));
-      var check = function () { var v = A.numOf(inp.value); if (!inp.value.trim() || isNaN(v)) return inp.focus(); if (Math.abs(v - q.ans) <= (q.tol || 1e-9) + 1e-9) right(); else if (!ST.tries) { ST.tries = 1; keep(); draw(); } else wrong(); };
+      var check = function () { var v = A.numOf(inp.value); if (!inp.value.trim() || isNaN(v)) return inp.focus(); if (Math.abs(v - q.ans) <= (q.tol || 1e-9) + 1e-9) right(); else if (!ST.tries) { ST.tries = 1; keep(); draw(); fx('shake', root.querySelector('.bbq'), { power: 5, ms: 300 }); snd('miss'); } else wrong(); };
       go.onclick = check; inp.onkeydown = function (e) { if (e.key === 'Enter') check(); };
     } else {
       var list = H('div', 'opts'); box.appendChild(list);
@@ -656,7 +768,7 @@
     var it = V.B.words[ST.w], cost = VOWELS.indexOf(ch) >= 0 ? 2 : 1;
     if (!it || ST.guessed[ch] != null) return;
     if (ST.credits < cost) { SFA.toast(cost === 2 ? 'A vowel costs 2 letter guesses. Answer a question to earn more.' : 'Answer a question to earn a letter guess.'); return; }
-    ST.credits -= cost; var hit = it.w.indexOf(ch) >= 0; ST.guessed[ch] = hit;
+    ST.credits -= cost; var hit = it.w.indexOf(ch) >= 0; ST.guessed[ch] = hit; V.just = ch;
     if (!hit) {
       ST.misses++;
       if (ST.misses % 5 === 0) {   // every fifth miss, a free letter so nobody gets stuck
@@ -665,29 +777,40 @@
       }
     }
     var all = true; for (var j = 0; j < it.len; j++) if (!shown(j)) all = false;
-    if (all) { ST.solved = true; A.confetti(); send(); } else sendSoon();
+    if (all) { ST.solved = true; cracked(); send(); } else sendSoon();
     keep(); draw();
+    // the letter lands: its tiles flip and sparkle; a miss shakes its key
+    if (hit && !all) { var n = 0; [].forEach.call(root.querySelectorAll('.bbtile.fresh'), function (t) { n++; fx('burst', t, { count: 6, spread: 90, colors: ['#FFE14D', '#7CF2A2', '#fff'] }); }); fx('float', root.querySelector('.bbtile.fresh') || root.querySelector('.bbtiles'), n > 1 ? ch + ' × ' + n + '!' : ch + '!', { color: '#FFE14D', size: 30 }); snd(n > 1 ? 'combo' : 'hit'); }
+    else if (!hit) { var kb = [].filter.call(root.querySelectorAll('.bbkey'), function (k) { return k.textContent === ch; })[0]; fx('shake', kb, { power: 5, ms: 300 }); fx('shake', root.querySelector('.bbtiles'), { power: 4, ms: 260 }); snd('miss'); }
+    V.just = null;
   }
   function solve(txt) {
     var it = V.B.words[ST.w], t = String(txt || '').toUpperCase().replace(/[^A-Z]/g, '');
     if (!it || !t) return;
-    if (t === it.w) { ST.solved = true; A.confetti(); keep(); send(); draw(); return; }
+    if (t === it.w) { ST.solved = true; cracked(); keep(); send(); draw(); return; }
     ST.misses++; ST.solveCool = Date.now() + 8000; keep(); sendSoon(); SFA.toast('Not quite. Try again in a few seconds.', 2500); draw();
+    fx('shake', root.querySelector('.bbsolve'), { power: 7 }); snd('wrong');
   }
 
   // the class screen (and the teacher's view): the whole crossword, who found what, and the clues still open
   function drawClass() {
     var b = V.b, B = V.B, body = H('div', 'bbclass'); root.appendChild(body);
-    var w = (window.innerWidth || 1000) * ((window.innerWidth || 1000) <= 820 ? 0.92 : A.MODE === 'screen' ? 0.63 : 0.6), h = Math.max(240, (window.innerHeight || 700) - 110);
-    var gw = H('div', 'bbbig'); gw.appendChild(grid(B, b, { cell: fitGrid(B, w, h), names: true })); body.appendChild(gw);
+    // sizes are in the board's own units: the class screen is drawn for 1280 × 720 and scaled up (fit)
+    var z = zoomOf(), W = (window.innerWidth || 1000) / z, Hh = (window.innerHeight || 700) / z, narrow = W <= 820;
+    var w = W * (narrow ? 0.92 : 0.64) - 24, h = Math.max(240, Hh - 118);
+    var gw = H('div', 'bbbig'); gw.appendChild(grid(B, b, { fit: { w: w, h: h, min: 14, max: 64 }, names: true })); body.appendChild(gw);
     var side = H('div', 'bbside'); body.appendChild(side);
     var sc = solvedCount(b, B), pc = document.createElement('canvas'); pc.className = 'bbpic'; pc.width = 480; pc.height = 300; picture(pc, B.theme, b.all ? 1 : sc.of ? sc.n / sc.of : 0, b.seed); side.appendChild(H('p', 'bbpict', b.all ? '🖼️ The mystery picture!' : '🖼️ Mystery picture: every word found uncovers more'));
     side.appendChild(pc);
     var cl = H('div', 'bbclues'), open = B.words.filter(function (it, i) { return b.owners[i] && b.owners[i].length && !b.solved[i]; });
-    cl.appendChild(H('h3', '', open.length ? 'Still to find' : 'Every word found!'));
-    open.slice(0, 18).forEach(function (it) { cl.appendChild(H('p', '', '<b>' + it.no + (it.d === 'A' ? 'A' : 'D') + '</b> ' + esc(it.clue) + ' <span>(' + it.len + ')</span>')); });
-    if (open.length > 18) cl.appendChild(H('p', 'muted', '…and ' + (open.length - 18) + ' more'));
+    // as many clues as fit under the picture without scrolling (the rest are counted)
+    var room = narrow ? 18 : Math.max(3, Math.floor((Hh - 118 - 190 - 92) / 44));
+    cl.appendChild(H('h3', '', open.length ? '🔎 Still to find · ' + open.length : '🎉 Every word found!'));
+    open.slice(0, room).forEach(function (it) { cl.appendChild(H('p', '', '<b>' + it.no + (it.d === 'A' ? 'A' : 'D') + '</b> ' + esc(it.clue) + ' <span>(' + it.len + ')</span>')); });
+    if (open.length > room) cl.appendChild(H('p', 'muted', '…and ' + (open.length - room) + ' more'));
     side.appendChild(cl);
+    // the words that came in since the last look: sparks along each one
+    if (V.fresh) { setTimeout(function () { if (!root) return; var cells = root.querySelectorAll('.bbbig .bbcell.fresh'), n = 0; [].forEach.call(cells, function (c, i) { if (i % 2 === 0 && n++ < 8) fx('burst', c, { count: 6, spread: 120, colors: ['#FFE14D', '#7CF2A2', '#fff'] }); }); if (cells.length) fx('float', cells[0], '⚡', { size: 54 }); }, 60); }
     if (V.watch) { var x = el('button', { type: 'button', 'class': 'btn bbback', text: '✕ Back to the console' }); x.onclick = function () { close(); }; root.appendChild(x); }
   }
 
@@ -702,9 +825,26 @@
     var cols = 6, rows = 4, tw = W / cols, th = Hh / rows, order = shuffle(Array.from({ length: cols * rows }, function (x, i) { return i; }), r), off = Math.round(frac * cols * rows);
     order.slice(off).forEach(function (t) { var x = (t % cols) * tw, y = Math.floor(t / cols) * th; c.fillStyle = '#151a33'; c.fillRect(x + 1, y + 1, tw - 2, th - 2); c.fillStyle = '#39406a'; c.font = '400 30px "Luckiest Guy", sans-serif'; c.fillText('?', x + tw / 2, y + th / 2 + 2); });
   }
+  function myFace() { try { var AV = window.SFA_AVATAR; if (!AV || !A.S.me || A.MODE !== 'student') return ''; var lk = AV.myLook(AV.profile(), A.S.me.sid); return '<img alt="" src="data:image/svg+xml;charset=utf-8,' + encodeURIComponent(AV.svg(A.fullLook ? A.fullLook(lk) : lk, { size: 72 })) + '">'; } catch (e) { return ''; } }
+  // time is up and some words got away: still a proper ending (how close the class came, who found theirs, my own word)
+  function timeUp() {
+    if (V.endSeen) return;
+    if (V.endEl) { root.appendChild(V.endEl); return; }
+    var b = V.b, B = V.B, sc = solvedCount(b, B), names = []; B.words.forEach(function (w, i) { if (b.solved[i] && b.names[i]) names.push(b.names[i]); });
+    var pct = sc.of ? sc.n / sc.of : 0, left = sc.of - sc.n, head = pct >= 0.75 ? 'SO CLOSE!' : pct >= 0.4 ? 'GOOD HUNTING!' : 'TIME!', mine = '';
+    if (A.MODE === 'student') { var it = B.words[ST.w], ok = ST.solved || b.solved[ST.w]; mine = '<p class="bbmineend">' + myFace() + '<span>' + (ok && it ? '🎉 You found <b>' + it.w + '</b>!' : it ? 'Your word was <b>' + it.w + '</b>.' : 'Thanks for helping!') + (ST.right ? ' You got <b>' + ST.right + '</b> right.' : '') + '</span></p>'; }
+    var p = H('div', 'bbparty bbtime', '<div class="in"><div class="bbbadge">' + B.theme.e + '</div><h1>' + head + '</h1><p><b>' + sc.n + ' of ' + sc.of + '</b> words found' + (left > 0 ? ' · ' + left + ' got away' : '') + '</p><div class="bbmeter"><i style="width:' + Math.round(100 * pct) + '%"></i></div>'
+      + (names.length ? '<p class="bbfound">⚡ Word finders</p><div class="bbnames">' + names.map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</div>' : '') + mine + '<button type="button" class="btn bbsee">See the board</button></div>');
+    var shut = function () { p.remove(); if (V) V.endSeen = 1; };
+    p.querySelector('.bbsee').onclick = shut;
+    root.appendChild(p); V.endEl = p;
+    if (A.MODE !== 'student') setTimeout(function () { if (root && V && V.endEl === p) shut(); }, 15000);   // the class screen goes back to the board by itself
+    if (pct >= 0.4) fx('confetti', { ms: 1800, emoji: [B.theme.e] });
+  }
   // every word found: the whole class celebrates
   function party() {
     if (V.partyEl) { root.appendChild(V.partyEl); return; }
+    fx('confetti', { ms: 6000, emoji: ['⭐', '🎉', V.B.theme.e] });
     var p = H('div', 'bbparty', '<div class="in"><h1>EVERY WORD FOUND!</h1><p>The whole class cracked the Big Board. ' + (V.b.names.filter(Boolean).length) + ' words, ' + (V.b.names.filter(Boolean).length) + ' heroes.</p><div class="bbnames">' + V.b.names.filter(Boolean).map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</div></div>');
     var parade = H('div', 'bbparade');
     if (window.SFA_SPRITES && window.SFA_SPRITES.ready && SFA_SPRITES.ready()) ['gus', 'one', 'zero', 'sam', 'pigeon', 'max', 'priya', 'marcus'].forEach(function (w, i) {

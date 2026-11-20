@@ -48,6 +48,9 @@ body.projector .tro .ic{font-size:72px}body.projector .tro b{font-size:24px}
     if (t.k === 'board') return { win: t.win, ic: t.win ? '🔠' : '🧩', title: t.win ? 'Cleared the Big Board' : 'Big Board: ' + t.found + ' of ' + t.of + ' words', sub: (t.theme || 'Big Board') + ' · ' + t.of + ' words' };
     if (t.k === 'clash') return { win: t.win >= 0, ic: t.win >= 0 ? '⚔️' : '🤝', title: t.win >= 0 ? t.teams[t.win] + ' won' : 'Lane Clash: a draw', sub: t.teams.join(' vs ') + ' · ' + (t.score || []).join(' to ') + ' gold' };
     if (t.k === 'aloft' || t.k === 'splash') return { win: t.win, ic: t.ic || '🏅', title: t.title || t.k, sub: t.sub || '' };
+    if (t.k === 'sure') return { win: t.win, ic: t.ic || '🎩', title: t.title || 'Sure Thing!', sub: t.sub || '' };
+    if (t.k === 'paint') return { win: true, ic: t.ic || '🎨', title: t.title || 'Paint the Flats', sub: t.sub || '' };
+    if (t.k === 'lockin') return { win: t.win, ic: t.ic || (t.win ? '🔓' : '🔐'), title: t.title || 'Goat Lock-In', sub: t.sub || '' };
     if (t.k === 'sumof') return { win: true, ic: '🥇', title: t.champ + ': Sumo grand champion', sub: 'Beat ' + t.vs + ' in the grand final' };
     if (t.k === 'sumo') return { win: true, ic: '🤼', title: t.champ + ' won Sumo Graphing', sub: (t.who ? t.who + ' · ' : '') + t.rec + ' · ' + t.n + ' wrestlers' };
     return { ic: '🏅', title: t.k, sub: '' };

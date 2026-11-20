@@ -558,6 +558,10 @@
   function key() { return 'stand2.' + A.LID; }
   function keep() { if (ST) SFA.store.set(key(), ST); }
   function screenish() { return A.MODE !== 'student'; }
+  // the shared effects kit (sfa-fx.js), if the page has it: J('burst', el, {…}). Never needed, never throws.
+  function J(name) { var F = window.SFA_FX; if (!F || typeof F[name] !== 'function') return undefined; try { return F[name].apply(F, [].slice.call(arguments, 1)); } catch (e) { return undefined; } }
+  // a kit sound: on the class screen only when the teacher hasn't muted the game; never on the console
+  function fxs(k) { if (A.MODE === 'teach' || (V && V.o && V.o.mute && A.MODE === 'screen')) return; J('sfx', k); }
   function xp(n, once) { if (A.hero && V && n > 0) A.hero.add('t', String(Math.round(V.id / 1000)) + (once ? 'e' : ''), n, once); }
 
   function sync() {
@@ -623,6 +627,12 @@
     if (sig !== V.sig) { var was = V.sig; V.sig = sig; draw(); if (shown(o.state) && was && prev && asking(prev.state)) reveal(o); else if (shown(o.state)) settle(o); }
     else if (rch && o.state === 7) draw();
     if (A.MODE === 'screen' && prev && asking(o.state) && !asking(prev.state)) snd('bloop');
+    if (prev && asking(o.state) && !asking(prev.state) && A.MODE !== 'teach') {
+      if (screenish()) J('banner', phase(o), { sub: o.state === 2 ? 'Stand on the line!' : 'Stand where every rule is true!', tone: 'info', ms: 1100 });
+      fxs('whoosh');
+    }
+    if (prev && shown(o.state) && asking(prev.state)) later(function () { cheerFx(o); }, reduced() ? 50 : 1000);
+    if (prev && o.state === 7 && prev.state !== 7 && A.MODE !== 'teach') { J('confetti', { ms: 4200, emoji: ['🌋', '⭐', '🏆'] }); fxs('win'); }
     updAv(); updInfo(); drawTop();
   }
   // a student's own bookkeeping: when the round showed (for their time), their results, the summary for the report, XP
@@ -644,6 +654,7 @@
       if (answered) ST.sum.n++;
       if (ST.scafG === o.g) ST.sum.h++;
       ST.hist.push(safe ? (s.res === 4 ? 'h' : 'y') : 'n'); ST.hist = ST.hist.slice(-6);
+      ST.run = safe ? (ST.run || 0) + 1 : 0;
       ST.lastMult = !!(myPick() && multOf(myPick()).m > 1);
       keep(); xp(safe ? (s.res === 4 ? 8 : s.res === 2 ? 15 : 10) : answered ? 1 : 0);
       send();   // the summary row for the report (the console ignores a row for a round that is over)
@@ -855,6 +866,35 @@
     });
     fit();
   }
+  // the moment after the reveal lands: sparks over the safe, and on a student's own screen a burst or a shake, the
+  // points flying up and a streak of safe rounds called out
+  function cheerFx(o) {
+    if (!V || !V.o || V.o.g !== o.g || !shown(V.o.state)) return;
+    var isSafe = function (s) { return (s.res === 1 || s.res === 2 || s.res === 4) && !s.out; };
+    if (screenish()) {
+      if (A.MODE === 'teach') return;
+      var safe = o.sl.filter(isSafe), stars = safe.filter(function (s) { return s.res === 2; });
+      (stars.length ? stars : safe).slice(0, 6).forEach(function (s, k) { var a = V.av[s.i]; if (a) later(function () { J('burst', a.el, { count: 10, spread: 110, emoji: s.res === 2 ? ['⭐'] : null, colors: ['#FFE14D', '#9CF0B8', '#fff'] }); }, k * 120); });
+      if (safe.length && safe.length === o.sl.length && o.sl.length > 1) J('banner', 'EVERYONE IS SAFE!', { sub: 'Nobody melted', ms: 1500 });
+      else if (o.sl.length > 2 && !safe.length) J('banner', 'NOBODY MADE IT!', { sub: 'The lava wins this one', tone: 'warn', ms: 1500 });
+      if (safe.length) fxs('right');
+      return;
+    }
+    var me0 = me(o), a0 = V.av.me; if (!me0) return;
+    var info = V.info && V.info.querySelector('.lavabig');
+    if (isSafe(me0)) {
+      var run = ST.run || 0;
+      J('pop', info); J('burst', a0 ? a0.el : info, { count: Math.min(28, 12 + run * 4), spread: 160 + Math.min(120, run * 25), emoji: run >= 3 ? ['🔥', '⭐'] : me0.res === 2 ? ['⭐'] : null, colors: ['#FFE14D', '#9CF0B8', '#fff'] });
+      if (me0.rs) J('float', a0 ? a0.el : info, '+' + me0.rs, { color: '#FFE14D', size: 30 });
+      if (run >= 3) J('banner', run + ' SAFE IN A ROW!', { sub: run >= 5 ? 'Lava-proof!' : 'The lava can\'t catch you', ms: 1300 });
+      fxs(run >= 3 ? 'combo' : 'right');
+    } else { J('shake', V.sq, { power: 6, ms: 380 }); fxs('wrong'); }
+  }
+  // the lobby's last three seconds: a 3-2-1 on every screen (once a game)
+  function lobbyCount(o, t) {
+    if (A.MODE === 'teach' || o.state !== 1 || o.pause || V.cd === o.id || t > 3.2 || t < 0.6) return;
+    V.cd = o.id; J('countdown', { from: 3, left: t * 1000, go: 'GO!', sub: 'The floor is lava!' });
+  }
   // the reveal: stones rise (or the region cools), then the ones on lava melt one after another and the safe ones cheer
   function reveal(o) {
     var list = avList(o), k = 0, calm = reduced();
@@ -913,6 +953,9 @@
     if (ph.textContent !== phase(o)) ph.textContent = phase(o);
     if (ck.textContent !== txt) ck.textContent = txt;
     ck.className = 'lavaclock' + (asking(o.state) && !o.pause && t <= 5 ? ' low' : '');
+    lobbyCount(o, t);
+    // the last five seconds tick (a student who is already standing doesn't need the nag)
+    if (asking(o.state) && !o.pause && t > 0 && t <= 5) { var sec = Math.ceil(t); if (sec !== V.tk) { V.tk = sec; if (screenish() || !myPick()) fxs('tick'); } } else V.tk = 0;
     if (!screenish() && asking(o.state)) { var open2 = (o.pause || t > 0) && !ST.lock; if (V.canTap !== open2) { V.canTap = open2; V.svg.classList.toggle('lock', !open2); V.infoSig = ''; updInfo(); } }
   }
   function draw() {
@@ -956,6 +999,8 @@
       }
     } else h = studentInfo(o, sc);
     if (h !== V.infoSig) { V.infoSig = h; V.info.innerHTML = h; bindInfo(o); if (!screenish() && (asking(o.state) || shown(o.state))) V.svg.innerHTML = floorSvg(o); }
+    // the class screen: every new student standing pops the count
+    if (screenish() && asking(o.state)) { var st2 = o.sl.filter(function (s) { return s.x != null; }).length; if (V.stN != null && V.stG === o.g && st2 > V.stN) { J('pop', V.info.querySelector('.lavabig')); fxs('tap'); } V.stN = st2; V.stG = o.g; }
   }
 
   /* ---------- a student's own screen ---------- */
@@ -981,7 +1026,7 @@
     var pt = points({ speed: o.speed, uniq: o.uniq, mult: o.mult }, s.res, p, ST.t, o.len, maxS(o)), bd = ST.g === o.g && pt.total === s.rs && !s.out ? breakdown(pt) : String(s.rs);
     if (s.res === 4 && !s.out) bd = 'Safe ' + s.rs;
     V.bd = bd;
-    if (safe) h = '<p class="lavabig good">' + (where ? where + ' is safe.' : 'Safe.') + '</p><p class="lavabd">' + esc(bd) + (s.rs ? '' : ' points') + '</p>';
+    if (safe) h = '<p class="lavabig good">' + (where ? where + ' is safe.' : 'Safe.') + '</p><p class="lavabd">' + esc(bd) + (s.rs ? '' : ' points') + '</p>' + ((ST.run || 0) >= 2 ? '<p class="lavarun r' + Math.min(3, Math.floor(ST.run / 2)) + '">🔥 ' + ST.run + ' safe in a row!</p>' : '');
     else if (s.out && (s.res === 1 || s.res === 2)) h = '<p class="lavabig bad">' + where + ' was safe, but another survivor stood there. Both melted.</p>';
     else if (ST.s === 2) h = '<p class="lavabig bad">That answer was not right. You melted.</p><p class="lavawork">' + esc(ST.work || '') + '</p>';
     else if (s.res === 3) h = '<p class="lavabig bad">' + (where || 'That point') + ' is lava. You melted.</p>';
@@ -1025,12 +1070,16 @@
   function drawFin(o) {
     var P = podium(o), top = P.slice(0, 3), h = '';
     h += '<div class="lavafinL">' + voice('The floor has cooled. Everyone may step off.') + '<h2>' + (o.flag ? (P.length === 1 ? 'LAST ONE STANDING' : 'STILL STANDING') : 'TOP OF THE FLOOR') + '</h2><div class="lavapod">' +
-      [1, 0, 2].filter(function (k) { return top[k]; }).map(function (k) { var s = top[k], r = V.ros[s.i]; return '<div class="lavastep s' + k + '">' + avSvg(r ? r.look : '', 110) + '<b>' + esc(nameOfSlot(s.i)) + '</b><i>' + plural(s.sc, 'point') + '</i><span>' + (k + 1) + '</span></div>'; }).join('') + '</div>' +
+      [1, 0, 2].filter(function (k) { return top[k]; }).map(function (k) { var s = top[k], r = V.ros[s.i]; return '<div class="lavastep s' + k + '">' + (k === 0 ? '<em class="lavacrown">👑</em>' : '') + avSvg(r ? r.look : '', 110) + '<b>' + esc(nameOfSlot(s.i)) + '</b><i>' + plural(s.sc, 'point') + '</i><span>' + (k + 1) + '</span></div>'; }).join('') + '</div>' +
       (P.length > 3 ? '<p class="lavanames gold">Also still standing: ' + P.slice(3).map(function (s) { return esc(nameOfSlot(s.i)); }).join(', ') + '</p>' : '') + '</div>';
     var s0 = me(o), rank = s0 ? o.sl.filter(function (x) { return x.sc > s0.sc; }).length + 1 : 0;
     h += '<div class="lavafinR">' + (s0 ? '<p class="lavabig">You: <b>' + plural(s0.sc, 'point') + '</b>, place ' + rank + ' of ' + o.sl.length + '.</p>' : '') + '<h4>Everyone, by points</h4>' + board(o, 60) + '</div>';
     V.fin.innerHTML = h;
-    if (!V.conf) { V.conf = 1; try { A.confetti(); } catch (e) { } }
+    if (!V.conf) {
+      V.conf = 1; if (!window.SFA_FX) try { A.confetti(); } catch (e) { }
+      if (s0 && !o.flag && top.some(function (x) { return x.i === s0.i; })) J('banner', 'YOU MADE THE PODIUM!', { sub: 'Place ' + rank + ' of ' + o.sl.length, ms: 2200 });
+      else if (s0 && o.flag && P.some(function (x) { return x.i === s0.i; })) J('banner', 'STILL STANDING!', { sub: 'The lava never got you', ms: 2200 });
+    }
   }
 
   /* ---------- a student's turn ---------- */
@@ -1040,6 +1089,7 @@
     ST.g = o.g; ST.x = x; ST.y = y; ST.s = 0;
     ST.t = Math.max(0, Date.now() - ST.shownAt - ST.pausedMs - (V.pauseAt ? Date.now() - V.pauseAt : 0));
     keep(); V.infoSig = ''; updAv(); updInfo();
+    var am = V.av.me; if (am) J('pop', am.el.querySelector('.lavaw')); fxs('tap');
     clearTimeout(sendT); sendT = setTimeout(send, left(o) < 4 ? 0 : 350);
   }
   function send() {
@@ -1430,6 +1480,16 @@
     '.lavafin{flex:1;display:grid;gap:18px;grid-template-columns:minmax(0,1fr);align-items:start;font-size:clamp(14px,1.5vw,24px)}.lavafin[hidden],.lavabodyw[hidden]{display:none}@media (min-width:820px){.lavafin{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}',
     '.lavafinL,.lavafinR{display:flex;flex-direction:column;gap:12px;min-width:0}.lavafin h2{margin:0;text-align:center;font:400 clamp(26px,4.4vw,64px) "Luckiest Guy",system-ui;color:#FFB347;text-shadow:0 3px 0 #2a0b05,0 0 20px rgba(255,90,0,.5)}',
     '.lavapod{display:flex;justify-content:center;align-items:flex-end;gap:10px}.lavastep{display:flex;flex-direction:column;align-items:center;gap:2px;width:30%;max-width:210px}.lavastep svg{width:70%;height:auto}.lavastep b{font-size:1.1em}.lavastep i{font-style:normal;opacity:.85;font-size:.8em}.lavastep span{display:flex;align-items:flex-start;justify-content:center;width:100%;background:linear-gradient(#8a827a,#4a4440);color:#fff;font:400 1.6em "Luckiest Guy",system-ui;border-radius:8px 8px 0 0;padding-top:.15em}.lavastep.s0 span{height:4.2em;background:linear-gradient(#FFD34D,#c98a10);color:#2a0b05}.lavastep.s1 span{height:3em}.lavastep.s2 span{height:2.1em}',
+    // the fun pass: a streak pill, a pulsing last-five-seconds clock, the podium rising 3rd, 2nd, 1st with a crown
+    '.lavarun{margin:0;align-self:flex-start;padding:.2em .8em;border-radius:99px;background:rgba(255,179,71,.18);border:2px solid #FFB347;font:400 1.1em "Luckiest Guy",system-ui;letter-spacing:.03em;color:#FFD34D;animation:lavarunin .5s cubic-bezier(.2,1.6,.4,1) both}.lavarun.r2{color:#FF9D4D;border-color:#FF9D4D;box-shadow:0 0 14px rgba(255,140,60,.55)}.lavarun.r3{color:#fff;background:#C0392B;border-color:#FFB347;box-shadow:0 0 20px rgba(255,90,70,.7)}',
+    '@keyframes lavarunin{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}',
+    '.lavaclock.low{display:inline-block;animation:lavalow .5s ease-in-out infinite alternate;text-shadow:0 0 14px rgba(255,60,30,.8)}@keyframes lavalow{from{transform:scale(1)}to{transform:scale(1.15)}}',
+    '.lavastep{position:relative;animation:lavapodin .7s cubic-bezier(.2,1.4,.4,1) both}.lavastep.s2{animation-delay:.2s}.lavastep.s1{animation-delay:.6s}.lavastep.s0{animation-delay:1.1s}@keyframes lavapodin{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}',
+    '.lavacrown{position:absolute;top:-.9em;left:50%;transform:translateX(-50%);font-style:normal;font-size:2em;line-height:1;z-index:2;animation:lavacrown 1.6s ease-in-out 1.8s infinite alternate;filter:drop-shadow(0 0 10px rgba(255,211,77,.8))}@keyframes lavacrown{from{transform:translateX(-50%) rotate(-8deg)}to{transform:translateX(-50%) rotate(8deg) translateY(-6px)}}',
+    '.lava.scr .lavaph{font-size:clamp(14px,1.6vw,30px)}.lava.scr .lavaclock{font-size:clamp(26px,3.3vw,62px)}.lava.scr .lavalogo{font-size:clamp(16px,2vw,36px)}.lava.scr .lavascore2{font-size:clamp(14px,1.4vw,26px)}.lava.scr .lavasq{width:min(calc(100vh - 108px),56vw)}',
+    '.lava.scr .lavafin{align-items:center}.lava.scr .lavastep{max-width:min(15vw,330px)}.lava.scr .lavapod{margin-top:4vh}.lava.scr .lavafinL{gap:2vh}',
+    '.lavastep.s0 svg{filter:drop-shadow(0 0 18px rgba(255,211,77,.65))}',
+    '@media (prefers-reduced-motion:reduce){.lavarun,.lavaclock.low,.lavastep,.lavacrown{animation:none!important}}',
     '.lavafinR .lavalb{columns:2;column-gap:18px}@media (min-width:1200px){.lava.scr .lavafinR .lavalb{columns:3}}',
     '.lavaset{display:flex;flex-direction:column;gap:8px}.lavaset fieldset{border:1px solid var(--line,#444);border-radius:10px;padding:6px 10px 8px;display:flex;flex-direction:column;gap:3px;margin:0;min-width:0}.lavaset legend{font-weight:800;font-size:13px;padding:0 4px}.lavaset label{font-size:13px;display:flex;gap:6px;align-items:baseline;line-height:1.25}.lavaset select{max-width:100%;min-width:0}.lavaset fieldset>select{width:100%}.lavaset .row{display:flex;gap:6px;flex-wrap:wrap}.lavaset input[type=text]{flex:1;min-width:10em}',
     '.lavaprev{display:flex;gap:10px;align-items:center;margin-top:6px}.lavamini{width:120px;height:120px;flex:none}.lavaownr{display:flex;justify-content:space-between;gap:6px;align-items:center;font-size:13px}.lavaownr.bad span{color:#e06650}',

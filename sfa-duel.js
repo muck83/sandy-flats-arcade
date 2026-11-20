@@ -56,6 +56,8 @@
   function pt(x, y) { return '(' + nm(x) + ', ' + nm(y) + ')'; }
   function clock(s) { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
   function teamName(t, id) { return TEAMS[Math.round(id / 1000) % TEAMS.length][t ? 1 : 0]; }
+  // the shared effects kit (sfa-fx.js), if the page has it: J('burst', el, {…}). Never needed, never throws.
+  function J(name) { var F = window.SFA_FX; if (!F || typeof F[name] !== 'function') return undefined; try { return F[name].apply(F, [].slice.call(arguments, 1)); } catch (e) { return undefined; } }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
   /* =========================== fractions and lines =========================== */
@@ -275,7 +277,17 @@
     var m = me(), sig = [o.state, o.round, V.rr, V.anim ? V.anim.r : 0, A.MODE === 'student' ? [m ? m.t + '.' + m.x + '.' + m.y + '.' + m.s : '', rosList().filter(function (r) { return m && r.t !== m.t; }).length].join(',') : Object.keys(V.ros).length + (o.state === 3 || o.state === 1 ? '' : ':' + rosList().map(function (r) { return r.look; }).join('')), o.mvp.length, o.last ? o.last.r : 0].join('|');
     if (sig !== V.sig || (rch && screenish() && (o.state === 3 || o.state === 2 || o.state === 4))) { V.sig = sig; draw(); }
     else upd();
-    if (prev && prev.state !== o.state && o.state === 1) snd('beep');
+    if (prev && prev.state !== o.state) {
+      if (o.state === 1) { snd('beep'); J('banner', o.round >= o.rounds ? 'FINAL VOLLEY!' : 'ROUND ' + o.round, { sub: o.round >= o.rounds ? 'No help this time' : 'Write the line. Bank a laser.', tone: 'info', ms: 1400 }); }
+      if (o.state === 5 && A.MODE !== 'teach') J('countdown', { from: COUNT, left: Math.max(600, COUNT * 1000 - (sNow() - o.at)), go: 'FIRE!', sub: 'All lasers at once' });
+      if (o.state === 2) { var w2 = winner(o), m2 = A.MODE === 'student' ? me() : null; if (w2 >= 0 && (!m2 || m2.t === w2)) { J('confetti', { ms: 3500, emoji: ['🚀', '⭐'] }); if (soundOn()) J('sfx', 'win'); } }
+    }
+    // the class screen: every laser banked pops that fleet's count, so the room sees each right answer land
+    if (screenish() && prev && prev.state === 1 && o.state === 1 && prev.round === o.round && V.strip) [0, 1].forEach(function (t) {
+      var d = o.lk[t] - prev.lk[t], sp = V.strip.querySelectorAll('span[style]')[t]; if (d <= 0 || !sp) return;
+      J('pop', sp); J('float', sp, '+' + d + ' ⚡', { color: TC[t], size: 30 }); J('burst', sp, { count: Math.min(18, 6 + d * 4), spread: 140, colors: [TC[t], '#FFE14D', '#fff'] });
+      if (soundOn()) J('sfx', 'coin');
+    });
   }
 
   /* ---------- drawing ---------- */
@@ -307,6 +319,10 @@
     if (!root) return; var o = V.o, e = (sNow() - o.at) / 1000, q = function (s) { return root.querySelector(s); };
     var rd = q('.dlrd'), ck = q('.dlclock'), sub = q('.dlsub'), sc = q('.dlsc'); if (!rd) return;
     rd.textContent = o.state === 2 ? 'FINAL' : o.state === 4 ? 'NEXT: ROUND ' + o.round + ' OF ' + o.rounds : 'ROUND ' + o.round + ' OF ' + o.rounds;
+    // the last ten seconds of aiming: a red clock on every screen, and a tick on the class screen
+    var urg = o.state === 1 && o.alen - e <= 10 && o.alen - e > 0;
+    if (ck.classList.contains('dlurg') !== urg) ck.classList.toggle('dlurg', urg);
+    if (urg && screenish() && soundOn()) { var sec = Math.ceil(o.alen - e); if (sec !== V.urgS) { V.urgS = sec; J('sfx', 'tick'); } }
     ck.textContent = o.state === 3 ? clock(o.intro - e) : o.state === 1 ? clock(o.alen - e) : o.state === 5 ? (e < COUNT ? String(Math.max(1, Math.ceil(COUNT - e))) : 'FIRE!') : o.state === 4 ? clock(BREAK - e) : '🏆';
     sub.textContent = o.state === 3 ? 'missions arrive in' : o.state === 1 ? 'until the lasers fire' : o.state === 5 ? 'all lasers at once' : o.state === 4 ? 'new positions, new targets' : 'battle over';
     sc.innerHTML = '<b style="color:' + TC[0] + '">' + TE[0] + ' ' + o.score[0] + '</b><i>vs</i><b style="color:' + TC[1] + '">' + o.score[1] + ' ' + TE[1] + '</b>';
@@ -653,11 +669,17 @@
     return '<div class="dlmvps">' + o.mvp.map(function (m, i) { return '<figure style="--c:' + TC[m.t] + '">' + (AV ? AV.svg(fullLk(m.look), { size: 110, walk: true }) : '') + '<figcaption><b>' + ['🥇', '🥈', '🥉'][i] + ' ' + esc(m.n) + '</b><small>' + m.dmg + ' damage · ' + m.hits + ' hit' + (m.hits === 1 ? '' : 's') + ' · ' + m.zaps + ' clash' + (m.zaps === 1 ? '' : 'es') + '</small></figcaption></figure>'; }).join('') + '</div>';
   }
   function winner(o) { return o.score[0] === o.score[1] ? -1 : o.score[0] > o.score[1] ? 0 : 1; }
+  // the winning fleet (both fleets in a draw) jumps for joy under the headline
+  function paradeHTML(w) {
+    if (!AV) return '';
+    var L = rosList().filter(function (r) { return w < 0 || r.t === w; }).slice(0, 18); if (!L.length) return '';
+    return '<div class="dlparade">' + L.map(function (r, i) { return '<span style="--c:' + TC[r.t] + ';animation-delay:' + (i * 0.11).toFixed(2) + 's">' + AV.svg(fullLk(r.look), { size: 64 }) + '<b>' + esc(r.n) + '</b></span>'; }).join('') + '</div>';
+  }
   function scrEnd() {
     var o = V.o, w = winner(o), c = H('div', 'dlcard wide');
     c.innerHTML = '<h2>' + (w < 0 ? '🤝 A draw in deep space! ' + o.score[0] + ' – ' + o.score[1] : '🏆 ' + TE[w] + ' ' + esc(teamName(w, V.id)) + ' win the battle, ' + Math.max(o.score[0], o.score[1]) + ' – ' + Math.min(o.score[0], o.score[1]) + '!') + '</h2>' +
-      (o.mvp.length ? '<h3>Stars of the battle</h3>' + mvpHTML(o) : '') + recapHTML(o.last);
-    root.appendChild(c); if (w >= 0 && A.confetti) try { A.confetti(); } catch (e) { }
+      paradeHTML(w) + (o.mvp.length ? '<h3>Stars of the battle</h3>' + mvpHTML(o) : '') + recapHTML(o.last);
+    root.appendChild(c); if (w >= 0 && A.confetti && !window.SFA_FX) try { A.confetti(); } catch (e) { }
   }
 
   /* ---------- a student's screens ---------- */
@@ -935,7 +957,12 @@
     var R = stepCheck(cur, Q, isL ? TRIES : STRIES, isL ? 'B' : 'S'), secs = Math.max(0, Math.round((sNow() - V.o.at) / 100) / 10);
     if (R.miss) ST.miss = (ST.miss || 0) + 1;
     cur.tr = cur.miss;
-    if (R.r === 'blank' || R.r === 'miss' || R.r === 'next') { ST.msg = R.msg; ST.good = R.r === 'next' && !R.miss; snd(R.r === 'next' ? 'lock' : 'nope'); if (R.miss) send(); keep(); drawWork(); return; }
+    if (R.r === 'blank' || R.r === 'miss' || R.r === 'next') {
+      ST.msg = R.msg; ST.good = R.r === 'next' && !R.miss; snd(R.r === 'next' ? 'lock' : 'nope'); if (R.miss) send(); keep(); drawWork();
+      if (R.r === 'next') J('burst', V.work && (V.work.querySelector('.dlsteps li.on') || V.work.querySelector('.dlfb')), { count: 9, spread: 110, colors: ['#7CF2A2', '#8CF2FF', '#fff'] });
+      else if (R.r === 'miss' && V.work) J('shake', V.work, { power: 5, ms: 300 });
+      return;
+    }
     var tries = clamp(cur.miss + 1, 1, 3), right = R.r === 'done', lm = right ? Q.m : R.gm, lb = right ? Q.b : R.gb, pre = R.msg ? R.msg + '<br>' : '';
     if (isL) {   // for the report: lines finished, lines where we showed a step, and the no-help final volley
       ST.tot.ln = (ST.tot.ln || 0) + 1; if (cur.rv) ST.tot.rv = (ST.tot.rv || 0) + 1; if (final()) { ST.tot.fo = (ST.tot.fo || 0) + 1; if (right) ST.tot.fr = (ST.tot.fr || 0) + 1; }
@@ -956,6 +983,15 @@
       ST.cur = null;
     }
     send(); keep(); drawWork();
+    // a laser in the bank is the moment: sparks from the bank, coins floating up, and a streak of first-try lines called out
+    var bk = V.mis && V.mis.querySelector('.dlbank'), fb = V.work && V.work.querySelector('.dlfb');
+    if (right) {
+      if (isL) { ST.run = cur.miss ? 0 : (ST.run || 0) + 1; keep(); }
+      J('burst', (isL ? bk : fb) || fb, { count: 20, emoji: isL ? ['⚡', '✨'] : ['🛡️'], spread: 220, colors: ['#FFE14D', '#8CF2FF', '#fff'] });
+      if (isL && earn) J('float', V.mis && V.mis.querySelector('.dlcoins') || fb, '+' + earn + ' 🪙', { color: '#FFC94A', size: 24 });
+      if (isL && ST.bank.length >= MAXL) J('banner', 'BANK FULL!', { sub: MAXL + ' lasers ready to fire' + (ST.run >= 2 ? ' · ' + ST.run + ' in a row' : ''), tone: 'info', ms: 1300 });
+      else if (isL && ST.run >= 2) { J('banner', ST.run + ' IN A ROW!', { sub: 'First try every time', ms: 1000 }); if (soundOn()) J('sfx', 'combo'); }
+    } else { ST.run = 0; if (V.work) J('shake', V.work, { power: 7, ms: 380 }); }
   }
   function send() {
     if (A.MODE !== 'student' || !V) return;
@@ -1360,7 +1396,29 @@
     '.dlmvps{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}.dlmvps figure{margin:0;display:flex;flex-direction:column;align-items:center;border:2px solid var(--c);border-radius:16px;padding:8px 12px;background:rgba(0,0,0,.25)}.dlmvps figcaption{text-align:center;display:flex;flex-direction:column}.dlmvps small{opacity:.8}',
     '.dlmy{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;font-size:17px}.dlmy b{color:#FFE14D}',
     '.dl.screen .dlclock{font-size:42px}.dl.screen .dlcard h2{font-size:34px}.dl.screen .dlstrip{font-size:20px}.dl.screen .dlfeed{font-size:20px}',
-    '@media (max-width:820px){.dltop{gap:6px}.dllogo{font-size:13px}.dlteam{display:block;margin:3px 0 0;width:max-content}.dlclock{font-size:22px}.dlsc{font-size:16px}.dleq{font-size:24px}.dlbox{min-width:76px;font-size:23px}.dlcard h2{font-size:21px}.dlmis p{font-size:16px}}'
+    '@media (max-width:820px){.dltop{gap:6px}.dllogo{font-size:13px}.dlteam{display:block;margin:3px 0 0;width:max-content}.dlclock{font-size:22px}.dlsc{font-size:16px}.dleq{font-size:24px}.dlbox{min-width:76px;font-size:23px}.dlcard h2{font-size:21px}.dlmis p{font-size:16px}}',
+    // the arcade look: the site's fonts, a command-deck top bar, and a class screen that reads from the back of the room
+    '.dl{overflow-x:hidden;font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 80% 110%,rgba(59,215,255,.16),transparent 50%),radial-gradient(ellipse at 10% -10%,rgba(255,77,94,.2),transparent 50%),radial-gradient(ellipse at 30% 0%,#1d1248,#05050f 70%)}',
+    '.dltop{margin:-10px -14px 0;padding:8px 14px;background:linear-gradient(180deg,#141038,#0a0820);border-bottom:3px solid #FFC94A;box-shadow:0 6px 18px rgba(0,0,0,.5);position:sticky;top:-10px;z-index:5}',
+    '.dllogo,.dlclock,.dlcard h2,.dlpickh,.dlsc b{font-family:"Luckiest Guy","Bricolage Grotesque",system-ui;font-weight:400;letter-spacing:.03em}.dllogo{letter-spacing:.06em}',
+    '.dlclock{font-variant-numeric:tabular-nums}.dlclock.dlurg{color:#fff;background:#C8232C;border-radius:12px;padding:0 .35em;text-shadow:none;animation:dlurg .5s ease-in-out infinite alternate}@keyframes dlurg{from{transform:scale(1)}to{transform:scale(1.12)}}',
+    '.dlcard,.dlwork{box-shadow:0 8px 24px rgba(0,0,0,.35)}.dlcard h2{color:#FFE14D;text-shadow:0 2px 0 #7a4d00}',
+    '.dlpick{transition:transform .12s,box-shadow .12s}.dlpick:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,.4),0 0 14px var(--d,#8CF2FF)}',
+    '.dlbank i.on{animation:dlbank .45s cubic-bezier(.3,1.7,.5,1)}@keyframes dlbank{from{transform:scale(2.2)}to{transform:none}}.dlcoins{display:inline-block}',
+    '.dlmvps figure{animation:dlmvp .6s cubic-bezier(.2,1.5,.4,1) both}.dlmvps figure:nth-child(2){animation-delay:.2s}.dlmvps figure:nth-child(3){animation-delay:.4s}@keyframes dlmvp{from{transform:translateY(40px) scale(.6);opacity:0}to{transform:none;opacity:1}}',
+    '.dlparade{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px;margin:4px 0 8px}.dlparade span{display:flex;flex-direction:column;align-items:center;animation:dljoy .9s ease-in-out infinite alternate}.dlparade svg{width:clamp(44px,4.2vw,84px);height:auto;filter:drop-shadow(0 0 10px var(--c))}.dlparade b{font-size:clamp(11px,.9vw,18px);color:var(--c)}@keyframes dljoy{from{transform:translateY(0)}to{transform:translateY(-14px) rotate(4deg)}}@media (prefers-reduced-motion:reduce){.dlparade span{animation:none}}',
+    '.dlmvps figure:first-child{box-shadow:0 0 30px rgba(255,225,77,.5)}',
+    '.dl.screen{padding:12px 22px 20px;gap:14px}.dl.screen .dltop{margin:-12px -22px 0;padding:10px 22px;top:-12px}',
+    '.dl.screen .dllogo{font-size:clamp(20px,2.4vw,46px)}.dl.screen .dlrd{font-size:clamp(12px,1.2vw,24px)}.dl.screen .dlclock{font-size:clamp(34px,4.2vw,84px)}.dl.screen .dlsub{font-size:clamp(12px,1.2vw,24px)}.dl.screen .dlsc{font-size:clamp(22px,2.8vw,56px);gap:.4em}.dl.screen .dlsc i{font-size:.4em}.dl.screen .dlsnd{font-size:clamp(18px,1.6vw,30px)}',
+    '.dl.screen .dlbig{max-width:calc((100vh - clamp(280px,34vh,380px)) * 1.385)}.dl.screen .dlclock{line-height:1}',
+    '.dl.screen .dlstrip{font-size:clamp(16px,1.6vw,32px)}.dl.screen .dlfeed{font-size:clamp(16px,1.6vw,32px)}',
+    '.dl.screen .dlcard{padding:clamp(14px,1.4vw,28px)}.dl.screen .dlcard h2{font-size:clamp(26px,2.8vw,56px)}.dl.screen .dlcard h3{font-size:clamp(18px,1.8vw,36px);margin:0}.dl.screen .dlhow{font-size:clamp(16px,1.35vw,27px)}.dl.screen .dlbigp{font-size:clamp(18px,1.8vw,36px)}',
+    '.dl.screen .dlteamcard h3{font-size:clamp(15px,1.3vw,26px)}.dl.screen .dlteamcard p{font-size:clamp(13px,1.1vw,22px)}.dl.screen .dlrr{font-size:clamp(15px,1.4vw,28px)}.dl.screen .dltop1{font-size:clamp(16px,1.5vw,30px)}',
+    '.dl.screen .dlfeed{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:2px 1.4em;min-height:2.8em;max-height:4.2em;overflow:hidden}.dl.screen .dlbig:has(+ .dlfeed){max-width:calc((100vh - 370px) * 1.385)}.dl.screen .dlcard .dlrecap ~ .dlfield{max-width:calc((100vh - 600px) * 1.385)}',
+    '.dl.screen .dlcard .dlfield{max-width:calc((100vh - 360px) * 1.385);margin-left:auto;margin-right:auto}.dl.screen .dlhow{font-size:clamp(15px,1.15vw,24px)}',
+    '.dl.screen .dlmvps figcaption{font-size:clamp(15px,1.4vw,28px)}.dl.screen .dlmvps svg{width:clamp(90px,7.5vw,160px);height:auto}',
+    '@media (max-width:560px){.dl:not(.screen){padding:8px 8px 22px;gap:8px}.dl:not(.screen) .dltop{margin:-8px -8px 0;padding:6px 8px;top:-8px}.dl:not(.screen) .dllogo b{display:none}.dl:not(.screen) .dllogo{font-size:20px;letter-spacing:0}.dl:not(.screen) .dltop{gap:4px;grid-template-columns:minmax(0,1fr) auto minmax(0,1.3fr)}.dl:not(.screen) .dlsc{font-size:13px;gap:3px}.dl:not(.screen) .dlsc i{display:none}.dl:not(.screen) .dlsnd{font-size:14px;padding:3px 5px}.dl:not(.screen) .dlright{gap:4px}.dlwork{padding:10px 8px}}',
+    '@media (prefers-reduced-motion:reduce){.dlclock.dlurg,.dlbank i.on,.dlmvps figure{animation:none}}'
   ].join('\n');
   var sty = document.createElement('style'); sty.textContent = css; document.head.appendChild(sty);
 

@@ -1215,7 +1215,7 @@
   }
 
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261120a', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261120f', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }
@@ -1238,7 +1238,7 @@
   // the server's clock as seen from here: live.at is server time when the console last updated; the closest sample wins
   function noteSkew() { if (MODE !== 'student' || !live || !live.at) return; var k = live.at - Date.now(); if (srvSkewV == null || k > srvSkewV || k < srvSkewV - 30000) srvSkewV = k; }
   // 🔠 the Big Board (sfa-board.js): the class crossword at the start of a lesson, loaded and synced like the Clash
-  var BOARD_V = '20261120a', boardLoading = null;
+  var BOARD_V = '20261120f', boardLoading = null;
   function boardAssets(cb) {
     if (window.SFA_BOARD) return cb();
     if (boardLoading) { boardLoading.push(cb); return; }
@@ -1508,7 +1508,7 @@
   every(function () { if (MODE === 'teach' && console_.on) lobbyTick(); }, 1000);
 
   // 👗 the fashion show (sfa-show.js): every student's avatar on the catwalk, on the class screen and every device
-  var SHOW_V = '20261120b', showLoading = null;
+  var SHOW_V = '20261121c', showLoading = null;
   function showAssets(cb) {
     if (window.SFA_SHOW) return cb();
     if (showLoading) { showLoading.push(cb); return; }
@@ -1524,7 +1524,7 @@
     if ((isLive() || MODE === 'screen') && hasShow(live) && live.counts.zfs[0] === 1 && !(MODE === 'student' && saving && !S.me)) showAssets(function () { SFA_SHOW.sync(); });
   }
 
-  var RAID_V = '20261120a', raidLoading = null;
+  var RAID_V = '20261120f', raidLoading = null;
   function raidAssets(cb) {
     if (window.SFA_RAID) return cb();
     if (raidLoading) { raidLoading.push(cb); return; }
@@ -1549,7 +1549,7 @@
   }
 
   // 🚀 Laser Lines (sfa-duel.js): fleets on a grid in space; secret missions to write the line to an enemy; every laser fires at once
-  var DUEL_V = '20261120a', duelLoading = null;
+  var DUEL_V = '20261121c', duelLoading = null;
   function duelAssets(cb) {
     if (window.SFA_DUEL) return cb();
     if (duelLoading) { duelLoading.push(cb); return; }
@@ -1570,7 +1570,7 @@
     if ((isLive() || MODE === 'screen') && freshDuel(live) && !(MODE === 'student' && saving && !S.me)) duelAssets(function () { SFA_DUEL.sync(); });
   }
   // 🤼 Sumo Graphing (sfa-sumo.js): teams of two graph lines; every 30 s their work becomes a sumo bout on every screen
-  var SUMO_V = '20261120a', sumoLoading = null;
+  var SUMO_V = '20261121c', sumoLoading = null;
   function sumoAssets(cb) {
     if (window.SFA_SUMO) return cb();
     if (sumoLoading) { sumoLoading.push(cb); return; }
@@ -1592,7 +1592,7 @@
   }
 
   // 🌋 The Floor Is Lava (sfa-stand.js; it hands a version 1 Stand on the Line game, keys zk*, to sfa-stand-v1.js): the whole class on one grid
-  var STAND_V = '20261120a', standLoading = null;
+  var STAND_V = '20261121c', standLoading = null;
   function standAssets(cb) {
     if (window.SFA_STAND) return cb();
     if (standLoading) { standLoading.push(cb); return; }
@@ -1617,7 +1617,7 @@
      The two "everyone is needed" games. Each loads sfa-crewkit.js first. Everything they need from this file is in this
      block, plus the one-line crew…() calls marked "crew games" (clashSync, the console's restore, fetchAnswers, liveObj,
      runningGame, lobbyBusy) and their two tiles in gamesTray. */
-  var CREW_V = '20261120b', crewLoading = {};
+  var CREW_V = '20261121c', crewLoading = {};
   var CREW = { aloft: { g: 'SFA_ALOFT', f: 'sfa-aloft.js', s: 'zups', id: 'zupid', st: 'zupst', q: 'zup', n: 'All Aboard' }, splash: { g: 'SFA_SPLASH', f: 'sfa-splash.js', s: 'zwets', id: 'zwetid', st: 'zwetst', q: 'zwet', n: 'Splash Squad' } };
   function crewAssets(k, cb) {
     var G = CREW[k];
@@ -1627,7 +1627,7 @@
     var files = (window.SFA_CREW ? [] : ['sfa-crewkit.js']).concat([G.f]), i = 0;
     (function next() {
       if (i >= files.length) { var q = crewLoading[k]; crewLoading[k] = null; q.forEach(function (f) { try { f(); } catch (e) { console.warn(e); } }); return; }
-      var sc8 = document.createElement('script'); sc8.src = files[i++] + '?v=' + CREW_V; sc8.onload = next;
+      var fn8 = files[i++], sc8 = document.createElement('script'); sc8.src = fn8 + '?v=' + (fn8 === G.f && G.v || CREW_V); sc8.onload = next;   // a game with its own version (v) uses it
       sc8.onerror = function () { crewLoading[k] = null; SFA.toast(G.n + ' couldn\'t load. Check the connection.', 4000); };
       document.head.appendChild(sc8);
     })();
@@ -1648,7 +1648,7 @@
   function crewAgg() { Object.keys(CREW).forEach(function (k) { if (console_[k] && window[CREW[k].g]) window[CREW[k].g].agg(); }); }
   function crewCounts(counts) { var sp = null; Object.keys(CREW).forEach(function (k) { var M = window[CREW[k].g]; if (console_[k] && M) { M.counts(counts); sp = M.spot() || sp; } }); return sp; }
   function crewSection(p) { return Object.keys(CREW).some(function (k) { var M = window[CREW[k].g]; if (console_[k] && M) { M.section(p); return true; } return false; }); }
-  function crewBusy() { return !!(console_.aloft || console_.splash); }
+  function crewBusy() { return Object.keys(CREW).some(function (k) { return !!console_[k]; }); }
   function crewRestore(L) {
     Object.keys(CREW).forEach(function (k) {
       var G = CREW[k]; if (!(L && L.counts && Array.isArray(L.counts[G.s]))) return;
@@ -1665,6 +1665,31 @@
     var len = pickSel('Game length', [[4, '4 minutes'], [6, '6 minutes'], [8, '8 minutes']], SFA.store.get('teacher.splash.mins', 6), 'teacher.splash.mins');
     var sb = startBtn('💦 Start Splash Squad', 'Forming the crews…', function () { crewAssets('splash', function () { if (SFA_SPLASH.start(+len.value)) SFA.toast('Splash Squad is on! Students\' screens switch within a few seconds.', 3500); else consolePanel(); }); });
     var r = H('div', 'row'); r.appendChild(len); r.appendChild(sb); box.appendChild(r);
+  }
+  // crew games: 🎨 Paint the Flats (sfa-paint.js) and 🔐 Goat Lock-In (sfa-lockin.js). Bump PAINT_V / LOCKIN_V when their files change.
+  var PAINT_V = '20261121b', LOCKIN_V = '20261121b';
+  CREW.paint = { g: 'SFA_PAINT', f: 'sfa-paint.js', v: PAINT_V, s: 'zpts', id: 'zptid', st: 'zptst', q: 'zpt', n: 'Paint the Flats' };
+  CREW.lockin = { g: 'SFA_LOCKIN', f: 'sfa-lockin.js', v: LOCKIN_V, s: 'zvlts', id: 'zvltid', st: 'zvltst', q: 'zvlt', n: 'Goat Lock-In' };
+  function buildPaint(box) {
+    var len = pickSel('Game length', [[4, '4 minutes'], [5, '5 minutes'], [6, '6 minutes'], [8, '8 minutes']], SFA.store.get('teacher.paint.mins', 5), 'teacher.paint.mins');
+    var sb = startBtn('🎨 Start Paint the Flats', 'Drawing the map…', function () { crewAssets('paint', function () { if (SFA_PAINT.start(+len.value)) SFA.toast('Paint the Flats is on! Students\' screens switch within a few seconds.', 3500); else consolePanel(); }); });
+    var r = H('div', 'row'); r.appendChild(len); r.appendChild(sb); box.appendChild(r);
+  }
+  function buildLockin(box) {
+    var len = pickSel('Time on the clock', [[4, '4 minutes · 5 locks'], [5, '5 minutes · 5 locks'], [6, '6 minutes · 6 locks'], [8, '8 minutes · 7 locks']], SFA.store.get('teacher.lockin.mins', 6), 'teacher.lockin.mins');
+    var sb = startBtn('🔐 Start Goat Lock-In', 'Locking the door…', function () { crewAssets('lockin', function () { if (SFA_LOCKIN.start(+len.value)) SFA.toast('Goat Lock-In is on! Students\' screens switch within a few seconds.', 3500); else consolePanel(); }); });
+    var r = H('div', 'row'); r.appendChild(len); r.appendChild(sb); box.appendChild(r);
+  }
+
+  // crew games: 🎩 Sure Thing! (sfa-surething.js), the confidence-betting quiz show. Bump SURE_V when its file changes.
+  var SURE_V = '20261121b';
+  CREW.sure = { g: 'SFA_SURE', f: 'sfa-surething.js', v: SURE_V, s: 'zsrs', id: 'zsrid', st: 'zsrst', q: 'zsr', n: 'Sure Thing!' };
+  function buildSure(box) {
+    var nq = pickSel('Questions', [[6, '6 questions'], [7, '7 questions'], [8, '8 questions']], SFA.store.get('teacher.sure.n', 7), 'teacher.sure.n');
+    var pace = pickSel('Pacing', [[0, 'I press Reveal and Next'], [30, 'Runs by itself · 30 s a question'], [45, 'Runs by itself · 45 s a question'], [60, 'Runs by itself · 60 s a question']], SFA.store.get('teacher.sure.pace', 0), 'teacher.sure.pace');
+    var tg = pickSel('Full house', [[80, 'Pot pays at 80% answering'], [70, 'Pot pays at 70% answering'], [60, 'Pot pays at 60% answering']], SFA.store.get('teacher.sure.target', 80), 'teacher.sure.target');
+    var sb = startBtn('🎩 Start Sure Thing!', 'Straightening the bow tie…', function () { crewAssets('sure', function () { if (SFA_SURE.start({ n: +nq.value, auto: +pace.value > 0, secs: +pace.value || 45, target: +tg.value })) SFA.toast('Sure Thing! is on. Students\' screens switch within a few seconds.', 3500); else consolePanel(); }); });
+    var r = H('div', 'row'); r.appendChild(nq); r.appendChild(pace); r.appendChild(tg); r.appendChild(sb); box.appendChild(r);
   }
 
   /* ---------------- deck ---------------- */
@@ -2127,6 +2152,9 @@
     splash: 'Crews of three or four, formed by the game with busy and quiet students mixed (a snake draft on today\'s answers; nobody is told why). Every launch needs every member: each one gets their own question at their own level, and a right answer puts their charge in the crew\'s springboard. All charged: one member (they take turns) is flung into the pond, and the pond fills. All the crews fill the same pond; make it overflow before the time runs out. A member who is done sees what each teammate is working on (the question, never the answer) and can send a hint (it crosses out a wrong choice or gives the range the number is in), or answer up to two power-up questions. A miss gets a hint and another try. Someone who has not touched their screen for 75 seconds is marked away for that launch so the crew is not stuck (you can also do it from the console); they are back in the moment they do anything, and their next charge is a comeback splash. The class screen never shows who is away or stuck.',
     show: 'Every student here walks the catwalk on the class screen and every device in the avatar they built in the Wardrobe: name, level and outfit, one after another, then a group bow.'
   };
+  GAME_MORE.paint = 'The class paints one shared hex map of Sandy Flats in two to four teams (a snake draft on today\'s answers, so every team gets busy and quiet students; nobody is told why). A right answer is a paint drop, and the student chooses the tile: any empty one, a ★ landmark, or a rival\'s tile when 3 of their own team\'s tiles touch it, so teams connect to defend, surround to flip and block each other. A landmark is worth 3 and cannot be flipped, but it takes two different teammates: one starts it, another finishes it. A student\'s FIRST tile is fresh paint: it paints a neighbouring tile too, with a banner, and each team gets +3 once every one of its members has painted, so teams go looking for their quiet members. In the last minute every right answer is 2 drops. Questions are this lesson\'s, in tiers: quiet students start on the ones the class has already met; a miss gets a hint and another try. The class screen shows the live map with each painter\'s avatar on their latest tile and only ever counts who HAS painted; your console lists who has not. At the end every team gets its own award (longest chain, best comeback, most teammates involved…).';
+  GAME_MORE.lockin = 'The Wild Goat has locked the whole class in the prize vault at the fair, and there is a chain of 5 to 7 locks between them and the door. Each lock needs a set number of DIFFERENT students to solve one question each (scaled to who is here, more for the last lock), and every solver\'s piece clicks into the lock on the class screen with their avatar on it, so a few fast students cannot open a lock on their own. Someone who has already added a piece can pocket one for the next lock, and after that their right answers add seconds to the clock. Two of the locks are split-clue locks: pairs of students each get half of a code on their own screen and have to find each other in the room and talk to type it in. Between locks the story moves on a line. Wrong answers get a hint and another try, never a knock-out. If the class is stuck, 💡 Give a clue sends everyone still working a hint (and shows split-clue pairs who their partner is waiting for); a lock that has been stuck for a long time starts to rust and needs fewer pieces. Late joiners can add a piece straight away. Your console lists who has added a piece, who is working and who has not started; the class screen only ever shows the pieces that are in.';
+  GAME_MORE.sure = 'A quiz show hosted by Gary the goat. Everyone gets the same question at the same time (this lesson\'s questions, the way-in ones first, with the trickiest last). Each student answers, then bets on their own answer before anyone knows who is right: Careful (+2 if right, +1 "brave try" chip if wrong), Sure (+5 / −2) or ALL IN (+10 / −10). Everyone starts on 20 chips and nobody can ever drop below 10. The pot belongs to the whole class: every question it grows by up to 4 chips a head, by the share of the class that answered (right or wrong), and on a question where that share reaches the full-house target the pot pays that many chips to EVERY student. In the two comeback rounds (the middle question and the last), anyone at or under the class\'s middle stack wins double. At each reveal the screens show how the class split across the answers and how sure it was, with no names, then the answer. You press Reveal and Next, or let it run by itself. It ends with awards that spread the glory (bravest bet, best comeback, steadiest hand, most improved, the goat\'s favourite) and every avatar on stage; no ranking is ever shown. Only you see who has not answered yet.';
   function gamesTray(p, s) {
     var atEnd = !!(s && (s.k === 'exit' || s.k === 'end')), early = cur <= 3;
     var G = [
@@ -2138,6 +2166,9 @@
       { id: 'duel', e: '🚀', n: 'Laser Lines', len: '~' + Math.round(SFA.store.get('teacher.duel.rounds5', 5) * (SFA.store.get('teacher.duel.secs', 60) + 22) / 60) + ' min', sug: false, one: 'Space battle: pick an enemy, write the line to them, bank a laser. When the aiming time ends, all the lasers fire at once; harder lines score more.', build: buildDuel },
       { id: 'aloft', e: '🎈', n: 'All Aboard', len: SFA.store.get('teacher.aloft.mins', 5) + ' min', sug: atEnd, one: 'Whole class, one balloon: it climbs by how many students have a burner lit, not by who answers fastest. Quiet students coming back give everyone a boost.', build: buildAloft },
       { id: 'splash', e: '💦', n: 'Splash Squad', len: SFA.store.get('teacher.splash.mins', 6) + ' min', sug: false, one: 'Mixed crews of 3 or 4: every member has to answer their own question before the crew can launch someone into the pond. Teammates can send hints.', build: buildSplash },
+      { id: 'paint', e: '🎨', n: 'Paint the Flats', len: SFA.store.get('teacher.paint.mins', 5) + ' min', sug: false, one: 'Teams paint a shared map of Sandy Flats: a right answer is a tile, placed where the student chooses. A first tile counts double, so teams want their quiet members in.', build: buildPaint },
+      { id: 'lockin', e: '🔐', n: 'Goat Lock-In', len: SFA.store.get('teacher.lockin.mins', 6) + ' min', sug: atEnd, one: 'Escape room: the whole class opens a chain of locks before the clock runs out. Each lock needs pieces from different students, and some need two students to find each other and talk.', build: buildLockin },
+      { id: 'sure', e: '🎩', n: 'Sure Thing!', len: '~' + SFA.store.get('teacher.sure.n', 7) + ' min', sug: atEnd, one: 'Quiz show with Gary the goat: everyone answers the same question, then bets on how sure they are. A careful bet never loses, nobody drops below 10 chips, and the class pot pays everyone when enough of the class answers.', build: buildSure },
       { id: 'show', e: '👗', n: 'Fashion show', len: '~' + Math.max(1, Math.ceil(Math.max(1, rosterIn().length) * SFA.store.get('teacher.show.secs', 5) / 60)) + ' min', sug: cur === 0, one: 'Every student\'s avatar walks the catwalk, one after another.', build: buildShow }
     ];
     var sec = H('div', 'sect games');
@@ -2327,6 +2358,11 @@
       st.appendChild(H('p', 'muted', 'Class shown here and on the class screen:')); st.appendChild(sel);
     }
 
+    if (window.SFA_FX) {
+      var fk = el('label', { style: 'display:flex;gap:8px;align-items:center' }), fcb = el('input', { type: 'checkbox' }); fcb.checked = !SFA_FX.muted();
+      fcb.onchange = function () { SFA_FX.mute(!fcb.checked); if (fcb.checked) SFA_FX.sfx('coin'); };
+      fk.appendChild(fcb); fk.appendChild(document.createTextNode('🔊 Game sounds on this computer (console and class screen). Students\' devices stay silent unless they tap their own 🔇.')); st.appendChild(fk);
+    }
     if (window.SFA_TOGETHER) SFA_TOGETHER.settings(st);
     p.appendChild(st);
 
@@ -2359,6 +2395,7 @@
     liveChip.onclick = function () { if (MODE === 'student') { follow = true; if (isLive()) go(live.slide); drawTop(); } };
     topChips.appendChild(liveChip);
     if (MODE === 'student') { acctChip = el('button', { type: 'button', 'class': 'chip' }); topChips.appendChild(acctChip); }
+    if (MODE === 'student' && window.SFA_FX) topChips.appendChild(SFA_FX.speaker('chip'));   // game sounds: off until the student turns them on
     document.body.insertBefore(top, document.body.firstChild);
     banner = H('div', 'banner'); banner.hidden = true; top.after(banner);
     if (MODE === 'student') { signBar = H('div', 'gate'); signBar.hidden = true; document.body.appendChild(signBar); }
@@ -2415,5 +2452,8 @@
   function fail() { document.querySelector('.lmain').innerHTML = '<div class="card keybox"><h2>That lesson isn\'t here</h2><p class="muted">Go back to <a href="lessons.html">all lessons</a>.</p></div>'; }
   var tgs = document.createElement('script'); tgs.src = 'sfa-together.js?v=20261120a';
   tgs.onload = tgs.onerror = function () { document.head.appendChild(sc); };
-  document.head.appendChild(tgs);
+  // ✨ sfa-fx.js: the shared effects and sound kit (window.SFA_FX), loaded first so every game can count on it
+  var FX_V = '20261120f', fxs = document.createElement('script'); fxs.src = 'sfa-fx.js?v=' + FX_V;
+  fxs.onload = fxs.onerror = function () { document.head.appendChild(tgs); };
+  document.head.appendChild(fxs);
 })();

@@ -63,6 +63,27 @@
     { id: 'kraken', name: 'Void Kraken', e: '🦑', atk: 'INK STORM', col: ['#9C7BFF', '#FF5B8A', '#2a1a5c'] }
   ];
   var MODES = ['Review', 'Exit ticket'];
+  // ✨ the shared effects kit (sfa-fx.js): every call is safe when it isn't there
+  function fx(name) { var F = window.SFA_FX; if (!F || !F[name]) return ''; try { return F[name].apply(F, [].slice.call(arguments, 1)); } catch (e) { return ''; } }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  // what the boss says (short and simple: many English learners)
+  var SAY = {
+    hello: ['I am the boss here!', 'You can\'t beat me!', 'Who dares to fight me?'],
+    idle: ['Is that all?', 'Too easy!', 'Maths can\'t hurt me!', 'I\'m not scared.', 'So slow…', 'Try harder!', 'Ha! That tickles.'],
+    ouch: ['Ouch!', 'Hey!', 'That hurt!', 'Ow ow ow!', 'Stop that!'],
+    special: ['NOOO!', 'Not fair!', 'What was THAT?!'],
+    atk: ['Take THIS!', 'My turn!', 'Block this!'],
+    blocked: ['What?! Blocked?!', 'No way!', 'Grr… lucky!'],
+    hit: ['Ha ha ha!', 'Yum! Health!', 'Got you!'],
+    angry: ['Now I\'m ANGRY!', 'You made me mad!'],
+    last: ['No, no, no!', 'I… can\'t… lose!', 'Help!'],
+    combo: ['Stop working together!', 'One at a time, please!'],
+    wind: ['I feel great again!', 'Second wind!'],
+    weak: ['I feel… weak…', 'Uh oh.'],
+    time: ['You are out of time!', 'Tick tock! Ha!'],
+    near: ['Wait! Let\'s talk!', 'Please stop!'],
+    win: ['Nooooo…'], lose: ['Ha ha! Bye bye!', 'See you next time!']
+  };
 
   function rng(seed) { var s = (seed >>> 0) || 1; return function () { s = (Math.imul(s, 1103515245) + 12345) >>> 0; return ((s >>> 8) & 0xffff) / 65536; }; }
   function shuffle(a, r) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
@@ -74,14 +95,15 @@
   function raidOf(Lv) {
     var c = Lv && Lv.counts; if (!c || Lv.lesson !== A.LID || !Array.isArray(c.zrs) || !Array.isArray(c.zrid)) return null;
     var z = c.zrs, id = A.decRun(c.zrid), start = A.MODE === 'screen' ? id : A.decRun(c.zrst) || id, a = Array.isArray(c.zra) ? c.zra : [];
-    var sp = Lv.spot && Lv.spot.q === 'zraid' ? String(Lv.spot.text || '') : '', top = [], ev = [], seq = 0, tfp = [], tnm = [], g = Array.isArray(c.zrt) ? c.zrt : [];
+    var sp = Lv.spot && Lv.spot.q === 'zraid' ? String(Lv.spot.text || '') : '', top = [], ev = [], seq = 0, tfp = [], tnm = [], looks = [], g = Array.isArray(c.zrt) ? c.zrt : [];
     sp.split('#').forEach(function (part) {
       var k2 = part.slice(0, 2), v = part.slice(2);
       if (k2 === 'T:' && v) top = v.split(',').map(function (x) { var p = x.split('~'); return { n: p[0], d: +p[1] || 0, s: +p[2] || 0, lv: +p[3] || 0 }; });
       if (k2 === 'L:') { var q = v.split('|'); seq = +q[0] || 0; ev = (q[1] ? q[1].split(',') : []).map(function (x) { var p = x.split('~'); return { n: p[0], d: +p[1] || 0, k: +p[2] || 0 }; }); }
       if (k2 === 'G:' && v) v.split(',').forEach(function (x) { var p = x.split('~'); tfp.push(p[0]); tnm.push(p[1] || ''); });
+      if (k2 === 'V:' && v) looks = v.split(',');   // the top three's avatars, for the ending
     });
-    return { id: id, start: start, state: z[0], mode: z[1] || 0, boss: z[2] || 0, dur: z[3] || 360, max: z[4] || 1000, hp: z[5] == null ? z[4] : z[5], win: !!z[6], n: z[7] || 0, heal: z[8] || 0,
+    return { looks: looks, id: id, start: start, state: z[0], mode: z[1] || 0, boss: z[2] || 0, dur: z[3] || 360, max: z[4] || 1000, hp: z[5] == null ? z[4] : z[5], win: !!z[6], n: z[7] || 0, heal: z[8] || 0,
       combo: z[9] || 1, songEnd: z[10] || 0, shields: z[11] || 0,
       atk: { no: a[0] || 0, st: a[1] || 0, q: a[2] || 0, at: a[3] || 0, right: a[4] || 0, of: a[5] || 0, blocked: !!a[6], shielded: !!a[7] },
       tg: { no: g[0] || 0, st: g[1] || 0, q: g[2] || 0, at: g[3] || 0, fps: tfp, names: tnm }, top: top, ev: ev, seq: seq };
@@ -165,9 +187,14 @@
     var saved = SFA.store.get(key(), null);
     ST = saved && saved.id === b.id ? saved : { id: b.id, dmg: 0, hits: 0, n: 0, streak: 0, best: 0, tries: 0, fb: null, cool: 0, qi: 0, res: {}, atk: {}, countered: {}, hero: null, charge: 0, spUsed: 0, buffs: { crit: 0, dbl: 0 }, dg: 0, sn: 0, stunUntil: 0, tg: {}, em: 0, emi: 0, cheerAt: 0 };
     if (!(saved && saved.id === b.id) && A.MODE === 'student') ST.charge = Math.min(CHARGE, hinfo().perks.ch);
-    V = { id: b.id, b: b, hurt: 0, fl: [], parts: [] };
+    V = { id: b.id, b: b, hurt: 0, fl: [], parts: [], sayAt: Date.now() };
     root = H('div', 'br' + (A.MODE !== 'student' ? ' screen' : '')); root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-label', 'Boss Raid');
-    document.body.appendChild(root); document.body.classList.add('boarding');
+    document.body.appendChild(root); document.body.classList.add('boarding'); css(); fit();
+    // the raid has just begun: a 3-2-1 so the room looks up, and the boss says hello
+    if (b.state === 1 && !b.win && secNow(b) < 12 && !(saved && saved.id === b.id && saved.hero != null)) {
+      fx('countdown', { from: 3, go: 'RAID!', sub: bossOf(b).e + ' ' + bossOf(b).name + ' is here! Get ready…' });
+      setTimeout(function () { if (root && V && V.id === b.id) say(pick(SAY.hello), true); }, 3900);
+    }
     loadPool(b.mode, function () { if (root && V && V.id === b.id) { V.order = null; draw(); } });
     V.tick = setInterval(function () { if (root) drawTop(); }, 1000);
     var last = performance.now();
@@ -184,32 +211,40 @@
     if (V.seen == null) V.seen = b.seq;
     else if (b.seq > V.seen) {
       var first = b.seq - b.ev.length + 1, me = A.MODE === 'student' ? myName() : null;
-      b.ev.forEach(function (e, i) { if (first + i > V.seen && e.n !== me) evFx(e); });
+      if (b.state === 1) b.ev.forEach(function (e, i) { if (first + i > V.seen && e.n !== me) evFx(e); });   // once it's over, the ending has the stage
       V.seen = b.seq;
     }
     if (prev) {
       var ph = phaseOf(b), ph0 = phaseOf(prev), B = bossOf(b);
-      if (ph > ph0 && b.state === 1 && !b.win) banner(ph === 2 ? '😡 <b>' + esc(B.name.toUpperCase()) + '</b> IS ENRAGED!' : '🔥 <b>LAST STAND!</b> Finish it!', 'phase');
-      if (b.atk.st === 1 && !(prev.atk.st === 1 && prev.atk.no === b.atk.no)) { banner('⚠️ <b>' + B.atk + '</b> incoming! Answer to block it!', 'alarm'); snd('alarm'); }
+      if (ph > ph0 && b.state === 1 && !b.win) { banner(ph === 2 ? '😡 <b>' + esc(B.name.toUpperCase()) + '</b> IS ENRAGED!' : '🔥 <b>LAST STAND!</b> Finish it!', 'phase'); say(pick(ph === 2 ? SAY.angry : SAY.last), true); snd('hurt'); V.shake = 1; fx('shake', root.querySelector('.brstage'), { power: 10, ms: 500 }); }
+      if (b.atk.st === 1 && !(prev.atk.st === 1 && prev.atk.no === b.atk.no)) { banner('⚠️ <b>' + B.atk + '</b> incoming! Answer to block it!', 'alarm'); snd('alarm'); say(pick(SAY.atk), true); }
       if (b.atk.st === 2 && !(prev.atk.st === 2 && prev.atk.no === b.atk.no)) {
         V.lastHeal = Math.max(0, b.heal - prev.heal);
-        if (b.atk.blocked) { banner('🛡️ <b>BLOCKED!</b> ' + b.atk.right + ' of ' + b.atk.of + ' got it right', 'block'); snd('block'); }
-        else if (b.atk.shielded) { banner('🛡️ <b>SHIELD WALL!</b> A knight\'s shield took the hit. No healing!', 'block'); snd('block'); }
-        else { banner('💥 <b>The boss hit the class!</b> It healed ' + V.lastHeal + ' HP', 'hurt'); snd('hurt'); V.shake = 1; }
+        var back = V.lastAtkLost;   // the class lost the last one and blocks this one: a comeback
+        if (b.atk.blocked) { banner((back ? '💪 <b>COMEBACK BLOCK!</b> ' : '🛡️ <b>BLOCKED!</b> ') + b.atk.right + ' of ' + b.atk.of + ' got it right', 'block'); snd('block'); say(pick(SAY.blocked), true); fx('flash', root.querySelector('.brstage'), 'rgba(124,242,162,.45)'); if (A.MODE !== 'student') fx('burst', root.querySelector('.brstage'), { count: 26, emoji: ['🛡️', '⭐'], spread: 300 }); }
+        else if (b.atk.shielded) { banner('🛡️ <b>SHIELD WALL!</b> A knight\'s shield took the hit. No healing!', 'block'); snd('block'); say(pick(SAY.blocked), true); }
+        else { banner('💥 <b>The boss hit the class!</b> It healed ' + V.lastHeal + ' HP', 'hurt'); snd('hurt'); V.shake = 1; say(pick(SAY.hit), true); fx('shake', root, { power: 12, ms: 550 }); fx('flash', null, 'rgba(255,40,40,.4)'); }
+        V.lastAtkLost = !b.atk.blocked && !b.atk.shielded;
         // my counter-attack: a blocked attack I got right
         if (A.MODE === 'student' && b.atk.blocked && ST.atk[b.atk.no] === 1 && !ST.countered[b.atk.no]) { ST.countered[b.atk.no] = 1; ST.dmg += COUNTER; keep(); send(); hitFx('Your counter', COUNTER, 1); }
       }
     }
     if (prev && b.state === 1 && !b.win) {
-      if (b.combo > prev.combo) { banner('⚡ <b>COMBO x' + CMUL[b.combo] + '!</b> Everyone\'s hits do ' + CMUL[b.combo] + '× damage. Keep hitting together!', 'combo'); snd('crit'); }
+      if (b.combo > prev.combo) { banner('⚡ <b>COMBO x' + CMUL[b.combo] + '!</b> Everyone\'s hits do ' + CMUL[b.combo] + '× damage. Keep hitting together!', 'combo'); snd('crit'); say(pick(SAY.combo)); }
+      // nearly down: one last push
+      if (!V.near && b.max && b.hp / b.max <= 0.1 && b.hp > 0) { V.near = 1; banner('🔥 <b>ALMOST DOWN!</b> One more push, everybody!', 'combo'); say(pick(SAY.near), true); snd('special'); }
       if (b.tg.st === 1 && !(prev.tg.st === 1 && prev.tg.no === b.tg.no)) {
         var mineT = A.MODE === 'student' && A.S.me && b.tg.fps.indexOf(sh3(A.S.me.sid)) >= 0;
         banner('🎯 <b>' + esc(bossOf(b).name) + '</b> targets <b>' + b.tg.names.map(esc).join(' & ') + '</b>!', 'alarm'); snd('alarm'); if (mineT) V.shake = 1;
       }
     }
-    if (b.win && !V.wonAt) { V.wonAt = performance.now(); boom(); snd('win'); }
+    if (b.win && !V.wonAt) { V.wonAt = performance.now(); boom(); snd('win'); say(pick(SAY.win), true); fx('shake', root, { power: 14, ms: 700 }); fx('burst', root.querySelector('.brstage'), { count: 40, spread: 380, emoji: ['⭐', '💥'] }); }
+    if (prev && b.state === 2 && prev.state === 1) {   // over: nothing queued may cover the ending
+      V.bq = []; [].forEach.call(document.querySelectorAll('.brban'), function (x) { x.remove(); }); V.bbusy = false;
+      if (!b.win) snd('lose');
+    }
     V.prev = b;
-    var sig = [b.state, b.win, b.atk.no, b.atk.st, A.MODE === 'student' ? ST.atk[b.atk.no] : b.atk.of, phaseOf(b), b.top.map(function (t) { return t.n + t.d; }).join('.'), !!POOLS[b.mode],
+    var sig = [b.state, b.win, b.atk.no, b.atk.st, A.MODE === 'student' ? ST.atk[b.atk.no] : b.atk.of, phaseOf(b), b.top.map(function (t) { return t.n + t.d; }).join('.'), !!POOLS[b.mode], (b.looks || []).join('.'),
       b.tg.no + '.' + b.tg.st, A.MODE === 'student' ? [ST.hero, ST.tg[b.tg.no], targeted(b)].join('.') : [b.tg.names.join('.'), b.combo, b.shields].join('.')].join('|');
     if (sig !== V.sig) { V.sig = sig; draw(); } else drawTop();
   }
@@ -220,36 +255,112 @@
     if (!root || V.bbusy || !V.bq || !V.bq.length) return;
     var o = V.bq.shift(); V.bbusy = true;
     var b = H('div', 'brban ' + o.kind + (A.MODE === 'screen' ? ' big' : ''), o.html); document.body.appendChild(b);
+    var z = zoomOf(); if (z !== 1) b.style.zoom = z;
     setTimeout(function () { b.classList.add('out'); }, A.MODE === 'screen' ? 2600 : 2100);
     setTimeout(function () { b.remove(); if (V) { V.bbusy = false; nextBanner(); } }, A.MODE === 'screen' ? 3000 : 2500);
   }
-  // sound: little synthesised effects, off until someone turns them on
-  var AC = null;
-  function soundOn() { return !!SFA.store.get('raid.sound', false); }
-  function snd(k) {
-    if (!soundOn()) return;
-    try {
-      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-      var t = AC.currentTime, notes = { hit: [330], crit: [440, 660], alarm: [220, 180, 220, 180], block: [523, 659, 784], hurt: [200, 140], win: [523, 659, 784, 1047, 1319], tick: [440], special: [392, 523, 659, 880], loot: [784, 988, 1319] }[k] || [500];
-      notes.forEach(function (f, i) { var o = AC.createOscillator(), g = AC.createGain(); o.type = k === 'alarm' || k === 'hurt' ? 'sawtooth' : k === 'tick' ? 'square' : 'triangle'; o.frequency.value = f; o.connect(g); g.connect(AC.destination); var t0 = t + i * (k === 'alarm' ? 0.16 : 0.1); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(k === 'tick' || k === 'hit' ? 0.05 : 0.1, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.25); o.start(t0); o.stop(t0 + 0.28); });
-    } catch (e) { }
+  // sound: the shared kit's little synthesised effects (on for the class screen, off on a student's device until they turn it on)
+  var SND = { hit: 'tap', crit: 'coin', mycrit: 'combo', right: 'right', wrong: 'wrong', alarm: 'whoosh', block: 'right', hurt: 'boom', win: 'win', lose: 'lose', tick: 'tick', special: 'levelup', loot: 'coin' };
+  function soundOn() { return !!window.SFA_FX && !SFA_FX.muted(); }
+  function snd(k) { fx('sfx', SND[k] || k); }
+  // the class screen is read from the back of the room: everything is drawn for a 1280 × 720 page and scaled up to fit
+  function zoomOf() { if (A.MODE === 'student') return 1; var w = window.innerWidth || 1280, h = window.innerHeight || 720; return w < 1100 ? 1 : Math.max(1, Math.min(2.6, w / 1280, h / 720)); }
+  function fit() { if (!root) return; var z = zoomOf(); root.style.zoom = z === 1 ? '' : z; root.style.setProperty('--z', z); }
+  window.addEventListener('resize', function () { if (root) fit(); });
+  // the look of the raid, round 3 (kept here so the game travels as one file; sfa-lesson.css has the base)
+  function css() {
+    if (document.getElementById('sfa-raid-css3')) return;
+    var s = document.createElement('style'); s.id = 'sfa-raid-css3';
+    s.textContent = [
+      '.br{background:radial-gradient(ellipse at 50% -10%,#4a2463 0%,#1c0f2c 46%,#0d0714 100%)}',
+      '.brtop{position:relative;z-index:2}',
+      '.brtitle{text-shadow:0 2px 0 #5a1c22}',
+      '.brhp{height:30px;box-shadow:inset 0 2px 6px rgba(0,0,0,.6),0 0 0 2px rgba(255,255,255,.07)}',
+      '.brhp i{box-shadow:inset 0 -7px 10px rgba(0,0,0,.22),inset 0 3px 0 rgba(255,255,255,.35)}',
+      '.brhp::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 2px),rgba(0,0,0,.4) calc(10% - 2px) 10%);pointer-events:none}',
+      '.brhp span{z-index:1;font-size:15px;letter-spacing:.02em}',
+      '.brclock{background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.16);border-radius:12px;padding:2px 10px;min-width:64px;text-align:center;font-variant-numeric:tabular-nums}',
+      '.br.final .brclock{color:#FF6B6B;border-color:#FF3B3B;animation:brpulse .5s ease-in-out infinite alternate}',
+      '.br.final::after{content:"";position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 110px 16px rgba(255,40,40,.38);animation:brvig 1s ease-in-out infinite alternate;z-index:1}',
+      '@keyframes brvig{from{opacity:.3}to{opacity:1}}',
+      '.brstage{background:radial-gradient(ellipse at 50% 80%,rgba(255,255,255,.12),rgba(0,0,0,.3) 70%),linear-gradient(180deg,#2c1744,#140a20);box-shadow:inset 0 0 60px rgba(0,0,0,.55),0 10px 30px rgba(0,0,0,.35)}',
+      '.brstage.p2{border-color:rgba(255,176,32,.65)}.brstage.p3{border-color:#ff5b3b;box-shadow:inset 0 0 70px rgba(255,60,40,.35),0 0 30px rgba(255,60,40,.3)}',
+      '.brstage .brboss{position:relative;z-index:1}',
+      '.br.screen .brstage::before{content:"";position:absolute;left:50%;top:52%;width:175%;aspect-ratio:1;margin:-87.5% 0 0 -87.5%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.045) 0 9deg,transparent 9deg 18deg);animation:brrays 70s linear infinite;pointer-events:none}',
+      '.br.screen .brstage.p3::before{background:repeating-conic-gradient(from 0deg,rgba(255,90,60,.09) 0 9deg,transparent 9deg 18deg);animation-duration:26s}',
+      '@keyframes brrays{to{transform:rotate(360deg)}}',
+      '.br.screen .brboss{max-height:calc(100vh / var(--z,1) - 98px);object-fit:contain}',
+      '.brdmg,.brcheerfx,.brsp,.brweak,.brsay{z-index:3}.brme,.brcheer{position:relative;z-index:2}',
+      '.brdmg{-webkit-text-stroke:1px rgba(20,20,40,.6)}',
+      '.brme{padding:6px 10px;border-radius:14px;background:rgba(0,0,0,.28)}',
+      '.brme.stk-warm{--fxc:rgba(255,201,77,.5)}.brme.stk-hot{--fxc:rgba(255,140,60,.65)}.brme.stk-fire{--fxc:rgba(255,80,60,.8);background:rgba(90,20,10,.5)}',
+      '.brstk{font-weight:800;color:#FFC94D}.brstk.hot{color:#FF9D4D}.brstk.fire{color:#FF6B57;display:inline-block;animation:fxPulse .7s ease-in-out infinite}',
+      '.brsay{position:absolute;right:3%;top:21%;max-width:46%;padding:.42em .8em;border-radius:1.1em;background:#fff;color:#1b1a22;font:800 clamp(14px,2.2vw,21px)/1.15 var(--ui,system-ui);box-shadow:0 5px 0 rgba(0,0,0,.35);animation:brsay 2.8s ease both;text-align:center;pointer-events:none;transform-origin:0 100%}',
+      '.brsay::after{content:"";position:absolute;left:-13px;bottom:12px;border:9px solid transparent;border-right:16px solid #fff;border-left:0}',
+      '.br.screen .brsay{font-size:30px;max-width:34%}',
+      '@keyframes brsay{0%{opacity:0;transform:scale(.4) rotate(-8deg)}8%{opacity:1;transform:scale(1.1) rotate(2deg)}14%{transform:scale(1)}88%{opacity:1}100%{opacity:0;transform:scale(1)}}',
+      '.brban{font-family:var(--ui,system-ui);font-weight:600;background:linear-gradient(180deg,#3a1644,#24102e)}.brban b{color:#FFE14D}',
+      '.brban.alarm{background:linear-gradient(180deg,#6a1018,#3c0a10)}.brban.block{background:linear-gradient(180deg,#12402a,#0c2a1c)}',
+      '.brq{box-shadow:0 8px 24px rgba(0,0,0,.35)}',
+      '.brq .row{display:flex;flex-wrap:nowrap;gap:8px;align-items:stretch}.brq .row input{flex:1 1 0;width:auto;min-width:0;font:700 20px var(--ui,system-ui);padding:10px 12px;border-radius:12px;border:2px solid rgba(255,225,77,.55);background:#120a1c;color:#fff}',
+      '.brq .row input:focus{outline:none;border-color:#FFE14D;box-shadow:0 0 0 3px rgba(255,225,77,.25)}.brq .row .btn{flex:0 0 auto;font-size:17px}',
+      '.brq .fb{animation:fxRise .3s cubic-bezier(.2,.9,.3,1.2) both}.brq .fb i{display:block;margin-top:4px;opacity:.85}',
+      '.brrow{position:relative;padding:5px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(255,138,138,.24) var(--w,0%),rgba(255,255,255,.05) var(--w,0%))}',
+      '.brrow.up{animation:brup .7s ease both}@keyframes brup{0%{transform:translateY(14px);background-color:rgba(255,225,77,.5)}100%{transform:none}}',
+      '.brlvs.hot{background:rgba(255,120,60,.22);color:#FF9D4D}',
+      '.brlead h3{font-size:22px;letter-spacing:.03em}',
+      '.br.screen .brside{gap:10px}.br.screen .brlead{padding:10px 14px}.br.screen .brlead p{margin:0 0 5px}.br.screen .brcombo .brcm{margin:0}.br.screen .brcombo .brcm b{font-size:44px}.br.screen .brcombo h3{display:inline-block;margin:0 12px 0 0;vertical-align:middle}.br.screen .brcombo .brcm{display:inline-block;vertical-align:middle}',
+      '.br.screen .brq .fb{font-size:15px;max-height:5.2em;overflow:hidden}',
+      '.bratkbar{height:12px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:6px}.bratkbar i{display:block;height:100%;background:linear-gradient(90deg,#FF8A8A,#FFE14D);transition:width .5s}',
+      '.brcount.beat{animation:bbbeat .9s ease-out}',
+      '.brtrophy{font-size:clamp(60px,10vw,120px);line-height:1;animation:bbhop .6s ease-in-out infinite alternate}',
+      '.brend{background:radial-gradient(ellipse at center,rgba(60,20,80,.86),rgba(8,4,14,.94))}.brend.win{background:radial-gradient(ellipse at center,rgba(90,60,10,.82),rgba(8,4,14,.94))}',
+      '.brend h1{letter-spacing:.03em}.brsum{margin:4px 0 0;opacity:.95}.brsum b{color:#FFE14D}',
+      '.brmvp img{width:92px;height:92px;margin:2px 0;filter:drop-shadow(0 4px 0 rgba(0,0,0,.4))}',
+      '.brmvp.m0{border-color:#FFE14D;box-shadow:0 0 30px rgba(255,225,77,.4);padding-top:22px;padding-bottom:22px}.brmvp.m1{border-color:#cfd6e6}.brmvp.m2{border-color:#e0a070}',
+      '.brmine.you{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}.brmine.you img{width:56px;height:56px}',
+      '.br.screen .brtrophy{font-size:84px}.br.screen .brend .in{padding-top:8px}.br.screen .brend h1{margin:4px 0}',
+      '.br.screen .brmvp{min-width:190px;padding:16px 24px}.br.screen .brmvp img{width:120px;height:120px}',
+      '.brend{overflow:auto;align-items:flex-start}.brend .in{margin:auto;padding-top:26px}',
+      '@media (max-width:820px){.brend{padding:12px 8px}.brmvps{gap:6px;flex-wrap:nowrap;margin:10px 0}.brmvp,.brmvp.m0{min-width:0;flex:1 1 0;padding:8px 4px}.brmvp img{width:56px;height:56px}.brmvp b{font-size:17px}.brmvp span{font-size:24px}.brmvp i{font-size:12px;text-align:center}.brtrophy{font-size:52px}.brend h1{font-size:40px}.brend p{font-size:16px;margin:6px 0}}',
+      '.brpickc{transition:transform .12s,background .12s}.brpickc:active{transform:scale(.95)}',
+      '.brspbtn,.brboxbtn{position:relative;z-index:2}',
+      '@media (max-width:820px){.brbody,.br.screen .brbody{grid-template-columns:minmax(0,1fr)}.brme{margin:4px 0 6px}.brspbtn{font-size:18px;padding:8px 14px}.brtop{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 8px;align-items:center}.brtitle{grid-column:1;grid-row:1;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brclock{grid-column:2;grid-row:1;font-size:22px;min-width:58px}.brtop .bbsnd{grid-column:3;grid-row:1}.brname{grid-column:1/-1;font-size:15px;margin-bottom:-4px}.brhp{grid-column:1/-1;height:24px}.brbuffs{grid-column:1/-1}.brsay{font-size:15px}.br{padding:10px 10px 20px;gap:10px}.brq .q{font-size:19px}}',
+      '@media (prefers-reduced-motion:reduce){.br.final::after,.br.final .brclock,.br.screen .brstage::before,.brsay,.brstk.fire,.brrow.up,.brtrophy,.brcount{animation:none}}'
+    ].join('\n');
+    document.head.appendChild(s);
+  }
+  // the boss talks: a speech bubble over its head (one at a time, not too often unless it matters)
+  function say(t, force) {
+    if (!root || !V || !t) return; var now = Date.now(); if (!force && now - (V.sayAt || 0) < 6000) return; V.sayAt = now;
+    var st = root.querySelector('.brstage'); if (!st) return; var old = st.querySelector('.brsay'); if (old) old.remove();
+    var s = H('div', 'brsay', esc(t)); st.appendChild(s); setTimeout(function () { s.remove(); }, 2800);
+  }
+  // my own answer, the moment I give it: the box flashes, the number floats up, a wrong answer shakes
+  function juice(ok, txt, big) {
+    if (!root) return; var q = root.querySelector('.brq'), me = root.querySelector('.brme'), at = (q && q.querySelector('.fb')) || q;
+    if (ok) { fx('pop', me); fx('flash', q, 'rgba(124,242,162,.4)'); fx('float', at, txt, { color: big ? '#FFE14D' : '#7CF2A2', size: big ? 44 : 32 }); fx('burst', at, { count: big ? 22 : 10, spread: big ? 260 : 160, emoji: big ? ['💥', '⭐'] : null }); snd(big ? 'mycrit' : 'right'); }
+    else { fx('shake', q, { power: 8 }); fx('flash', q, 'rgba(255,80,80,.4)'); snd('wrong'); }
   }
 
   /* ---------- the boss: drawn on a canvas, animated ---------- */
   function hitFx(name, d, crit) {
     if (!root) return;
-    V.hurt = 1; snd(crit ? 'crit' : 'hit');
+    V.hurt = 1; if (name !== 'You') snd(crit ? 'crit' : 'hit');
     var st = root.querySelector('.brstage'); if (!st || st.querySelectorAll('.brdmg').length > 14) return;
-    var f = H('div', 'brdmg' + (crit ? ' crit' : ''), (name ? '<small>' + esc(name) + '</small>' : '') + '−' + d + (crit ? '!' : ''));
-    f.style.left = (25 + Math.random() * 50) + '%'; f.style.top = (18 + Math.random() * 40) + '%';
+    var f = H('div', 'brdmg' + (crit ? ' crit' : ''), (name ? '<small>' + esc(name) + '</small>' : '') + '−' + d + (crit ? '!' : '')), px = 25 + Math.random() * 50, py = 18 + Math.random() * 40;
+    f.style.left = px + '%'; f.style.top = py + '%';
     st.appendChild(f); setTimeout(function () { f.remove(); }, 1500);
+    // sparks where it lands, and now and then the boss complains
+    var r = st.getBoundingClientRect(); if (r.width && (A.MODE !== 'student' || name === 'You' || crit)) fx('burst', { x: r.left + r.width * px / 100, y: r.top + r.height * py / 100 }, { count: crit ? 12 : 5, spread: crit ? 200 : 110, colors: crit ? ['#FFE14D', '#FF7A2E', '#fff'] : ['#fff', '#9CFBFF', bossOf(V.b).col[0]] });
+    if (crit && Math.random() < 0.4) say(pick(SAY.ouch));
   }
   // what a classmate did, on every screen: hits float up, specials fill the stage, dodges and stuns get a banner
   function evFx(e) {
     if (e.k >= 30 && e.k < 30 + SPELLS.length) { var S = SPELLS[e.k - 30]; spFx({ id: 'spell', e: S.e, sp: S.name }, e.n, e.d); banner('🎁 <b>' + esc(e.n) + '</b> opened a spell box: ' + S.e + ' ' + S.name + '! −' + e.d, 'special'); }
-    else if (e.k === 20) { banner('💚 <b>SECOND WIND!</b> ' + esc(bossOf(V.b).name) + ' healed ' + e.d + ' HP. It won\'t go down easy!', 'hurt'); snd('hurt'); V.shake = 1; }
-    else if (e.k >= 10) { var h = HEROES[(e.k - 10) % HEROES.length]; spFx(h, e.n, e.d); banner(h.e + ' <b>' + esc(e.n) + '</b>: ' + h.sp + '! −' + e.d, 'special'); }
-    else if (e.k === 2) { banner('😰 <b>' + esc(bossOf(V.b).name.toUpperCase()) + '</b> IS WEAKENING! Keep hitting!', 'combo'); V.hurt = 1; }
+    else if (e.k === 20) { banner('💚 <b>SECOND WIND!</b> ' + esc(bossOf(V.b).name) + ' healed ' + e.d + ' HP. It won\'t go down easy!', 'hurt'); snd('hurt'); V.shake = 1; say(pick(SAY.wind), true); }
+    else if (e.k >= 10) { var h = HEROES[(e.k - 10) % HEROES.length]; spFx(h, e.n, e.d); banner(h.e + ' <b>' + esc(e.n) + '</b>: ' + h.sp + '! −' + e.d, 'special'); say(pick(SAY.special)); }
+    else if (e.k === 2) { banner('😰 <b>' + esc(bossOf(V.b).name.toUpperCase()) + '</b> IS WEAKENING! Keep hitting!', 'combo'); V.hurt = 1; say(pick(SAY.weak), true); }
     else if (e.k === 3) { hitFx(e.n + ' dodged!', e.d, 1); }
     else if (e.k === 4) { banner('😵 <b>' + esc(e.n) + '</b> got stunned!', 'hurt'); }
     else if (e.k >= 5 && e.k <= 9) cheerFx(EMO[e.k - 5], e.n);
@@ -269,6 +380,8 @@
     var st = root.querySelector('.brstage'); if (!st) return;
     var f = H('div', 'brsp ' + h.id, '<span>' + h.e + '</span><b>' + h.sp + '!</b><small>' + esc(name) + ' · −' + d + '</small>');
     st.appendChild(f); setTimeout(function () { f.remove(); }, 1900);
+    var big = A.MODE !== 'student' || name === 'You';   // a classmate's special is a small sparkle on my own device
+    fx('burst', st, { count: big ? 18 : 6, spread: big ? 320 : 200, emoji: [h.e], colors: [h.col || '#FFE14D', '#fff'] }); if (big) fx('shake', st, { power: 7, ms: 380 });
   }
   function boom() { for (var i = 0; i < 60; i++) { var a = Math.random() * Math.PI * 2, s = 120 + Math.random() * 380; V.parts.push({ x: 300, y: 250, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120, life: 1.4 + Math.random(), c: ['#FFE14D', '#FF7AC0', '#7CF2A2', '#53E0FF', '#fff'][i % 5] }); } }
   function frame(dt) {
@@ -363,6 +476,11 @@
     var bar = t.querySelector('.brhp'); bar.className = 'brhp p' + phaseOf(b);
     bar.querySelector('i').style.width = (100 * f).toFixed(1) + '%'; bar.querySelector('u').style.width = (100 * f).toFixed(1) + '%';
     bar.querySelector('span').textContent = Math.max(0, b.hp) + ' / ' + b.max + ' HP';
+    // the last 30 seconds: the clock turns red, the edges of the screen pulse, one loud call
+    var fin = b.state === 1 && !b.win && left > 0 && left <= 30; root.classList.toggle('final', fin);
+    if (fin && !V.f30 && left > 12) { V.f30 = 1; banner('⏰ <b>30 SECONDS!</b> Everybody attack!', 'alarm'); snd('alarm'); say(pick(SAY.time), true); }
+    // a quiet moment: the boss taunts
+    if (b.state === 1 && !b.win && !b.atk.st && Date.now() - (V.sayAt || 0) > 17000) say(pick(phaseOf(b) === 3 ? SAY.last : SAY.idle));
     var at = root.querySelector('.bratkt'); if (at && b.atk.st === 1) at.textContent = atkLeft(b) + ' s';
     var tt = root.querySelector('.brtgt'); if (tt && b.tg.st === 1) tt.textContent = tgLeft(b) + ' s';
     var bf = t.querySelector('.brbuffs'), sl = songLeft(b);
@@ -371,7 +489,7 @@
     if (A.MODE === 'student' && targeted(b) && tgLeft(b) === 0) tgAnswer(false);
     if (A.MODE === 'student' && ST.stunUntil && Date.now() >= ST.stunUntil && V.stunned) { V.stunned = false; draw(); }
     var cd = root.querySelector('.brcount');
-    if (b.state === 1 && left > 0 && left <= 10 && !b.win) { if (!cd) { cd = H('div', 'brcount'); root.appendChild(cd); } if (cd.textContent !== String(left)) { cd.textContent = left; snd('tick'); } }
+    if (b.state === 1 && left > 0 && left <= 10 && !b.win) { if (!cd) { cd = H('div', 'brcount'); root.appendChild(cd); } if (cd.textContent !== String(left)) { cd.textContent = left; cd.classList.remove('beat'); void cd.offsetWidth; cd.classList.add('beat'); snd('tick'); } }
     else if (cd) cd.remove();
     // the attack window closes on this screen at 0 even if the console's word is still on its way
     if (A.MODE === 'student' && b.atk.st === 1 && atkLeft(b) === 0 && !V.closedAtk) { V.closedAtk = b.atk.no; draw(); }
@@ -381,14 +499,14 @@
     var b = V.b, B = bossOf(b);
     var typed = {}, focus = document.activeElement && root.contains(document.activeElement) ? document.activeElement.getAttribute('aria-label') : null;
     [].forEach.call(root.querySelectorAll('input'), function (x) { typed[x.getAttribute('aria-label')] = x.value; });
-    var floats = root.querySelectorAll('.brdmg,.brcheerfx,.brsp');
+    var floats = root.querySelectorAll('.brdmg,.brcheerfx,.brsp,.brsay');
     root.innerHTML = '';
     setTimeout(function () { if (!root) return; [].forEach.call(root.querySelectorAll('input'), function (x) { var k = x.getAttribute('aria-label'); if (typed[k]) x.value = typed[k]; if (k === focus) x.focus({ preventScroll: true }); }); nextBanner(); }, 0);
     var top = H('div', 'brtop', '<span class="brtitle">👹 BOSS RAID <small>' + esc(MODES[b.mode]) + '</small></span><span class="brname">' + B.e + ' ' + esc(B.name) + '</span><span class="brhp"><u></u><i></i><span></span></span><span class="brbuffs"></span><span class="brclock"></span><button type="button" class="bbsnd" title="Sound effects">' + (soundOn() ? '🔊' : '🔇') + '</button>');
     root.appendChild(top);
-    top.querySelector('.bbsnd').onclick = function () { SFA.store.set('raid.sound', !soundOn()); this.textContent = soundOn() ? '🔊' : '🔇'; snd('block'); };
+    top.querySelector('.bbsnd').onclick = function () { if (window.SFA_FX) SFA_FX.mute(!SFA_FX.muted()); this.textContent = soundOn() ? '🔊' : '🔇'; snd('loot'); };
     var body = H('div', 'brbody'); root.appendChild(body);
-    var stage = H('div', 'brstage' + (b.atk.st === 1 && !b.win ? ' charging' : '')), cv = document.createElement('canvas');
+    var stage = H('div', 'brstage p' + phaseOf(b) + (b.atk.st === 1 && !b.win ? ' charging' : '')), cv = document.createElement('canvas');
     cv.className = 'brboss'; cv.width = A.MODE === 'screen' ? 960 : 600; cv.height = A.MODE === 'screen' ? 704 : 440; stage.appendChild(cv);
     [].forEach.call(floats, function (f) { stage.appendChild(f); });
     body.appendChild(stage);
@@ -414,7 +532,8 @@
   // my hero, my special's charge, my buffs, and the big button when it's ready
   function heroBar() {
     var bar = H('div', 'brme'), h = HEROES[ST.hero];
-    var dmg = '⚔️ <b>' + ST.dmg + '</b> damage' + (ST.streak >= 2 ? ' · 🔥 ' + ST.streak + ' in a row' : '') + (ST.buffs.dbl ? ' · 💥×2 for ' + ST.buffs.dbl : '') + (ST.buffs.crit ? ' · 🎯 ' + ST.buffs.crit + ' sure crit' + (ST.buffs.crit > 1 ? 's' : '') : '');
+    var tier = fx('streak', ST.streak); if (tier) bar.classList.add('stk-' + tier); if (tier === 'hot' || tier === 'fire') bar.classList.add('fx-glow');
+    var dmg = '⚔️ <b>' + ST.dmg + '</b> damage' + (ST.streak >= 2 ? ' · <span class="brstk' + (tier ? ' ' + tier : '') + '">' + (tier === 'fire' ? '🔥🔥🔥 ' : tier === 'hot' ? '🔥🔥 ' : '🔥 ') + ST.streak + ' in a row' + (tier === 'fire' ? '!!' : tier === 'hot' ? '!' : '') + '</span>' : '') + (ST.buffs.dbl ? ' · 💥×2 for ' + ST.buffs.dbl : '') + (ST.buffs.crit ? ' · 🎯 ' + ST.buffs.crit + ' sure crit' + (ST.buffs.crit > 1 ? 's' : '') : '');
     if (!h) { bar.innerHTML = dmg; return bar; }
     var I = hinfo();
     bar.innerHTML = '<span class="brhero" style="--hc:' + h.col + '">' + h.e + ' ' + h.name + '</span><span class="brlv" title="' + I.xp + ' XP">⭐ Lv ' + I.lv + '</span><span class="brpips">' + [0, 1, 2, 3].map(function (i) { return '<i class="' + (i < ST.charge ? 'on' : '') + '"></i>'; }).join('') + '</span> ' + dmg;
@@ -430,7 +549,7 @@
     var d = h.d + hinfo().perks.sp;
     ST.charge = 0; ST.spUsed++; ST.dmg += d;
     if (h.id === 'archer') ST.buffs.crit += 3;
-    keep(); send(); spFx(h, 'You', d);
+    keep(); send(); spFx(h, 'You', d); fx('float', root.querySelector('.brstage'), '−' + d, { color: h.col, size: 54 });
     SFA.toast(h.e + ' ' + h.sp + '! ' + h.txt + (d > h.d ? ' (+' + (d - h.d) + ' for your level)' : ''), 3500); draw();
   }
   function charge(n) { var was = ST.charge; ST.charge = Math.min(CHARGE, ST.charge + n); if (was < CHARGE && ST.charge >= CHARGE && ST.hero != null) { snd('loot'); SFA.toast(HEROES[ST.hero].e + ' Your ' + HEROES[ST.hero].sp + ' is ready! Press the glowing button.', 3500); } }
@@ -554,6 +673,7 @@
     if (ok) { ST.dg++; ST.dmg += DODGE; charge(2); hitFx('DODGED!', DODGE, 1); SFA.toast('🌀 Dodged! You hit back for ' + DODGE + ' and charged your special.', 3000); }
     else { ST.sn++; ST.stunUntil = Date.now() + STUN_MS; ST.streak = 0; V.shake = 1; snd('hurt'); }
     keep(); send(); draw();
+    if (ok) juice(true, '🌀 +' + DODGE, true); else { fx('shake', root, { power: 12, ms: 500 }); fx('flash', null, 'rgba(255,176,32,.4)'); }
   }
   function drawTarget(box) {
     var b = V.b, q = tgQ(b), B = bossOf(b);
@@ -610,7 +730,7 @@
       var first = !ST.tries; ST.hits++; ST.n++;
       if (q.easy) {   // warm-ups: a tiny scratch; streaks and critical hits are for the real questions
         ST.dmg += EASY_D; charge(1); xp(4); ST.fb = { ok: true, html: '<b>🗡️ Scratch! ' + EASY_D + ' damage.</b> Warm-ups are small hits, but they charge your special.' };
-        hitFx('You', EASY_D, 0); sendSoon(); keep(); draw(); return;
+        hitFx('You', EASY_D, 0); sendSoon(); keep(); draw(); juice(true, '−' + EASY_D + ' ⚡+1', false); return;
       }
       ST.streak = first ? ST.streak + 1 : 0; ST.best = Math.max(ST.best, ST.streak);
       var sure = ST.buffs.crit > 0, crit = (first && ST.streak >= 3) || sure, d = first ? 10 : 5, dbl = ST.buffs.dbl > 0, song = songLeft(V.b) ? 5 : 0, combo = CMUL[V.b.combo] || 1;
@@ -620,13 +740,15 @@
       var extra = [crit && !sure ? '🔥 ' + ST.streak + ' in a row' : '', sure ? '🎯 sure crit' : '', dbl ? '💥 double' : '', song ? '🎸 +5' : '', combo > 1 ? '⚡ combo x' + combo : ''].filter(Boolean).join(' · ');
       ST.fb = { ok: true, html: '<b>' + (crit ? '💥 CRITICAL HIT! ' : '⚔️ Hit! ') + d + ' damage.</b>' + (extra ? ' ' + extra + '.' : first && ST.streak === 2 ? ' One more in a row for a critical hit.' : '') };
       hitFx('You', d, crit); if (!maybeLoot(crit)) maybeBox(); aim(d); sendSoon(); keep(); draw();
+      juice(true, (crit ? '💥 −' : '−') + d, crit);
+      var tr = fx('streak', ST.streak); if (first && (ST.streak === 4 || ST.streak === 7)) fx('banner', tr === 'fire' ? 'ON FIRE!' : 'HOT STREAK!', { sub: ST.streak + ' in a row', ms: 1200, tone: 'win' });
     }
-    function wrong() { xp(1); if (!q.easy) ST.streak = 0; ST.n++; mark(0); ST.cool = Date.now() + (q.easy ? 2000 : 4000); ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') }; sendSoon(); keep(); draw(); }
+    function wrong() { var lost = ST.streak; xp(1); if (!q.easy) ST.streak = 0; ST.n++; mark(0); ST.cool = Date.now() + (q.easy ? 2000 : 4000); ST.fb = { ok: false, html: '<b>The answer is ' + esc(q.k === 'poll' ? A.letter(q.ans) : A.numTxt(q.ans)) + '.</b> ' + A.fmt(q.why || '') + (lost >= 3 && !q.easy ? ' <i>Streak of ' + lost + ' over. Start a new one!</i>' : '') }; sendSoon(); keep(); draw(); juice(false); }
     if (q.k === 'number') {
       var inp = el('input', { type: 'text', inputmode: 'decimal', placeholder: 'Type a number', 'aria-label': 'Answer', autocomplete: 'off' }), go = el('button', { type: 'button', 'class': 'btn primary', text: '⚔️ Attack' }), row = H('div', 'row');
       row.appendChild(inp); row.appendChild(go); box.appendChild(row);
       if (ST.tries) box.appendChild(H('p', 'state', 'Not yet: one more try (half damage).'));
-      var check = function () { var v = A.numOf(inp.value); if (!inp.value.trim() || isNaN(v)) return inp.focus(); if (Math.abs(v - q.ans) <= (q.tol || 1e-9) + 1e-9) right(); else if (!ST.tries) { ST.tries = 1; keep(); draw(); } else wrong(); };
+      var check = function () { var v = A.numOf(inp.value); if (!inp.value.trim() || isNaN(v)) return inp.focus(); if (Math.abs(v - q.ans) <= (q.tol || 1e-9) + 1e-9) right(); else if (!ST.tries) { ST.tries = 1; keep(); draw(); fx('shake', root.querySelector('.brq'), { power: 5, ms: 300 }); snd('hit'); } else wrong(); };
       go.onclick = check; inp.onkeydown = function (e) { if (e.key === 'Enter') check(); };
     } else {
       var list = H('div', 'opts'); box.appendChild(list);
@@ -645,7 +767,7 @@
       if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (e) { } }
       if (mine != null) { box.appendChild(H('div', 'fb ' + (mine ? 'good' : 'try'), '<b>Locked in.</b> ' + (mine ? '✅ You got it.' : '❌ Not that one.') + ' Waiting for the rest of the class…')); return; }
       if (atkLeft(b) <= 0) { box.appendChild(H('p', 'state', 'Time! Waiting for the result…')); return; }
-      var answer = function (ok) { ST.atk[a.no] = ok ? 1 : 0; xp(ok ? 10 : 1); keep(); send(); draw(); };
+      var answer = function (ok) { ST.atk[a.no] = ok ? 1 : 0; xp(ok ? 10 : 1); keep(); send(); draw(); if (ok) juice(true, '🛡️ Got it!', false); else juice(false); };
       if (q.k === 'number') {
         var inp = el('input', { type: 'text', inputmode: 'decimal', placeholder: 'Type a number', 'aria-label': 'Block', autocomplete: 'off' }), go = el('button', { type: 'button', 'class': 'btn primary', text: '🛡️ Block' }), row = H('div', 'row');
         row.appendChild(inp); row.appendChild(go); box.appendChild(row);
@@ -672,7 +794,8 @@
         box.appendChild(H('p', 'kick', '⚠️ ' + bossOf(b).atk + ' · <span class="bratkt">' + atkLeft(b) + ' s</span>'));
         box.appendChild(H('p', 'brrule', 'Answer on your device! 60% right blocks it.'));
         if (q) { box.appendChild(H('p', 'q', A.fmt(q.q))); if (q.fig) { var f = H('div', 'cfig'); try { f.appendChild(A.figure(q.fig)); box.appendChild(f); } catch (e) { } } if (q.k === 'poll') { var ol = H('div', 'bropts'); q.opts.forEach(function (o, k) { ol.appendChild(H('p', '', '<b>' + A.letter(k) + '</b> ' + A.fmt(o))); }); box.appendChild(ol); } }
-        box.appendChild(H('p', 'brcnt', '<b>' + a.of + '</b> answered'));
+        box.appendChild(H('p', 'brcnt', '<b>' + a.of + '</b> of ' + Math.max(a.of, b.n) + ' answered'));
+        box.appendChild(H('div', 'bratkbar', '<i style="width:' + Math.round(100 * a.of / Math.max(1, a.of, b.n)) + '%"></i>'));
       } else {
         box.appendChild(H('p', 'kick', a.blocked ? '🛡️ BLOCKED!' : '💥 THE BOSS HIT'));
         box.appendChild(H('p', 'q', '<b>' + a.right + ' of ' + a.of + '</b> right' + (a.of ? ' (' + Math.round(100 * a.right / a.of) + '%)' : '') + (a.blocked ? '. Counter-attack!' : '. It healed ' + (V.lastHeal || 0) + ' HP.')));
@@ -682,29 +805,36 @@
     if (b.tg.st === 1 && b.state === 1 && !b.win) side.appendChild(H('div', 'brq atk tg', '<p class="kick">🎯 TARGETED · <span class="brtgt">' + tgLeft(b) + ' s</span></p><p class="q"><b>' + b.tg.names.map(esc).join(', ') + '</b>: answer to dodge, or get stunned!</p>'));
     var lb = H('div', 'brlead'); lb.appendChild(H('h3', '', '⚔️ Top damage'));
     if (!b.top.length) lb.appendChild(H('p', 'muted', 'Answer questions to attack!'));
-    b.top.forEach(function (t, i) { lb.appendChild(H('p', '', '<span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + '</span> <b>' + esc(t.n) + '</b>' + (t.lv > 1 ? '<em class="brlvs">Lv ' + t.lv + '</em>' : '') + ' <i>' + t.d + '</i>')); });
+    var topD = b.top.length ? Math.max(1, b.top[0].d) : 1, was = V.topWas || {};
+    b.top.forEach(function (t, i) { var row = H('p', 'brrow' + (was[t.n] != null && was[t.n] > i ? ' up' : ''), '<span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + '</span> <b>' + esc(t.n) + '</b>' + (t.lv > 1 ? '<em class="brlvs">Lv ' + t.lv + '</em>' : '') + (t.s >= 3 ? '<em class="brlvs hot">🔥' + t.s + '</em>' : '') + ' <i>' + t.d + '</i>'); row.style.setProperty('--w', Math.round(100 * t.d / topD) + '%'); lb.appendChild(row); });
+    V.topWas = {}; b.top.forEach(function (t, i) { V.topWas[t.n] = i; });
     lb.appendChild(H('p', 'muted', b.n + ' raiders · ' + (b.max - Math.max(0, b.hp) + b.heal) + ' damage so far'));
     // the class combo, big: the more students hit within a few seconds of each other, the harder everyone hits
     if (b.state === 1) side.appendChild(H('p', 'brcheerhint', 'Cheer from your device: ' + EMO.join(' ')));
-    if (b.state === 1) side.appendChild(H('div', 'brlead brcombo c' + b.combo, '<h3>⚡ Class combo</h3><p class="brcm"><b>x' + CMUL[b.combo] + '</b>' + ['', '', ' Nice!', ' MAX!'][b.combo] + '</p><p class="muted">Hit together! The more of you land a hit within a few seconds, the more damage everyone does (up to x2).</p>' + (b.shields ? '<p>🛡️ <b>' + b.shields + '</b> knight shield' + (b.shields > 1 ? 's' : '') + ' up: the next failed block is covered.</p>' : '')));
+    if (b.state === 1) side.appendChild(H('div', 'brlead brcombo c' + b.combo, '<h3>⚡ Class combo</h3><p class="brcm"><b>x' + CMUL[b.combo] + '</b>' + ['', '', ' Nice!', ' MAX!'][b.combo] + '</p>' + (side.querySelector('.brq') ? '' : '<p class="muted">Hit together! The more of you land a hit within a few seconds, the more damage everyone does (up to x2).</p>') + (b.shields ? '<p>🛡️ <b>' + b.shields + '</b> knight shield' + (b.shields > 1 ? 's' : '') + ' up: the next failed block is covered.</p>' : '')));
     side.appendChild(lb);
     if (V.watch) { var x = el('button', { type: 'button', 'class': 'btn bbback', text: '✕ Back to the console' }); x.onclick = function () { close(); }; root.appendChild(x); }
   }
   // the end: the boss is down (or got away), the MVPs, and each student's own result
   function ending(body) {
     var b = V.b, B = bossOf(b), p = H('div', 'brend' + (b.win ? ' win' : ''));
-    var head = b.win ? '<h1>BOSS DEFEATED!</h1><p>The class took down ' + esc(B.name) + '.</p>' : '<h1>IT GOT AWAY…</h1><p>' + esc(B.name) + ' escaped with <b>' + Math.max(0, b.hp) + ' HP</b> left (' + Math.round(100 * Math.max(0, b.hp) / b.max) + '%). So close!</p>';
-    var mvp = b.top.slice(0, 3).map(function (t, i) { return '<div class="brmvp"><span>' + ['🥇', '🥈', '🥉'][i] + '</span><b>' + esc(t.n) + '</b><i>' + t.d + ' damage' + (t.s >= 3 ? ' · 🔥 ' + t.s + ' streak' : '') + '</i></div>'; }).join('');
+    var pct = Math.round(100 * Math.max(0, b.hp) / b.max), close = !b.win && pct <= 25, total = b.max - Math.max(0, b.hp) + b.heal;
+    var head = b.win ? '<div class="brtrophy">🏆</div><h1>BOSS DEFEATED!</h1><p>The class took down ' + B.e + ' ' + esc(B.name) + '!</p>' : '<div class="brtrophy">' + B.e + '💨</div><h1>' + (close ? 'SO CLOSE!' : 'IT GOT AWAY…') + '</h1><p>' + esc(B.name) + ' escaped with <b>' + Math.max(0, b.hp) + ' HP</b> left (' + pct + '%). ' + (close ? 'Next time it\'s yours!' : 'You\'ll get it next time.') + '</p>';
+    head += '<p class="brsum">⚔️ <b>' + total + '</b> damage · 👥 <b>' + b.n + '</b> raiders</p>';
+    // the top three, with their Wardrobe avatars when the console sent them
+    var AV = window.SFA_AVATAR, face = function (look) { try { return AV && look ? '<img alt="" src="data:image/svg+xml;charset=utf-8,' + encodeURIComponent(AV.svg(A.fullLook ? A.fullLook(look) : look, { size: 96 })) + '">' : ''; } catch (e) { return ''; } };
+    var mvp = b.top.slice(0, 3).map(function (t, i) { return '<div class="brmvp m' + i + '"><span>' + ['🥇', '🥈', '🥉'][i] + '</span>' + face((b.looks || [])[i]) + '<b>' + esc(t.n) + '</b><i>' + t.d + ' damage' + (t.s >= 3 ? ' · 🔥 ' + t.s + ' streak' : '') + '</i></div>'; }).join('');
     var mine = '';
     if (A.MODE === 'student') {
       var got = 0, of = 0; Object.keys(ST.res || {}).forEach(function (k) { of++; if (ST.res[k] === 1) got++; });
       if (ST.hits || ST.n) xp(30 + (b.win ? 30 : 0), true);
       var I = hinfo();
-      mine = '<p class="brmine">⭐ Level ' + I.lv + ' ' + esc(I.title) + ' · ' + I.xp + ' XP</p><p class="brmine">You dealt <b>' + ST.dmg + '</b> damage with ' + ST.hits + ' hit' + (ST.hits === 1 ? '' : 's') + (ST.best >= 3 ? ', best streak ' + ST.best : '') + '.' + (b.mode === 1 && of ? ' Exit ticket: <b>' + got + ' of ' + of + '</b> right first time.' : '') + '</p>';
+      var myFace = ''; try { myFace = AV && A.S.me ? face(AV.myLook(AV.profile(), A.S.me.sid)) : ''; } catch (e) { }
+      mine = '<p class="brmine">⭐ Level ' + I.lv + ' ' + esc(I.title) + ' · ' + I.xp + ' XP</p><p class="brmine you">' + myFace + '<span>You dealt <b>' + ST.dmg + '</b> damage with ' + ST.hits + ' hit' + (ST.hits === 1 ? '' : 's') + (ST.best >= 3 ? ', best streak ' + ST.best : '') + '.' + (b.mode === 1 && of ? ' Exit ticket: <b>' + got + ' of ' + of + '</b> right first time.' : '') + '</span></p>';
     }
     p.innerHTML = '<div class="in">' + head + (mvp ? '<div class="brmvps">' + mvp + '</div>' : '') + mine + '</div>';
     body.appendChild(p);
-    if (b.win && !V.partied) { V.partied = true; var n = 0; (function c() { if (!root || n++ > 5) return; A.confetti(); setTimeout(c, 900); })(); }
+    if (b.win && !V.partied) { V.partied = true; if (window.SFA_FX) fx('confetti', { ms: 5000, emoji: ['⭐', '🏆', B.e] }); else { var n = 0; (function c() { if (!root || n++ > 5) return; A.confetti(); setTimeout(c, 900); })(); } }
   }
 
   var sendT = null;
@@ -872,11 +1002,20 @@
     out.zra = [K.atk.no, K.atk.st, K.atk.q, Math.min(9999, K.atk.at), K.atk.right, K.atk.of, K.atk.blocked ? 1 : 0, K.atk.shielded ? 1 : 0];
     out.zrt = [K.tg.no, K.tg.st, K.tg.q, Math.min(9999, K.tg.at)];
   }
-  function topOf(K) { return Object.keys(K.rows).map(function (s) { return { n: nameOf(s), d: K.rows[s].d, s: K.rows[s].b, lv: K.rows[s].lv || 1 }; }).filter(function (t) { return t.d > 0; }).sort(function (a, b) { return b.d - a.d; }).slice(0, 5); }
+  // each student's Wardrobe look, from the "zlookx1" rows every device sends (the classic part: short enough to travel)
+  function looksBySid() {
+    var out = {}, t = {};
+    (A.consoleAnswers() || []).forEach(function (a) { if (a.q !== 'zlookx1') return; var m = String(a.answer).match(/^lk1;([0-9a-z]{1,12})/); if (m && (!t[a.sid] || String(a.time) >= t[a.sid])) { t[a.sid] = String(a.time); out[a.sid] = m[1]; } });
+    return out;
+  }
+  function topOf(K) { return Object.keys(K.rows).map(function (s) { return { sid: s, n: nameOf(s), d: K.rows[s].d, s: K.rows[s].b, lv: K.rows[s].lv || 1 }; }).filter(function (t) { return t.d > 0; }).sort(function (a, b) { return b.d - a.d; }).slice(0, 5); }
   function spot() {
     var K = C();
     var G = K.tg.st === 1 ? '#G:' + K.tg.sids.map(function (s) { return sh3(s) + '~' + nameOf(s); }).join(',') : '';
-    return { q: 'zraid', text: ('T:' + topOf(K).map(function (t) { return t.n + '~' + t.d + '~' + t.s + '~' + t.lv; }).join(',') + G + '#L:' + K.seq + '|' + K.ev.map(function (e) { return clean(e.n) + '~' + e.d + '~' + e.k; }).join(',')).slice(0, 600) };
+    var top = topOf(K), text = ('T:' + top.map(function (t) { return t.n + '~' + t.d + '~' + t.s + '~' + t.lv; }).join(',') + G + '#L:' + K.seq + '|' + K.ev.map(function (e) { return clean(e.n) + '~' + e.d + '~' + e.k; }).join(',')).slice(0, 600);
+    // at the end, the top three's avatars ride along for the podium (only when they fit; older pages ignore the part)
+    if (K.state === 2 && top.length) { var LK = looksBySid(), AV = window.SFA_AVATAR, vl = '#V:' + top.slice(0, 3).map(function (t) { return LK[t.sid] || (AV && AV.defLook ? AV.defLook(t.sid) : ''); }).join(','); if (text.length + vl.length <= 600) text += vl; }
+    return { q: 'zraid', text: text };
   }
   function restore(Lv) {
     var b = raidOf(Lv); if (!b) return false;

@@ -44,6 +44,8 @@
   var STB = ['Bellies', 'Crushers', 'Stompers', 'Titans', 'Bumpers', 'Mountains', 'Rumblers', 'Wobblers'];
   var BOT_LOOK = AV ? AV.encode({ b: 2, e: 1, m: 1, h: 0, a: 0, t: 0, n: 0, k: 9, p: 0 }) : '';
   var TX = 'translateX(-50%) ';
+  // the shared effects kit (sfa-fx.js), if the page has it: J('burst', el, {…}). Never needed, never throws.
+  function J(name) { var F = window.SFA_FX; if (!F || typeof F[name] !== 'function') return undefined; try { return F[name].apply(F, [].slice.call(arguments, 1)); } catch (e) { return undefined; } }
 
   function mix32(h) { h = h >>> 0; h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return h >>> 0; }
   function rng(seed) { var s = mix32(seed) || 1; return function () { s = (Math.imul(s, 1103515245) + 12345) >>> 0; return ((s >>> 8) & 0xffff) / 65536; }; }
@@ -207,8 +209,10 @@
     // the films after the redraw, so a new screen (the bell) doesn't cut them off
     films.forEach(function (f) { if (screenish()) cardMovie(f.m, f); else if (f.m === mm || o.state >= 6) bigMovie(f); });
     if (prev && prev.state !== o.state) {
-      if (o.state === 1) snd('bell');
-      if (o.state === 5) snd('bell');
+      if (o.state === 1) { snd('bell'); J('banner', 'FIGHT ' + o.round + '!', { sub: 'Every 30 seconds: a sumo move', ms: 1400 }); }
+      if (o.state === 5) { snd('bell'); J('banner', 'THE BELL!', { tone: 'info', sub: 'Fight ' + o.round + ' is over', ms: 1400 }); }
+      if (o.state === 7) J('banner', 'GRAND FINAL!', { sub: 'The top two, 1 v 1', ms: 1500 });
+      if (o.state === 2 || o.state === 8) { J('confetti', { ms: 3500, emoji: ['🏆', '⭐'] }); if (soundOn()) J('sfx', 'win'); }
     }
   }
 
@@ -243,6 +247,12 @@
     var o = V && V.o; if (!o || !root) return;
     var now = A.MODE === 'teach' ? Date.now() : sNow(), e = (now - o.at) / 1000, rd = root.querySelector('.smrd'), ck = root.querySelector('.smclock'), sub = root.querySelector('.smsub');
     if (!rd) return;
+    // 3-2-1 into every fight, landing on the same moment on every screen; the clock turns red for the last ten seconds
+    var toGo = o.state === 3 ? o.intro - e : o.state === 4 ? BREAK - e : o.state === 6 ? FIN_INTRO - e : -1, ck2 = o.state + ':' + o.round;
+    if (toGo > 0.8 && toGo <= 3.3 && V.cd !== ck2 && A.MODE !== 'teach') { V.cd = ck2; J('countdown', { from: 3, left: toGo * 1000, go: 'FIGHT!', sub: o.state === 6 ? 'Grand final' : 'Fight ' + (o.state === 4 ? o.round + 1 : o.round) }); }
+    var urg = (o.state === 1 || o.state === 7) && o.rlen - e <= 10 && o.rlen - e > 0;
+    if (ck.classList.contains('smurg') !== urg) ck.classList.toggle('smurg', urg);
+    if (urg && screenish() && soundOn()) { var sec = Math.ceil(o.rlen - e); if (sec !== V.urgS) { V.urgS = sec; J('sfx', 'tick'); } }
     if (o.state === 3) { rd.textContent = 'Meet the teams'; ck.textContent = clock(o.intro - e); sub.textContent = 'first bout soon'; }
     else if (o.state === 1 || o.state === 7) { var nb = Math.ceil(o.rlen / CLIP); rd.textContent = (o.state === 7 ? '🥇 Grand final' : 'Fight ' + o.round + ' of ' + o.rounds) + ' · Bout ' + Math.min(nb, o.clip + 1) + ' of ' + nb; ck.textContent = clock(o.rlen - e); sub.textContent = 'next move in ' + Math.max(0, Math.ceil((o.clip + 1) * CLIP - e)) + ' s'; }
     else if (o.state === 5) { rd.textContent = 'Fight ' + o.round + ' of ' + o.rounds; ck.textContent = '🔔'; sub.textContent = 'the bell!'; }
@@ -499,7 +509,7 @@
   function cardMovie(m, f) {
     var c = V.cards[m.a + 'v' + m.b]; if (!c) return;
     c.busy = Date.now() + MOVIE; movie(c.box, filmOf(f, true));
-    setTimeout(function () { if (V && V.cards[m.a + 'v' + m.b] === c && Date.now() >= c.busy - 50) { c.busy = 0; c.S = scene(c.box, mem(m.a), mem(m.b), true); place(c.S, m.pos); updCard(c, m); } }, MOVIE + 200);
+    setTimeout(function () { if (V && V.cards[m.a + 'v' + m.b] === c && Date.now() >= c.busy - 50) { c.busy = 0; if (c.box._stop) c.box._stop(); c.box.innerHTML = ''; c.S = scene(c.box, mem(m.a), mem(m.b), true); place(c.S, m.pos); updCard(c, m); } }, MOVIE + 200);
   }
 
   // a match card: the ring and the live tug of war
@@ -549,6 +559,7 @@
     var won = mm && mm.fl && ((mm.fl === 1) === (mm.a === t));
     c.innerHTML = '<h2>🔔 The bell! Fight ' + o.round + ' is over</h2>' + (mm && mm.fl ? '<p class="smbig">' + (won ? '🏆 You won fight ' + o.round + '!' : '😤 ' + esc(teamName(mm.fl === 1 ? mm.a : mm.b, V.id)) + ' took this one.') + '</p>' : '') + '<p class="muted">' + (o.round < o.rounds ? 'Rematches next: winners meet winners.' : 'Final results and the highlight reel next…') + '</p>';
     root.appendChild(c);
+    if (won && V.bellFx !== o.round) { V.bellFx = o.round; J('confetti', { ms: 1800 }); J('burst', c, { count: 20, emoji: ['🏆', '⭐'], spread: 240 }); }
   }
   function stBreak() {
     var o = V.o, t = myTeam(), mm = myMatch(o), w = o.w[t] || 0, played = o.round, res = o.l[t];
@@ -684,9 +695,11 @@
   function award(base, missed) {
     var P = ST.pr, mult = [1, 1, 1.25, 1.5, 1.75][P.lvl] || 1, pts = missed ? Math.max(1, Math.round(base * mult / 2)) : Math.round(base * mult);
     ST.p += pts; P.got += pts; ST.sn++; if (!missed) ST.s1++;
-    powPop(pts); sendSoon(); return pts;
+    powPop(pts); sendSoon();
+    var chip = V.work && V.work.querySelector('.smsteps .on'); if (chip) J('burst', chip, { count: missed ? 6 : 11, spread: 110, colors: ['#FFE14D', '#7CF2A2', '#fff'] });
+    return pts;
   }
-  function miss(kind) { var P = ST.pr; P.miss++; ST.w++; ST.ms[kind]++; snd('thud'); }
+  function miss(kind) { var P = ST.pr; P.miss++; ST.w++; ST.ms[kind]++; snd('thud'); if (V.work) J('shake', V.work, { power: 5, ms: 300 }); }
   function powPop(n) {
     var w = V.work; if (!w) return; var r = w.getBoundingClientRect();
     var f = H('div', 'smpow', '+' + n + ' ⚡'); f.style.left = (r.left + r.width / 2 - 30) + 'px'; f.style.top = (r.top + 40) + 'px';
@@ -856,7 +869,10 @@
     xp(P.miss ? 3 : 6);
     P.stage = 4; if (!P.msg || P.good) msg(P.miss ? 'Solved!' : '🔥 Perfect! ' + (ST.k >= 2 ? ST.k + ' in a row: harder problems, more power.' : ''), true);
     snd('crowd'); send(); keep(); drawWork();
-    var my = root && root.querySelectorAll('.smmini b'); if (my && my.length) { my[1].textContent = ST.c; my[2].textContent = ST.k; }
+    // a solved graph is a moment: stars, and the streak called out as it grows
+    if (V.work) J('burst', V.work.querySelector('.smrule') || V.work, { count: P.miss ? 12 : 24, emoji: P.miss ? null : ['⭐', '💪'], spread: P.miss ? 160 : 260, colors: ['#FFE14D', '#7CF2A2', '#fff'] });
+    if (!P.miss && ST.k >= 2) { J('banner', ST.k + ' IN A ROW!', { sub: ST.k >= 4 ? 'Unstoppable. Maximum power!' : 'Harder problems, more power', ms: 1100 }); if (soundOn()) J('sfx', 'combo'); }
+    var my = root && root.querySelectorAll('.smmini b'); if (my && my.length) { my[1].textContent = ST.c; my[2].textContent = ST.k; J('pop', my[2].parentNode); my[2].parentNode.className = J('streak', ST.k) ? 'fx-streak-' + J('streak', ST.k) : ''; }
     setTimeout(function () { if (V && fighting() && ST.pr === P) { newProblem(); drawWork(); } }, 1700);
   }
 
@@ -892,7 +908,11 @@
     var top = o.stand[0];
     c.innerHTML = '<h2>🏆 ' + (top ? esc(teamName(top.t, V.id)) + ' (' + esc(names(top.t)) + ') are the champions!' : 'Final results') + '</h2>';
     var row = H('div', 'smsplit'), reel = H('div', 'smreelbox smrw');
-    row.appendChild(reel); row.appendChild(standings(o)); c.appendChild(row); root.appendChild(c);
+    // the champions take a bow above the standings, so the room sees who won while the reel plays
+    var col = H('div', 'smendcol');
+    if (top) col.appendChild(H('div', 'smchamps', mem(top.t).map(function (x, k) { return '<figure style="animation-delay:' + (k * 0.25) + 's">' + avSvg(x.look, 160) + '<figcaption>' + esc(x.n) + '</figcaption></figure>'; }).join('') + '<i>👑</i>'));
+    col.appendChild(standings(o));
+    row.appendChild(reel); row.appendChild(col); c.appendChild(row); root.appendChild(c);
     playReel(reel);
   }
 
@@ -1315,7 +1335,31 @@
     '.smcap{font-size:18px;font-weight:600;min-height:2.6em;margin:0}.smcap b{color:#FFE14D}',
     '.smdg{display:grid;grid-template-columns:1fr;gap:10px;align-items:center}@media (min-width:640px){.smdg{grid-template-columns:auto minmax(0,1fr)}}.smdg .smgraph svg{max-width:340px}',
     '.smchamp svg{width:200px;height:auto}',
-    '@media (prefers-reduced-motion:reduce){.smline{animation:none;stroke-dashoffset:0}}'
+    '@media (prefers-reduced-motion:reduce){.smline{animation:none;stroke-dashoffset:0}}',
+    // the arcade look: the site's fonts, a lit hall, and a class screen that reads from the back of the room
+    '.sm{overflow-x:hidden;font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 50% -10%,rgba(255,201,74,.22),transparent 55%),radial-gradient(ellipse at top,#4a2414,#140a06 72%)}',
+    '.smtop{margin:-10px -14px 0;padding:8px 14px;background:linear-gradient(180deg,#2a1208,#170b05);border-bottom:3px solid #FFC94A;box-shadow:0 6px 18px rgba(0,0,0,.45);position:sticky;top:-10px;z-index:5}',
+    '.smlogo,.smclock,.smvsx,.smcard h2,.smdh{font-family:"Luckiest Guy","Bricolage Grotesque",system-ui;font-weight:400;letter-spacing:.03em}.smlogo{color:#FFE14D;text-shadow:0 2px 0 #7a4d00}',
+    '.smclock{font-size:30px;text-shadow:0 2px 0 #7a4d00;font-variant-numeric:tabular-nums}.smclock.smurg{color:#fff;background:#C8232C;border-radius:12px;padding:0 .35em;animation:smurg .5s ease-in-out infinite alternate}@keyframes smurg{from{transform:scale(1)}to{transform:scale(1.12)}}',
+    '.smcard,.smwork,.smmatch{border:2px solid rgba(255,225,160,.14);box-shadow:0 8px 20px rgba(0,0,0,.3)}.smcard h2{color:#FFE14D;text-shadow:0 2px 0 #7a4d00}',
+    '.smvside{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.25))}.smvsx{animation:smvs 1s ease-in-out infinite alternate}@keyframes smvs{from{transform:scale(1) rotate(-4deg)}to{transform:scale(1.18) rotate(4deg)}}',
+    '.smrule{box-shadow:0 4px 0 #8a6a2a,0 0 24px rgba(255,225,77,.25)}.smsteps .on{box-shadow:0 0 12px rgba(255,225,77,.7)}.smsteps span{transition:background .3s,opacity .3s}',
+    '.smkeys button{transition:transform .08s}.smkeys .smgo{box-shadow:0 3px 0 #a8862a}.smtbl td.ok{animation:smok .4s cubic-bezier(.3,1.6,.5,1)}@keyframes smok{from{transform:scale(1.5)}to{transform:none}}',
+    '.smmini span{padding:2px 10px;border-radius:99px;background:rgba(255,255,255,.08)}.smmini span.fx-streak-warm,.smmini span.fx-streak-hot,.smmini span.fx-streak-fire{background:rgba(255,122,61,.3);box-shadow:0 0 12px rgba(255,140,60,.6)}',
+    '.smtug i{height:14px;border-radius:7px;box-shadow:inset 0 2px 3px rgba(0,0,0,.4)}.smres{font-family:"Luckiest Guy",system-ui;font-weight:400;letter-spacing:.03em}',
+    '.smstand li:nth-child(1){background:rgba(255,225,77,.16)}.smchamp svg{filter:drop-shadow(0 0 30px rgba(255,225,77,.6));animation:smchamp 1.2s ease-in-out infinite alternate}@keyframes smchamp{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(-14px) rotate(3deg)}}',
+    '.sm.screen{padding:12px 22px 20px;gap:16px}.sm.screen .smtop{margin:-12px -22px 0;padding:10px 22px;top:-12px}',
+    '.sm.screen .smlogo{font-size:clamp(20px,2.4vw,46px)}.sm.screen .smrd{font-size:clamp(14px,1.5vw,30px)}.sm.screen .smclock{font-size:clamp(34px,4.2vw,84px)}.sm.screen .smsub{font-size:clamp(12px,1.2vw,24px)}.sm.screen .smsnd{font-size:clamp(18px,1.6vw,30px)}',
+    '.sm.screen .smgrid{gap:clamp(10px,1vw,20px);grid-template-columns:repeat(auto-fit,minmax(min(100%,22.5vw),1fr))}.sm.screen .smmatch{padding:clamp(8px,.7vw,14px)}',
+    '.sm.screen .smtn{font-size:clamp(13px,1.05vw,22px)}.sm.screen .smnames{font-size:clamp(12px,1vw,20px)}.sm.screen .smtug{font-size:clamp(14px,1.3vw,26px)}.sm.screen .smtug i{height:clamp(12px,1.1vw,22px);border-radius:99px}.sm.screen .smres{font-size:clamp(14px,1.3vw,26px)}',
+    '.sm.screen .smcard{padding:clamp(14px,1.4vw,28px);gap:clamp(10px,1vw,20px)}.sm.screen .smcard h2{font-size:clamp(26px,3vw,60px)}.sm.screen .smcard>p,.sm.screen .smbig{font-size:clamp(16px,1.6vw,32px)}',
+    '.sm.screen .smavs figcaption{font-size:clamp(12px,1.1vw,22px)}.sm.screen .smavs figure{max-width:clamp(70px,6vw,120px)}.sm.screen .smvside b{font-size:clamp(13px,1.2vw,24px)}.sm.screen .smvside small{font-size:clamp(11px,1vw,20px)}.sm.screen .smvsx{font-size:clamp(24px,2.6vw,50px)}',
+    '.sm.screen .smstand{font-size:clamp(14px,1.3vw,26px)}.sm.screen .smstand h3{font-size:1.3em}.sm.screen .smstand li{grid-template-columns:2.6em minmax(0,1fr) auto}.sm.screen .smcap{font-size:clamp(18px,1.7vw,34px)}',
+    '.sm.screen .smchamp svg{width:min(36vh,400px)}',
+    '.smendcol{display:flex;flex-direction:column;gap:12px;min-width:0}.smchamps{position:relative;display:flex;justify-content:center;gap:4%;padding:10px 0 4px;border-radius:16px;background:radial-gradient(ellipse at 50% 90%,rgba(255,225,77,.28),transparent 70%)}.smchamps figure{margin:0;display:flex;flex-direction:column;align-items:center;animation:smchamp 1.1s ease-in-out infinite alternate}.smchamps svg{width:clamp(80px,8vw,170px);height:auto;filter:drop-shadow(0 0 22px rgba(255,225,77,.6))}.smchamps figcaption{font:400 clamp(16px,1.5vw,30px) "Luckiest Guy",system-ui;color:#FFE14D;text-shadow:0 2px 0 #7a4d00}.smchamps i{position:absolute;top:-4px;left:50%;transform:translateX(-50%);font-style:normal;font-size:clamp(26px,2.4vw,48px)}',
+    // a phone: a smaller ring, so the table and the keypad are not far down the page
+    '@media (max-width:560px){.sm:not(.screen){padding:8px 8px 22px;gap:8px}.sm:not(.screen) .smtop{margin:-8px -8px 0;padding:6px 8px;top:-8px}.sm:not(.screen) .smbody .smbox{max-width:260px;width:100%;margin:0 auto}.sm:not(.screen) .smbody .smnames{display:none}.sm:not(.screen) .smlogo b{display:none}.sm:not(.screen) .smlogo{font-size:24px}.smmini{gap:6px;font-size:13px}.smwork{padding:10px 8px}.smleft{gap:6px}.smclock{font-size:24px}}',
+    '@media (prefers-reduced-motion:reduce){.smvsx,.smclock.smurg,.smchamp svg,.smchamps figure,.smtbl td.ok{animation:none}}'
   ].join('\n');
   var sty = document.createElement('style'); sty.textContent = css; document.head.appendChild(sty);
 

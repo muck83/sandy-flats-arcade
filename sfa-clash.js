@@ -154,7 +154,7 @@
       if (t === 0) { var mid = H('div', 'lcmid', '<button type="button" class="lcsound" title="Sound effects">' + (soundOn() ? '🔊' : '🔇') + '</button><div class="lcclock">5:00</div><div class="lcwave"><i class="lcbar"></i><span class="lcflag1" title="A wave">⚑</span><span class="lcflag2" title="The final wave">🚩</span><span class="lchead">🧟</span></div><div class="lcwavet">Battle!</div>'); hud.mid = mid; top.appendChild(mid); }
     });
     root.appendChild(top);
-    hud.mid.querySelector('.lcsound').onclick = function () { SFA.store.set('clash.sound', !soundOn()); this.textContent = soundOn() ? '🔊' : '🔇'; sfx('pop'); };
+    hud.mid.querySelector('.lcsound').onclick = function () { if (window.SFA_FX) SFA_FX.mute(!SFA_FX.muted()); this.textContent = soundOn() ? '🔊' : '🔇'; sfx('coin'); };
     var stage = H('div', 'lcstage'); cvs = document.createElement('canvas'); cvs.className = 'lcboard'; stage.appendChild(cvs); root.appendChild(stage);
     ctx = cvs.getContext('2d');
     function laneAt(e) { var r = cvs.getBoundingClientRect(), G = geo(); return Math.max(0, Math.min(L.LANES - 1, Math.floor((e.clientY - r.top - G.top) / G.lh))); }
@@ -351,12 +351,15 @@
     if (c.state !== 1) { box.appendChild(H('p', 'q', 'The battle is over.')); return; }
     if (!pool.length) { box.appendChild(H('p', 'q', 'No questions in this lesson for the Clash.')); return; }
     pairBanners(box);
-    if (drawRally(box, c)) return;
-    if (drawPair(box, c)) return;
+    if (drawRally(box, c)) { V.juice = null; return; }
+    if (drawPair(box, c)) { V.juice = null; return; }
     if (CL.wi == null) { CL.warm = warmQs(); CL.wi = 0; CL.wr = 0; keep(); }
     var warm = CL.wi < CL.warm.length, bonusRound = !warm && CL.qi >= CL.order.length, q = warm ? CL.warm[CL.wi] : pool[CL.order[CL.qi % CL.order.length]];
-    box.appendChild(H('p', 'kick', warm ? '🌱 Warm-up ' + (CL.wi + 1) + ' of ' + CL.warm.length + ' · integers · 1 coin' : 'Answer to earn coins · ' + (bonusRound ? 'bonus round: 1 coin' : q.hard ? '★★ hard: 4 coins' : 'right first try: 3 coins') + (CL.streak >= 2 ? ' · 🔥 ' + CL.streak + ' in a row' : '')));
+    var tier = fx('streak', CL.streak);
+    box.appendChild(H('p', 'kick', warm ? '🌱 Warm-up ' + (CL.wi + 1) + ' of ' + CL.warm.length + ' · integers · 1 coin' : 'Answer to earn coins · ' + (bonusRound ? 'bonus round: 1 coin' : q.hard ? '★★ hard: 4 coins' : 'right first try: 3 coins') + (CL.streak >= 2 ? ' · <span class="lcstk' + (tier ? ' ' + tier : '') + '">' + (tier === 'fire' ? '🔥🔥🔥 ' : tier === 'hot' ? '🔥🔥 ' : '🔥 ') + CL.streak + ' in a row</span>' : '')));
+    box.classList.toggle('fx-glow', tier === 'hot' || tier === 'fire'); box.classList.toggle('stk-hot', tier === 'hot'); box.classList.toggle('stk-fire', tier === 'fire');
     box.appendChild(H('p', 'q', fmt(q.q)));
+    if (V.juice) { var jj = V.juice; V.juice = null; setTimeout(function () { juice(jj); }, 0); }
     if (q.fig) { var f = H('div', 'cfig'); f.appendChild(A.figure(q.fig)); box.appendChild(f); }
     if (CL.fb) {
       box.appendChild(H('div', CL.fb.ok ? 'fb good' : 'fb try', CL.fb.html));
@@ -368,17 +371,20 @@
     }
     function right() {
       if (warm) {   // a warm-up: 1 coin (plus any comeback coins), no streak, no hero level
-        var cbw = V.S ? L.behind(V.S, me) : 0, gw = 1 + cbw; CL.coins += gw; CL.earned += gw; CL.wr++; A.confetti(); xp(4);
+        var cbw = V.S ? L.behind(V.S, me) : 0, gw = 1 + cbw; CL.coins += gw; CL.earned += gw; CL.wr++; xp(4); V.juice = { ok: true, txt: '+' + gw + ' 🪙' };
         CL.fb = { ok: true, html: '<b>Yes! +' + gw + ' coin' + (gw === 1 ? '' : 's') + '.</b> Warm-ups pay 1; the lesson questions pay 3.' }; sendSoon(); drawCards(); return;
       }
       var first = !CL.tries; CL.streak = first ? CL.streak + 1 : 0; CL.best = Math.max(CL.best || 0, CL.streak);
       var cb = V.S ? L.behind(V.S, me) : 0, got = L.coinsFor(first, q.hard, CL.streak, bonusRound) + cb, before = lv();
-      CL.coins += got; CL.earned += got; CL.right++; A.confetti(); xp(first ? 10 : 5);
-      CL.fb = { ok: true, html: '<b>Yes! +' + got + ' coin' + (got === 1 ? '' : 's') + '.</b>' + (first && CL.streak % 3 === 0 ? ' 🔥 Three in a row!' : '') + (cb ? ' ⚡ comeback coin' + (cb > 1 ? 's' : '') : '') };
+      CL.coins += got; CL.earned += got; CL.right++; xp(first ? 10 : 5);
+      var three = first && CL.streak % 3 === 0; if (three) A.confetti();
+      V.juice = { ok: true, txt: '+' + got + ' 🪙', big: three || got >= 4 };
+      CL.fb = { ok: true, html: '<b>Yes! +' + got + ' coin' + (got === 1 ? '' : 's') + '.</b>' + (three ? ' 🔥 Three in a row!' : '') + (cb ? ' ⚡ comeback coin' + (cb > 1 ? 's' : '') : '') + ' Spend them on a card!' };
+      if (first && (CL.streak === 4 || CL.streak === 7)) fx('banner', CL.streak >= 7 ? 'ON FIRE!' : 'HOT STREAK!', { sub: CL.streak + ' in a row', ms: 1200, tone: 'win' });
       if (lv() > before) levelUp(lv());
       sendSoon(); drawCards();
     }
-    function wrong(html) { xp(1); if (!warm) CL.streak = 0; CL.cool = Date.now() + (warm ? 2000 : COOL_MS); CL.fb = { ok: false, html: html }; }
+    function wrong(html) { var lost = CL.streak; xp(1); if (!warm) CL.streak = 0; CL.cool = Date.now() + (warm ? 2000 : COOL_MS); CL.fb = { ok: false, html: html + (lost >= 3 && !warm ? ' <i>Streak of ' + lost + ' over. Start a new one!</i>' : '') }; V.juice = { ok: false }; }
     if (q.k === 'number') {
       var inp = el('input', { type: 'text', inputmode: q.ans < 0 ? 'text' : 'decimal', placeholder: 'Type a number', 'aria-label': 'Clash answer', autocomplete: 'off' });
       var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' }), row = H('div', 'row'); row.appendChild(inp); row.appendChild(go); box.appendChild(row);
@@ -386,7 +392,7 @@
       var check = function () {
         var v = A.numOf(inp.value); if (!inp.value.trim()) return inp.focus(); if (isNaN(v)) { SFA.toast('Type a number, like 12 or -3.'); return; }
         if (Math.abs(v - q.ans) <= (q.tol || 1e-9) + 1e-9) right();
-        else if (!CL.tries) CL.tries = 1;
+        else if (!CL.tries) { CL.tries = 1; V.juice = { ok: false, soft: true }; }
         else wrong('<b>The answer is ' + esc(A.numTxt(q.ans)) + '.</b> ' + fmt(q.why || ''));
         keep(); drawQ();
       };
@@ -643,25 +649,20 @@
   }
 
   /* ---------- sound: tiny synthesized effects, off until someone turns them on ---------- */
-  var AC = null, lastSfx = {};
-  function soundOn() { return !!SFA.store.get('clash.sound', false); }
+  // the shared kit (sfa-fx.js) makes the sounds: on for the class screen, off on a student's device until they turn it on
+  var lastSfx = {}, SFXMAP = { coin: 'coin', bonk: 'tap', pop: 'tap', zero: 'whoosh', mow: 'boom', level: 'levelup', wave: 'whoosh', ping: 'tick', win: 'win', lose: 'lose', right: 'right', wrong: 'wrong', combo: 'combo', tick: 'tick', go: 'levelup' };
+  function fx(name) { var F = window.SFA_FX; if (!F || !F[name]) return ''; try { return F[name].apply(F, [].slice.call(arguments, 1)); } catch (e) { return ''; } }
+  function soundOn() { return !!window.SFA_FX && !SFA_FX.muted(); }
   function sfx(k) {
     if (!soundOn()) return;
-    var now = performance.now(); if (now - (lastSfx[k] || 0) < (k === 'bonk' ? 90 : 40)) return; lastSfx[k] = now;
-    try {
-      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-      var t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain(); o.connect(g); g.connect(AC.destination);
-      var tone = function (type, f0, f1, dur, vol) { o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.start(t); o.stop(t + dur + 0.02); };
-      if (k === 'coin') tone('square', 990, 1480, 0.18, 0.08);
-      else if (k === 'bonk') tone('triangle', 220, 70, 0.16, 0.18);
-      else if (k === 'pop') tone('sine', 500, 900, 0.1, 0.12);
-      else if (k === 'zero') tone('sawtooth', 300, 1200, 0.5, 0.07);
-      else if (k === 'mow') tone('sawtooth', 90, 40, 0.8, 0.16);
-      else if (k === 'level') tone('square', 660, 1320, 0.45, 0.08);
-      else if (k === 'wave') tone('sawtooth', 160, 120, 1.1, 0.12);
-      else if (k === 'ping') tone('sine', 880, 660, 0.25, 0.1);
-      else if (k === 'win') tone('square', 523, 1046, 0.9, 0.09);
-    } catch (e) { }
+    var now = performance.now(); if (now - (lastSfx[k] || 0) < (k === 'bonk' ? 160 : 60)) return; lastSfx[k] = now;
+    fx('sfx', SFXMAP[k] || k);
+  }
+  // my own answer, the moment I give it (drawQ has just redrawn the box): flash, the coins float up, a wrong answer shakes
+  function juice(j) {
+    if (!root || !hud.q) return; var q = hud.q, at = q.querySelector('.fb') || q;
+    if (j.ok) { fx('flash', q, 'rgba(124,242,162,.4)'); fx('float', at, j.txt, { color: '#FFC94A', size: j.big ? 42 : 32 }); fx('burst', at, { count: j.big ? 20 : 10, spread: j.big ? 240 : 150, emoji: ['🪙'], colors: ['#FFC94A', '#fff'] }); fx('pop', root.querySelector('.lchero')); sfx(j.big ? 'combo' : 'right'); sfx('coin'); }
+    else { fx('shake', q, { power: j.soft ? 5 : 8, ms: j.soft ? 300 : 400 }); if (!j.soft) fx('flash', q, 'rgba(255,80,80,.4)'); sfx(j.soft ? 'pop' : 'wrong'); }
   }
 
   /* ---------- animation ---------- */
@@ -925,13 +926,27 @@
     [0, 1].forEach(function (t) {
       var b = hud['team' + t]; if (!b) return;
       var g = S ? S.score[t] : c.score[t], gEl = b.querySelector('.lcgold');
-      if (String(g) !== gEl.textContent) { gEl.textContent = g; b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); }
+      if (String(g) !== gEl.textContent) { var was = +gEl.textContent || 0; gEl.textContent = g; b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); if (g > was && c.state === 1 && V.goldSeen) fx('float', gEl, '+' + (g - was), { color: TC[t], size: A.MODE === 'screen' ? 46 : 28 }); }
       b.querySelector('.lcyou').hidden = t !== me; b.classList.toggle('mine', t === me);
       b.querySelector('.lccb').hidden = !(S && L.comeback(S, t) && c.state === 1);
     });
+    V.goldSeen = true;
     var left = Math.max(0, (c.dur - T0) / 10), m = hud.mid;
     if (V.lastState === 3 && c.state === 1) started();
     V.lastState = c.state;
+    // who's winning, at a glance: a crown on the leader's panel; a change of lead is called out (not more than every 8 s)
+    if (S && c.state === 1) {
+      var lead = S.score[0] === S.score[1] ? -1 : S.score[0] > S.score[1] ? 0 : 1;
+      [0, 1].forEach(function (t) { if (hud['team' + t]) hud['team' + t].classList.toggle('lead', t === lead); });
+      if (lead >= 0 && V.lead != null && V.lead >= 0 && lead !== V.lead && T0 > 100 && performance.now() - (V.leadAt || 0) > 8000) { V.leadAt = performance.now(); sfx('level'); shout({ e: 'one', who: '🔁 LEAD CHANGE!', text: '<b>' + T[lead].e + ' ' + esc(T[lead].name.toUpperCase()) + '</b> take the lead!', team: lead, mine: lead === me || me < 0, gold: true }); }
+      if (lead >= 0 || V.lead == null) V.lead = lead;
+    }
+    // the last 30 seconds: the clock turns red and the edges pulse; one call; then the last ten, huge
+    var fin = c.state === 1 && left > 0 && left <= 30; root.classList.toggle('last30', fin);
+    if (fin && !V.f30 && left > 12) { V.f30 = 1; var gap = S ? Math.abs(S.score[0] - S.score[1]) : 0, tight = S && gap <= Math.max(6, 0.12 * Math.max(S.score[0], S.score[1])); sfx('wave'); shout({ e: 'max', who: '⏰ 30 SECONDS!', text: tight ? '<b>It\'s neck and neck!</b> Every coin counts!' : 'Last chance: <b>send everything!</b>', team: -1, mine: true, gold: true }); }
+    var cdn = root.querySelector('.lccd'), sec = Math.ceil(left);
+    if (c.state === 1 && sec > 0 && sec <= 10) { if (!cdn) { cdn = H('div', 'lccd'); root.appendChild(cdn); } if (cdn.textContent !== String(sec)) { cdn.textContent = sec; cdn.classList.remove('beat'); void cdn.offsetWidth; cdn.classList.add('beat'); sfx('tick'); } }
+    else if (cdn) cdn.remove();
     m.querySelector('.lcclock').textContent = c.state === 2 ? 'Time!' : Math.floor(left / 60) + ':' + ('0' + Math.floor(left % 60)).slice(-2);
     var u = T0 / c.dur; m.querySelector('.lcbar').style.width = (u * 100) + '%'; m.querySelector('.lchead').style.left = (u * 100) + '%';
     var fz = L.frenzy(T0, c.dur), wave = fz ? 2 : u >= 0.5 ? 1 : 0;
@@ -993,7 +1008,7 @@
       clearTimeout(tmr); clearInterval(cdT); if (!b.isConnected) return;
       box.innerHTML = list[i]; box.classList.remove('in'); void box.offsetWidth; box.classList.add('in');
       [].forEach.call(dots.children, function (d, k) { d.className = k === i ? 'on' : k < i ? 'done' : ''; });
-      if (i === list.length - 1) { var n = box.querySelector('.lccount'); cdT = setInterval(function () { var s0 = Math.ceil(left() / 1000); n.textContent = s0 > 0 ? String(Math.min(s0, 9)) : 'GO!'; }, 200); return; }
+      if (i === list.length - 1) { var n = box.querySelector('.lccount'); cdT = setInterval(function () { var s0 = Math.ceil(left() / 1000), tx = s0 > 0 ? String(Math.min(s0, 9)) : 'GO!'; if (n.textContent !== tx) { n.textContent = tx; n.classList.remove('beat'); void n.offsetWidth; n.classList.add('beat'); if (s0 > 0 && s0 <= 3) sfx('tick'); } }, 200); return; }
       var tot = wl.slice(i).reduce(function (a, x) { return a + x; }, 0), ms = Math.max(2500, room() * wl[i] / Math.max(1, tot));
       tmr = setTimeout(function () { show(i + 1); }, ms);
     }
@@ -1004,7 +1019,8 @@
   // the rules are over: everyone's board comes alive at once
   function started() {
     if (V.briefEl) { V.briefEl.remove(); V.briefEl = null; }
-    sfx('wave'); shout({ e: 'max', who: 'GO!', text: 'The battle is on. <b>Answer, earn, send!</b>', team: -1, mine: true, gold: true });
+    sfx('go'); fx('flash', null, 'rgba(255,201,74,.35)'); fx('shake', root.querySelector('.lcstage'), { power: 9, ms: 450 }); fx('burst', root.querySelector('.lcstage'), { count: 30, spread: 420, emoji: ['⚔️', '⭐'] });
+    shout({ e: 'max', who: 'GO!', text: 'The battle is on. <b>Answer, earn, send!</b>', team: -1, mine: true, gold: true });
     if (A.MODE === 'student') { drawQ(); drawCards(); }
   }
   function intro(c, T) {
@@ -1020,17 +1036,23 @@
   }
   var AWARD = { gold: ['💰', 'Gold Grabber', 'gold'], right: ['🧠', 'Brain Box', 'right'], best: ['🔥', 'On Fire', 'in a row'], def: ['🛡️', 'Wall Builder', 'defenders'], lv: ['🦸', 'Top Hero', ''], pair: ['🤝', 'Dream Teammate', 'partner combos'] };
   function showEnd(c, sp) {
-    V.over = true; sfx('win');
+    V.over = true;
     var T = teamNames(c.id), S = V.S || { score: c.score }, win = S.score[0] === S.score[1] ? -1 : S.score[0] > S.score[1] ? 0 : 1;
+    sfx(me >= 0 && win >= 0 && win !== me ? 'lose' : 'win'); root.classList.remove('last30'); var cd0 = root.querySelector('.lccd'); if (cd0) cd0.remove();
+    if (me < 0 || win < 0 || win === me) fx('confetti', { ms: 4500, colors: win >= 0 ? [TC[win], '#fff', '#FFE14D'] : null, emoji: win >= 0 ? [T[win].e, '🏆'] : ['🤝'] });
+    // faces for the ending: an MVP's avatar, and the winning team walking on
+    var face = function (name, size) { var lk = lookByName(name); return lk ? '<img class="lcface" alt="" style="width:' + size + 'px;height:' + size + 'px" src="' + heroURL(lk, size) + '">' : ''; };
+    var NMe = V.names || (CL && CL.names), parade = win >= 0 && NMe && NMe[win] ? '<div class="lcparade">' + NMe[win].slice(0, 14).map(function (n, i) { var f = face(n, 54); return f ? '<span style="animation-delay:' + (i * 0.09).toFixed(2) + 's">' + f + '<em>' + esc(n) + '</em></span>' : ''; }).join('') + '</div>' : '';
+    var tight = win >= 0 && Math.abs(S.score[0] - S.score[1]) <= Math.max(5, 0.1 * Math.max(S.score[0], S.score[1]));
     if (CL && A.MODE === 'student' && (CL.right || CL.wr)) xp(30 + (win === me ? 30 : 0), true);   // finishing bonus, once
     // the results as banners, one at a time (no scrolling): the winner, each MVP, each award, your own battle, then a
     // summary that stays. Each stays up as long as it takes to read; a tap moves on
     var head = win < 0 ? 'It\'s a draw!' : T[win].e + ' ' + esc(T[win].name) + ' wins!', score = '<p class="lcfinal"><span style="color:' + TC[0] + '">' + S.score[0] + '</span> gold to <span style="color:' + TC[1] + '">' + S.score[1] + '</span> gold</p>';
-    var bans = ['<h1>' + head + '</h1>' + score];
-    [0, 1].forEach(function (t) { var m = sp.mvp[t]; if (m) bans.push('<span class="lcbig">🏅</span><b class="lckick" style="color:' + TC[t] + '">' + T[t].e + ' ' + esc(T[t].name) + ' MVP</b><h2>' + esc(m.name) + '</h2><p>' + m.gold + ' gold grabbed · ' + m.right + ' right</p>'); });
-    (sp.awards || []).forEach(function (a) { var t = AWARD[a.k] || ['🏅', a.k, '']; bans.push('<span class="lcbig">' + t[0] + '</span><b class="lckick">' + esc(t[1]) + '</b><h2>' + esc(a.name) + '</h2><p>' + T[a.team].e + ' ' + esc(T[a.team].name) + ' · ' + (a.k === 'lv' ? 'hero level ' + a.n : a.n + ' ' + (a.n === 1 ? t[2].replace(/s$/, '') : t[2])) + '</p>'); });
-    if (CL && A.MODE === 'student') bans.push('<b class="lckick">Your battle</b><p class="lcyours">You answered <b>' + CL.right + '</b> right, reached <b>hero level ' + lv() + '</b>, sent <b>' + CL.sent + '</b> characters and grabbed <b>' + CL.gold + '</b> gold.</p>');
-    bans.push('<h1 class="still">' + head + '</h1>' + score + '<p class="sub">Back to the lesson when ' + A.TEACHER + ' says so.</p><button type="button" class="btn lcagain">↻ See the results again</button>');
+    var bans = ['<span class="lcbig">' + (win < 0 ? '🤝' : '🏆') + '</span><h1>' + head + '</h1>' + score + (tight ? '<p>What a finish: so close!</p>' : '') + parade];
+    [0, 1].forEach(function (t) { var m = sp.mvp[t]; if (m) bans.push((face(m.name, 110) || '<span class="lcbig">🏅</span>') + '<b class="lckick" style="color:' + TC[t] + '">🏅 ' + T[t].e + ' ' + esc(T[t].name) + ' MVP</b><h2>' + esc(m.name) + '</h2><p>' + m.gold + ' gold grabbed · ' + m.right + ' right</p>'); });
+    (sp.awards || []).forEach(function (a) { var t = AWARD[a.k] || ['🏅', a.k, '']; bans.push('<span class="lcbig">' + t[0] + '</span>' + face(a.name, 84) + '<b class="lckick">' + esc(t[1]) + '</b><h2>' + esc(a.name) + '</h2><p>' + T[a.team].e + ' ' + esc(T[a.team].name) + ' · ' + (a.k === 'lv' ? 'hero level ' + a.n : a.n + ' ' + (a.n === 1 ? t[2].replace(/s$/, '') : t[2])) + '</p>'); });
+    if (CL && A.MODE === 'student') bans.push((myLook() ? '<img class="lcface" alt="" style="width:96px;height:96px" src="' + heroURL(myLook(), 96) + '">' : '') + '<b class="lckick">Your battle</b><p class="lcyours">You answered <b>' + CL.right + '</b> right, reached <b>hero level ' + lv() + '</b>, sent <b>' + CL.sent + '</b> characters and grabbed <b>' + CL.gold + '</b> gold.</p>');
+    bans.push('<h1 class="still">' + head + '</h1>' + score + parade + '<p class="sub">Back to the lesson when ' + A.TEACHER + ' says so.</p><button type="button" class="btn lcagain">↻ See the results again</button>');
     shoutQ = []; [].forEach.call(root.querySelectorAll('.lcshout'), function (x) { x.remove(); });
     var b = H('div', 'lcend'), box = H('div', 'lcban'), dots = H('div', 'lcdots'), at = 0, tmr = 0;
     b.appendChild(box); b.appendChild(dots); root.appendChild(b);
@@ -1515,7 +1537,27 @@
     '.lcpxt{position:absolute;left:50%;top:14%;transform:translateX(-50%);z-index:7;pointer-events:none;text-align:center;background:rgba(10,10,20,.82);border:4px solid var(--tc);border-radius:18px;padding:8px 22px;animation:lcpxin .5s cubic-bezier(.3,1.6,.6,1) .25s both;max-width:92%}',
     '.lcpxt b{display:block;font:400 clamp(22px,4vw,44px)/1.05 "Luckiest Guy",system-ui;color:var(--tc);letter-spacing:1px;text-shadow:0 3px 0 #000}.lcpxt span{font:700 14px system-ui;color:#fff}.lc.screen .lcpxt span{font-size:20px}.lcpxt.out{opacity:0;transition:opacity .45s}',
     '@keyframes lcpxin{from{transform:translateX(-50%) scale(.2) rotate(-8deg);opacity:0}to{transform:translateX(-50%) scale(1) rotate(0);opacity:1}}',
-    '@keyframes lcpbump{0%{transform:scale(.9)}60%{transform:scale(1.04)}100%{transform:scale(1)}}'
+    '@keyframes lcpbump{0%{transform:scale(.9)}60%{transform:scale(1.04)}100%{transform:scale(1)}}',
+    /* round 3: who is winning at a glance, the last 30 seconds, answers that feel good, an ending with faces */
+    '.lcteam{transition:box-shadow .3s,background .3s;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.03))}',
+    '.lcteam.lead{box-shadow:0 0 0 2px currentColor,0 0 26px -4px currentColor}.lcteam.t0.lead{color:#FFC94A}.lcteam.t1.lead{color:#5CC8FF}.lcteam.lead .lcname{color:#F3EFE7}',
+    '.lcteam.lead .lcname::before{content:"👑 "}',
+    '.lcclock{font-variant-numeric:tabular-nums;text-shadow:0 3px 0 rgba(0,0,0,.45)}',
+    '.lc.last30 .lcclock{color:#FF6B6B;animation:lcred .5s ease-in-out infinite alternate}@keyframes lcred{from{transform:scale(1)}to{transform:scale(1.12)}}',
+    '.lc.last30::after{content:"";position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 110px 16px rgba(255,40,40,.36);animation:lcvig 1s ease-in-out infinite alternate;z-index:4}@keyframes lcvig{from{opacity:.3}to{opacity:1}}',
+    '.lccd{position:fixed;left:50%;top:44%;transform:translate(-50%,-50%);z-index:94;font:400 clamp(110px,22vw,300px) "Luckiest Guy",system-ui;color:#FF5B5B;text-shadow:0 8px 0 #5a1c22;pointer-events:none;opacity:.8}',
+    '.lccd.beat,.lccount.beat{animation:lcbeat .9s ease-out}@keyframes lcbeat{from{scale:1.5;opacity:1}to{scale:1}}',
+    '.lc.frenzy .lcwavet{animation:lcwob .45s ease-in-out infinite alternate}@keyframes lcwob{from{transform:scale(1)}to{transform:scale(1.08)}}',
+    '.lcstk{font-weight:800;color:#FFC94A}.lcstk.hot{color:#FF9D4D}.lcstk.fire{color:#FF6B57}',
+    '.lcq.stk-hot{--fxc:rgba(255,140,60,.55)}.lcq.stk-fire{--fxc:rgba(255,80,60,.75)}',
+    '.lcq .fb{animation:fxRise .3s cubic-bezier(.2,.9,.3,1.2) both}.lcq .fb i{display:block;margin-top:4px;opacity:.85}',
+    '.lcq .row{display:flex;flex-wrap:nowrap;gap:8px;align-items:stretch}.lcq .row input{flex:1 1 0;width:auto;min-width:0;font:700 18px "Bricolage Grotesque",system-ui;padding:9px 12px;border-radius:12px;border:2px solid rgba(255,201,74,.55);background:#14121c;color:#fff}.lcq .row input:focus{outline:none;border-color:#FFC94A;box-shadow:0 0 0 3px rgba(255,201,74,.25)}',
+    '.lcface{object-fit:contain;filter:drop-shadow(0 4px 0 rgba(0,0,0,.4))}',
+    '.lcparade{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;margin-top:8px;max-width:100%}.lcparade span{display:flex;flex-direction:column;align-items:center;animation:lchop .55s ease-in-out infinite alternate}.lcparade em{font:700 12px system-ui;font-style:normal;color:#fff;opacity:.9}',
+    '@keyframes lchop{from{transform:translateY(0)}to{transform:translateY(-9px)}}',
+    '@media (min-width:1500px){.lc.screen .lcname{font-size:26px}.lc.screen .lcflag{font-size:58px}.lc.screen .lcgold{font-size:66px}.lc.screen .lcgold::after{font-size:36px}.lc.screen .lcclock{font-size:58px}.lc.screen .lcwavet{font-size:17px}.lc.screen .lcmid{flex-basis:420px}.lc.screen .lcboard{height:clamp(300px,70vh,860px)}.lc.screen .lcrosters{font-size:22px}.lc.screen .lcheroes{font-size:22px}.lc.screen .lclegend{font-size:19px}.lc.screen .lcshout{max-width:min(94vw,1300px);padding:16px 30px 16px 18px}.lc.screen .lcshout span{font-size:36px}.lc.screen .lcshout .who{font-size:46px}.lc.screen .lcshout img{width:120px;height:120px}.lc.screen .lcend{zoom:1.5;max-height:61vh}}',
+    '@media (max-width:760px){.lctop{gap:6px}.lcteam{min-width:0;padding:4px 8px;gap:0 6px;grid-template-columns:auto minmax(0,1fr) auto}.lcname{font-size:11.5px;line-height:1.15;min-width:0;overflow-wrap:normal;word-break:normal;hyphens:manual}.lcyou{margin-left:3px;padding:0 5px;font-size:10px}.lcflag{font-size:22px}.lcgold{font-size:24px}.lcgold::after{font-size:13px}.lcmid{flex:0 0 72px;min-width:0}.lcclock{font-size:24px}.lcwavet{font-size:9px;text-align:center}.lcteam.lead .lcname::before{content:"👑"}}',
+    '@media (prefers-reduced-motion:reduce){.lc.last30 .lcclock,.lc.last30::after,.lccd.beat,.lccount.beat,.lcparade span{animation:none!important}}'
   ].join('\n');
   document.head.appendChild(emCss);
   window.SFA_CLASH = { sync: sync, agg: agg, section: section, start: start, counts: counts, spot: spot, restore: restore, clashOf: clashOf, peek: peek };

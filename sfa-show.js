@@ -11,6 +11,11 @@
   var A = window.SFA_LESSON_API, SFA = window.SFA, AV = window.SFA_AVATAR;
   if (!A || !SFA || !AV) return;
   var H = A.H, el = A.el, esc = SFA.esc, FINALE = 7;
+  // the shared effects kit (sfa-fx.js), if the page has it: J('burst', el, {…}). Never needed, never throws.
+  function J(name) { var F = window.SFA_FX; if (!F || typeof F[name] !== 'function') return undefined; try { return F[name].apply(F, [].slice.call(arguments, 1)); } catch (e) { return undefined; } }
+  function snd(k) { if (A.MODE !== 'teach' || (V && V.watch)) J('sfx', k); }
+  // the announcer at the fair: one short line for each walker (the same line on every screen)
+  var MC = ['Straight from the goat barn…', 'Give it up for…', 'Sandy Flats, make some noise for…', 'Walking like a superstar…', 'The look of the year…', 'Fresh off the Ferris wheel…', 'Cameras ready! Here comes…', 'Too cool for the cotton candy stand…', 'The crowd goes wild for…', 'Strutting in now…', 'Fashion icon of Grade 8…', 'Show them how it\'s done…'];
 
   function sh3(sid) { var h = 5381, t = String(sid); for (var i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return (h % 46656).toString(36); }
   function clean(n) { return String(n || '').replace(/[~,#|;]/g, '').slice(0, 12); }
@@ -56,6 +61,20 @@
       '.fs .fsclap{position:absolute;left:16px;bottom:12px;z-index:6;width:60px;height:60px;border-radius:50%;border:3px solid #FFE14D;background:rgba(20,10,30,.8);font-size:30px;cursor:pointer}',
       '.fs .fsheart{position:absolute;z-index:5;font-size:30px;pointer-events:none;animation:fsheart 1.6s ease-out forwards}@keyframes fsheart{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-220px) scale(1.4)}}',
       '.fs .fsback{position:absolute;right:14px;top:58px;z-index:7}',
+      // the fair touches: a row of marquee bulbs, a crowd in the dark, a flash of sparkle at the pose, the announcer
+      '.fs .fsbulbs{position:absolute;left:0;right:0;top:0;height:10px;z-index:6;background:radial-gradient(circle at 10px 5px,#FFE14D 0 3.5px,rgba(255,225,77,.25) 4.5px,transparent 6px) 0 0/20px 10px repeat-x;animation:fsbulb .8s steps(2) infinite}',
+      '@keyframes fsbulb{to{background-position:10px 0}}',
+      '.fs .fstop{top:8px}',
+      '.fs .fscrowd{position:absolute;left:-2%;right:-2%;bottom:-2vh;height:14vh;z-index:4;pointer-events:none;background:radial-gradient(circle at 50% 30%,#0b0612 0 32%,transparent 33%) 0 0/clamp(34px,4vw,70px) 70% repeat-x,radial-gradient(ellipse at 50% 100%,#0b0612 0 48%,transparent 50%) 0 100%/clamp(34px,4vw,70px) 60% repeat-x;opacity:.95}',
+      '.fs .fscrowd.b{bottom:-5vh;height:12vh;background-position:clamp(17px,2vw,35px) 0,clamp(17px,2vw,35px) 100%;filter:brightness(1.6);animation:fsbob 1.1s ease-in-out infinite alternate}',
+      '@keyframes fsbob{to{transform:translateY(-6px)}}',
+      '.fs .fsmc{display:block;font-weight:700;font-size:clamp(12px,1.5vw,20px);color:#9FE8FF;letter-spacing:.02em;margin-bottom:2px}',
+      '.fs .fscard{z-index:5}.fs .fsnext{z-index:5}',
+      '.fs .fsgroup{z-index:5}.fs .fsend p{font-size:clamp(15px,1.7vw,32px);font-weight:700;margin:.3em 0 0}',
+      '.fs .fsgroup>div{display:inline-block;animation:fsin .55s cubic-bezier(.2,1.6,.4,1) both}@keyframes fsin{from{transform:translateY(40px) scale(.3);opacity:0}to{transform:none;opacity:1}}',
+      '.fs .fsclap:active{transform:scale(.9)}',
+      '@media (max-width:560px){.fs .fstitle{font-size:18px}.fs .fstop{padding:8px 10px}.fs .fscard{bottom:84px;min-width:0;width:calc(100vw - 24px)}.fs .fsme{top:12%;font-size:20px}}',
+      '@media (prefers-reduced-motion:reduce){.fs .fsbulbs,.fs .fscrowd.b,.fs .fsgroup>div{animation:none}}',
       '@media (prefers-reduced-motion:reduce){.fs .fslight,.fs .fsme,.fs .fsgroup .av{animation:none}}'
     ].join('\n');
     document.head.appendChild(s);
@@ -75,7 +94,7 @@
     document.body.appendChild(root); document.body.classList.add('boarding');
     V.fl = setInterval(function () { if (!root || V.st !== 1) return; var f = H('div', 'fsflash'); f.style.left = (8 + Math.random() * 84) + '%'; f.style.top = (30 + Math.random() * 50) + '%'; root.appendChild(f); setTimeout(function () { f.remove(); }, 400); }, 700);
   }
-  function close() { if (!root) return; clearInterval(V.fl); root.remove(); root = null; V = null; document.body.classList.remove('boarding'); }
+  function close() { if (!root) return; clearInterval(V.fl); clearTimeout(V.pose); root.remove(); root = null; V = null; document.body.classList.remove('boarding'); }
   function apply(b) {
     if (!root || V.id !== b.id) { var w = V && V.watch; open(b); V.watch = w; }
     if (b.state === V.st && b.i === V.i) return;
@@ -92,18 +111,22 @@
     return out;
   }
   function draw(b) {
-    root.innerHTML = '';
-    root.appendChild(H('div', 'fslight l')); root.appendChild(H('div', 'fslight r')); root.appendChild(H('div', 'fsrun'));
+    clearTimeout(V.pose); root.innerHTML = '';
+    root.appendChild(H('div', 'fslight l')); root.appendChild(H('div', 'fslight r')); root.appendChild(H('div', 'fsrun')); root.appendChild(H('div', 'fsbulbs'));
+    root.appendChild(H('div', 'fscrowd b')); root.appendChild(H('div', 'fscrowd'));
     root.appendChild(H('div', 'fstop', '<span class="fstitle">👗 SANDY FLATS FASHION SHOW</span><span class="fscount">' + (b.state === 1 ? (b.i + 1) + ' of ' + b.n : '🎉') + '</span>'));
     if (V.watch) { var x = el('button', { type: 'button', 'class': 'btn fsback', text: '✕ Back to the console' }); x.onclick = function () { close(); }; root.appendChild(x); }
     if (b.state === 2) {   // the finale: everyone takes a bow
       root.appendChild(H('div', 'fsend', '<h1>THAT\'S THE SHOW!</h1><p>' + b.n + ' looks on the catwalk. Give yourselves a round of applause.</p>'));
-      var g = H('div', 'fsgroup'), sz = Math.max(44, Math.min(110, Math.floor(window.innerWidth * 0.9 / Math.max(1, Math.min(b.group.length, 14)))));
-      b.group.forEach(function (look) { var d = document.createElement('div'); d.innerHTML = AV.svg(A.fullLook ? A.fullLook(look) : look, { size: sz }); g.appendChild(d.firstChild); });
-      root.appendChild(g); clapBtn(); A.confetti(); return;
+      var g = H('div', 'fsgroup'), sz = Math.max(44, Math.min(Math.max(110, Math.min(180, window.innerHeight * 0.17)), Math.floor(window.innerWidth * 0.9 / Math.max(1, Math.min(b.group.length, 14)))));
+      var gap = Math.min(0.12, 3 / Math.max(1, b.group.length));   // everyone is on stage within about 3 seconds
+      b.group.forEach(function (look, k) { var d = document.createElement('div'); d.style.animationDelay = (k * gap).toFixed(2) + 's'; d.innerHTML = AV.svg(A.fullLook ? A.fullLook(look) : look, { size: sz }); g.appendChild(d); });
+      root.appendChild(g); clapBtn();
+      if (window.SFA_FX) { J('confetti', { ms: 5000, emoji: ['👗', '⭐', '💖', '🎩'] }); snd('win'); } else A.confetti();
+      return;
     }
     if (!b.w) return;
-    var big = Math.min(window.innerHeight * 0.42, 300), wk = H('div', 'fswalk', AV.svg(b.w.look, { size: big, walk: true, label: b.w.n + '\'s avatar' }));
+    var big = Math.min(window.innerHeight * 0.42, window.innerWidth * 0.55, 300), wk = H('div', 'fswalk', AV.svg(b.w.look, { size: big, walk: true, label: b.w.n + '\'s avatar' }));
     root.appendChild(wk);
     var per = Math.max(3, b.per) * 1000;
     // in from the back of the catwalk, a pose at the front, then off to the side
@@ -118,17 +141,21 @@
       ], { duration: per, fill: 'forwards', easing: 'ease-in-out' });
     } catch (e) { wk.style.transform = 'translateX(-50%)'; }
     var wr = wearing(b.w.look);
-    var card = H('div', 'fscard', '<b class="' + AV.nameCls(b.w.look) + '">' + esc(b.w.n) + '</b><i>⭐ Level ' + b.w.lv + ' · ' + esc(AV.title(b.w.lv)) + '</i>' + (wr.length ? '<small>Wearing: ' + esc(wr.join(' · ')) + '</small>' : ''));
+    var card = H('div', 'fscard', '<span class="fsmc">🎤 ' + esc(MC[b.i % MC.length]) + '</span><b class="' + AV.nameCls(b.w.look) + '">' + esc(b.w.n) + '</b><i>⭐ Level ' + b.w.lv + ' · ' + esc(AV.title(b.w.lv)) + '</i>' + (wr.length ? '<small>Wearing: ' + esc(wr.join(' · ')) + '</small>' : ''));
     card.style.animationDelay = Math.round(per * 0.38) + 'ms'; root.appendChild(card);
     if (b.next) root.appendChild(H('div', 'fsnext', 'Next up: <b>' + esc(b.next) + '</b>'));
-    if (me(b)) root.appendChild(H('div', 'fsme', '🌟 YOU\'RE ON THE RUNWAY! 🌟'));
+    if (me(b)) { root.appendChild(H('div', 'fsme', '🌟 YOU\'RE ON THE RUNWAY! 🌟')); J('confetti', { ms: 2500, emoji: ['⭐', '💖'] }); J('sfx', 'levelup'); }
+    if (b.i === 0 && A.MODE !== 'teach') J('banner', 'SHOWTIME!', { sub: b.n + ' looks on the catwalk', ms: 1300 });
+    snd('whoosh');
+    // the pose at the front of the catwalk: a pop of sparkle and camera clicks
+    V.pose = setTimeout(function () { if (!root || !wk.isConnected) return; J('burst', wk, { count: 16, emoji: ['✨', '📸'], spread: 220, colors: ['#FFE14D', '#FF8FD1', '#fff'] }); snd('coin'); }, Math.round(per * 0.5));
     clapBtn();
   }
   // a clap on this device: hearts float up (just for fun, nothing is sent)
   function clapBtn() {
     if (A.MODE !== 'student') return;
     var c = el('button', { type: 'button', 'class': 'fsclap', 'aria-label': 'Clap', text: '👏' });
-    c.onclick = function () { for (var i = 0; i < 3; i++) (function (i) { setTimeout(function () { if (!root) return; var h = H('div', 'fsheart', ['💖', '👏', '✨', '🔥'][Math.floor(Math.random() * 4)]); h.style.left = (6 + Math.random() * 20) + '%'; h.style.bottom = '70px'; root.appendChild(h); setTimeout(function () { h.remove(); }, 1700); }, i * 120); })(i); };
+    c.onclick = function () { J('pop', c); J('sfx', 'tap'); for (var i = 0; i < 3; i++) (function (i) { setTimeout(function () { if (!root) return; var h = H('div', 'fsheart', ['💖', '👏', '✨', '🔥'][Math.floor(Math.random() * 4)]); h.style.left = (6 + Math.random() * 20) + '%'; h.style.bottom = '70px'; root.appendChild(h); setTimeout(function () { h.remove(); }, 1700); }, i * 120); })(i); };
     root.appendChild(c);
   }
 
