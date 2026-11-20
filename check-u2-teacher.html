@@ -101,21 +101,21 @@ body.hide .nmv{filter:blur(6px)}
   .ts table{width:100%;border-collapse:collapse;margin-top:6px}
   .ts th,.ts td{border:1px solid #777;padding:2px 4px;vertical-align:top;font-size:7.6pt;line-height:1.2}
   .ts th{background:#eee;font-size:7.8pt}
-  .ts col.c1{width:24%}.ts col.c2{width:11%}
+  .ts col.c1{width:28%}.ts col.c2{width:9%}
   .ts td.cn{font-weight:700;background:#f6f6f6}
   .ts td.sk{padding-left:12px}
   .ts td.hit{background:#d9d9d9;outline:2.5px solid #000;outline-offset:-3px;font-weight:700}
   .ts td.hit:before{content:'✔ '}
   .ts td.lv{text-align:center;white-space:nowrap;font-weight:700}
   .ts td.ne{color:#555;font-style:italic;text-align:center}
-  .ts .ov{display:flex;gap:16px;align-items:baseline;margin-top:8px;font-size:11pt}
+  .ts .tsov{display:flex;gap:16px;align-items:baseline;margin-top:8px;font-size:11pt}
   .ts .box{border:1px solid #777;padding:3px 7px;margin-top:5px}
   .ts .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
   .ts .box h3{margin:0 0 2px;font:700 10pt Arial,sans-serif}
   .ts .box ul,.ts .box ol{margin:1px 0 0;padding-left:1.4em;font-size:8.6pt}
   .ts .box li{margin:1px 0}
   .ts .how2{font-size:8pt;color:#333;margin-top:2px}
-  .ts .lines{border-bottom:1px solid #999;height:.25in}
+  .ts .lines{border-bottom:1px solid #999;height:.22in}
   .ts .fine{font-size:8pt;color:#444;margin-top:5px}
 }
 </style>
@@ -131,7 +131,7 @@ body.hide .nmv{filter:blur(6px)}
 <script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120d"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
-<script src="check-u2.js?v=20261120h"></script>
+<script src="check-u2.js?v=20261120i"></script>
 <script>
 (function () {
   'use strict';
@@ -414,22 +414,22 @@ body.hide .nmv{filter:blur(6px)}
      on the rubric. A level needs enough evidence (2 answers on a skill, 3 on a criterion); otherwise it says so. */
   // Each descriptor is what the questions at that level of the check actually ask (see the item bank in check-u2.js)
   var DESC = {
-    compute: ['Finds slope only in the simplest cases: whole-number slopes going up, from two points or a table where x goes up by 1. Mixes up rise and run, or the sign.',
-      'Finds whole-number slopes, including negative ones, from two points, a table where x goes up by 2 or 3, a graph with marked points, and y = mx + b.',
-      'Finds fraction slopes from two points, tables, graphs, and equations like 3y = 2x + 6 or 2x + 5y = 10, subtracting in a consistent order and simplifying.',
-      'Uses slope to find a missing coordinate, finds the row that breaks a linear table, reads slope from a graph with no marked points, and orders lines given in different forms.'],
-    convert: ['Recognises the matching equation when y has no number in front of it. Rearranging steps or signs often go wrong.',
-      'Rewrites Ax + By = C as y = mx + b when the numbers divide evenly, and puts the steps of a conversion in the right order.',
-      'Converts both ways with fraction slopes and intercepts: Ax + By = C to y = mx + b exactly, and y = mx + b to whole-number standard form with A positive.',
-      'Converts rearranged equations (… = 0) and clears two different denominators, checking the result.'],
-    represent: ['Matches a story, table or inequality to its equation in familiar cases, and finds the y-intercept of y = mx + b.',
-      'Finds b from a slope and a point, solves stories that go up, graphs whole-number slopes, shades y < mx + b correctly, and matches an equation to its graph.',
-      'Writes the equation through two points, solves stories that go down, graphs fraction slopes, solves word inequalities and rounds sensibly, and matches tables that skip x = 0.',
-      'Builds a model from two data points, finds fractional intercepts, graphs from standard form, flips the symbol when dividing by a negative, and matches graphs to standard form.'],
-    explain: ['Begins to say what the start value of a model means, and spots a swapped rise and run.',
-      'Explains what the slope and y-intercept mean in a story, and spots and explains sign and subtraction-order slips.',
-      'Explains a going-down rate with units, predicts with the model, and spots and explains rearranging mistakes.',
-      'Compares two models and justifies when one overtakes the other; finds any of the mistakes and gives the corrected answer.']
+    compute: ['Finds whole-number slopes going up, from points or a table where x goes up by 1. Mixes up rise and run, or the sign.',
+      'Finds whole-number slopes (incl. negative) from points, tables, marked graphs and y = mx + b.',
+      'Finds fraction slopes from points, tables, graphs, and equations like 3y = 2x + 6 or 2x + 5y = 10.',
+      'Finds missing coordinates and non-linear rows, reads unmarked graphs, orders lines in any form.'],
+    convert: ['Recognises the matching form when y has no number in front. Steps or signs often go wrong.',
+      'Rewrites Ax + By = C as y = mx + b when it divides evenly; orders the steps of a conversion.',
+      'Converts both ways with fractions; standard form with whole numbers and A positive.',
+      'Converts rearranged equations (… = 0) and clears two different denominators.'],
+    represent: ['Matches a story, table or inequality to its equation; finds b in y = mx + b.',
+      'Finds b from a point, solves rising stories, graphs whole-number slopes, shades y < mx + b.',
+      'Finds the line through two points, solves falling stories, graphs fraction slopes, solves word inequalities.',
+      'Models from two data points, finds fraction intercepts, graphs standard form, flips signs dividing by a negative.'],
+    explain: ['Says what the start value means; spots a swapped rise and run.',
+      'Explains slope and y-intercept in a story; spots and explains sign and order slips.',
+      'Explains a going-down rate with units, predicts, and explains rearranging mistakes.',
+      'Compares two models and justifies when one overtakes; fixes any mistake with the correct answer.']
   };
   var LVN = ['Limited', 'Emerging', 'Developed', 'Deep'];
   function printSheets(list) {
@@ -452,28 +452,28 @@ body.hide .nmv{filter:blur(6px)}
     var t = el('table', {}, [el('colgroup', {}, [el('col', { 'class': 'c1' }), el('col', { 'class': 'c2' }), el('col'), el('col'), el('col'), el('col')])]), hr = el('tr', {}, [el('th', { text: 'Success criterion / strand' }), el('th', { text: 'Level reached' })]);
     LVN.forEach(function (l) { hr.appendChild(el('th', { text: l })); }); t.appendChild(hr);
     CRIT.forEach(function (c) {
-      var e = sc.crit[c.id], tr = el('tr', {}, [el('td', { 'class': 'cn', text: c.strand + ': ' + c.short }), el('td', { 'class': 'lv', text: e.level ? LVN[e.level - 1] : 'Not enough evidence' })]);
+      var e = sc.crit[c.id], tr = el('tr', {}, [el('td', { 'class': 'cn', text: c.strand + ': ' + c.short }), el('td', { 'class': 'lv', text: e.level ? LVN[e.level - 1] : 'Too few answers' })]);
       DESC[c.id].forEach(function (txt, i) { tr.appendChild(el('td', { 'class': e.level === i + 1 ? 'hit' : '', text: txt })); });
       t.appendChild(tr);
       c.skills.forEach(function (id) {
-        var k = sc.skill[id], row = el('tr', {}, [el('td', { 'class': 'sk', text: SKN[id].name }), el('td', { 'class': 'lv', text: k.level ? LVN[k.level - 1] : (k.n ? 'Not enough evidence' : 'Not assessed') })]);
+        var k = sc.skill[id], row = el('tr', {}, [el('td', { 'class': 'sk', text: SKN[id].name }), el('td', { 'class': 'lv', text: k.level ? LVN[k.level - 1] : (k.n ? 'First read' : 'Not reached') })]);
         if (k.level) for (var i = 1; i <= 4; i++) row.appendChild(el('td', { 'class': k.level === i ? 'hit' : '', text: k.level === i ? (k.right + ' of ' + k.n + ' right') : '' }));
         else row.appendChild(el('td', { 'class': 'ne', colspan: '4', text: k.n ? k.right + ' of ' + k.n + ' right: one more question is needed for a level' : 'This skill did not come up in the time' }));
         t.appendChild(row);
       });
     });
     pg.appendChild(t);
-    pg.appendChild(el('div', { 'class': 'ov' }, [el('span', {}, ['Overall: ', el('b', { text: sc.level ? LVN[sc.level - 1] : 'Not enough evidence' })]), sc.level ? el('span', { text: 'Scale score ' + sc.scale + ' (± ' + sc.pm + ')' }) : null]));
+    pg.appendChild(el('div', { 'class': 'tsov' }, [el('span', {}, ['Overall: ', el('b', { text: sc.level ? LVN[sc.level - 1] : 'Not enough evidence' })]), sc.level ? el('span', { text: 'Scale score ' + sc.scale + ' (± ' + sc.pm + ')' }) : null]));
     // the same feedback the student saw on their finish screen
     var fb = CU.feedback(sc, a.log), steps = CU.nextSteps(fb, sc, 3);
-    var good = fb.filter(function (x) { return x.can && x.level >= 2; }).sort(function (p, q) { return q.level - p.level; }).slice(0, 5);
+    var good = fb.filter(function (x) { return x.can && x.level >= 2; }).sort(function (p, q) { return q.level - p.level; }).slice(0, 3);
     if (!good.length) good = fb.filter(function (x) { return x.can; }).slice(0, 3);
     pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'What you can do' }), good.length ? el('ul', {}, good.map(function (x) { return el('li', {}, [el('b', { text: x.name + ' (' + (x.level ? LVN[x.level - 1] : 'first read') + '): ' }), x.can]); })) : el('div', { text: 'Not enough right answers yet to say. Start with the next steps below.' })]));
-    pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'How to improve: your next steps, in this order' }), steps.length ? el('ol', {}, steps.map(function (x) { return el('li', {}, [el('b', { text: x.name + ': ' }), x.next]); })) : el('div', { text: 'Every skill you were asked about is at Developed or Deep. Keep it sharp with the stretch problems and the mixed review in the Unit 2 Review, explaining each step as you go.' }),
-      steps.length ? el('div', { 'class': 'how2', text: 'For each one: open it in the Unit 2 Review, read the Learn tab, do the guided practice, then independent practice until you get 3 of 4 right.' }) : null]));
-    pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'Teacher comment' }), el('div', { 'class': 'lines' }), el('div', { 'class': 'lines' })]));
-    pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'Student reflection: one thing I will do next' }), el('div', { 'class': 'lines' })]));
-    pg.appendChild(el('div', { 'class': 'fine', text: 'Levels come from an adaptive test: questions got harder after right answers and easier after wrong ones. A strand needs at least 2 answers (a criterion 3) before a level is given; "first read" means one answer so far.' }));
+    pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'How to improve: your next steps, in this order (practise each in the Unit 2 Review until you get 3 of 4 right)' }), steps.length ? el('ol', {}, steps.map(function (x) { return el('li', {}, [el('b', { text: x.name + ': ' }), x.next]); })) : el('div', { text: 'Every skill you were asked about is at Developed or Deep. Keep it sharp with the stretch problems and the mixed review in the Unit 2 Review, explaining each step as you go.' }),
+    ]));
+    pg.appendChild(el('div', { 'class': 'two' }, [el('div', { 'class': 'box' }, [el('h3', { text: 'Teacher comment' }), el('div', { 'class': 'lines' }), el('div', { 'class': 'lines' })]),
+      el('div', { 'class': 'box' }, [el('h3', { text: 'Student reflection: one thing I will do next' }), el('div', { 'class': 'lines' }), el('div', { 'class': 'lines' })])]));
+    pg.appendChild(el('div', { 'class': 'fine', text: 'Adaptive check: a skill needs 2 answers and a criterion 3 for a level; "first read" means one answer so far.' }));
     return pg;
   }
 
