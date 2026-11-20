@@ -14,25 +14,30 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
    Leave TEACHER_KEY, DOMAIN and CLIENT_ID as they are. Don't delete CLIMB_SESSION or CLIMB_ACCOM if they appear later.
 
 3. Add this temporary function at the bottom, run it once, show me the Execution log, then delete it and save:
-   function testClimbBackend() {
-     Logger.log(JSON.stringify(route({ op: 'live' })));
+   function testBackend() {
+     Logger.log(JSON.stringify(route({ op: 'live' })).slice(0, 120));
      var key = PropertiesService.getScriptProperties().getProperty('TEACHER_KEY');
      var c = route({ op: 'climbClass', teacherKey: key });
-     Logger.log('climbClass ok: ' + c.ok + ', students: ' + c.roster.length + ', climb rows: ' + c.rows.length + ', questions today: ' + c.asks.length);
-     var s = c.roster[0];
-     if (s) { var d = route({ op: 'studentDay', teacherKey: key, sid: s.sid }); Logger.log('studentDay ok: ' + d.ok + ' for ' + s.name + ' on ' + d.date); }
-     var r = route({ op: 'report', teacherKey: key, cls: s ? s.cls : '', lessons: 3 });
-     Logger.log('report ok: ' + r.ok + ', students: ' + r.roster.length + ', lessons: ' + r.lessons.map(function (x) { return x.lesson + ' on ' + x.day; }).join(', ') + ', answers: ' + r.responses.length + ', climb: ' + r.climb.length + ', arcade: ' + r.events.length);
+     Logger.log('climbClass ok: ' + c.ok + ', students: ' + c.roster.length + ', questions today: ' + c.asks.length);
+     var r = route({ op: 'report', teacherKey: key, cls: c.roster[0] ? c.roster[0].cls : '', lessons: 3 });
+     Logger.log('report ok: ' + r.ok + ', students: ' + r.roster.length);
+     var w = route({ op: 'coWho', teacherKey: key });
+     Logger.log('coWho ok: ' + w.ok + ', co-teacher key: ' + w.coKey + ', her classes: ' + (w.classes.join(', ') || 'none yet') + ', AUTH_MODE: ' + w.authMode);
+     var k = route({ op: 'coClass', teacherKey: w.coKey });
+     Logger.log('coClass with the co-teacher key ok: ' + k.ok + ', her students: ' + k.roster.length);
    }
-   Expected: {"ok":true,...}, then "climbClass ok: true ... questions today: 0", "studentDay ok: true" and "report ok: true".
-   (If it says "questions today: undefined", the old code is still in Code.gs.)
+   Expected: {"ok":true,...}, "climbClass ok: true ... questions today: 0", "report ok: true",
+   "coWho ok: true, co-teacher key: (16 letters and numbers) ... AUTH_MODE: code" (or both), and "coClass ... ok: true".
+   If it says "unknown op", the old code is still in Code.gs. If AUTH_MODE says google, change it to both in step 2.
+   Write down the co-teacher key: it is also shown on co-teacher.html when I open it with my teacher key.
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
-   Description "Check-in menu, timer, lesson extras" > Deploy. Do NOT use "New deployment" (that changes the URL).
+   Description "Co-teacher page, extra time, class mural" > Deploy. Do NOT use "New deployment" (that changes the URL).
 
 5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
 
-Latest change: a co-teacher page (co-teacher.html). New operations coWho, coRoster, coAdd and coClass, and two new script properties: COTEACHER_KEY (a second, smaller key; run setup once, or the page makes it the first time Mr. Crowell opens it with the main teacher key) and COTEACHER_CLASSES (filled in automatically as the co-teacher adds classes). coAdd appends rows to the Roster tab with new student codes. Student codes only work when AUTH_MODE is code or both.
+Latest change: extra time on the Unit 2 Check. New operation coExtra (teacher or co-teacher key) saves a student's extra time (25, 50 or 100 percent) in a new script property EXTRA_TIME (JSON, made automatically), and every student object the script returns now carries "extra" when it is set.
+Before that: a co-teacher page (co-teacher.html). New operations coWho, coRoster, coAdd and coClass, and two new script properties: COTEACHER_KEY (a second, smaller key; run setup once, or the page makes it the first time Mr. Crowell opens it with the main teacher key) and COTEACHER_CLASSES (filled in automatically as the co-teacher adds classes). coAdd appends rows to the Roster tab with new student codes. Student codes only work when AUTH_MODE is code or both.
 Before that: one new optional field for live lessons. setLive also keeps "x" (one JSON string of text, at most 12,000 characters) and live returns it. It carries the text for the lesson's whole-class features (sfa-together.js): students' first names on the class mural, think-pair-share partners and what each partner wrote, and the name in the spotlight spin. No new operations, tabs or script properties: nothing to set up. Until this version is deployed everything still runs; the only differences are that the mural shows names on the class screen but not on students' own devices, and in think-pair-share students are told to pair up with someone near them instead of being shown a partner (the console says so).
 Before that: worked-example steps. setLive also keeps a new optional "ex" field (the slide number and how many steps of a worked example are showing), and live returns it, so students' screens show the same steps as the class screen. The same update also keeps the lesson whiteboard: the lesson whiteboard. setLive keeps a new optional "wb" field (grid 0-3 and the strokes as base-36 text, at most 40,000 characters), and live returns it, so students see the teacher's whiteboard on their own devices. Nothing to set up.
 Before that: a new operation "report" for the teacher's Report page (report.html): it finds the last few lessons a class ran and returns every student's answers to them, plus their Climb answers and arcade events from those days. Nothing to set up.

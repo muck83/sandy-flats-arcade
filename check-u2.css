@@ -160,3 +160,10 @@ canvas.ink{display:inline-block;vertical-align:-6px;max-width:100%;height:auto}
   .ck-scale .band i{font-size:9.5px;letter-spacing:-.02em}
 }
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* extra time and the teacher demo */
+.ck-extra{background:#14281F;border:2px solid var(--green);border-radius:12px;padding:8px 12px;font-weight:700}
+.ck-demo{background:#2A2240;border:2px dashed var(--marquee);border-radius:12px;padding:10px 12px;line-height:1.6}
+.ck-demo .ck-seg{display:inline-flex;gap:6px;margin-left:4px}
+.ck-demo .ck-seg button{font:700 14px var(--ui);padding:4px 10px;border-radius:999px;border:2px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
+.ck-demo .ck-seg button[aria-pressed=true]{background:var(--marquee);color:#1B1A22;border-color:var(--marquee)}

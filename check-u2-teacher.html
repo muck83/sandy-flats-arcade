@@ -126,7 +126,7 @@ body.hide .nmv{filter:blur(6px)}
 <div id="sheets" aria-hidden="true"></div>
 <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Student detail"></aside>
 <script src="config.js"></script>
-<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120a"><\/script>'); }</script>
+<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120d"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
 <script src="check-u2.js?v=20261119a"></script>
@@ -165,7 +165,7 @@ body.hide .nmv{filter:blur(6px)}
   function build(j) {
     var by = {}; (j.progress || []).forEach(function (p) { if (p.game === CU.KEY) by[p.sid] = p; });
     return (j.roster || []).map(function (s) {
-      var p = by[s.sid], att = p ? CU.decode(p.levels) : null, r = { sid: s.sid, name: s.name, cls: s.cls || '', p: p, att: att && att.ok ? att : null, updated: p ? p.updated : '' };
+      var p = by[s.sid], att = p ? CU.decode(p.levels) : null, r = { sid: s.sid, name: s.name, cls: s.cls || '', extra: s.extra || 0, p: p, att: att && att.ok ? att : null, updated: p ? p.updated : '' };
       if (!r.att) return r;
       var log = r.att.log, sc = r.sc = CU.score(log);
       var f = r.flags = { away: 0, awaySecs: 0, paste: 0, copy: 0, quick: 0, guess: 0, slow: 0, idk: 0, reloads: r.att.reloads || 0, ext: r.att.ext || 0 };
@@ -227,7 +227,7 @@ body.hide .nmv{filter:blur(6px)}
     h.appendChild(el('th', { text: 'Qs' })); h.appendChild(el('th', { text: 'Min' })); h.appendChild(sortTh('Flags', 'flags'));
     t.appendChild(g); t.appendChild(h);
     rows.forEach(function (r) {
-      var tr = el('tr', {}, [el('td', { 'class': 'who' }, [el('button', { type: 'button', onclick: function () { openStudent(r); } }, [nm(r)]), S.cls ? null : el('small', { text: r.cls })])]);
+      var tr = el('tr', {}, [el('td', { 'class': 'who' }, [el('button', { type: 'button', onclick: function () { openStudent(r); } }, [nm(r)]), r.extra ? el('small', { text: '⏱+' + r.extra + '%', title: 'Extra time: ' + r.extra + '%' }) : null, S.cls ? null : el('small', { text: r.cls })])]);
       if (!r.att) { tr.appendChild(el('td', { 'class': 'meta', colspan: String(5 + SK.length + CRIT.length), style: 'text-align:left', text: 'not started' })); t.appendChild(tr); return; }
       var sc = r.sc;
       tr.appendChild(el('td', { 'class': 'sc', text: sc.level ? sc.scale + ' ±' + sc.pm : '·', title: 'Scale score, give or take' }));

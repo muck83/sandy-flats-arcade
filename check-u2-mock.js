@@ -18,13 +18,15 @@
     var r; try { r = JSON.parse(opts.body); } catch (e) { return inner(url, opts); }
     if (window.CU2_MOCK_OFFLINE) return Promise.reject(new TypeError('offline (practice)'));
     // co-teacher practice: key "co" (or the teacher key "test"); her classes start empty; added students live in this browser
-    var CO = /^(coWho|coRoster|coAdd|coClass)$/.test(r.op);
+    var CO = /^(coWho|coRoster|coAdd|coClass|coExtra)$/.test(r.op);
     if (CO) {
       var dc = db(), main = r.teacherKey === 'test'; dc.co = dc.co || { classes: [], students: [] };
       if (!main && r.teacherKey !== 'co') return Promise.resolve(reply({ ok: false, error: 'teacher key' }));
       return ask({ op: 'roster', teacherKey: 'test' }).then(function (j) {
         var base = (j.roster || []).map(function (x) { return { sid: x.sid, name: x.name, cls: x.cls, code: x.code }; }), all = base.concat(dc.co.students);
+        dc.co.extra = dc.co.extra || {}; all.forEach(function (x) { if (dc.co.extra[x.sid]) x.extra = dc.co.extra[x.sid]; });
         var sees = function (c) { return main || dc.co.classes.indexOf(c) >= 0; };
+        if (r.op === 'coExtra') { var tgt = all.filter(function (x) { return x.sid === r.sid; })[0], xv = Number(r.extra) || 0; if (!tgt || !sees(tgt.cls)) return reply({ ok: false, error: 'no such student' }); if ([0, 25, 50, 100].indexOf(xv) < 0) return reply({ ok: false, error: 'bad extra time' }); if (xv) dc.co.extra[r.sid] = xv; else delete dc.co.extra[r.sid]; put(dc); return reply({ ok: true, sid: r.sid, extra: xv }); }
         if (r.op === 'coWho') return reply({ ok: true, main: main, classes: dc.co.classes, authMode: 'code', coKey: main ? 'co' : undefined, allClasses: main ? all.map(function (x) { return x.cls; }).filter(function (c, i, a) { return a.indexOf(c) === i; }) : undefined });
         if (r.op === 'coRoster') return reply({ ok: true, main: main, classes: dc.co.classes, authMode: 'code', roster: all.filter(function (x) { return sees(x.cls); }) });
         if (r.op === 'coAdd') {
@@ -43,14 +45,14 @@
           put(dc); return reply({ ok: true, added: out, classes: dc.co.classes });
         }
         var mineR = all.filter(function (x) { return sees(x.cls); }), ids = {}; mineR.forEach(function (x) { ids[x.sid] = 1; });
-        return reply({ ok: true, roster: mineR.map(function (x) { return { sid: x.sid, name: x.name, cls: x.cls }; }), events: [], climb: [],
+        return reply({ ok: true, roster: mineR.map(function (x) { return { sid: x.sid, name: x.name, cls: x.cls, extra: x.extra }; }), events: [], climb: [],
           progress: Object.keys(dc.rows || {}).map(function (k) { var o = Object.assign({}, dc.rows[k]); delete o.raw; return o; }).filter(function (o) { return ids[o.sid] && o.game === 'g91'; }) });
       });
     }
     // a student added on the co-teacher page signs in here (the Climb practice backend doesn't know them)
-    var added = r.code && (db().co || { students: [] }).students.filter(function (x) { return x.code === String(r.code).toUpperCase(); })[0];
+    var dco = db().co || { students: [], extra: {} }, added = r.code && (String(r.code).toUpperCase() === 'DEMO00' ? { sid: 'demo', name: 'Teacher, Demo', cls: 'Demo' } : dco.students.filter(function (x) { return x.code === String(r.code).toUpperCase(); })[0]);
     if (added) {
-      var pubA = { sid: added.sid, name: added.name, cls: added.cls };
+      var pubA = { sid: added.sid, name: added.name, cls: added.cls }; if ((dco.extra || {})[added.sid]) pubA.extra = dco.extra[added.sid];
       ask = function (b) { return Promise.resolve(b.op === 'load' ? { ok: true, student: pubA, games: {}, sums: {} } : { ok: true, student: pubA }); };
       if (r.op === 'hello') return Promise.resolve(reply({ ok: true, student: pubA }));
     } else ask = ask0;

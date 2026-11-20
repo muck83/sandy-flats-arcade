@@ -26,6 +26,9 @@ tr.new td{background:rgba(59,255,138,.08)}
 .warn{background:#3A1E12;border:2px solid #FF8E54;border-radius:12px;padding:10px 14px;margin-top:12px}
 .ok{background:#14281F;border:2px solid var(--green);border-radius:12px;padding:10px 14px;margin-top:12px}
 .err{color:#FF8E84;margin-top:8px}
+select.xt{font-size:13px;padding:5px 8px}
+select.xt.saved{border-color:var(--green)}
+.demo{border-style:dashed;border-color:var(--marquee)}
 .big{font-size:17px}
 /* printable code cards */
 #cards{display:none}
@@ -48,7 +51,8 @@ tr.new td{background:rgba(59,255,138,.08)}
 </div>
 <div id="cards" aria-hidden="true"></div>
 <script src="config.js"></script>
-<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120a"><\/script>'); }</script>
+<script>if (/[?&]demo\b/.test(location.search)) { window.CU2_COTRY_DEMO = 1; try { sessionStorage.setItem('sfa.cokey', 'co'); } catch (e) { } }
+if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120d"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script>
 (function () {
@@ -170,13 +174,25 @@ tr.new td{background:rgba(59,255,138,.08)}
         el('button', { type: 'button', 'class': 'btn primary', text: '🖨 Print code cards (' + list.length + ')', onclick: function () { printCards(list); } }),
         el('button', { type: 'button', 'class': 'btn', text: 'Copy as a list', onclick: function () { copy(list.map(function (r) { return nice(r.name) + '\t' + r.cls + '\t' + r.code; }).join('\n'), this); } })
       ]));
-      var t = el('table', { 'class': 'ros' }, [el('tr', {}, [el('th', { text: 'Student' }), el('th', { 'class': 'hide-s', text: 'Class' }), el('th', { text: 'Code' })])]);
-      list.forEach(function (r) { t.appendChild(el('tr', { 'class': S.fresh[r.sid] ? 'new' : '' }, [el('td', { text: nice(r.name) }), el('td', { 'class': 'hide-s', text: r.cls }), el('td', { 'class': 'code', text: r.code || '–' })])); });
-      if (!list.length) t.appendChild(el('tr', {}, [el('td', { colspan: '3', 'class': 'muted', text: 'No students in this class yet.' })]));
+      var t = el('table', { 'class': 'ros' }, [el('tr', {}, [el('th', { text: 'Student' }), el('th', { 'class': 'hide-s', text: 'Class' }), el('th', { text: 'Code' }), el('th', { text: 'Extra time' })])]);
+      list.forEach(function (r) { t.appendChild(el('tr', { 'class': S.fresh[r.sid] ? 'new' : '' }, [el('td', { text: nice(r.name) }), el('td', { 'class': 'hide-s', text: r.cls }), el('td', { 'class': 'code', text: r.code || '–' }), el('td', {}, [extraPick(r)])])); });
+      if (!list.length) t.appendChild(el('tr', {}, [el('td', { colspan: '4', 'class': 'muted', text: 'No students in this class yet.' })]));
       sec.appendChild(t);
+      sec.appendChild(el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Extra time: the Unit 2 Check gives that student longer automatically (35 minutes becomes 44, 53 or 70). Everyone uses the same start code. Set it before the student starts.' }));
       sec.appendChild(el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Spelling mistake or a student who left? Ask Mr. Crowell to fix the row on the Roster tab of the results sheet.' }));
     }
     body.appendChild(sec);
+
+    // teacher demo: try everything without touching the class
+    body.appendChild(el('section', { 'class': 'panel demo' }, [
+      el('h2', { text: '🧪 Teacher demo: try it first' }),
+      el('p', { 'class': 'muted', text: 'Nothing in the demo reaches your classes or the results sheet. It stays in this browser.' }),
+      el('div', { 'class': 'bar' }, [
+        el('a', { 'class': 'btn', href: 'check-u2.html?demo', target: '_blank', rel: 'noopener', text: '✏️ Take the Check as a student' }),
+        el('a', { 'class': 'btn', href: 'check-u2-teacher.html?demo', target: '_blank', rel: 'noopener', text: '📊 See a sample class dashboard' }),
+        TRY ? null : el('a', { 'class': 'btn', href: 'co-teacher.html?demo', target: '_blank', rel: 'noopener', text: '🧑‍🏫 Practise this page with a pretend class' })
+      ])
+    ]));
 
     // 3. run the check and see results
     body.appendChild(el('section', { 'class': 'panel' }, [
@@ -192,6 +208,17 @@ tr.new td{background:rgba(59,255,138,.08)}
     ]));
   }
 
+  // extra time for one student: none, +25%, +50%, double
+  function extraPick(r) {
+    var sel = el('select', { 'class': 'inp xt', 'aria-label': 'Extra time for ' + nice(r.name) });
+    [[0, 'None'], [25, '+25% (44 min)'], [50, '+50% (53 min)'], [100, 'Double (70 min)']].forEach(function (o) { var op = el('option', { value: String(o[0]), text: o[1] }); if ((r.extra || 0) === o[0]) op.selected = true; sel.appendChild(op); });
+    sel.onchange = function () {
+      var v = +sel.value, was = r.extra || 0; sel.disabled = true;
+      api('coExtra', { sid: r.sid, extra: v }).then(function () { r.extra = v; sel.disabled = false; sel.classList.add('saved'); setTimeout(function () { sel.classList.remove('saved'); }, 1200); },
+        function (e) { sel.disabled = false; sel.value = String(was); alert('Couldn\'t save extra time: ' + e.message); });
+    };
+    return sel;
+  }
   function copy(text, btn) {
     var done = function () { var o = btn.textContent; btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = o; }, 1600); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { prompt('Copy this:', text); });

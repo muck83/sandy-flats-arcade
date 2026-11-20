@@ -5,7 +5,10 @@
 (function () {
   'use strict';
   var SFA = window.SFA, el = SFA.el, CU = window.CU2, S = SFA.sync || null, KEY = CU.KEY, N = CU.num;
-  var TRY = !!window.CU2_TRY, Q = location.search;
+  var TRY = !!window.CU2_TRY, DEMO = !!window.CU2_DEMO, Q = location.search;
+  // extra time set by the teacher (percent): the check lasts at least 35 minutes × (1 + extra), whatever the start code says
+  function extraPct() { var x = me() && Number(me().extra); return x === 25 || x === 50 || x === 100 ? x : 0; }
+  function minutesFor(len) { return Math.max(len, Math.round(CU.LENS[0] * (1 + extraPct() / 100))); }
   var root = document.getElementById('ck'), chips = document.getElementById('ckChips');
   var LVC = ['l0', 'l1', 'l2', 'l3', 'l4'];
   var SKN = {}; CU.SK.forEach(function (k) { SKN[k.id] = k; });
@@ -257,6 +260,7 @@
     root.appendChild(card([el('h2', { text: 'Sign in first' }), el('p', { text: 'The Unit 2 Check saves to your name, so sign in with your student code in the box above. Then this page will show the start screen.' })]));
   }
 
+  var demoLen = 10;
   var RECORDED = ['Your answers, and how long each one took.', 'If you leave this tab or window during a question.', 'If you paste into an answer box or copy a question.', 'Answers that are very fast or very slow.'];
   function intro(again) {
     clear(); view = 'intro';
@@ -266,6 +270,7 @@
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') start(); });
     inp.addEventListener('input', function () { msg.textContent = ''; });
     function start() {
+      if (DEMO) return begin({ ok: true, code: 'DEMOX', len: demoLen, lenIdx: 0, demo: true });
       var r = CU.readCode(inp.value, Date.now());
       if (!r.ok) { msg.textContent = r.why; inp.focus(); return; }
       begin(r);
@@ -283,7 +288,9 @@
         ])]),
         el('div', {}, [el('h3', { text: 'What is recorded' }), el('ul', { 'class': 'ck-list' }, RECORDED.map(function (t) { return el('li', { text: t }); })), el('p', { 'class': 'muted', text: 'These are notes for Mr. Crowell. They do not change your result. A calculator is fine. Other tabs, apps and AI helpers are not.' })])
       ]),
-      el('div', { 'class': 'ck-start' }, [el('label', {}, ['Start code from Mr. Crowell ', inp]), go]),
+      extraPct() ? el('p', { 'class': 'ck-extra', text: '⏱ You have extra time: ' + minutesFor(CU.LENS[0]) + ' minutes instead of 35.' }) : null,
+      DEMO ? el('div', { 'class': 'ck-start' }, [el('div', { 'class': 'ck-demo' }, [el('b', { text: 'Teacher demo. ' }), 'Nothing here reaches the class results. How long should this demo run? ', el('span', { 'class': 'ck-seg', role: 'group', 'aria-label': 'Demo length' }, [5, 10, 35].map(function (m) { var b = el('button', { type: 'button', 'aria-pressed': m === demoLen ? 'true' : 'false', text: m + ' min', onclick: function () { demoLen = m; [].forEach.call(b.parentNode.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); } }); return b; }))]), go])
+        : el('div', { 'class': 'ck-start' }, [el('label', {}, ['Start code from Mr. Crowell ', inp]), go]),
       msg,
       TRY ? el('p', { 'class': 'muted' }, ['Practice mode: ', el('button', { type: 'button', 'class': 'btn small', text: 'Use a practice code', onclick: function () { inp.value = CU.makeCode(Date.now(), 0); } }), ' (the real code comes from the teacher dashboard).']) : null
     ]));
@@ -295,7 +302,7 @@
   function begin(r) {
     var now = Date.now(), n = (P.att ? P.att.n : P.past.length) + 1;
     if (P.att && P.att.end) { var sc = CU.score(P.att.log); P.past.push({ t0: P.att.t0, code: P.att.code, scale: sc.scale, n: sc.n, why: P.att.end.why }); P.past = P.past.slice(-5); }
-    var mm = TRY && Q.match(/[?&]mins=([\d.]+)/), mins = mm ? parseFloat(mm[1]) : r.len;
+    var mm = TRY && Q.match(/[?&]mins=([\d.]+)/), mins = mm ? parseFloat(mm[1]) : r.demo ? r.len : minutesFor(r.len);
     P.att = { n: n, sid: me().sid, code: r.code, lenIdx: r.lenIdx, lenMs: Math.round(mins * 60000), seed: CU.hash(me().sid + '|' + r.code + '|' + now) & 0x7fffffff, t0: now, log: [], cur: null, end: null, ext: 0, extMs: 0, reloads: 0, papers: [] };
     save(); render();
   }
@@ -478,6 +485,8 @@
     if (sid !== lastSid) { lastSid = sid; P = load(); render(); return; }   // signed in (the saved copy from the Sheet may have arrived) or out
     if (view === 'gate' && sid) render();
   });
+  // teacher demo: always the pretend student (practice backend only), even if a practice student was signed in here
+  if (DEMO && S && !(me() && me().sid === 'demo')) { if (me()) S.signOut(); P = fresh(); S.signInCode('DEMO00').then(function () { P = load(); render(); }, function () { }); }
   render();
   window.CU2_APP = { state: function () { return P; }, render: render, hook: function () { return view === 'test' ? hook : null; } };
 })();

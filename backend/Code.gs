@@ -16,6 +16,7 @@
  *   COTEACHER_KEY a second, smaller key for a co-teacher (co-teacher.html): she can add students to her own classes,
  *                 see their codes and see their Unit 2 Check results, nothing else. setup() makes it.
  *   COTEACHER_CLASSES  the co-teacher's class names, comma-separated (filled in as she adds classes)
+ *   EXTRA_TIME    extra time on timed checks, JSON {sid: percent} (25, 50 or 100); set on co-teacher.html
  *   AUTH_MODE     google | code | both (setup() sets google)
  *   CLIENT_ID     Google OAuth web client id (google / both)
  *   DOMAIN        school email domain, e.g. aisr.org (google / both)
@@ -108,6 +109,7 @@ function route(req) {
     case 'coRoster': return coRoster(req);
     case 'coAdd': return coAdd(req);
     case 'coClass': return coClass(req);
+    case 'coExtra': return coExtra(req);
     default: throw new Error('unknown op');
   }
 }
@@ -139,7 +141,7 @@ function coWho(req) {
 function coRoster(req) {
   var who = coTeacher(req);
   return { ok: true, main: who.all, classes: who.classes, authMode: prop('AUTH_MODE') || 'google',
-    roster: rosterRows().filter(function (r) { return coSees(who, r.cls); }).map(function (r) { return { sid: r.sid, name: r.name, cls: r.cls, code: r.code }; }) };
+    roster: rosterRows().filter(function (r) { return coSees(who, r.cls); }).map(function (r) { return { sid: r.sid, name: r.name, cls: r.cls, code: r.code, extra: extraMap()[r.sid] || 0 }; }) };
 }
 // add students: [{name, cls}], at most 60 at a time. A co-teacher may add to her own classes or start a new class
 // whose name nobody else uses; a new class joins her list.
@@ -171,6 +173,20 @@ function coAdd(req) {
     if (!who.all && mine.length !== who.classes.length) PropertiesService.getScriptProperties().setProperty('COTEACHER_CLASSES', mine.join(','));
     clearRosterCache();
     return { ok: true, added: out, classes: who.all ? who.classes : mine };
+  } finally { lock.releaseLock(); }
+}
+// extra time: {sid, extra: 0 | 25 | 50 | 100} for a student the asker can see
+function coExtra(req) {
+  var who = coTeacher(req), sid = String(req.sid || ''), x = Number(req.extra) || 0;
+  if ([0, 25, 50, 100].indexOf(x) < 0) throw new Error('bad extra time');
+  var st = rosterRows().filter(function (r) { return r.sid === sid; })[0];
+  if (!st || !coSees(who, st.cls)) throw new Error('no such student');
+  var lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    EXTRA_CACHE = null; var m = extraMap();
+    if (x) m[sid] = x; else delete m[sid];
+    PropertiesService.getScriptProperties().setProperty('EXTRA_TIME', JSON.stringify(m)); EXTRA_CACHE = m;
+    return { ok: true, sid: sid, extra: x };
   } finally { lock.releaseLock(); }
 }
 // the Unit 2 Check dashboard's view for the co-teacher: her students and their check rows only
@@ -236,7 +252,9 @@ function verifyGoogle(idToken) {
   return email;
 }
 
-function publicStudent(s) { return { sid: s.sid, name: s.name, cls: s.cls }; }
+function publicStudent(s) { var o = { sid: s.sid, name: s.name, cls: s.cls }, x = extraMap()[s.sid]; if (x) o.extra = x; return o; }
+var EXTRA_CACHE = null;
+function extraMap() { if (EXTRA_CACHE) return EXTRA_CACHE; try { EXTRA_CACHE = JSON.parse(prop('EXTRA_TIME') || '{}') || {}; } catch (e) { EXTRA_CACHE = {}; } return EXTRA_CACHE; }
 
 /* ---------------- student ops ---------------- */
 function progressSheet() { return SpreadsheetApp.getActive().getSheetByName('Progress'); }
