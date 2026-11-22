@@ -1215,7 +1215,7 @@
   }
 
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261120f', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261122b', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }

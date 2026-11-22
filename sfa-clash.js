@@ -208,9 +208,9 @@
   function pool_() {
     var out = [];
     A.LES().slides.forEach(function (s) {
-      if (s.k === 'number' && s.ans != null) out.push({ k: 'number', q: s.q, ans: s.ans, tol: s.tol, fig: s.fig, why: s.why, hard: false });
-      if (s.k === 'poll' && s.ans != null && !s.warm) out.push({ k: 'poll', q: s.q, opts: s.opts, ans: s.ans, fig: s.fig, why: s.why, hard: false });
-      (A.gameForms ? A.gameForms(s) : []).forEach(function (g) { out.push({ k: g.k, q: g.q, opts: g.opts, ans: g.ans, tol: g.tol, fig: g.fig, why: g.why, hard: false }); });   // cross it out, estimate, spot the mistake, always/sometimes/never
+      if (s.k === 'number' && s.ans != null) out.push({ k: 'number', q: s.q, ans: s.ans, tol: s.tol, fig: s.fig, why: s.why, hint: s.hint || s.help, hard: false });
+      if (s.k === 'poll' && s.ans != null && !s.warm) out.push({ k: 'poll', q: s.q, opts: s.opts, ans: s.ans, fig: s.fig, why: s.why, hint: s.hint || s.help, hard: false });
+      (A.gameForms ? A.gameForms(s) : []).forEach(function (g) { out.push({ k: g.k, q: g.q, opts: g.opts, ans: g.ans, tol: g.tol, fig: g.fig, why: g.why, hint: g.hint, hard: false }); });   // cross it out, estimate, spot the mistake, always/sometimes/never
       (s.more || []).forEach(function (m, i) { if ((m.k === 'number' || m.k === 'poll') && m.ans != null) out.push(Object.assign({}, m, { hard: i >= 1 })); });
     });
     return out;
@@ -342,6 +342,87 @@
       '<p class="lcrallys">' + [0, 1].map(function (t) { return '<span style="color:' + TC[t] + '">' + T[t].e + ' ' + R.r[t] + ' of ' + R.of[t] + '</span>'; }).join(' · ') + ' right · 60% wins a free character</p>');
     root.appendChild(p);
   }
+  /* ---------- 🧩 guided steps: fill-in-the-blank notes for a student who is stuck ----------
+     Built from the question's own hint and explanation, so no lesson needs extra work: each sentence with working in it
+     becomes a step, and the number after each "=" (and the answer itself) becomes a blank, as in the guided notes.
+     One step at a time: type the blanks, check, see the right value, then answer the question with the steps above it.
+     Opens by itself after a first-try miss, on a "Show me the steps" tap, and on every question for a student who has
+     missed 2 of their last 3 (they can turn that off). A guided answer right first time earns 2 coins. */
+  var NUMRE = /[−-]?\d+(?:\.\d+)?(?:\/\d+)?/g;
+  function guideOf(q) {
+    if (!q || q.warm) return null;
+    var tip = '', steps = [], seen = {}, blanks = 0;
+    function sents(t) { return String(t || '').replace(/([.!?])\s+/g, '$1\u0001').split('\u0001'); }
+    function isAns(v) { return q.k === 'number' && !isNaN(v) && Math.abs(v - q.ans) <= (q.tol || 1e-9) + 1e-9; }
+    function build(s) {
+      var out = '', last = 0, n = 0, m; NUMRE.lastIndex = 0;
+      while ((m = NUMRE.exec(s))) {
+        if (/[a-z]$/i.test(s.slice(0, m.index))) continue;   // part of a word or a label (L5, x2)
+        var pre = s.slice(0, m.index), post = s.slice(m.index + m[0].length);
+        // after an "=" it's a result; the answer elsewhere only when it isn't one of the numbers being worked on
+        if (/=\s*$/.test(pre) || (isAns(A.numOf(m[0])) && !/[×÷+−*\/(-]\s*$/.test(pre) && !/^\s*[×÷+−*\/)=x-]/.test(post))) { out += s.slice(last, m.index) + '[[' + m[0] + ']]'; last = m.index + m[0].length; n++; }
+      }
+      return { t: out + s.slice(last), n: n };
+    }
+    var whyS = sents(q.why).map(function (s) { return s.trim(); });
+    sents(q.hint).forEach(function (s) { s = s.trim(); if (s && !/\d/.test(s) && !tip) tip = s; });
+    sents(q.hint).concat(whyS).forEach(function (s) {
+      s = s.trim(); if (!s || !/\d/.test(s) || steps.length >= 3 || /^(Check|Try|Also)\b/.test(s)) return;   // checks come after the answer
+      var b = build(s); if (seen[b.t]) return; seen[b.t] = 1;
+      if (!b.n && whyS.indexOf(s) < 0) return;   // a hint line with nothing to fill in
+      steps.push(b); blanks += b.n;
+    });
+    while (steps.length && !steps[steps.length - 1].n) steps.pop();   // end on a step with blanks
+    while (steps.length && !steps[0].n && steps.length > 3) steps.shift();
+    return blanks ? { tip: tip, steps: steps } : null;
+  }
+  function blankRight(v, ans) {
+    var a = String(v || '').trim().replace(/-/g, '−').replace(/\s+/g, ''), b = String(ans).replace(/-/g, '−');
+    if (!a) return false; if (a === b) return true;
+    var na = A.numOf(a), nb = A.numOf(b); return !isNaN(na) && !isNaN(nb) && Math.abs(na - nb) < 1e-6;
+  }
+  function slump() { var m = CL.miss || []; return m.slice(-3).filter(function (x) { return !x; }).length >= 2; }
+  function noteMiss(ok) { CL.miss = (CL.miss || []).concat(ok ? 1 : 0).slice(-6); }
+  // the steps in the question box. Returns true while the student is still filling them in (the answer waits).
+  function drawGuide(box, q, G) {
+    var g = H('div', 'lcguide'); box.appendChild(g);
+    g.appendChild(H('p', 'lcgk', '🧩 <b>Step by step</b> · fill in the blanks' + (CL.auto ? ' <a href="#" class="lcgoff">turn off</a>' : '')));
+    var off = g.querySelector('.lcgoff'); if (off) off.onclick = function (e) { e.preventDefault(); CL.gOff = true; CL.auto = false; CL.gd = null; keep(); drawQ(); };
+    if (G.tip) g.appendChild(H('p', 'lcgtip', '💡 ' + fmt(G.tip)));
+    var ol = H('ol', 'lcgsteps'); g.appendChild(ol);
+    var d = CL.gd, inputs = [];
+    while (d.step < G.steps.length && !G.steps[d.step].n) d.step++;   // lines with nothing to fill in are just given
+    G.steps.forEach(function (st, k) {
+      if (k > d.step) return;
+      var open = k === d.step, j = 0;
+      var html = st.t.split(/(\[\[[^\]]+\]\])/).map(function (part) {
+        var m = /^\[\[([^\]]+)\]\]$/.exec(part); if (!m) return fmt(part);
+        var id = k + '.' + (j++), ans = m[1], w = Math.max(2, ans.length + 1);
+        if (open) return '<input class="lcgin" data-g="' + id + '" value="' + esc(d.v[id] || '') + '" style="width:' + (w + 1.5) + 'ch" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Fill in the blank">';
+        return d.ok[id] ? '<span class="lcgb ok">' + esc(ans) + ' ✓</span>' : '<span class="lcgb no">' + (d.v[id] ? '<s>' + esc(d.v[id]) + '</s> ' : '') + esc(ans) + '</span>';
+      }).join('');
+      ol.appendChild(H('li', open ? 'now' : '', html));
+    });
+    if (d.step >= G.steps.length) {
+      var tot = Object.keys(d.ok).length, okN = Object.keys(d.ok).filter(function (k) { return d.ok[k]; }).length;
+      g.appendChild(H('p', 'lcgdone', (okN === tot ? '🎯 All ' + tot + ' blank' + (tot === 1 ? '' : 's') + ' right!' : okN + ' of ' + tot + ' blanks right.') + ' Now answer the question ⬇'));
+      return false;
+    }
+    [].forEach.call(ol.querySelectorAll('input.lcgin'), function (i) { inputs.push(i); i.oninput = function () { d.v[i.getAttribute('data-g')] = i.value.slice(0, 16); }; });
+    var cb = el('button', { type: 'button', 'class': 'btn primary', text: 'Check this step' }), row = H('div', 'row'); row.appendChild(cb); g.appendChild(row);
+    function check() {
+      var empty = inputs.filter(function (i) { return !i.value.trim(); }); if (empty.length) { empty[0].focus(); return; }
+      var st = G.steps[d.step], j = 0;
+      st.t.replace(/\[\[([^\]]+)\]\]/g, function (_, ans) { var id = d.step + '.' + (j++); d.ok[id] = blankRight(d.v[id], ans); return ''; });
+      d.step++; while (d.step < G.steps.length && !G.steps[d.step].n) d.step++;
+      xp(1); keep(); V.noFocus = false; drawQ();
+    }
+    cb.onclick = check;
+    inputs.forEach(function (i, n) { i.onkeydown = function (e) { if (e.key !== 'Enter') return; if (inputs[n + 1] && !inputs[n + 1].value.trim()) inputs[n + 1].focus(); else check(); }; });
+    if (!V.noFocus) setTimeout(function () { var f = inputs.filter(function (i) { return !i.value.trim(); })[0] || inputs[0]; if (f) f.focus({ preventScroll: true }); }, 30);
+    V.noFocus = false;
+    return true;
+  }
   function xp(n, once) { if (A.hero && CL) A.hero.add('c', String(Math.round(CL.id / 1000)) + (once ? 'e' : ''), n, once); }
   function drawQ() {
     var box = hud.q; if (!box || !CL) return;
@@ -366,29 +447,37 @@
       var wait = Math.max(0, CL.cool - Date.now());
       var nx = el('button', { type: 'button', 'class': 'btn primary', text: wait ? 'Think it through… ' + Math.ceil(wait / 1000) : 'Next question ▶' });
       if (wait) { nx.disabled = true; setTimeout(function () { if (root) drawQ(); }, 1000); }
-      nx.onclick = function () { CL.fb = null; if (warm) { CL.wi++; if (CL.wi === CL.warm.length) SFA.toast('⚔️ Warmed up! Now the lesson questions: 3 coins each, more for streaks.', 4500); } else CL.qi++; CL.tries = 0; keep(); drawQ(); };
+      nx.onclick = function () { CL.fb = null; CL.gd = null; if (warm) { CL.wi++; if (CL.wi === CL.warm.length) SFA.toast('⚔️ Warmed up! Now the lesson questions: 3 coins each, more for streaks.', 4500); } else CL.qi++; CL.tries = 0; keep(); drawQ(); };
       box.appendChild(nx); return;
     }
+    // 🧩 guided steps (lesson questions only, not the warm-ups)
+    var G = !warm ? guideOf(q) : null;
+    if (G && !CL.gOff && !CL.auto && slump()) { CL.auto = true; SFA.toast('🧩 Step-by-step help is on: fill in the blanks, then answer.', 4000); }
+    if (CL.gd && CL.gd.qi !== CL.qi) CL.gd = null;
+    if (G && !CL.gd && (CL.tries || (CL.auto && !CL.gOff))) CL.gd = { qi: CL.qi, step: 0, v: {}, ok: {} };
+    if (G && CL.gd) { if (drawGuide(box, q, G)) return; }
+    else if (G) { var sm = el('button', { type: 'button', 'class': 'btn lcgshow', text: '🧩 Show me the steps' }); sm.onclick = function () { CL.gd = { qi: CL.qi, step: 0, v: {}, ok: {} }; keep(); drawQ(); }; V.smBtn = sm; }
     function right() {
       if (warm) {   // a warm-up: 1 coin (plus any comeback coins), no streak, no hero level
         var cbw = V.S ? L.behind(V.S, me) : 0, gw = 1 + cbw; CL.coins += gw; CL.earned += gw; CL.wr++; xp(4); V.juice = { ok: true, txt: '+' + gw + ' 🪙' };
         CL.fb = { ok: true, html: '<b>Yes! +' + gw + ' coin' + (gw === 1 ? '' : 's') + '.</b> Warm-ups pay 1; the lesson questions pay 3.' }; sendSoon(); drawCards(); return;
       }
-      var first = !CL.tries; CL.streak = first ? CL.streak + 1 : 0; CL.best = Math.max(CL.best || 0, CL.streak);
-      var cb = V.S ? L.behind(V.S, me) : 0, got = L.coinsFor(first, q.hard, CL.streak, bonusRound) + cb, before = lv();
+      var first = !CL.tries, guided = !!(CL.gd && CL.gd.qi === CL.qi); noteMiss(first && !guided);
+      if (!guided) CL.streak = first ? CL.streak + 1 : 0; CL.best = Math.max(CL.best || 0, CL.streak);
+      var cb = V.S ? L.behind(V.S, me) : 0, got = (guided && !bonusRound ? (first ? 2 : 1) : L.coinsFor(first, q.hard, CL.streak, bonusRound)) + cb, before = lv();
       CL.coins += got; CL.earned += got; CL.right++; xp(first ? 10 : 5);
-      var three = first && CL.streak % 3 === 0; if (three) A.confetti();
+      var three = first && !guided && CL.streak % 3 === 0; if (three) A.confetti();
       V.juice = { ok: true, txt: '+' + got + ' 🪙', big: three || got >= 4 };
-      CL.fb = { ok: true, html: '<b>Yes! +' + got + ' coin' + (got === 1 ? '' : 's') + '.</b>' + (three ? ' 🔥 Three in a row!' : '') + (cb ? ' ⚡ comeback coin' + (cb > 1 ? 's' : '') : '') + ' Spend them on a card!' };
+      CL.fb = { ok: true, html: '<b>Yes! +' + got + ' coin' + (got === 1 ? '' : 's') + '.</b>' + (guided ? ' 🧩 You worked it out step by step.' : '') + (three ? ' 🔥 Three in a row!' : '') + (cb ? ' ⚡ comeback coin' + (cb > 1 ? 's' : '') : '') + ' Spend them on a card!' };
       if (first && (CL.streak === 4 || CL.streak === 7)) fx('banner', CL.streak >= 7 ? 'ON FIRE!' : 'HOT STREAK!', { sub: CL.streak + ' in a row', ms: 1200, tone: 'win' });
       if (lv() > before) levelUp(lv());
       sendSoon(); drawCards();
     }
-    function wrong(html) { var lost = CL.streak; xp(1); if (!warm) CL.streak = 0; CL.cool = Date.now() + (warm ? 2000 : COOL_MS); CL.fb = { ok: false, html: html + (lost >= 3 && !warm ? ' <i>Streak of ' + lost + ' over. Start a new one!</i>' : '') }; V.juice = { ok: false }; }
+    function wrong(html) { var lost = CL.streak; xp(1); if (!warm) { CL.streak = 0; noteMiss(false); } CL.cool = Date.now() + (warm ? 2000 : COOL_MS); CL.fb = { ok: false, html: html + (lost >= 3 && !warm ? ' <i>Streak of ' + lost + ' over. Start a new one!</i>' : '') }; V.juice = { ok: false }; }
     if (q.k === 'number') {
       var inp = el('input', { type: 'text', inputmode: q.ans < 0 ? 'text' : 'decimal', placeholder: 'Type a number', 'aria-label': 'Clash answer', autocomplete: 'off' });
       var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Check' }), row = H('div', 'row'); row.appendChild(inp); row.appendChild(go); box.appendChild(row);
-      if (CL.tries) box.appendChild(H('p', 'state', 'Not yet: one more try for 1 coin.'));
+      if (CL.tries) box.appendChild(H('p', 'state', 'Not yet: one more try for 1 coin.' + (G ? ' Use the steps above.' : '')));
       var check = function () {
         var v = A.numOf(inp.value); if (!inp.value.trim()) return inp.focus(); if (isNaN(v)) { SFA.toast('Type a number, like 12 or -3.'); return; }
         if (Math.abs(v - q.ans) <= (q.tol || 1e-9) + 1e-9) right();
@@ -406,6 +495,7 @@
         list.appendChild(b);
       });
     }
+    if (V.smBtn) { box.appendChild(V.smBtn); V.smBtn = null; }
   }
   function levelUp(n) {
     sfx('level');
@@ -1527,6 +1617,9 @@
     '.lcpfb{margin:0 0 8px;padding:6px 12px;border-radius:12px;font-size:14px}.lcpfb.good{background:rgba(124,255,107,.16);border:2px solid #7CFF6B}.lcpfb.try{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.25)}',
     '.lcpwait{margin:0 0 8px;padding:6px 12px;border-radius:12px;background:rgba(124,255,107,.1);border:2px dashed #7CFF6B;font-size:14px}',
     '.lcq.pairon{border:3px solid #7CFF6B;box-shadow:0 0 0 3px rgba(124,255,107,.25);background:rgba(10,50,20,.6)}.lcq.pairon .kick{color:#7CFF6B;font-weight:800}',
+    '.lcguide{background:rgba(124,92,255,.14);border:1px dashed #9d8bff;border-radius:12px;padding:8px 12px;margin:6px 0}.lcgk{margin:0 0 4px;font-size:14px;color:#cfc4ff}.lcgk a{color:#cfc4ff;margin-left:6px;font-size:12px}.lcgtip{margin:2px 0 4px;font-size:14px}' +
+    '.lcgsteps{margin:4px 0;padding-left:22px;line-height:2}.lcgsteps li.now{font-weight:700}.lcgin{font:inherit;font-weight:800;text-align:center;border:0;border-bottom:2px solid #FFE14D;background:rgba(255,255,255,.1);color:inherit;border-radius:4px;margin:0 2px;padding:0 2px}' +
+    '.lcgb{font-weight:800;padding:0 4px;border-radius:4px}.lcgb.ok{color:#7CFF6B}.lcgb.no{color:#FFB4A8}.lcgb.no s{opacity:.7;margin-right:2px}.lcgdone{margin:4px 0 0;font-weight:700;color:#FFE14D}.lcgshow{margin-top:8px;font-size:14px}' +
     '.lcquiet{color:#cfc4ff;font-weight:700;white-space:nowrap}.lcpaired{color:#7CFF6B;font-weight:700;white-space:nowrap}.lcqhint{grid-column:1/-1;font-size:14px;color:#cfc4ff}',
     '.lcpteach{margin:6px 0}',
     '.lcpx{position:absolute;transform:translate(-50%,-100%);pointer-events:none;z-index:6;width:var(--s)}.lcpx.out{opacity:0;transition:opacity .45s}',
