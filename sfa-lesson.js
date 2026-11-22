@@ -1215,7 +1215,7 @@
   }
 
   /* ---------------- ⚔️ Lane Clash: the game lives in sfa-clash.js, loaded with the character art when a battle starts ---------------- */
-  var CLASH_V = '20261122b', clashLoading = null, srvSkewV = null;
+  var CLASH_V = '20261122c', clashLoading = null, srvSkewV = null;
   function clashAssets(cb) {
     if (window.SFA_CLASH) return cb();
     if (clashLoading) { clashLoading.push(cb); return; }
@@ -1937,6 +1937,9 @@
     function otherLabel(L) { var k = String(L.lesson).slice(1); return ((window.SFA_LESSON_LABEL || {})[k]) || 'Lesson ' + shownNum(L.lesson); }
     var warnedAt = 0;
     function reclaim(L) {
+      // with an updated results script, another lesson in the slot means another console pressed Go live after this one:
+      // that console has the class now, so this one stops (taking it back here made two consoles fight for the slot)
+      if (console_.owned) return stopHere(otherLabel(L) + ' went live from another window or device, so this console stopped. Press Go live here to take the class back.');
       console_.claim = true; pushLive();
       if (Date.now() - warnedAt > 90000) { warnedAt = Date.now(); SFA.toast('A console for ' + otherLabel(L) + ' is still open on another tab or device and keeps going live. This console took the class back. ' + (console_.owned ? 'Close that console.' : 'Close it, or update the results script so Go live shuts it out automatically.'), 9000); }
     }

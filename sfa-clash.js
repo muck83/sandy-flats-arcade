@@ -1254,10 +1254,16 @@
       if (!best) break;
       var x = side[0][best[0]]; side[0][best[0]] = side[1][best[1]]; side[1][best[1]] = x;
     }
-    // the ones not here today: alternate, starting with the smaller team
+    // the ones not here today join a team when they first play (joinTeam), so they're never on the partner list while away
     var team = {}; side.forEach(function (l, t) { l.forEach(function (sid) { team[sid] = t; }); });
-    shuffle(away).forEach(function (sid) { var n0 = side[0].length, n1 = side[1].length, t = n0 < n1 ? 0 : n1 < n0 ? 1 : (Math.random() < 0.5 ? 0 : 1); side[t].push(sid); team[sid] = t; });
     return Promise.resolve({ team: team, power: [sum(0), sum(1)].map(Math.round), here: [0, 1].map(function (t) { return side[t].filter(function (sid) { return str[sid].here; }).length; }) });
+  }
+  // a student who wasn't here at the draft joins when they first play: the smaller team (after a console reload, the team
+  // their own page already shows: not in the team 0 list means team 1)
+  function joinTeam(K, sid) {
+    if (K.t0) { K.team[sid] = teamOf(sid, K.id, K.t0); return; }
+    var n = [0, 0]; Object.keys(K.team).forEach(function (s) { n[K.team[s]]++; });
+    K.team[sid] = n[0] < n[1] ? 0 : n[1] < n[0] ? 1 : hashTeam(sid, K.id);
   }
   function start(mins) {
     return draftTeams().then(function (d) {
@@ -1274,12 +1280,14 @@
   function agg() {
     var K = C(); if (!K || K.frozen) return;
     var ids = {}; A.rosterIn().forEach(function (r) { ids[r.sid] = r; });
-    if (!K.team && K.t0 && Object.keys(ids).length) { K.team = {}; Object.keys(ids).forEach(function (sid) { K.team[sid] = teamOf(sid, K.id, K.t0); }); }
+    // after a console reload: team 0 comes back from the fingerprints; everyone else rejoins as they play (below)
+    if (!K.team && K.t0 && Object.keys(ids).length) { K.team = {}; Object.keys(ids).forEach(function (sid) { if (teamOf(sid, K.id, K.t0) === 0) K.team[sid] = 0; }); }
     var key = 'id:' + Math.round(K.id / 1000) + ';', last = {};
     (A.consoleAnswers() || []).forEach(function (a) { if (a.q === 'zclash' && ids[a.sid] && String(a.answer).indexOf(key) >= 0 && (!last[a.sid] || String(a.time) >= String(last[a.sid].time))) last[a.sid] = a; });
     var T0 = cNow(K), emN = 0;
     Object.keys(last).forEach(function (sid) {
       var s = String(last[sid].answer), get = function (k) { var m = s.match(new RegExp(';' + k + ':(\\d+)')); return m ? +m[1] : 0; };
+      if (K.team && !(sid in K.team)) joinTeam(K, sid);
       var team = K.team && sid in K.team ? K.team[sid] : hashTeam(sid, K.id), r = get('r');
       var st = statsFor(sid), bonus = L.lessonBonus(st.answered, st.correct, st.extras, st.probed);
       var acc = K.acc[sid] || (K.acc[sid] = { em: K.primed === false ? null : 0, n: K.primed === false ? -1 : 0, spent: 0, cd: {}, lvSeen: 0, ping: K.primed === false ? null : 0 });
@@ -1511,7 +1519,11 @@
       var f = fn(r), last = String(A.nice(r.name) || '').split(' ').slice(1).join(' ');
       out[K.team[r.sid]].push({ sid: r.sid, n: (cnt[f] > 1 && last ? f + ' ' + last[0] + '.' : f).slice(0, 12) });
     });
-    out.forEach(function (l) { l.sort(function (a, b) { return a.n.localeCompare(b.n); }); });
+    // each student keeps their place for the whole battle (partner requests and pairs are sent by place): the draft in
+    // name order, then late joiners added at the end
+    var ord = K.ord || (K.ord = {}), next = Object.keys(ord).length;
+    R.filter(function (r) { return ord[r.sid] == null; }).sort(function (a, b) { return fn(a).localeCompare(fn(b)); }).forEach(function (r) { ord[r.sid] = next++; });
+    out.forEach(function (l) { l.sort(function (a, b) { return ord[a.sid] - ord[b.sid]; }); });
     return out;
   }
   function spot() {
@@ -1529,11 +1541,16 @@
     var LKs = looksBySid(), HQ = K.S.units.concat(K.S.pend).filter(function (u) { return L.UNITS[u.type] && L.UNITS[u.type].hero; }).slice(-12).map(function (u) { return (u.id % 10000) + '~' + (LKs[u.sid] || (window.SFA_AVATAR ? SFA_AVATAR.defLook(u.sid) : '')) + '~' + String(u.owner || '').replace(/[~,#|;]/g, '').slice(0, 10); }).join(',');
     // the newest partner combo's two avatars, for its animation (for 15 s)
     var XL = K.lastX && Date.now() - K.lastX.at < 15000 ? K.lastX.seq + '~' + K.lastX.la + '~' + K.lastX.lb : '';
+    // the team names: always during the rules, and at least every 4 s in the battle (a student who joins late or whose
+    // names changed needs them to see their teammates and partner up), ahead of the extras for the class screen
+    var needN = K.state === 3 || K.nKey !== NL || Date.now() - (K.nAt || 0) > 4000;
+    if (needN && base.length + NL.length + 3 > 598 && HS) { txt = txt.replace('#H:' + HS, ''); base = ('U:' + t0).slice(0, 595 - txt.length) + txt; }
+    if (needN && base.length + NL.length + 3 <= 598) { base += '#N:' + NL; K.nKey = NL; K.nAt = Date.now(); }
     if (XL && base.length + XL.length + 3 <= 598) base += '#X:' + XL;
     if (HQ && base.length + HQ.length + 3 <= 598) base += '#Q:' + HQ;
     var VL = TLs.map(function (l) { return l.map(function (x) { return LKs[x.sid] || (window.SFA_AVATAR ? SFA_AVATAR.defLook(x.sid) : ''); }).join(','); }).join('|');
-    if (base.length + NL.length + 3 <= 598) base += '#N:' + NL;
-    else if (K.state === 3) base = ('U:' + t0).slice(0, 595 - txt.length - NL.length - 3) + txt + '#N:' + NL;
+    if (base.indexOf('#N:') < 0 && base.length + NL.length + 3 <= 598) base += '#N:' + NL;
+    else if (base.indexOf('#N:') < 0 && K.state === 3) base = ('U:' + t0).slice(0, 595 - txt.length - NL.length - 3) + txt + '#N:' + NL;
     if (K.state === 3 && base.indexOf('#N:') >= 0 && base.length + VL.length + 3 <= 598) base += '#V:' + VL;   // avatars for the team intro, when they fit
     return { q: 'zclash', text: base.slice(0, 600) };
   }
