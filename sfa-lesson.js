@@ -1913,11 +1913,29 @@
     if (bc) bc.onmessage = function (e) { var m = e.data || {}; if (m.t === 'hello') broadcast(); if (m.t === 'nav') go(m.to, true); };
     if (!console_.offline) fetchAnswers();
     every(function () { if (!console_.offline) fetchAnswers(); }, 2500);
-    every(function () { if (console_.on) pushLive(); }, 120000);
+    // There is one live slot for the whole school. A console left open on an earlier lesson (a background tab, another
+    // device) used to keep re-sending "live on Lesson A" every 2 minutes and pull students away from the lesson being
+    // taught now. So an idle console checks first, and stops itself as soon as another lesson has gone live.
+    function takenOver(L) { return !!(L && L.lesson !== LID && !ended(L)); }
+    function stopHere(msg) { console_.on = false; clearTimeout(pushT); consolePanel(); liveChip.hidden = true; SFA.toast(msg, 6000); }
+    function otherLabel(L) { var k = String(L.lesson).slice(1); return ((window.SFA_LESSON_LABEL || {})[k]) || 'Lesson ' + shownNum(L.lesson); }
+    every(function () {
+      if (!console_.on) return;
+      if (console_.offline) return pushLive();
+      tpost('live').then(function (j) {
+        if (!console_.on) return;
+        if (takenOver(j.live)) stopHere(otherLabel(j.live) + ' is live now, so this console stopped. Press Go live here to bring students back.');
+        else pushLive();
+      }, function () { if (console_.on) pushLive(); });
+    }, 120000);
     // a console left open in another tab or device must not keep the class live after you end it elsewhere
     every(function () {
       if (!console_.on || console_.offline || Date.now() - lastPush < 20000) return;
-      tpost('live').then(function (j) { if (console_.on && ended(j.live) && j.live.lesson === LID && Date.now() - lastPush > 20000) { console_.on = false; clearTimeout(pushT); consolePanel(); liveChip.hidden = true; SFA.toast('The live lesson was ended from another window.', 4000); } }, function () { });
+      tpost('live').then(function (j) {
+        if (!console_.on || Date.now() - lastPush <= 20000) return;
+        if (ended(j.live) && j.live.lesson === LID) stopHere('The live lesson was ended from another window.');
+        else if (takenOver(j.live)) stopHere(otherLabel(j.live) + ' is live now, so this console stopped. Press Go live here to bring students back.');
+      }, function () { });
     }, 15000);
     if (!console_.offline) tpost('live').then(function (j) {
       console_.climb = j.climb || null;
