@@ -1885,7 +1885,23 @@
     set: function (k, remember) { try { sessionStorage.setItem(KEY, k); if (remember) { var d = new Date(); d.setHours(23, 59, 59, 0); localStorage.setItem(KEY, JSON.stringify({ k: k, until: d.getTime() })); } } catch (e) { } },
     del: function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) { } }
   };
-  function tpost(op, body) { return post(Object.assign({ op: op, teacherKey: Key.get() }, body || {})); }
+  function tpost(op, body) {
+    var b = Object.assign({ op: op, teacherKey: Key.get() }, body || {});
+    if (op !== 'setLive' || !console_) return post(b);
+    // one console runs the live lesson: Go live claims it, and a console that has been replaced stops itself
+    b.owner = liveOwner(); var claiming = !!console_.claim; if (claiming) b.claim = true;
+    return post(b).then(function (j) { if (claiming) console_.claim = false; console_.owned = !!(j && j.owned); return j; }, function (e) {
+      if (e.message !== 'taken') throw e;
+      if (console_.on) { console_.on = false; clearTimeout(pushT); consolePanel(); liveChip.hidden = true; SFA.toast('You went live from another window or device, so this console stopped. Press Go live here to take the class back.', 7000); }
+      return new Promise(function () { });   // handled: no second error message
+    });
+  }
+  function liveOwner() {
+    var k = 'sfa.liveowner.' + LID, v = '';
+    try { v = sessionStorage.getItem(k) || ''; } catch (e) { }
+    if (!v) { v = Date.now().toString(36) + Math.random().toString(36).slice(2, 10); try { sessionStorage.setItem(k, v); } catch (e) { } }
+    return v;
+  }
 
   function askKey(msg) {
     var main = document.querySelector('.lmain'); main.innerHTML = '';
@@ -1913,20 +1929,21 @@
     if (bc) bc.onmessage = function (e) { var m = e.data || {}; if (m.t === 'hello') broadcast(); if (m.t === 'nav') go(m.to, true); };
     if (!console_.offline) fetchAnswers();
     every(function () { if (!console_.offline) fetchAnswers(); }, 2500);
-    // There is one live slot for the whole school. A console left open on an earlier lesson (a background tab, another
-    // device) used to keep re-sending "live on Lesson A" every 2 minutes and pull students away from the lesson being
-    // taught now. So an idle console checks first, and stops itself as soon as another lesson has gone live.
+    // There is one live slot for the whole school. The console you pressed Go live on keeps it: an updated results script
+    // refuses every other console (see tpost). If another lesson still shows up in the slot, a console left open somewhere
+    // is fighting for it (an older results script can't refuse it): take the slot straight back and say where to look.
     function takenOver(L) { return !!(L && L.lesson !== LID && !ended(L)); }
     function stopHere(msg) { console_.on = false; clearTimeout(pushT); consolePanel(); liveChip.hidden = true; SFA.toast(msg, 6000); }
     function otherLabel(L) { var k = String(L.lesson).slice(1); return ((window.SFA_LESSON_LABEL || {})[k]) || 'Lesson ' + shownNum(L.lesson); }
+    var warnedAt = 0;
+    function reclaim(L) {
+      console_.claim = true; pushLive();
+      if (Date.now() - warnedAt > 90000) { warnedAt = Date.now(); SFA.toast('A console for ' + otherLabel(L) + ' is still open on another tab or device and keeps going live. This console took the class back. ' + (console_.owned ? 'Close that console.' : 'Close it, or update the results script so Go live shuts it out automatically.'), 9000); }
+    }
     every(function () {
       if (!console_.on) return;
       if (console_.offline) return pushLive();
-      tpost('live').then(function (j) {
-        if (!console_.on) return;
-        if (takenOver(j.live)) stopHere(otherLabel(j.live) + ' is live now, so this console stopped. Press Go live here to bring students back.');
-        else pushLive();
-      }, function () { if (console_.on) pushLive(); });
+      tpost('live').then(function (j) { if (!console_.on) return; if (takenOver(j.live)) reclaim(j.live); else pushLive(); }, function () { if (console_.on) pushLive(); });
     }, 120000);
     // a console left open in another tab or device must not keep the class live after you end it elsewhere
     every(function () {
@@ -1934,14 +1951,14 @@
       tpost('live').then(function (j) {
         if (!console_.on || Date.now() - lastPush <= 20000) return;
         if (ended(j.live) && j.live.lesson === LID) stopHere('The live lesson was ended from another window.');
-        else if (takenOver(j.live)) stopHere(otherLabel(j.live) + ' is live now, so this console stopped. Press Go live here to bring students back.');
+        else if (takenOver(j.live)) reclaim(j.live);
       }, function () { });
     }, 15000);
     if (!console_.offline) tpost('live').then(function (j) {
       console_.climb = j.climb || null;
-      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; if (window.SFA_WB) SFA_WB.restore(j.live.wb); console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zlobby' || console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid' || console_.spot.q === 'zshow' || console_.spot.q === 'zsumo' || console_.spot.q === 'zstand' || console_.spot.q === 'zduel')) console_.spot = null; crewRestore(j.live); if (hasDuel(j.live)) { var jd = j.live; duelAssets(function () { if (!SFA_DUEL.restore(jd)) pushLive(); consolePanel(); }); } if (hasStand(j.live)) { var jt = j.live; standAssets(function () { if (!SFA_STAND.restore(jt)) pushLive(); consolePanel(); }); } if (hasSumo(j.live)) { var js2 = j.live; sumoAssets(function () { if (!SFA_SUMO.restore(js2)) pushLive(); consolePanel(); }); } if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
+      if (j.live && j.live.lesson === LID && !ended(j.live) && Date.now() - j.live.at < LIVE_FRESH) { console_.on = true; console_.claim = true; console_.reveal = j.live.reveal || {}; console_.spot = j.live.spot; if (window.SFA_WB) SFA_WB.restore(j.live.wb); console_.timer = j.live.timer; console_.since = Date.now(); console_.lock = liveLock(j.live); var r0 = decRun(j.live.counts && j.live.counts.zrun); if (r0) console_.run = r0; if (console_.spot && (console_.spot.q === 'zlobby' || console_.spot.q === 'zclash' || console_.spot.q === 'zboard' || console_.spot.q === 'zraid' || console_.spot.q === 'zshow' || console_.spot.q === 'zsumo' || console_.spot.q === 'zstand' || console_.spot.q === 'zduel')) console_.spot = null; crewRestore(j.live); if (hasDuel(j.live)) { var jd = j.live; duelAssets(function () { if (!SFA_DUEL.restore(jd)) pushLive(); consolePanel(); }); } if (hasStand(j.live)) { var jt = j.live; standAssets(function () { if (!SFA_STAND.restore(jt)) pushLive(); consolePanel(); }); } if (hasSumo(j.live)) { var js2 = j.live; sumoAssets(function () { if (!SFA_SUMO.restore(js2)) pushLive(); consolePanel(); }); } if (hasRaid(j.live)) { var jr = j.live; raidAssets(function () { if (!SFA_RAID.restore(jr)) pushLive(); consolePanel(); }); } if (hasBoard(j.live)) { var jb = j.live; boardAssets(function () { if (!SFA_BOARD.restore(jb)) pushLive(); consolePanel(); }); } if (hasClash(j.live)) { var jl = j.live; clashAssets(function () { if (!SFA_CLASH.restore(jl)) pushLive(); consolePanel(); }); } if (j.live.slide !== cur) render(j.live.slide, 1); pushLive(); computeFeed(); consolePanel(); }
       // opened from the Climb dashboard ("End Climb → Lesson N"): go live straight away, so students' pages move into this lesson
-      else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
+      else if (/[?&]golive/.test(location.search)) { console_.on = true; console_.claim = true; console_.since = Date.now(); pushLive(); consolePanel(); liveChip.hidden = false; SFA.toast('Live. Students coming from Climb join by themselves.', 4000); history.replaceState(null, '', location.pathname + location.search.replace(/&golive/, '')); }
       else consolePanel();
     }, function () { });
     // keep the Climb status line current
@@ -2111,13 +2128,13 @@
     if (!console_.offline) { var fr2 = H('span', 'pill fresh'); fr2.id = 'fresh'; line.appendChild(fr2); }
     bar.appendChild(line);
     var row = H('div', 'row cbtns');
-    var golive = function () { console_.on = true; console_.since = Date.now(); pushLive(); SFA.toast('Live. Students\' screens now follow your slides.'); consolePanel(); liveChip.hidden = false; };
+    var golive = function () { console_.on = true; console_.claim = true; console_.since = Date.now(); pushLive(); SFA.toast('Live. Students\' screens now follow your slides.'); consolePanel(); liveChip.hidden = false; };
     var endit = function () { console_.on = false; endLive(); consolePanel(); liveChip.hidden = true; };
     var fresh = function () {
       if (!window.confirm('Start this lesson fresh?\n\nEveryone goes back to slide 1, reveals and the timer are cleared, and students\' earlier answers are hidden here and cleared on their devices. Nothing is deleted from your Sheet.')) return;
       console_.run = Date.now(); console_.showOld = false;
       console_.reveal = {}; console_.spot = null; console_.timer = null; console_.picked = ''; console_.peek = false;
-      if (!console_.on && !console_.offline) { console_.on = true; console_.since = Date.now(); liveChip.hidden = false; }
+      if (!console_.on && !console_.offline) { console_.on = true; console_.claim = true; console_.since = Date.now(); liveChip.hidden = false; }
       computeFeed(); render(0, -1); pushLive(); consolePanel();
       SFA.toast('Fresh start. Students\' screens reset within a few seconds.', 4000);
     };

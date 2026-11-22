@@ -408,6 +408,11 @@ function getLive() {
 
 function setLive(req) {
   var cache = CacheService.getScriptCache(), L = req.live;
+  // one console runs the live lesson. Pressing Go live claims it (claim: true with that console's owner id); any other
+  // console, including old copies of the page that send no owner, is refused and stops itself, so students never jump.
+  var own = String(req.owner || '').slice(0, 40), cur = cache.get('liveOwner');
+  if (cur && !req.claim && own !== cur) return { ok: false, error: 'taken' };
+  if (req.claim && own) cache.put('liveOwner', own, 21600);
   if (!L) { cache.remove('live'); return { ok: true, live: null }; }
   var out = { lesson: String(L.lesson || ''), slide: Math.max(0, Math.min(200, Math.round(Number(L.slide) || 0))), at: Date.now(), reveal: {}, counts: {}, spot: null, timer: null, lock: !!L.lock };
   if (!LESSON.test(out.lesson)) throw new Error('bad lesson');
@@ -424,7 +429,7 @@ function setLive(req) {
   var json = JSON.stringify(out);
   if (json.length > 90000) throw new Error('too big');
   cache.put('live', json, 21600);
-  return { ok: true, live: out };
+  return { ok: true, live: out, owned: true };
 }
 
 function answersFor(req) {
