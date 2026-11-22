@@ -85,6 +85,14 @@
   CU.DNAME = ['', 'Foundation', 'Emerging-level', 'Developed-level', 'Deep-level'];
   // the chance of a lucky right answer, by skill and question level (tap-to-choose questions can be guessed; typed and plotted ones can't)
   var GUESS = CU.GUESS = { s1: [0, 0, 0, 0], s2: [0, 0, 0, 0], s3: [0, 0, 0, 0], s4: [0, 0, 0, 0], f1: [.25, 0, 0, .25], f2: [.25, .05, 0, 0], b1: [0, 0, 0, 0], r1: [.25, 0, 0, 0], r2: [0, 0, 0, 0], r3: [.25, .25, 0, .25], r4: [.25, .25, .25, .25], e1: [.25, .25, 0, .25], e2: [.33, .08, .08, 0] };
+  /* topics the teacher can leave out of a Check (the start code carries the choice, so no server change): a bit each.
+     top = which optional topics are IN. Attempts from before this switch have no top: everything was in. */
+  var TOPICS = CU.TOPICS = [{ bit: 1, id: 'ineq', name: 'Inequalities', skills: ['r3'] }];
+  CU.ALL_TOP = 1;
+  function offFor(top) { var o = {}; if (top == null) return o; TOPICS.forEach(function (t) { if (!(top & t.bit)) t.skills.forEach(function (id) { o[id] = 1; }); }); return o; }
+  CU.uses = function (id, top) { return !offFor(top)[id]; };
+  CU.active = function (top) { var o = offFor(top); return IDS.filter(function (id) { return !o[id]; }); };
+  CU.topText = function (top) { return TOPICS.map(function (t) { return t.name + (top == null || (top & t.bit) ? ' included' : ' left out'); }).join(' · '); };
   // skills where working it out on paper pays off: one from each pair becomes a "work it out on paper" question
   var PAPER_PAIRS = [['s1', 's4'], ['f1', 'f2'], ['b1', 'r1']];
 
@@ -670,11 +678,11 @@
 
   /* ---------------- the adaptive rule ---------------- */
   // one round visits all thirteen skills, mixed so the four criteria take turns
-  function order(seed, round) {
-    var R = rng(hash(seed + '|round|' + round)), slots = [];
+  function order(seed, round, top) {
+    var R = rng(hash(seed + '|round|' + round)), slots = [], off = offFor(top);
     CRIT.forEach(function (c) { var ids = R.shuffle(c.skills), n = ids.length; ids.forEach(function (id, k) { slots.push({ id: id, at: (k + .5) / n + (R.f() - .5) * .04 }); }); });
     slots.sort(function (a, b) { return a.at - b.at; });
-    return slots.map(function (s) { return s.id; });
+    return slots.map(function (s) { return s.id; }).filter(function (id) { return !off[id]; });   // the same draws either way, so attempts already under way don't change
   }
   CU.order = order;
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -687,15 +695,15 @@
   CU.levelFor = levelFor;
   CU.MAX_ITEMS = 40;
   // the next question: { i, s (skill), d (level), paper }
-  CU.next = function (seed, log, canPaper) {
-    var i = log.length, sk;
-    if (i < 26) sk = order(seed, Math.floor(i / 13))[i % 13];
+  CU.next = function (seed, log, canPaper, top) {
+    var i = log.length, sk, act = CU.active(top), N = act.length;
+    if (i < 2 * N) sk = order(seed, Math.floor(i / N), top)[i % N];
     else {
       var sc = score(log), best = -1, R = rng(hash(seed + '|pick|' + i)), lastS = log[i - 1].s;
-      IDS.forEach(function (id) { if (id === lastS) return; var e = sc.skill[id], v = e.se + (e.n < 3 ? .3 : 0) + R.f() * .05; if (v > best) { best = v; sk = id; } });
+      act.forEach(function (id) { if (id === lastS) return; var e = sc.skill[id], v = e.se + (e.n < 3 ? .3 : 0) + R.f() * .05; if (v > best) { best = v; sk = id; } });
     }
     var d = levelFor(log, sk), paper = 0;
-    if (i < 13 && canPaper !== false && paperSkills(seed).indexOf(sk) >= 0 && CU.paperOK(sk)) { paper = 1; d = d >= 4 ? 4 : 3; }
+    if (i < N && canPaper !== false && paperSkills(seed).indexOf(sk) >= 0 && CU.paperOK(sk)) { paper = 1; d = d >= 4 ? 4 : 3; }
     return { i: i, s: sk, d: d, paper: paper };
   };
 
@@ -739,8 +747,8 @@
   CU.score = score;
   // "stable": two full rounds answered, and the overall estimate and every criterion estimate have settled
   CU.STABLE = { min: 26, se: 0.36, critSe: 0.72 };
-  CU.stable = function (log) {
-    if (log.length < CU.STABLE.min) return false;
+  CU.stable = function (log, top) {
+    if (log.length < CU.STABLE.min - 2 * (IDS.length - CU.active(top).length)) return false;
     var s = score(log); if (s.se > CU.STABLE.se) return false;
     return CRIT.every(function (c) { return s.crit[c.id].se <= CU.STABLE.critSe; });
   };
@@ -858,9 +866,10 @@
   };
   // One entry per skill: { id, name, crit, level (0-4), n, right, can, next, sure }.
   // level 0 = not enough evidence. Then the answers that were given still shape the message, marked sure: false.
-  CU.feedback = function (sc, log) {
+  CU.feedback = function (sc, log, top) {
     log = log || [];
-    return SK.map(function (k) {
+    var off = offFor(top);
+    return SK.filter(function (k) { return !off[k.id] || sc.skill[k.id].n; }).map(function (k) {
       var e = sc.skill[k.id], f = FB[k.id], o = { id: k.id, name: k.name, crit: k.crit, level: e.level, n: e.n, right: e.right, sure: !!e.level };
       if (e.level) { o.can = f.can[e.level - 1]; o.next = f.next[e.level - 1]; return o; }
       if (!e.n) { o.can = null; o.next = 'This skill didn\'t come up in the time. Check yourself with its guided practice in the Unit 2 Review. The goal: ' + f.can[2].replace(/^You can /, '').replace(/\.$/, '') + '.'; return o; }
@@ -888,11 +897,12 @@
      accepts it only on the same day and only for a short window after it was made, so the test cannot be started
      early, at home, or tomorrow. It is worked out in the browser (no server), so it stops casual misuse, not a
      determined student who reads this file. */
-  var LENS = CU.LENS = [35, 45, 52, 70], OPEN_MIN = CU.OPEN_MIN = 25, ALPHA = 'BCDFGHJKLMNPQRSTVWXZ', SPACE = 1562;
+  var LENS = CU.LENS = [35, 45, 52, 70], OPEN_MIN = CU.OPEN_MIN = 25, ALPHA = 'BCDFGHJKLMNPQRSTVWXZ', SPACE = 1381;
   function dayKey(t) { var d = new Date(t); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
   function slotOf(t) { var d = new Date(t); return Math.floor((d.getHours() * 60 + d.getMinutes()) / 5); }
-  CU.makeCode = function (t, lenIdx) {
-    var slot = slotOf(t), pay = slot * 4 + (lenIdx || 0), chk = hash('sfa-u2-check|' + dayKey(t) + '|' + pay) % SPACE, n = pay * SPACE + chk, s = '';
+  // the code holds: the 5-minute slot it was made in, the test length and the topics (one bit: inequalities in)
+  CU.makeCode = function (t, lenIdx, top) {
+    var slot = slotOf(t), pay = (slot * 4 + (lenIdx || 0)) * 2 + ((top == null ? CU.ALL_TOP : top) & 1), chk = hash('sfa-u2-check|' + dayKey(t) + '|' + pay) % SPACE, n = pay * SPACE + chk, s = '';
     for (var i = 0; i < 5; i++) { s = ALPHA[n % 20] + s; n = Math.floor(n / 20); }
     return s;
   };
@@ -900,12 +910,12 @@
     str = String(str || '').toUpperCase().replace(/[^A-Z]/g, '');
     if (str.length !== 5) return { ok: false, why: 'The start code has 5 letters.' };
     var n = 0; for (var i = 0; i < 5; i++) { var k = ALPHA.indexOf(str[i]); if (k < 0) return { ok: false, why: 'That code isn\'t right. Check the letters on the board.' }; n = n * 20 + k; }
-    var chk = n % SPACE, pay = Math.floor(n / SPACE), slot = Math.floor(pay / 4), lenIdx = pay % 4;
+    var chk = n % SPACE, pay = Math.floor(n / SPACE), top = pay % 2, slot = Math.floor(pay / 8), lenIdx = Math.floor(pay / 2) % 4;
     if (slot > 287 || hash('sfa-u2-check|' + dayKey(now) + '|' + pay) % SPACE !== chk) return { ok: false, why: 'That code isn\'t right for today. Check the letters on the board.' };
     var d = new Date(now); d.setHours(0, 0, 0, 0); var start = d.getTime() + slot * 5 * 60000;
     if (now < start - 6 * 60000) return { ok: false, why: 'That code isn\'t open yet. Check the clock on this device.' };
     if (now > start + (OPEN_MIN + 5) * 60000) return { ok: false, why: 'That code has closed. Ask Mr. Crowell for a new one.' };
-    return { ok: true, code: str, len: LENS[lenIdx], lenIdx: lenIdx, opened: start, closes: start + (OPEN_MIN + 5) * 60000 };
+    return { ok: true, code: str, len: LENS[lenIdx], lenIdx: lenIdx, top: top, opened: start, closes: start + (OPEN_MIN + 5) * 60000 };
   };
 
   /* ---------------- the summary that reaches the dashboard ----------------
@@ -922,7 +932,7 @@
     SK.forEach(function (k) { var e = sc.skill[k.id]; levels.push({ id: k.id, tier: e.n ? TIER[e.level] : 'none', name: k.name, done: false, skipped: false }); });
     var st = att.end ? ({ time: 't', stable: 's', max: 'm', left: 'x' })[att.end.why] || 't' : 'r';
     var el = Math.round(((att.end ? att.end.at : now) - att.t0) / 1000);
-    levels.push({ id: 'A' + b36(att.seed, 6) + '1', tier: String(att.code || 'zzzzz').toLowerCase().replace(/[^a-z]/g, '').slice(0, 5) + st + let26(att.lenIdx || 0, 1), done: false });
+    levels.push({ id: 'A' + b36(att.seed, 6) + '1', tier: String(att.code || 'zzzzz').toLowerCase().replace(/[^a-z]/g, '').slice(0, 5) + st + let26(att.lenIdx || 0, 1) + let26(att.top == null ? CU.ALL_TOP : att.top, 1), done: false });
     levels.push({ id: 'B' + b36(att.t0 / 60000, 6) + b36(Math.min(35, att.ext || 0), 1), tier: let26(Math.min(17575, el), 3) + let26(Math.min(25, att.n || 1), 1) + let26(Math.min(25, att.reloads || 0), 1), done: false });
     var ps = (att.papers || []).slice(0, 3);
     if (ps.length) levels.push({ id: 'C' + ps.map(function (p) { return b36(IDS.indexOf(p.s), 1) + b36(p.chk, 1); }).join(''), tier: ps.map(function (p) { return let26(Math.min(25, p.i), 1); }).join(''), done: false });
@@ -947,7 +957,7 @@
       var m = tok.match(/^([A-Za-z0-9]+)\.([a-z]*):(.)$/); if (!m) return;
       var id = m[1], tier = m[2];
       if (IDS.indexOf(id) >= 0) { att.skills[id] = tier; return; }
-      if (id[0] === 'A') { att.seed = parseInt(id.slice(1, 7), 36); att.code = tier.slice(0, 5).toUpperCase(); att.state = tier[5] || 'r'; att.lenIdx = tier[6] ? un26(tier[6]) : 0; att.ok = true; return; }
+      if (id[0] === 'A') { att.seed = parseInt(id.slice(1, 7), 36); att.code = tier.slice(0, 5).toUpperCase(); att.state = tier[5] || 'r'; att.lenIdx = tier[6] ? un26(tier[6]) : 0; att.top = tier[7] ? un26(tier[7]) : CU.ALL_TOP; att.ok = true; return; }
       if (id[0] === 'B') { att.t0 = parseInt(id.slice(1, 7), 36) * 60000; att.ext = parseInt(id[7] || '0', 36); att.elapsed = un26(tier.slice(0, 3)); att.n = un26(tier[3] || 'b'); att.reloads = un26(tier[4] || 'a'); return; }
       if (id[0] === 'C') { for (var k = 0; k + 2 < id.length && k < 6; k += 2) { var si = parseInt(id[1 + k], 36); if (IDS[si]) att.papers.push({ s: IDS[si], chk: parseInt(id[2 + k], 36), i: un26(tier[k / 2] || 'a') }); } return; }
       for (var j = 0; j * 4 < id.length; j++) {
@@ -965,8 +975,8 @@
     o = o || {}; var R = rng(hash(seed + '|sim')), log = [], t = 0, lim = (o.mins || 35) * 60, why = 'time', papers = [];
     while (true) {
       if (log.length >= CU.MAX_ITEMS) { why = 'max'; break; }
-      if (CU.stable(log)) { why = 'stable'; break; }
-      var nx = CU.next(seed, log, o.paper), it = nx.paper ? CU.paper(nx.s, nx.d, seed) : CU.make(nx.s, nx.d, seed + '|' + nx.i);
+      if (CU.stable(log, o.top)) { why = 'stable'; break; }
+      var nx = CU.next(seed, log, o.paper, o.top), it = nx.paper ? CU.paper(nx.s, nx.d, seed) : CU.make(nx.s, nx.d, seed + '|' + nx.i);
       if (!it) { if (nx.paper) { it = CU.make(nx.s, nx.d, seed + '|' + nx.i); nx.paper = 0; } if (!it) throw new Error('no item for ' + nx.s + ' level ' + nx.d); }
       var p = pRight(ability(nx.s), nx.d, nx.paper ? 0 : it.c), ok = R.f() < p ? 1 : 0;
       var secs = Math.round(it.exp * (o.pace || 1) * (0.55 + R.f() * 0.9));
@@ -977,7 +987,7 @@
       if (nx.paper) papers.push({ s: nx.s, i: nx.i, chk: it.chk });
       log.push({ s: nx.s, d: nx.d, ok: ok, p: nx.paper, idk: 0, t: secs, f: f, a: (f & 1) ? 10 + R.i(0, 60) : 0, b: (f & 1) ? R.i(1, 3) : 0, r: 0 });
     }
-    return { n: 1, code: o.code || 'BCDFG', lenIdx: 0, seed: seed, t0: o.t0 || Date.now() - t * 1000, log: log, end: { at: (o.t0 || Date.now() - t * 1000) + t * 1000, why: why }, ext: 0, reloads: 0, papers: papers };
+    return { n: 1, code: o.code || 'BCDFG', lenIdx: 0, top: o.top, seed: seed, t0: o.t0 || Date.now() - t * 1000, log: log, end: { at: (o.t0 || Date.now() - t * 1000) + t * 1000, why: why }, ext: 0, reloads: 0, papers: papers };
   };
 
   /* ---------------- self-check: every skill, every level, many sets of numbers ---------------- */

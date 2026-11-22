@@ -290,7 +290,7 @@
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') start(); });
     inp.addEventListener('input', function () { msg.textContent = ''; });
     function start() {
-      if (DEMO) return begin({ ok: true, code: 'DEMOX', len: demoLen, lenIdx: 0, demo: true });
+      if (DEMO) return begin({ ok: true, code: 'DEMOX', len: demoLen, lenIdx: 0, top: 0, demo: true });
       var r = CU.readCode(inp.value, Date.now());
       if (!r.ok) { msg.textContent = r.why; inp.focus(); return; }
       go.disabled = true; msg.textContent = 'Starting…';
@@ -313,7 +313,7 @@
       DEMO ? el('div', { 'class': 'ck-start' }, [el('div', { 'class': 'ck-demo' }, [el('b', { text: 'Teacher demo. ' }), 'Nothing here reaches the class results. How long should this demo run? ', el('span', { 'class': 'ck-seg', role: 'group', 'aria-label': 'Demo length' }, [5, 10, 35].map(function (m) { var b = el('button', { type: 'button', 'aria-pressed': m === demoLen ? 'true' : 'false', text: m + ' min', onclick: function () { demoLen = m; [].forEach.call(b.parentNode.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); } }); return b; }))]), go])
         : el('div', { 'class': 'ck-start' }, [el('label', {}, ['Start code from Mr. Crowell ', inp]), go]),
       msg,
-      TRY ? el('p', { 'class': 'muted' }, ['Practice mode: ', el('button', { type: 'button', 'class': 'btn small', text: 'Use a practice code', onclick: function () { inp.value = CU.makeCode(Date.now(), 0); } }), ' (the real code comes from the teacher dashboard).']) : null
+      TRY ? el('p', { 'class': 'muted' }, ['Practice mode: ', el('button', { type: 'button', 'class': 'btn small', text: 'Use a practice code', onclick: function () { inp.value = CU.makeCode(Date.now(), 0, 0); } }), ' (the real code comes from the teacher dashboard).']) : null
     ]));
     if (P.past.length) root.appendChild(el('p', { 'class': 'muted', text: 'Earlier attempts: ' + P.past.map(function (x) { return new Date(x.t0).toLocaleDateString() + ' (scale ' + x.scale + ')'; }).join(', ') }));
     // on a phone, focusing the code box scrolls past the instructions: let the student read from the top first
@@ -324,7 +324,7 @@
     var now = Date.now(), n = (P.att ? P.att.n : P.past.length) + 1;
     if (P.att && P.att.end) { var sc = CU.score(P.att.log); P.past.push({ t0: P.att.t0, code: P.att.code, scale: sc.scale, n: sc.n, why: P.att.end.why }); P.past = P.past.slice(-5); }
     var mm = TRY && Q.match(/[?&]mins=([\d.]+)/), mins = mm ? parseFloat(mm[1]) : r.demo ? r.len : minutesFor(r.len);
-    P.att = { n: n, sid: me().sid, code: r.code, lenIdx: r.lenIdx, lenMs: Math.round(mins * 60000), seed: CU.hash(me().sid + '|' + r.code + '|' + now) & 0x7fffffff, t0: now, log: [], cur: null, end: null, ext: 0, extMs: 0, reloads: 0, papers: [] };
+    P.att = { n: n, sid: me().sid, code: r.code, lenIdx: r.lenIdx, top: r.top, lenMs: Math.round(mins * 60000), seed: CU.hash(me().sid + '|' + r.code + '|' + now) & 0x7fffffff, t0: now, log: [], cur: null, end: null, ext: 0, extMs: 0, reloads: 0, papers: [] };
     save(); render();
   }
 
@@ -339,8 +339,8 @@
     var a = P.att;
     if (!a.cur) {
       if (a.log.length >= CU.MAX_ITEMS) { finish('max'); return null; }
-      if (CU.stable(a.log)) { finish('stable'); return null; }
-      var nx = CU.next(a.seed, a.log, true);
+      if (CU.stable(a.log, a.top)) { finish('stable'); return null; }
+      var nx = CU.next(a.seed, a.log, true, a.top);
       a.cur = { i: nx.i, s: nx.s, d: nx.d, p: nx.paper, t0: Date.now(), part: 0, resp: [], f: 0, a: 0, b: 0, r: 0 };
       SFA.store.set(KEY, P);
     }
@@ -448,7 +448,7 @@
     clear(); view = 'summary';
     var a = P.att, sc = CU.score(a.log), mins = Math.max(1, Math.round((a.end.at - a.t0) / 60000));
     var why = { time: 'Time is up.', stable: 'You answered enough questions for a steady result, so the check stopped early.', max: 'You reached the last question.', left: 'The check was ended.' }[a.end.why] || '';
-    var fb = CU.feedback(sc, a.log), practise = CU.nextSteps(fb, sc, 3);
+    var fb = CU.feedback(sc, a.log, a.top), practise = CU.nextSteps(fb, sc, 3);
     function lvTag(x) { return x.level ? badge(x.level) : el('span', { 'class': 'badge l0', text: x.n ? 'First read' : 'Not reached' }); }
     var sync = el('p', { 'class': 'ck-savenote', role: 'status' });
     function showSync() { var st = S.status, un = S.unsent ? S.unsent() : 0; sync.textContent = st === 'saved' && !un ? '✓ Your result has reached Mr. Crowell.' : 'Your result is saved on this device and is still being sent. Keep this page open until it says it has reached Mr. Crowell.'; sync.classList.toggle('warn', !(st === 'saved' && !un)); }

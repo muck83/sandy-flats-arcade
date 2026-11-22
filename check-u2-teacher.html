@@ -131,7 +131,7 @@ body.hide .nmv{filter:blur(6px)}
 <script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120f"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
-<script src="check-u2.js?v=20261120i"></script>
+<script src="check-u2.js?v=20261122a"></script>
 <script>
 (function () {
   'use strict';
@@ -158,7 +158,7 @@ body.hide .nmv{filter:blur(6px)}
   function pref(k, d) { try { var v = localStorage.getItem('sfa.ckdash.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function setPref(k, v) { try { localStorage.setItem('sfa.ckdash.' + k, JSON.stringify(v)); } catch (e) { } }
 
-  var S = { rows: [], cls: pref('cls', ''), q: '', sort: pref('sort', 'name'), auto: pref('auto', true), at: null, code: null, len: pref('len', 0), day: pref('day', 'all') };
+  var S = { rows: [], cls: pref('cls', ''), q: '', sort: pref('sort', 'name'), auto: pref('auto', true), at: null, code: null, len: pref('len', 0), top: pref('top', 0), day: pref('day', 'all') };
   var timer = null;
   function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
   function hhmm(t) { return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
@@ -278,10 +278,13 @@ body.hide .nmv{filter:blur(6px)}
     box.appendChild(gatePanel());
     var live = S.code && CU.readCode(S.code.code, Date.now());
     var row = el('div', { 'class': 'codebox' }, [el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Test length for this code' }), seg]),
-      el('button', { type: 'button', 'class': 'btn primary', text: S.code ? 'Make a new code' : 'Make a start code', onclick: function () { var now = Date.now(); S.code = { code: CU.makeCode(now, S.len), at: now }; try { sessionStorage.setItem('sfa.ckdash.code', JSON.stringify(S.code)); } catch (e) { } render(); } })]);
+      el('button', { type: 'button', 'class': 'btn primary', text: S.code ? 'Make a new code' : 'Make a start code', onclick: function () { var now = Date.now(); S.code = { code: CU.makeCode(now, S.len, S.top), at: now }; try { sessionStorage.setItem('sfa.ckdash.code', JSON.stringify(S.code)); } catch (e) { } render(); } })]);
     box.appendChild(row);
+    var ti = el('input', { type: 'checkbox', id: 'ckTop' }); ti.checked = !!(S.top & 1);
+    ti.onchange = function () { S.top = ti.checked ? 1 : 0; setPref('top', S.top); S.code = null; try { sessionStorage.removeItem('sfa.ckdash.code'); } catch (e) { } render(); };
+    box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:10px' }, [el('label', { 'for': 'ckTop', style: 'display:flex;gap:8px;align-items:center;cursor:pointer' }, [ti, el('span', {}, [el('b', { text: 'Include inequalities' }), el('span', { 'class': 'muted', text: ' (skill: Inequalities: write, solve and graph). Leave off until it has been taught; turn on for the summative. The start code carries this choice.' })])])]));
     if (S.code) box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:12px' }, [el('div', { 'class': 'bigcode', text: S.code.code, 'aria-label': 'Start code ' + S.code.code.split('').join(' ') }),
-      el('div', {}, [el('b', { text: live && live.ok ? 'Open: students can start until ' + hhmm(live.closes) : 'This code has closed. Make a new one for anyone still to start.' }), el('div', { 'class': 'muted', text: live && live.ok ? live.len + '-minute test. Extended-time students: make a second code with a longer length and give it to them quietly.' : '' })])]));
+      el('div', {}, [el('b', { text: live && live.ok ? 'Open: students can start until ' + hhmm(live.closes) : 'This code has closed. Make a new one for anyone still to start.' }), el('div', { 'class': 'muted', text: live && live.ok ? live.len + '-minute test · ' + CU.topText(live.top) + '. Extended-time students: make a second code with a longer length and give it to them quietly.' : '' })])]));
     return box;
   }
 
@@ -298,7 +301,7 @@ body.hide .nmv{filter:blur(6px)}
     CRIT.forEach(function (c) {
       var who = done.filter(function (r) { return r.weak === c && r.sc.crit[c.id].level <= 2; }).sort(function (a, b) { return a.sc.crit[c.id].th - b.sc.crit[c.id].th; });
       who.forEach(function (r) { placed[r.sid] = 1; });
-      var tally = {}; who.forEach(function (r) { var w = c.skills.slice().sort(function (a, b) { return r.sc.skill[a].th - r.sc.skill[b].th; })[0]; tally[w] = (tally[w] || 0) + 1; });
+      var tally = {}; who.forEach(function (r) { var w = c.skills.filter(function (id) { return CU.uses(id, r.att.top) || r.sc.skill[id].n; }).sort(function (a, b) { return r.sc.skill[a].th - r.sc.skill[b].th; })[0]; tally[w] = (tally[w] || 0) + 1; });
       var top = Object.keys(tally).sort(function (a, b) { return tally[b] - tally[a]; })[0];
       var lim = who.filter(function (r) { return r.sc.crit[c.id].level === 1; }).length;
       grp('Reteach: ' + c.short, lim > who.length / 2 ? 'l1' : 'l2', who, top ? 'Start with: ' + SKN[top].name + ' (review-u2.html#' + top + '). ' + lim + ' at Limited, ' + (who.length - lim) + ' at Emerging.' : '');
@@ -385,9 +388,9 @@ body.hide .nmv{filter:blur(6px)}
       CRIT.forEach(function (c) {
         var e = sc.crit[c.id];
         drawer.appendChild(el('h3', { style: 'display:flex;justify-content:space-between;gap:8px' }, [c.name, el('span', { 'class': 'badge l' + e.level, text: LV[e.level] })]));
-        drawer.appendChild(el('div', { 'class': 'dsk' }, [].concat.apply([], c.skills.map(function (id) { var k = sc.skill[id]; return [el('span', { text: SKN[id].name }), el('small', { text: k.n ? k.right + '/' + k.n + (k.top ? ' · top L' + k.top : '') : '' }), el('span', { 'class': 'badge l' + k.level, text: k.n ? LV[k.level] : 'not reached' })]; }))));
+        drawer.appendChild(el('div', { 'class': 'dsk' }, [].concat.apply([], c.skills.filter(function (id) { return CU.uses(id, a.top) || sc.skill[id].n; }).map(function (id) { var k = sc.skill[id]; return [el('span', { text: SKN[id].name }), el('small', { text: k.n ? k.right + '/' + k.n + (k.top ? ' · top L' + k.top : '') : '' }), el('span', { 'class': 'badge l' + k.level, text: k.n ? LV[k.level] : 'not reached' })]; }))));
       });
-      var fbx = CU.feedback(sc, a.log), stx = CU.nextSteps(fbx, sc, 3);
+      var fbx = CU.feedback(sc, a.log, a.top), stx = CU.nextSteps(fbx, sc, 3);
       if (stx.length) { drawer.appendChild(el('h3', { text: 'Next steps the student was given' })); drawer.appendChild(el('ol', { style: 'margin:0;padding-left:20px' }, stx.map(function (x) { return el('li', { style: 'margin:0 0 6px' }, [el('b', { text: x.name + ': ' }), x.next]); }))); }
       var px = paperItems(r);
       if (px.length) { drawer.appendChild(el('h3', { text: 'Worked-out questions' })); var pp = el('div', { 'class': 'pp' }); px.forEach(function (x) { var d = el('details', {}, [el('summary', {}, [el('span', { text: 'Q' + (x.p.i + 1) + ' · ' + SKN[x.p.s].name }), el('span', { 'class': 'badge ' + (x.e && x.e.ok ? 'l4' : 'l1'), text: x.e && x.e.ok ? 'right on screen' : 'not right on screen' })])]); d.addEventListener('toggle', function () { if (d.open && !d.querySelector('.ppq')) d.appendChild(paperBlock(x)); }); pp.appendChild(d); }); drawer.appendChild(pp); }
@@ -444,6 +447,11 @@ body.hide .nmv{filter:blur(6px)}
       'Explains a going-down rate with units, predicts, and explains rearranging mistakes.',
       'Compares two models and justifies when one overtakes; fixes any mistake with the correct answer.']
   };
+  // Represent, for a Check with inequalities left out
+  var DESC_NOINEQ = ['Matches a story or table to its equation; finds b in y = mx + b.',
+    'Finds b from a point, solves rising stories, graphs whole-number slopes.',
+    'Finds the line through two points, solves falling stories, graphs fraction slopes.',
+    'Models from two data points, finds fraction intercepts, graphs standard form.'];
   var LVN = ['Limited', 'Emerging', 'Developed', 'Deep'];
   function printSheets(list) {
     if (!list.length) { SFA.toast ? SFA.toast('Nobody in this class has taken the check yet.', 3000) : alert('Nobody in this class has taken the check yet.'); return; }
@@ -466,9 +474,10 @@ body.hide .nmv{filter:blur(6px)}
     LVN.forEach(function (l) { hr.appendChild(el('th', { text: l })); }); t.appendChild(hr);
     CRIT.forEach(function (c) {
       var e = sc.crit[c.id], tr = el('tr', {}, [el('td', { 'class': 'cn', text: c.strand + ': ' + c.short }), el('td', { 'class': 'lv', text: e.level ? LVN[e.level - 1] : 'Too few answers' })]);
-      DESC[c.id].forEach(function (txt, i) { tr.appendChild(el('td', { 'class': e.level === i + 1 ? 'hit' : '', text: txt })); });
+      (c.id === 'represent' && !CU.uses('r3', a.top) ? DESC_NOINEQ : DESC[c.id]).forEach(function (txt, i) { tr.appendChild(el('td', { 'class': e.level === i + 1 ? 'hit' : '', text: txt })); });
       t.appendChild(tr);
       c.skills.forEach(function (id) {
+        if (!CU.uses(id, a.top) && !sc.skill[id].n) return;   // a topic left out of this Check
         var k = sc.skill[id], row = el('tr', {}, [el('td', { 'class': 'sk', text: SKN[id].name }), el('td', { 'class': 'lv', text: k.level ? LVN[k.level - 1] : (k.n ? 'First read' : 'Not reached') })]);
         if (k.level) for (var i = 1; i <= 4; i++) row.appendChild(el('td', { 'class': k.level === i ? 'hit' : '', text: k.level === i ? (k.right + ' of ' + k.n + ' right') : '' }));
         else row.appendChild(el('td', { 'class': 'ne', colspan: '4', text: k.n ? k.right + ' of ' + k.n + ' right: one more question is needed for a level' : 'This skill did not come up in the time' }));
@@ -478,7 +487,7 @@ body.hide .nmv{filter:blur(6px)}
     pg.appendChild(t);
     pg.appendChild(el('div', { 'class': 'tsov' }, [el('span', {}, ['Overall: ', el('b', { text: sc.level ? LVN[sc.level - 1] : 'Not enough evidence' })]), sc.level ? el('span', { text: 'Scale score ' + sc.scale + ' (± ' + sc.pm + ')' }) : null]));
     // the same feedback the student saw on their finish screen
-    var fb = CU.feedback(sc, a.log), steps = CU.nextSteps(fb, sc, 3);
+    var fb = CU.feedback(sc, a.log, a.top), steps = CU.nextSteps(fb, sc, 3);
     var good = fb.filter(function (x) { return x.can && x.level >= 2; }).sort(function (p, q) { return q.level - p.level; }).slice(0, 3);
     if (!good.length) good = fb.filter(function (x) { return x.can; }).slice(0, 3);
     pg.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'What you can do' }), good.length ? el('ul', {}, good.map(function (x) { return el('li', {}, [el('b', { text: x.name + ' (' + (x.level ? LVN[x.level - 1] : 'first read') + '): ' }), x.can]); })) : el('div', { text: 'Not enough right answers yet to say. Start with the next steps below.' })]));
