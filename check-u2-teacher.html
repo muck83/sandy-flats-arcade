@@ -164,6 +164,7 @@ body.hide .nmv{filter:blur(6px)}
   function hhmm(t) { return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
   function nm(r) { return el('span', { 'class': 'nmv', text: nice(r.name) }); }
   // Check 1 to 4: each keeps its own results; the teacher can name them (kept in this browser)
+  var STU = location.href.replace(/[^/]*$/, '') + 'check-u2.html' + (TRY ? '?try' : '');   // the link students open
   function label(n) { return (S.names && S.names[n]) || 'Check ' + (n + 1); }
 
   /* ---------- one row per student, rebuilt from the saved summary by the same engine the student page used ---------- */
@@ -293,7 +294,7 @@ body.hide .nmv{filter:blur(6px)}
   /* ---------- the start code ---------- */
   function codePanel() {
     var box = el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Run the check' }), el('ol', { 'class': 'sub', style: 'margin:0 0 10px;padding-left:20px' }, [
-      el('li', { text: 'Students need scrap paper and a pencil for working things out. They open the arcade front page, press 🎯 Unit 2 Check (or go straight to check-u2.html) and sign in.' }),
+      el('li', {}, ['Students need scrap paper and a pencil for working things out. They open ', el('a', { href: STU, target: '_blank', rel: 'noopener', style: 'color:var(--marquee);font-weight:700', text: STU.replace(/^https?:\/\//, '') }), ' (or the arcade front page, then 🎯 Unit 2 Check) and sign in. ', el('button', { type: 'button', 'class': 'btn small', text: 'Copy student link', onclick: function () { try { navigator.clipboard.writeText(STU).then(function () { SFA.toast('Student link copied'); }, function () { SFA.toast(STU, 6000); }); } catch (e) { SFA.toast(STU, 6000); } } })]),
       el('li', { text: 'Press Open the Check. Make sure the right Check is chosen above, pick the test length, press Make a start code, and put the code on the board. Students type it to start. Close the Check when everyone has started.' }),
       el('li', { text: 'The code works today only, for ' + CU.OPEN_MIN + ' minutes, so nobody can start early or at home. A student who has started keeps going after the code closes: the clock runs from their own start, even through a reload.' }),
       el('li', { text: 'Extra time is set per student, not per code: click a student\'s name in the class table and choose +25%, +50% or double before they start. Everyone uses the same start code; the Check gives that student longer automatically (20 minutes becomes 25, 30 or 40; 35 becomes 44, 53 or 70).' }),

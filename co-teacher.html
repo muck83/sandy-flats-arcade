@@ -131,6 +131,15 @@ if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.wri
       el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Her classes: ' + ((S.who.classes || []).join(', ') || 'none yet') + '. To take a class away from her, edit the script property COTEACHER_CLASSES. To change her key, edit COTEACHER_KEY.' })
     ]));
 
+    // the link students open (to share in Google Classroom or put on the board)
+    var stuUrl = SITE + 'check-u2.html' + Q;
+    body.appendChild(el('section', { 'class': 'panel' }, [
+      el('h2', { text: 'Student link' }),
+      el('p', { 'class': 'muted', text: 'Students open this link for the Unit 2 Check, sign in with their own code from their card, then type the start code you put on the board.' }),
+      el('div', { 'class': 'bar' }, [el('a', { 'class': 'key big', href: stuUrl, target: '_blank', rel: 'noopener', style: 'color:var(--marquee);word-break:break-all', text: stuUrl.replace(/^https?:\/\//, '') }),
+        el('button', { type: 'button', 'class': 'btn primary', text: 'Copy link', onclick: function () { copy(stuUrl, this); } })])
+    ]));
+
     // 1. add students
     var clsIn = el('input', { 'class': 'inp', style: 'width:9em', maxlength: '20', placeholder: 'e.g. 8C', value: S.cls || '', 'aria-label': 'Class name' });
     var dl = el('datalist', { id: 'clsList' }); cl.forEach(function (c) { dl.appendChild(el('option', { value: c })); }); clsIn.setAttribute('list', 'clsList');
@@ -163,7 +172,7 @@ if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.wri
 
     // 2. students and codes
     var list = S.roster.filter(function (r) { return !S.cls || r.cls === S.cls; }).sort(byName);
-    var sec = el('section', { 'class': 'panel' }, [el('h2', { text: '2. Students and their codes' })]);
+    var sec = el('section', { 'class': 'panel' }, [el('h2', { text: '2. Students, codes and extra time' })]);
     if (S.msg) { sec.appendChild(el('div', { 'class': 'ok', role: 'status', text: S.msg })); S.msg = null; }
     if (!cl.length) sec.appendChild(el('p', { 'class': 'muted', text: 'No classes yet. Add your first students above.' }));
     else {
@@ -178,7 +187,7 @@ if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.wri
       list.forEach(function (r) { t.appendChild(el('tr', { 'class': S.fresh[r.sid] ? 'new' : '' }, [el('td', { text: nice(r.name) }), el('td', { 'class': 'hide-s', text: r.cls }), el('td', { 'class': 'code', text: r.code || '–' }), el('td', {}, [extraPick(r)])])); });
       if (!list.length) t.appendChild(el('tr', {}, [el('td', { colspan: '4', 'class': 'muted', text: 'No students in this class yet.' })]));
       sec.appendChild(t);
-      sec.appendChild(el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Extra time: the Unit 2 Check gives that student longer automatically (35 minutes becomes 44, 53 or 70; 20 becomes 25, 30 or 40). Everyone uses the same start code. Set it before the student starts.' }));
+      sec.appendChild(el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Extra time: choose it in the last column (it saves straight away, with a green flash). The Unit 2 Check then gives that student longer automatically: a 20-minute Check becomes 25, 30 or 40 minutes, a 35-minute one 44, 53 or 70. Everyone uses the same start code, and students don\'t need to sign out and back in. Set it before the student starts. You can also set it on the dashboard by clicking a student\'s name.' }));
       sec.appendChild(el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Spelling mistake or a student who left? Ask Mr. Crowell to fix the row on the Roster tab of the results sheet.' }));
     }
     body.appendChild(sec);
@@ -211,7 +220,7 @@ if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.wri
   // extra time for one student: none, +25%, +50%, double
   function extraPick(r) {
     var sel = el('select', { 'class': 'inp xt', 'aria-label': 'Extra time for ' + nice(r.name) });
-    [[0, 'None'], [25, '+25% (44 min)'], [50, '+50% (53 min)'], [100, 'Double (70 min)']].forEach(function (o) { var op = el('option', { value: String(o[0]), text: o[1] }); if ((r.extra || 0) === o[0]) op.selected = true; sel.appendChild(op); });
+    [[0, 'None'], [25, '+25%'], [50, '+50%'], [100, 'Double']].forEach(function (o) { var op = el('option', { value: String(o[0]), text: o[1] }); if ((r.extra || 0) === o[0]) op.selected = true; sel.appendChild(op); });
     sel.onchange = function () {
       var v = +sel.value, was = r.extra || 0; sel.disabled = true;
       api('coExtra', { sid: r.sid, extra: v }).then(function () { r.extra = v; sel.disabled = false; sel.classList.add('saved'); setTimeout(function () { sel.classList.remove('saved'); }, 1200); },
