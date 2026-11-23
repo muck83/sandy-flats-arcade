@@ -13,6 +13,7 @@
   }
   KEY = pickKey();
   var TRY = !!window.CU2_TRY, DEMO = !!window.CU2_DEMO, Q = location.search;
+  var PRACTICE_LINK = /[?&]practice\b/.test(Q);   // check-u2.html?practice: the practice link (a real Check in progress still comes first)
   // extra time set by the teacher (percent): the test length × (1 + extra), worked out from 20, 35 or 45 (52 and 70 already include it)
   function extraPct() { var x = me() && Number(me().extra); return x === 25 || x === 50 || x === 100 ? x : 0; }
   // the sign-in copy of the student is kept on this device for days, so ask the results sheet for their extra time now
@@ -269,6 +270,7 @@
     if (a && a.sid && a.sid !== me().sid) { P = fresh(); a = null; }
     if (a && !a.end && Date.now() >= deadline(a)) finish('time', deadline(a));
     if (a && a.end) moreTime(a);
+    if (PRACTICE_LINK && !DEMO && (!a || (a.end && a.code !== 'PRACT'))) return practiceScreen();
     if (!a) { if (!GATE.open) return closed(); if (!DEMO && Date.now() - GATE.at > 60000) gateCheck().then(function (on) { if (!on && view === 'intro') render(); }); return intro(); }
     if (a.end) return summary();
     test();
@@ -326,6 +328,18 @@
       el('b', { text: again ? 'Another practice check?' : 'Practice check' }),
       el('p', { 'class': 'muted', style: 'margin:4px 0 8px', text: 'Any time, as often as you like: the same kind of questions and feedback as the real Unit 2 Check. It does not replace a real Check. Mr. Crowell can see how you did.' }),
       el('div', { 'class': 'ck-start' }, CU.PRACTICE_LENS.map(function (i) { return el('button', { type: 'button', 'class': 'btn', text: CU.LENS[i] + ' minutes', onclick: function () { practice(i); } }); }))]);
+  }
+
+  // the practice link's own start screen
+  function practiceScreen() {
+    clear(); view = 'practice';
+    root.appendChild(card([el('h2', { text: 'Unit 2 practice check' }),
+      el('p', { 'class': 'ck-lead', text: 'Hi ' + nice(me().name).split(' ')[0] + '. Pick how long you want to work. One question at a time; they get harder when you are right and easier when you are wrong. At the end you see what you can do and what to practise next.' }),
+      el('ul', { 'class': 'ck-list' }, [el('li', { text: 'Have paper and a pencil ready: some questions ask you to work it out on paper first.' }), el('li', { text: 'Stuck? Choose "I don\'t know yet". That is useful, not a failure.' }), el('li', { text: 'A calculator is fine. Other tabs, apps and AI helpers are not: this is for you to find out where you are.' })]),
+      extraPct() ? el('p', { 'class': 'ck-extra', text: '⏱ Your extra time applies here too: 10 minutes becomes ' + minutesFor(10, 5) + ', 20 becomes ' + minutesFor(20, 4) + ', 30 becomes ' + minutesFor(30, 6) + '.' }) : null,
+      practiceBox()]));
+    var p = SFA.store.get(CU.PRACTICE_KEY, null);
+    if (p && p.att && p.att.end) root.appendChild(el('p', { 'class': 'muted' }, ['Your last practice check: ' + new Date(p.att.t0).toLocaleDateString() + '. ', el('button', { type: 'button', 'class': 'btn small', text: 'See its results', onclick: function () { KEY = CU.PRACTICE_KEY; P = load(); summary(); } })]));
   }
 
   var demoLen = 10;

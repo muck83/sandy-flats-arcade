@@ -165,6 +165,8 @@ body.hide .nmv{filter:blur(6px)}
   function nm(r) { return el('span', { 'class': 'nmv', text: nice(r.name) }); }
   // Check 1 to 4: each keeps its own results; the teacher can name them (kept in this browser)
   var STU = location.href.replace(/[^/]*$/, '') + 'check-u2.html' + (TRY ? '?try' : '');   // the link students open
+  var PRAC = STU + (TRY ? '&' : '?') + 'practice';   // straight to a practice check (10, 20 or 30 minutes)
+  function copyTxt(t, what) { try { navigator.clipboard.writeText(t).then(function () { SFA.toast(what + ' copied'); }, function () { SFA.toast(t, 6000); }); } catch (e) { SFA.toast(t, 6000); } }
   function label(n) { return n === CU.PRACTICE ? 'Practice' : (S.names && S.names[n]) || 'Check ' + (n + 1); }
 
   /* ---------- one row per student, rebuilt from the saved summary by the same engine the student page used ---------- */
@@ -317,7 +319,8 @@ body.hide .nmv{filter:blur(6px)}
       api('checkGate', on ? { open: true, check: S.chk, len: S.len, top: S.top } : { open: false, co: !!co }).then(function (j) { S.gate = j; render(); if (S.raw) load(false); }, function (e) { msg.textContent = ' ' + e.message; });
     }
     var box = el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Run the check' }), el('ol', { 'class': 'sub', style: 'margin:0 0 10px;padding-left:20px' }, [
-      el('li', {}, ['Students need scrap paper and a pencil. They open ', el('a', { href: STU, target: '_blank', rel: 'noopener', style: 'color:var(--marquee);font-weight:700', text: STU.replace(/^https?:\/\//, '') }), ' and sign in with their own code. ', el('button', { type: 'button', 'class': 'btn small', text: 'Copy student link', onclick: function () { try { navigator.clipboard.writeText(STU).then(function () { SFA.toast('Student link copied'); }, function () { SFA.toast(STU, 6000); }); } catch (e) { SFA.toast(STU, 6000); } } })]),
+      el('li', {}, ['Students need scrap paper and a pencil. They open ', el('a', { href: STU, target: '_blank', rel: 'noopener', style: 'color:var(--marquee);font-weight:700', text: STU.replace(/^https?:\/\//, '') }), ' and sign in with their own code. ', el('button', { type: 'button', 'class': 'btn small', text: 'Copy student link', onclick: function () { copyTxt(STU, 'Student link'); } }),
+        ' Practice any time (no switch needed): ', el('a', { href: PRAC, target: '_blank', rel: 'noopener', style: 'color:var(--marquee);font-weight:700', text: PRAC.replace(/^https?:\/\//, '') }), ' ', el('button', { type: 'button', 'class': 'btn small', text: 'Copy practice link', onclick: function () { copyTxt(PRAC, 'Practice link'); } })]),
       el('li', { text: 'Choose the Check above, the test length and the topics below, then press Open the Check. Students see a Start button (a page that is already open shows it within 20 seconds). Each student\'s clock starts when they press Start.' }),
       el('li', { text: 'Latecomers can start any time while it is open. Close it when everyone has started: students already working keep going. It closes itself after 6 hours.' }),
       el('li', { text: 'A student ran out of time? Click their name and press "Give 10 more minutes": their page carries on by itself. Extra time for a student is set there too, before they start.' }),

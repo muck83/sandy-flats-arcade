@@ -132,12 +132,15 @@ if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.wri
     ]));
 
     // the link students open (to share in Google Classroom or put on the board)
-    var stuUrl = SITE + 'check-u2.html' + Q;
+    var stuUrl = SITE + 'check-u2.html' + Q, pracUrl = stuUrl + (Q ? '&' : '?') + 'practice';
     body.appendChild(el('section', { 'class': 'panel' }, [
       el('h2', { text: 'Student link' }),
       el('p', { 'class': 'muted', text: 'Students open this link for the Unit 2 Check, sign in with their own code from their card, then press Start once you have opened the Check on your dashboard.' }),
       el('div', { 'class': 'bar' }, [el('a', { 'class': 'key big', href: stuUrl, target: '_blank', rel: 'noopener', style: 'color:var(--marquee);word-break:break-all', text: stuUrl.replace(/^https?:\/\//, '') }),
-        el('button', { type: 'button', 'class': 'btn primary', text: 'Copy link', onclick: function () { copy(stuUrl, this); } })])
+        el('button', { type: 'button', 'class': 'btn primary', text: 'Copy link', onclick: function () { copy(stuUrl, this); } })]),
+      el('p', { 'class': 'muted', style: 'margin-top:12px', text: 'Practice check link: students open it any time (in class or at home) and choose 10, 20 or 30 minutes. It does not need the Check to be open, and the results show under Practice on your dashboard.' }),
+      el('div', { 'class': 'bar' }, [el('a', { 'class': 'key big', href: pracUrl, target: '_blank', rel: 'noopener', style: 'color:var(--marquee);word-break:break-all', text: pracUrl.replace(/^https?:\/\//, '') }),
+        el('button', { type: 'button', 'class': 'btn', text: 'Copy practice link', onclick: function () { copy(pracUrl, this); } })])
     ]));
 
     // 1. add students
