@@ -17,16 +17,34 @@
     if (String(url) !== EP) return inner(url, opts);
     var r; try { r = JSON.parse(opts.body); } catch (e) { return inner(url, opts); }
     if (window.CU2_MOCK_OFFLINE) return Promise.reject(new TypeError('offline (practice)'));
-    // the open/closed switches, one per teacher: open unless that teacher closed it (practice teacher "test", co-teacher "co")
-    if (r.op === 'checkState' || r.op === 'checkGate') {
-      var dg = db(), eod = new Date(); eod.setHours(23, 59, 0, 0);
-      var gst = function (g) { return { open: g !== -1, until: g !== -1 ? eod.getTime() : 0 }; };
+    // the open/closed switches with their sessions, one per teacher (practice teacher "test", co-teacher "co"), like the real script
+    if (r.op === 'checkState' || r.op === 'checkGate' || r.op === 'checkMore') {
+      var dg = db(), now = Date.now();
       if (r.teacherKey && r.teacherKey !== 'test' && r.teacherKey !== 'co') return Promise.resolve(reply({ ok: false, error: 'teacher key' }));
-      var mainT = r.teacherKey === 'test';
-      if (r.op === 'checkGate') { if (mainT && !r.co) dg.gate = r.open ? 1 : -1; else dg.gateCo = r.open ? 1 : -1; put(dg); }
-      if (r.teacherKey) { var o = gst(mainT ? dg.gate : dg.gateCo); o.ok = true; if (mainT) o.co = gst(dg.gateCo); return Promise.resolve(reply(o)); }
+      var mainT = r.teacherKey === 'test', live = function (g) { return g && g.until > now ? g : null; };
+      var pub = function (g) { g = live(g); return g ? { open: true, until: g.until, session: { code: g.code, check: g.check, len: g.len, top: g.top, at: g.at } } : { open: false, until: 0, session: null }; };
+      dg.log = dg.log || []; dg.more = dg.more || {};
+      if (r.op === 'checkMore') { var mm = dg.more[r.sid] || { n: 0 }; dg.more[r.sid] = { n: mm.n + 1, at: now }; put(dg); return Promise.resolve(reply({ ok: true, sid: r.sid, more: dg.more[r.sid].n })); }
+      if (r.op === 'checkGate') {
+        var co = !mainT || !!r.co, k = co ? 'gateCo' : 'gate', cur = live(dg[k]);
+        if (cur) dg.log.forEach(function (x) { if (x.code === cur.code && !x.closed) x.closed = now; });
+        if (r.open && !(mainT && r.co)) {
+          var A = 'BCDFGHJKLMNPQRSTVWXZ', c = ''; for (var i = 0; i < 5; i++) c += A.charAt(Math.floor(Math.random() * 20));
+          dg[k] = { until: now + 6 * 36e5, check: +r.check || 0, len: +r.len || 0, top: +r.top ? 1 : 0, code: c, at: now };
+          dg.log.push({ who: co ? 'co' : 'main', code: c, check: dg[k].check, len: dg[k].len, top: dg[k].top, at: now, until: dg[k].until });
+        } else dg[k] = null;
+        dg.log = dg.log.slice(-40); put(dg);
+      }
+      var moreOf = function (sid) { var m = dg.more[sid]; return m && m.at > now - 12 * 36e5 ? m.n : 0; };
+      if (r.teacherKey) {
+        var o = pub(mainT ? dg.gate : dg.gateCo); o.ok = true; if (mainT) o.co = pub(dg.gateCo);
+        o.log = dg.log.filter(function (x) { return mainT || x.who === 'co'; }); o.more = {}; Object.keys(dg.more).forEach(function (s) { if (moreOf(s)) o.more[s] = moreOf(s); });
+        return Promise.resolve(reply(o));
+      }
+      // a student: their own teacher's switch (the practice roster codes are main-teacher students; ones added on the co-teacher page may be hers)
       var dcs = dg.co || { classes: [], students: [] }, me = dcs.students.filter(function (x) { return x.code === String(r.code || '').toUpperCase(); })[0];
-      var so = gst(me && dcs.classes.indexOf(me.cls) >= 0 ? dg.gateCo : dg.gate); so.ok = true;
+      var sid0 = me ? me.sid : ({ AAAAAA: 's1', BBBBBB: 's2', CCCCCC: 's3' })[String(r.code || '').toUpperCase()];
+      var so = pub(me && dcs.classes.indexOf(me.cls) >= 0 ? dg.gateCo : dg.gate); so.ok = true; so.now = now; so.more = moreOf(sid0);
       return Promise.resolve(reply(so));
     }
     // co-teacher practice: key "co" (or the teacher key "test"); her classes start empty; added students live in this browser

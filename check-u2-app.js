@@ -256,7 +256,8 @@
 
   /* ---------------- screens ---------------- */
   var tick = null, view = '', hook = null;
-  function clear() { clearInterval(tick); tick = null; root.innerHTML = ''; chips.innerHTML = ''; }
+  var poll2 = null;
+  function clear() { clearInterval(tick); tick = null; clearInterval(poll2); poll2 = null; root.innerHTML = ''; chips.innerHTML = ''; }
   function card(kids, cls) { return el('section', { 'class': 'card ck-card' + (cls ? ' ' + cls : '') }, kids); }
   function badge(L) { return el('span', { 'class': 'badge ' + LVC[L], text: CU.LV[L] }); }
 
@@ -267,6 +268,7 @@
     if (!me()) return gate();
     if (a && a.sid && a.sid !== me().sid) { P = fresh(); a = null; }
     if (a && !a.end && Date.now() >= deadline(a)) finish('time', deadline(a));
+    if (a && a.end) moreTime(a);
     if (!a) { if (!GATE.open) return closed(); if (!DEMO && Date.now() - GATE.at > 60000) gateCheck().then(function (on) { if (!on && view === 'intro') render(); }); return intro(); }
     if (a.end) return summary();
     test();
@@ -277,12 +279,23 @@
     root.appendChild(card([el('h2', { text: 'Sign in first' }), el('p', { text: 'The Unit 2 Check saves to your name, so sign in with your student code in the box above. Then this page will show the start screen.' })]));
   }
 
-  /* the open/closed switch: a new attempt can start only while Mr. Crowell has the Check open */
-  var GATE = { open: DEMO, known: DEMO, at: 0 };
+  /* the open/closed switch: a new attempt can start only while Mr. Crowell has the Check open. Opening it also sets the
+     session: which Check, how long, which topics. GATE.more counts the "10 more minutes" he has given this student. */
+  var GATE = { open: DEMO, known: DEMO, at: 0, session: null, more: 0 };
   function gateCheck() {
     if (DEMO) return Promise.resolve(true);
-    return S.call('checkState', {}).then(function (j) { GATE.open = !!j.open; GATE.known = true; GATE.at = Date.now(); return GATE.open; },
+    return S.call('checkState', {}).then(function (j) { GATE.open = !!j.open && !!j.session && j.session.code !== 'OLDCK';   /* OLDCK: a switch opened before sessions, with no settings: closed until reopened */ GATE.session = j.session || null; GATE.more = j.more || 0; GATE.known = true; GATE.at = Date.now(); return GATE.open; },
       function (e) { if (e.server) { GATE.open = false; GATE.known = true; } return GATE.open; });   // offline: keep the last answer
+  }
+  function sessionR() { var s = GATE.session; return s ? { ok: true, code: s.code, len: CU.LENS[s.len] || 35, lenIdx: s.len, top: s.top, check: s.check } : null; }
+  function sessionText(s) { return 'Check ' + (s.check + 1) + ' · ' + (CU.LENS[s.len] || 35) + ' minutes' + (extraPct() ? ' (' + minutesFor(CU.LENS[s.len] || 35, s.len) + ' for you, with your extra time)' : ''); }
+  // 10 more minutes given from the dashboard: an attempt that ran out of time carries on
+  function moreTime(a) {
+    if (a.more == null) a.more = 0;
+    var k = (GATE.more || 0) - a.more; if (k <= 0) return false;
+    a.more = GATE.more;
+    if (a.end && a.end.why === 'time' && a.log.length < CU.MAX_ITEMS) { a.ext = (a.ext || 0) + k; a.extMs = Date.now() + 600000 * k - a.t0 - a.lenMs; a.end = null; save(); return true; }
+    SFA.store.set(KEY, P); return false;
   }
   function closed() {
     clear(); view = 'closed';
@@ -301,24 +314,23 @@
   var RECORDED = ['Your answers, and how long each one took.', 'If you leave this tab or window during a question.', 'If you paste into an answer box or copy a question.', 'Answers that are very fast or very slow.'];
   function intro(again) {
     clear(); view = 'intro';
-    var inp = el('input', { type: 'text', 'class': 'ck-code', maxlength: '5', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'Start code', placeholder: '•••••' });
     var msg = el('p', { 'class': 'ck-msg', role: 'status', 'aria-live': 'polite' });
     var go = el('button', { type: 'button', 'class': 'btn primary', text: 'Start the check', onclick: start });
-    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') start(); });
-    inp.addEventListener('input', function () { msg.textContent = ''; });
     function start() {
       if (DEMO) return begin({ ok: true, code: 'DEMOX', len: demoLen, lenIdx: 0, top: 0, demo: true });
-      var r = CU.readCode(inp.value, Date.now());
-      if (!r.ok) { msg.textContent = r.why; inp.focus(); return; }
       go.disabled = true; msg.textContent = 'Starting…';
-      gateCheck().then(function (on) { if (!on) { go.disabled = false; return render(); } return refreshMe().then(function () { go.disabled = false; begin(r); }); });
+      gateCheck().then(function (on) { if (!on) { go.disabled = false; return render(); } return refreshMe().then(function () { go.disabled = false; begin(sessionR()); }); });
     }
+    // the switch can close (or change) while this screen is open
+    poll2 = setInterval(function () { gateCheck().then(function () { if (view === 'intro' && (!GATE.open || !info.isConnected || info.dataset.code !== GATE.session.code)) render(); }); }, 20000);
+    var info = el('p', { 'class': 'ck-lead' }, GATE.session ? [el('b', { text: 'Mr. Crowell has opened ' + sessionText(GATE.session) + '. ' }), 'Press Start when you are ready. The clock starts then.'] : []);
+    if (GATE.session) info.dataset.code = GATE.session.code;
     root.appendChild(card([
       el('h2', { text: again ? 'A new attempt' : 'Unit 2 Check: Linear Equations and Inequalities' }),
       el('p', { 'class': 'ck-lead', text: 'Hi ' + nice(me().name).split(' ')[0] + '. This check shows what you can do now and what to practise next. It is not a race. The questions get harder when you are right and easier when you are wrong. So everyone meets questions they can\'t do yet. That is normal.' }),
       el('div', { 'class': 'ck-grid' }, [
         el('div', {}, [el('h3', { text: 'How it works' }), el('ul', { 'class': 'ck-list' }, [
-          el('li', { text: 'Mr. Crowell sets the time (20 to 35 minutes). One question at a time. You can\'t go back, so check before you press Submit.' }),
+          el('li', { text: (GATE.session && !DEMO ? (CU.LENS[GATE.session.len] || 35) + ' minutes.' : 'Mr. Crowell sets the time.') + ' One question at a time. You can\'t go back, so check before you press Submit.' }),
           el('li', { text: 'Everyone gets different numbers. Do your own thinking.' }),
           el('li', { text: 'Read each instruction. Sometimes you type. Sometimes you tap a graph, a table or a line of working.' }),
           el('li', { text: 'Stuck? Choose "I don\'t know yet". That helps Mr. Crowell help you. It is not a failure.' }),
@@ -328,13 +340,10 @@
       ]),
       extraPct() ? el('p', { 'class': 'ck-extra', text: '⏱ You have extra time: ' + (extraPct() === 100 ? 'double' : extraPct() + '% more') + ' (a 35-minute check becomes ' + minutesFor(35, 0) + ' minutes, a 20-minute one ' + minutesFor(20, 4) + ').' }) : null,
       DEMO ? el('div', { 'class': 'ck-start' }, [el('div', { 'class': 'ck-demo' }, [el('b', { text: 'Teacher demo. ' }), 'Nothing here reaches the class results. How long should this demo run? ', el('span', { 'class': 'ck-seg', role: 'group', 'aria-label': 'Demo length' }, [5, 10, 35].map(function (m) { var b = el('button', { type: 'button', 'aria-pressed': m === demoLen ? 'true' : 'false', text: m + ' min', onclick: function () { demoLen = m; [].forEach.call(b.parentNode.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); } }); return b; }))]), go])
-        : el('div', { 'class': 'ck-start' }, [el('label', {}, ['Start code from Mr. Crowell ', inp]), go]),
-      msg,
-      TRY ? el('p', { 'class': 'muted' }, ['Practice mode: ', el('button', { type: 'button', 'class': 'btn small', text: 'Use a practice code', onclick: function () { inp.value = CU.makeCode(Date.now(), 0, 0, 0); } }), ' (the real code comes from the teacher dashboard).']) : null
+        : el('div', { 'class': 'ck-start' }, [info, go]),
+      msg
     ]));
     if (P.past.length) root.appendChild(el('p', { 'class': 'muted', text: 'Earlier attempts: ' + P.past.map(function (x) { return new Date(x.t0).toLocaleDateString() + ' (scale ' + x.scale + ')'; }).join(', ') }));
-    // on a phone, focusing the code box scrolls past the instructions: let the student read from the top first
-    try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); }
   }
 
   function begin(r) {
@@ -343,7 +352,7 @@
     var now = Date.now(), n = (P.att ? P.att.n : P.past.length) + 1;
     if (P.att && P.att.end) { var sc = CU.score(P.att.log); P.past.push({ t0: P.att.t0, code: P.att.code, scale: sc.scale, n: sc.n, why: P.att.end.why }); P.past = P.past.slice(-5); }
     var mm = TRY && Q.match(/[?&]mins=([\d.]+)/), mins = mm ? parseFloat(mm[1]) : r.demo ? r.len : minutesFor(r.len, r.lenIdx);
-    P.att = { n: n, sid: me().sid, code: r.code, lenIdx: r.lenIdx, top: r.top, lenMs: Math.round(mins * 60000), seed: CU.hash(me().sid + '|' + r.code + '|' + now) & 0x7fffffff, t0: now, log: [], cur: null, end: null, ext: 0, extMs: 0, reloads: 0, papers: [] };
+    P.att = { n: n, sid: me().sid, code: r.code, more: GATE.more || 0, lenIdx: r.lenIdx, top: r.top, lenMs: Math.round(mins * 60000), seed: CU.hash(me().sid + '|' + r.code + '|' + now) & 0x7fffffff, t0: now, log: [], cur: null, end: null, ext: 0, extMs: 0, reloads: 0, papers: [] };
     save(); render();
   }
 
@@ -479,6 +488,12 @@
       top.push(el('p', { 'class': 'muted', text: 'The ± is honest uncertainty: one check can\'t pin you down exactly. Developed (550 and up) is the goal for Unit 2. Below: what you can do now, and exactly what to work on next.' }));
     } else top.push(el('p', { text: 'There are not enough answers yet for an overall level (at least ' + CU.NEED.all + ' are needed). Whatever you did answer is still below.' }));
     top.push(sync);
+    // Mr. Crowell has opened a new session since this attempt: start it from here
+    var news = GATE.open && GATE.session && GATE.session.code !== a.code;
+    if (news) root.appendChild(card([el('h2', { text: 'Mr. Crowell has opened ' + sessionText(GATE.session) }), el('p', { text: 'Your result below is saved. Start the new check when you are ready: the clock starts when you press Start.' }),
+      el('button', { type: 'button', 'class': 'btn primary', text: 'Start the check', onclick: function () { var b = this; b.disabled = true; gateCheck().then(function (on) { if (!on) { b.disabled = false; return render(); } refreshMe().then(function () { begin(sessionR()); }); }); } })], 'ck-new'));
+    if (a.end.why === 'time' && a.log.length < CU.MAX_ITEMS) top.push(el('p', { 'class': 'ck-msg', text: 'Ran out of time? Mr. Crowell can give you 10 more minutes from his dashboard. Keep this page open: it carries on by itself.' }));
+    poll2 = setInterval(function () { if (DEMO) return; gateCheck().then(function () { if (view !== 'summary') return; if (moreTime(P.att) || (GATE.open && GATE.session && GATE.session.code !== P.att.code) !== news) render(); }); }, 15000);
     root.appendChild(card(top));
 
     // what to do next comes before the long skill list: on a phone it is the first thing under the result
@@ -503,14 +518,12 @@
     }))]));
 
     var more = [el('a', { 'class': 'btn', href: 'review-u2.html', text: '📝 Open the Unit 2 Review' }), el('a', { 'class': 'btn', href: 'index.html', text: '🕹️ Back to the arcade' })];
-    var codeIn = el('input', { type: 'text', 'class': 'ck-code small', maxlength: '5', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'New start code', placeholder: '•••••' }), cm = el('span', { 'class': 'ck-msg', role: 'status' });
-    function withCode(f) { var r = CU.readCode(codeIn.value, Date.now()); if (!r.ok) { cm.textContent = ' ' + r.why; return; } gateCheck().then(function (on) { if (on) refreshMe().then(function () { f(r); }); else cm.textContent = ' The Check is closed. Mr. Crowell opens it in class.'; }); }
-    var tools = el('details', { 'class': 'ck-tools' }, [el('summary', { text: 'Mr. Crowell gave you a new code?' }), el('p', { 'class': 'muted', text: 'A new start code can give you 10 more minutes on this attempt (if it ended because time ran out today) or start a fresh attempt with new numbers.' }),
-      el('div', { 'class': 'ck-start' }, [codeIn,
-        a.end.why === 'time' && a.log.length < CU.MAX_ITEMS ? el('button', { type: 'button', 'class': 'btn small', text: '+10 minutes', onclick: function () { withCode(function () { a.ext = (a.ext || 0) + 1; a.extMs = Date.now() + 600000 - a.t0 - a.lenMs; a.end = null; save(); render(); }); } }) : null,
-        el('button', { type: 'button', 'class': 'btn small', text: 'Start a new attempt', onclick: function () { withCode(function (r) { if (window.confirm('Start a new attempt? Your teacher will see the new attempt in place of this one.')) begin(r); }); } }), cm])]);
+    var cm = el('span', { 'class': 'ck-msg', role: 'status' });
+    // a second go at the same session (only if Mr. Crowell asks for one): it replaces this attempt on his dashboard
+    var tools = GATE.open && !news && !DEMO ? el('details', { 'class': 'ck-tools' }, [el('summary', { text: 'Mr. Crowell asked you to start again?' }), el('p', { 'class': 'muted', text: 'Only if Mr. Crowell asks you to. A new attempt has new numbers and replaces this one on his dashboard.' }),
+      el('div', { 'class': 'ck-start' }, [el('button', { type: 'button', 'class': 'btn small', text: 'Start a new attempt', onclick: function () { gateCheck().then(function (on) { if (!on) { cm.textContent = ' The Check is closed now.'; return; } if (window.confirm('Start a new attempt? Mr. Crowell will see the new attempt in place of this one.')) refreshMe().then(function () { begin(sessionR()); }); }); } }), cm])]) : null;
     root.appendChild(el('div', { 'class': 'ck-end' }, more));
-    root.appendChild(tools);
+    if (tools) root.appendChild(tools);
   }
 
   /* ---------------- start up ---------------- */
@@ -523,6 +536,8 @@
     else if (!(P.att && !P.att.end) && pickKey() !== KEY) { KEY = pickKey(); P = load(); if (view !== 'test') render(); }   // the saved copy from the Sheet arrived
   });
   // teacher demo: always the pretend student (practice backend only), even if a practice student was signed in here
+  // a finished attempt: see straight away whether a new session is open or 10 more minutes have been given
+  if (!DEMO && me() && P.att && P.att.end) gateCheck().then(function () { if (view === 'summary') render(); });
   if (DEMO && S && !(me() && me().sid === 'demo')) { if (me()) S.signOut(); P = fresh(); S.signInCode('DEMO00').then(function () { P = load(); render(); }, function () { }); }
   render();
   if (me() && !(P.att && !P.att.end)) refreshMe().then(function () { if (view === 'intro') render(); });   // show the right extra time on the start screen

@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="sfa-kit.css?v=20261118">
 <link rel="stylesheet" href="review-u2.css?v=20261118c">
 <style>
-/* Unit 2 Check dashboard: start code, class table by criterion and skill, flags, worked-out questions, regrouping. */
+/* Unit 2 Check dashboard: the open/closed switch with its settings, class table by criterion and skill, flags, worked-out questions, regrouping. */
 .dash{max-width:1380px}
 .l0{--lc:#2E2A3D;--lt:#ABA5BC}.l1{--lc:#E8584C;--lt:#2A0703}.l2{--lc:#FF9F45;--lt:#2A1400}.l3{--lc:#FFC94A;--lt:#2A1E00}.l4{--lc:#3BFF8A;--lt:#00260F}
 .muted{color:var(--muted)}
@@ -128,10 +128,10 @@ body.hide .nmv{filter:blur(6px)}
 <div id="sheets" aria-hidden="true"></div>
 <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Student detail"></aside>
 <script src="config.js"></script>
-<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261123b"><\/script>'); }</script>
+<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261123d"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
-<script src="check-u2.js?v=20261123c"></script>
+<script src="check-u2.js?v=20261123d"></script>
 <script>
 (function () {
   'use strict';
@@ -170,6 +170,8 @@ body.hide .nmv{filter:blur(6px)}
   /* ---------- one row per student, rebuilt from the saved summary by the same engine the student page used ---------- */
   function build(j) {
     S.raw = j; S.count = [0, 0, 0, 0];
+    S.sessCount = {};
+    (j.progress || []).forEach(function (p) { var mc = String(p.levels || '').match(/(?:^| )A[0-9a-z]{7}\.([a-z]{5})/); if (mc) S.sessCount[mc[1].toUpperCase()] = (S.sessCount[mc[1].toUpperCase()] || 0) + 1; });
     var key = CU.keyFor(S.chk), by = {}; var on = {}; (j.roster || []).forEach(function (s) { on[s.sid] = 1; });
     (j.progress || []).forEach(function (p) { if (!on[p.sid]) return; var n = CU.KEYS.indexOf(p.game); if (n >= 0) S.count[n]++; if (p.game === key) by[p.sid] = p; });
     return (j.roster || []).map(function (s) {
@@ -261,56 +263,73 @@ body.hide .nmv{filter:blur(6px)}
   function sortTh(label, key) { return el('th', { 'class': 'sortable', tabindex: '0', role: 'button', onclick: function () { S.sort = key; setPref('sort', key); render(); }, onkeydown: function (e) { if (e.key === 'Enter') { S.sort = key; render(); } } }, [label + (S.sort === key || (label === 'Scale ±' && (S.sort === 'low' || S.sort === 'high')) ? ' ▾' : '')]); }
   function copy(t) { try { navigator.clipboard.writeText(t).then(function () { SFA.toast('Names copied'); }, function () { SFA.toast(t, 6000); }); } catch (e) { SFA.toast(t, 6000); } }
 
-  /* ---------- which Check: results and the start code both follow this choice ---------- */
+  /* ---------- which Check: results and the next opening both follow this choice ---------- */
   function checkPicker() {
     var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Which Check' }, CU.KEYS.map(function (k, n) {
       var c = S.count ? S.count[n] : 0;
       return el('button', { type: 'button', 'aria-pressed': S.chk === n ? 'true' : 'false', text: label(n) + (c ? ' · ' + c : ''), title: c + ' student result' + (c === 1 ? '' : 's'), onclick: function () {
-        if (S.chk === n) return; S.chk = n; setPref('chk', n); S.code = null; try { sessionStorage.removeItem('sfa.ckdash.code'); } catch (e) { }
+        if (S.chk === n) return; S.chk = n; setPref('chk', n);
         if (S.raw) S.rows = build(S.raw); closeDrawer(); render(); } });
     }));
     var ren = el('button', { type: 'button', 'class': 'btn small', text: '✏️ Rename', onclick: function () {
       var v = window.prompt('A name for ' + label(S.chk) + ' (for example: Formative, 20 min, 24 Nov). Leave empty for "Check ' + (S.chk + 1) + '".', S.names[S.chk] || '');
       if (v == null) return; v = v.replace(/\s+/g, ' ').trim().slice(0, 40); S.names = Object.assign({}, S.names); if (v) S.names[S.chk] = v; else delete S.names[S.chk]; setPref('names', S.names); render(); } });
     return el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Which Check' }),
-      el('p', { 'class': 'sub', text: 'Each Check keeps its own results, so a new Check never replaces an earlier one. Pick the Check before you make a start code: the code starts this Check, and the table, groups, CSV and task sheets below show this Check\'s results. The number is how many students have a result in it. Results from before this switch are in Check 1. A student who takes the same Check twice keeps only the newer attempt.' }),
+      el('p', { 'class': 'sub', text: 'Each Check keeps its own results, so a new Check never replaces an earlier one. Pick the Check before you open it: opening starts this Check, and the table, groups, CSV and task sheets below show this Check\'s results. The number is how many students have a result in it. Results from before this switch are in Check 1. A student who takes the same Check twice keeps only the newer attempt.' }),
       el('div', { 'class': 'bar', style: 'margin:0' }, [seg, ren])]);
   }
 
-  /* ---------- open / closed: students can start only while their teacher has the Check open ---------- */
-  function gatePanel() {
-    var g = DEMO ? { open: true } : S.gate || {}, msg = el('span', { 'class': 'muted', role: 'status' });
-    var old = /unknown op/.test(g.err || '');
-    function set(on, co) { msg.textContent = ' Saving…'; api('checkGate', { open: on, co: !!co }).then(function (j) { return api('checkState'); }).then(function (j) { S.gate = j; render(); }, function (e) { msg.textContent = ' ' + e.message; }); }
-    var state = el('div', {}, [el('b', { style: 'font-size:18px;color:' + (g.open ? '#7BE0A0' : '#FF8E84'), text: g.open ? '🟢 The Check is OPEN' : '🔴 The Check is CLOSED' }),
-      el('div', { 'class': 'muted', style: 'font-size:13px', text: old ? 'The results script needs updating before the switch works: paste the new backend/Code.gs and deploy a new version.' : g.err ? 'Couldn\'t read the switch: ' + g.err : g.open ? 'Your students can start it with a start code until you close it (it closes itself at midnight). Students already working keep going after you close it.' : 'Your students see "closed" and can\'t start, even with a start code. Open it when the class is ready.' }),
-      el('div', { 'class': 'muted', style: 'font-size:13px', text: CO ? 'This switch is for your classes only. Mr. Crowell has his own, so you can both run a Check at the same time.' : 'This switch is for your classes. Your co-teacher\'s classes have their own switch, so you can both run a Check at the same time.' })]);
-    var btn = DEMO || old ? null : g.open ? el('button', { type: 'button', 'class': 'btn', text: 'Close the Check', onclick: function () { set(false); } }) : el('button', { type: 'button', 'class': 'btn primary', text: 'Open the Check', onclick: function () { set(true); } });
-    var co = !CO && !DEMO && g.co ? el('div', { 'class': 'muted', style: 'flex-basis:100%;font-size:13px;margin-top:4px' }, ['Co-teacher\'s classes: ', el('b', { style: 'color:' + (g.co.open ? '#7BE0A0' : '#FF8E84'), text: g.co.open ? 'open' : 'closed' }), ' (she opens and closes it from her dashboard) ',
-      el('button', { type: 'button', 'class': 'btn small', text: g.co.open ? 'Close hers' : 'Open hers', onclick: function () { set(!g.co.open, true); } })]) : null;
-    return el('div', { 'class': 'codebox', style: 'margin-bottom:12px;flex-wrap:wrap' }, [state, btn, msg, co]);
-  }
-
-  /* ---------- the start code ---------- */
+  /* ---------- open / closed: students start only while their teacher has the Check open ----------
+     Opening it saves the session with it: which Check (chosen above), the length and the topics. Students press Start;
+     there are no start codes. Each teacher has their own switch, so both can run a Check at the same time. */
+  function sessText(x) { return label(x.check) + ' · ' + (CU.LENS[x.len] || 35) + ' min · ' + (x.top & 1 ? 'inequalities in' : 'inequalities left out'); }
   function codePanel() {
+    var g = DEMO ? { open: false } : S.gate || {};
+    if (g.session && g.session.code === 'OLDCK') g = Object.assign({}, g, { open: false, session: null });   // opened before sessions: no settings, so it counts as closed
+    var msg = el('span', { 'class': 'muted', role: 'status' }), old = /unknown op/.test(g.err || '') || (g.open && !g.session);
+    function set(on, co) {
+      msg.textContent = ' Saving…';
+      api('checkGate', on ? { open: true, check: S.chk, len: S.len, top: S.top } : { open: false, co: !!co }).then(function (j) { S.gate = j; render(); if (S.raw) load(false); }, function (e) { msg.textContent = ' ' + e.message; });
+    }
     var box = el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Run the check' }), el('ol', { 'class': 'sub', style: 'margin:0 0 10px;padding-left:20px' }, [
-      el('li', {}, ['Students need scrap paper and a pencil for working things out. They open ', el('a', { href: STU, target: '_blank', rel: 'noopener', style: 'color:var(--marquee);font-weight:700', text: STU.replace(/^https?:\/\//, '') }), ' (or the arcade front page, then 🎯 Unit 2 Check) and sign in. ', el('button', { type: 'button', 'class': 'btn small', text: 'Copy student link', onclick: function () { try { navigator.clipboard.writeText(STU).then(function () { SFA.toast('Student link copied'); }, function () { SFA.toast(STU, 6000); }); } catch (e) { SFA.toast(STU, 6000); } } })]),
-      el('li', { text: 'Press Open the Check. Make sure the right Check is chosen above, pick the test length, press Make a start code, and put the code on the board. Students type it to start. Close the Check when everyone has started.' }),
-      el('li', { text: 'The code works today only, for ' + CU.OPEN_MIN + ' minutes, so nobody can start early or at home. A student who has started keeps going after the code closes: the clock runs from their own start, even through a reload.' }),
-      el('li', { text: 'Extra time is set per student, not per code: click a student\'s name in the class table and choose +25%, +50% or double before they start. Everyone uses the same start code; the Check gives that student longer automatically (20 minutes becomes 25, 30 or 40; 35 becomes 44, 53 or 70).' }),
-      el('li', { text: 'A latecomer, or a student who ran out of time and needs 10 more minutes? Make a new code.' }),
-      el('li', { text: 'Up to three questions per student (one in a 20-minute Check) ask them to work it out on paper first. Nothing is handed in. The worked-out questions list below shows each student\'s problem and its full solution, for talking through their thinking.' })])]);
-    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Test length' }, CU.LEN_ORDER.map(function (i) { var m = CU.LENS[i]; return el('button', { type: 'button', 'aria-pressed': S.len === i ? 'true' : 'false', text: m + ' min', onclick: function () { S.len = i; setPref('len', i); S.code = null; render(); } }); }));
-    box.appendChild(gatePanel());
-    var live = S.code && CU.readCode(S.code.code, Date.now());
-    var row = el('div', { 'class': 'codebox' }, [el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Test length for this code' }), seg]),
-      el('button', { type: 'button', 'class': 'btn primary', text: S.code ? 'Make a new code' : 'Make a start code', onclick: function () { var now = Date.now(); S.code = { code: CU.makeCode(now, S.len, S.top, S.chk), at: now }; try { sessionStorage.setItem('sfa.ckdash.code', JSON.stringify(S.code)); } catch (e) { } render(); } })]);
-    box.appendChild(row);
+      el('li', {}, ['Students need scrap paper and a pencil. They open ', el('a', { href: STU, target: '_blank', rel: 'noopener', style: 'color:var(--marquee);font-weight:700', text: STU.replace(/^https?:\/\//, '') }), ' and sign in with their own code. ', el('button', { type: 'button', 'class': 'btn small', text: 'Copy student link', onclick: function () { try { navigator.clipboard.writeText(STU).then(function () { SFA.toast('Student link copied'); }, function () { SFA.toast(STU, 6000); }); } catch (e) { SFA.toast(STU, 6000); } } })]),
+      el('li', { text: 'Choose the Check above, the test length and the topics below, then press Open the Check. Students see a Start button (a page that is already open shows it within 20 seconds). Each student\'s clock starts when they press Start.' }),
+      el('li', { text: 'Latecomers can start any time while it is open. Close it when everyone has started: students already working keep going. It closes itself after 6 hours.' }),
+      el('li', { text: 'A student ran out of time? Click their name and press "Give 10 more minutes": their page carries on by itself. Extra time for a student is set there too, before they start.' }),
+      el('li', { text: 'Up to three questions per student (one in a 20-minute Check) ask them to work it out on paper first. Nothing is handed in: the worked-out questions list below has each student\'s problem and its full solution.' })])]);
+    // the settings for the next opening
+    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Test length' }, CU.LEN_ORDER.map(function (i) { return el('button', { type: 'button', 'aria-pressed': S.len === i ? 'true' : 'false', text: CU.LENS[i] + ' min', onclick: function () { S.len = i; setPref('len', i); render(); } }); }));
     var ti = el('input', { type: 'checkbox', id: 'ckTop' }); ti.checked = !!(S.top & 1);
-    ti.onchange = function () { S.top = ti.checked ? 1 : 0; setPref('top', S.top); S.code = null; try { sessionStorage.removeItem('sfa.ckdash.code'); } catch (e) { } render(); };
-    box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:10px' }, [el('label', { 'for': 'ckTop', style: 'display:flex;gap:8px;align-items:center;cursor:pointer' }, [ti, el('span', {}, [el('b', { text: 'Include inequalities' }), el('span', { 'class': 'muted', text: ' (skill: Inequalities: write, solve and graph). Leave off until it has been taught; turn on for the summative. The start code carries this choice.' })])])]));
-    if (S.code) box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:12px' }, [el('div', { 'class': 'bigcode', text: S.code.code, 'aria-label': 'Start code ' + S.code.code.split('').join(' ') }),
-      el('div', {}, [el('b', { text: live && live.ok ? 'Open: students can start until ' + hhmm(live.closes) : 'This code has closed. Make a new one for anyone still to start.' }), el('div', { 'class': 'muted', text: live && live.ok ? label(live.check) + ' · ' + live.len + '-minute test · ' + CU.topText(live.top) + '. Students with extra time (⏱ next to their name) get it automatically (' + (live.len === 20 ? '20 becomes 25, 30 or 40 minutes' : '35 becomes 44, 53 or 70 minutes') + ').' + (live.len === 20 ? ' In 20 minutes most students answer about one question per skill, so many skills show a first read rather than a level.' : '') : '' })])]));
+    ti.onchange = function () { S.top = ti.checked ? 1 : 0; setPref('top', S.top); render(); };
+    var cur = g.session, differs = cur && (cur.check !== S.chk || cur.len !== S.len || cur.top !== S.top);
+    box.appendChild(el('div', { 'class': 'codebox', style: 'flex-wrap:wrap;gap:12px 22px' }, [
+      el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Check' }), el('b', { text: label(S.chk) + ' (choose above)' })]),
+      el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Test length' }), seg]),
+      el('label', { 'for': 'ckTop', style: 'display:flex;gap:8px;align-items:center;cursor:pointer;max-width:440px' }, [ti, el('span', {}, [el('b', { text: 'Include inequalities' }), el('span', { 'class': 'muted', text: ' Leave off until it has been taught; turn on for the summative.' })])])
+    ]));
+    // the switch
+    var state = el('div', {}, [el('b', { style: 'font-size:18px;color:' + (g.open ? '#7BE0A0' : '#FF8E84'), text: g.open ? '🟢 OPEN: ' + (cur ? sessText(cur) : '') : '🔴 The Check is CLOSED' }),
+      el('div', { 'class': 'muted', style: 'font-size:13px', text: old ? 'The results script needs updating before the switch works: paste the new backend/Code.gs and deploy a new version (see APPS-SCRIPT-UPDATE-PROMPT.txt).' : g.err ? 'Couldn\'t read the switch: ' + g.err : g.open ? 'Opened ' + hhmm(cur.at) + ', closes itself at ' + hhmm(g.until) + '. Your students can start now.' + (differs ? ' The settings above are different: press "Open with these settings" to switch (students already working keep their check).' : '') : 'Your students see "closed" and can\'t start. Open it when the class is ready.' }),
+      el('div', { 'class': 'muted', style: 'font-size:13px', text: CO ? 'This switch is for your classes only. Mr. Crowell has his own, so you can both run a Check at the same time.' : 'This switch is for your classes. Your co-teacher\'s classes have their own switch, so you can both run a Check at the same time.' })]);
+    var btns = DEMO || old ? [] : g.open ? [differs ? el('button', { type: 'button', 'class': 'btn primary', text: 'Open with these settings', onclick: function () { set(true); } }) : null, el('button', { type: 'button', 'class': 'btn', text: 'Close the Check', onclick: function () { set(false); } })]
+      : [el('button', { type: 'button', 'class': 'btn primary', text: 'Open the Check', onclick: function () { set(true); } })];
+    var co = !CO && !DEMO && g.co ? el('div', { 'class': 'muted', style: 'flex-basis:100%;font-size:13px;margin-top:4px' }, ['Co-teacher\'s classes: ', el('b', { style: 'color:' + (g.co.open ? '#7BE0A0' : '#FF8E84'), text: g.co.open && g.co.session ? 'open, ' + sessText(g.co.session) : 'closed' }), ' (she opens it from her dashboard) ',
+      g.co.open ? el('button', { type: 'button', 'class': 'btn small', text: 'Close hers', onclick: function () { set(false, true); } }) : null]) : null;
+    box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:12px;flex-wrap:wrap' }, [state].concat(btns, [msg, co])));
+    if (DEMO) box.appendChild(el('p', { 'class': 'muted', text: 'Sample class: the switch is off here.' }));
+    // history: every time this switch was opened, with what, and who started in it
+    var log = (g.log || []).slice().reverse();
+    if (log.length) {
+      var t = el('table', { 'class': 'log', style: 'margin-top:6px' }, [el('tr', {}, ['Opened', 'Closed', CO ? null : 'Who', 'Check', 'Length', 'Topics', 'Started'].filter(function (x) { return x; }).map(function (x) { return el('th', { text: x }); }))]);
+      log.slice(0, 15).forEach(function (x) {
+        var end = x.closed || (x.until < Date.now() ? x.until : 0), n = (S.sessCount || {})[x.code] || 0;
+        t.appendChild(el('tr', {}, [el('td', { text: new Date(x.at).toLocaleString([], { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) }), el('td', { text: end ? hhmm(end) : 'open now' })].concat(CO ? [] : [el('td', { text: x.who === 'co' ? 'Co-teacher' : 'You' })]).concat([
+          el('td', {}, [el('button', { type: 'button', 'class': 'btn small', text: label(x.check), title: 'Show this Check\'s results', onclick: function () { if (S.chk !== x.check) { S.chk = x.check; setPref('chk', x.check); if (S.raw) S.rows = build(S.raw); render(); } } })]),
+          el('td', { text: (CU.LENS[x.len] || 35) + ' min' }), el('td', { text: x.top & 1 ? 'Inequalities in' : 'Inequalities out' }), el('td', { text: String(n) })])));
+      });
+      box.appendChild(el('details', { style: 'margin-top:12px' }, [el('summary', { text: 'History: when the Check was opened (' + log.length + ')' }), el('div', { style: 'overflow-x:auto' }, [t]),
+        el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Started counts students whose latest attempt in that Check began in that session.' })]));
+    }
     return box;
   }
 
@@ -333,7 +352,7 @@ body.hide .nmv{filter:blur(6px)}
       grp('Reteach: ' + c.short, lim > who.length / 2 ? 'l1' : 'l2', who, top ? 'Start with: ' + SKN[top].name + ' (review-u2.html#' + top + '). ' + lim + ' at Limited, ' + (who.length - lim) + ' at Emerging.' : '');
     });
     grp('Extend', 'l4', done.filter(function (r) { return !placed[r.sid] && r.weak && CRIT.every(function (c) { return !r.sc.crit[c.id].level || r.sc.crit[c.id].level >= 3; }); }).map(function (r) { placed[r.sid] = 1; return r; }), 'Every criterion with enough evidence is at Developed or Deep: stretch problems, or pair as a helper.');
-    grp('Not enough evidence', 'l0', done.filter(function (r) { return !placed[r.sid]; }), 'Too few answers to place: check in person, or give a new code to continue.');
+    grp('Not enough evidence', 'l0', done.filter(function (r) { return !placed[r.sid]; }), 'Too few answers to place: check in person, or give them 10 more minutes (click their name).');
     if (!g.children.length) g.appendChild(el('p', { 'class': 'muted', text: 'Groups appear once students have answered some questions.' }));
     box.appendChild(g); return box;
   }
@@ -379,7 +398,7 @@ body.hide .nmv{filter:blur(6px)}
       el('li', { text: 'Scoring: an estimate on a scale where 500 is the middle of Emerging-to-Developed; cut scores 450 (Emerging), 550 (Developed), 650 (Deep). The ± is one standard error: the true score is inside it about two times in three. Tap-to-choose questions are discounted for lucky guesses.' }),
       el('li', { text: 'Criteria here are estimated from all their questions (unlike the review dashboard, which takes the weakest skill). Skill squares rest on 2 or 3 questions each: use them to choose where to look, not as a verdict.' }),
       el('li', { text: 'Flags are observations, not proof, and nothing is deducted for them. Leaving the tab can be a notification or a calculator app. The strongest signals are "Right after leaving", "Paste", and "Very fast and right" on hard questions.' }),
-      el('li', { text: 'Limits: a phone held beside the laptop, or a classmate, leaves no flag. Numbers are drawn as pictures so they can\'t be copied as text, but a screenshot can still be given to a chatbot. The start code and the timer are checked in the browser, not on a server. Asking a student to talk you through their working, and your own eyes in the room, are the real check.' })
+      el('li', { text: 'Limits: a phone held beside the laptop, or a classmate, leaves no flag. Numbers are drawn as pictures so they can\'t be copied as text, but a screenshot can still be given to a chatbot. The timer runs in the student\'s browser. Asking a student to talk you through their working, and your own eyes in the room, are the real check.' })
     ]), el('p', {}, [el('button', { type: 'button', 'class': 'btn small', text: 'Run the question self-check', onclick: function () { st.textContent = ' checking…'; setTimeout(function () { var r = CU.selfTest(40); st.textContent = r.ok ? ' ✓ ' + r.items + ' generated questions and ' + r.paper + ' worked-out questions verified on this computer.' : ' Problem found: ' + r.failed.concat(r.paperFailed).slice(0, 3).join(' | '); }, 30); } }), st])]);
   }
 
@@ -405,10 +424,15 @@ body.hide .nmv{filter:blur(6px)}
     drawer.appendChild(el('button', { 'class': 'btn small x', type: 'button', text: '✕ Close', onclick: closeDrawer }));
     drawer.appendChild(el('h2', {}, [nm(r)]));
     if (!DEMO) drawer.appendChild(extraRow(r));
+    if (!DEMO && r.att && r.att.state !== 's' && r.att.state !== 'm') {
+      var given = (S.gate && S.gate.more || {})[r.sid] || 0, mm = el('span', { 'class': 'muted', role: 'status', style: 'font-size:13px', text: given ? ' Given today: ' + given + ' × 10 minutes.' : '' });
+      drawer.appendChild(el('p', { 'class': 'noprint' }, [el('button', { type: 'button', 'class': 'btn small primary', text: '⏱ Give 10 more minutes', onclick: function () { var b = this; b.disabled = true; mm.textContent = ' Saving…';
+        api('checkMore', { sid: r.sid }).then(function (j) { b.disabled = false; if (S.gate) { S.gate.more = S.gate.more || {}; S.gate.more[r.sid] = j.more; } mm.textContent = ' Done: ' + nice(r.name).split(' ')[0] + '\'s page carries on within 15 seconds (given today: ' + j.more + ' × 10 minutes).'; }, function (e) { b.disabled = false; mm.textContent = ' ' + e.message; }); } }), mm]));
+    }
     if (!r.att) { drawer.appendChild(el('p', { 'class': 'muted', text: 'Has not started the check.' })); }
     else {
       var sc = r.sc, a = r.att;
-      drawer.appendChild(el('p', { 'class': 'muted', text: label(S.chk) + ' · ' + (r.cls ? 'Class ' + r.cls + ' · ' : '') + r.state + ' · started ' + new Date(a.t0).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' with code ' + a.code + ' · ' + sc.n + ' questions (' + sc.right + ' right) in ' + r.mins + ' min' + (a.n > 1 ? ' · attempt ' + a.n : '') }));
+      drawer.appendChild(el('p', { 'class': 'muted', text: label(S.chk) + ' · ' + (r.cls ? 'Class ' + r.cls + ' · ' : '') + r.state + ' · started ' + new Date(a.t0).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' · ' + sc.n + ' questions (' + sc.right + ' right) in ' + r.mins + ' min' + (a.n > 1 ? ' · attempt ' + a.n : '') }));
       drawer.appendChild(el('p', { 'class': 'noprint' }, [el('button', { 'class': 'btn small primary', type: 'button', text: '🖨 Task sheet for ' + nice(r.name), onclick: function () { printSheets([r]); } })]));
       drawer.appendChild(el('p', {}, [el('span', { 'class': 'badge l' + sc.level, text: LV[sc.level] }), sc.level ? ' Scale ' + sc.scale + ' ± ' + sc.pm : ' Fewer than ' + CU.NEED.all + ' answers.']));
       if (r.tags.length) drawer.appendChild(el('p', {}, r.tags.map(function (x) { return el('span', { 'class': 'tag' + (x[1] ? '' : ' soft'), text: x[0] }); })));
@@ -437,7 +461,7 @@ body.hide .nmv{filter:blur(6px)}
     [[0, 'None'], [25, '+25%'], [50, '+50%'], [100, 'Double']].forEach(function (o) { var op = el('option', { value: String(o[0]), text: o[1] }); if ((r.extra || 0) === o[0]) op.selected = true; sel.appendChild(op); });
     sel.onchange = function () {
       var v = +sel.value, was = r.extra || 0; sel.disabled = true; msg.textContent = ' Saving…';
-      api('coExtra', { sid: r.sid, extra: v }).then(function () { r.extra = v; sel.disabled = false; msg.textContent = ' Saved ✓' + (r.att && !r.att.end ? ' (this attempt keeps its time; a new start code gives 10 more minutes)' : ''); render(); },
+      api('coExtra', { sid: r.sid, extra: v }).then(function () { r.extra = v; sel.disabled = false; msg.textContent = ' Saved ✓' + (r.att && !r.att.end ? ' (this attempt keeps its time; use Give 10 more minutes if they need longer)' : ''); render(); },
         function (e) { sel.disabled = false; sel.value = String(was); msg.textContent = ' Couldn\'t save: ' + e.message; });
     };
     return el('p', { 'class': 'noprint', style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, [el('b', { text: '⏱ Extra time' }), sel, el('span', { 'class': 'muted', style: 'font-size:13px', text: '20 min → 25 / 30 / 40 · 35 min → 44 / 53 / 70. Set it before they start.' }), msg]);
@@ -446,7 +470,7 @@ body.hide .nmv{filter:blur(6px)}
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
 
   function csv() {
-    var head = ['Student', 'Class', 'Check', 'Test length (min)', 'Status', 'Started', 'Start code', 'Questions', 'Right', 'Minutes', 'Scale score', 'Plus or minus', 'Overall level']
+    var head = ['Student', 'Class', 'Check', 'Test length (min)', 'Status', 'Started', 'Session', 'Questions', 'Right', 'Minutes', 'Scale score', 'Plus or minus', 'Overall level']
       .concat([].concat.apply([], CRIT.map(function (c) { return [c.short + ' (criterion)', c.short + ' scale', c.short + ' questions']; })))
       .concat(SK.map(function (k) { return k.name; })).concat(SK.map(function (k) { return k.name + ' (right/asked)'; }))
       .concat(['Left tab (questions)', 'Seconds away', 'Paste', 'Copied question', 'Very fast and right (L3+)', 'Rapid wrong guesses', 'Very slow', 'Don\'t know', 'Reloads', 'Extra time', 'Worked-out questions (results)', 'Suggested group']);
@@ -581,8 +605,6 @@ body.hide .nmv{filter:blur(6px)}
     return { roster: roster, progress: progress };
   }
 
-  try { S.code = JSON.parse(sessionStorage.getItem('sfa.ckdash.code') || 'null'); if (S.code && (new Date(S.code.at).toDateString() !== new Date().toDateString() || (CU.readCode(S.code.code, S.code.at).check || 0) !== S.chk)) S.code = null; } catch (e) { }
-  setInterval(function () { if (S.code && S.rows.length && !DEMO && !drawer.classList.contains('open') && !body.querySelector('details[open]') && document.activeElement.tagName !== 'INPUT') { var p = body.querySelector('.codebox b'); var live = CU.readCode(S.code.code, Date.now()); if (p && !live.ok && /^Open/.test(p.textContent)) render(); } }, 20000);
   load(true);
   window.CU2_DASH = { rows: function () { return S.rows; }, csv: csv };
 })();
