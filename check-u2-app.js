@@ -5,10 +5,17 @@
 (function () {
   'use strict';
   var SFA = window.SFA, el = SFA.el, CU = window.CU2, S = SFA.sync || null, KEY = CU.KEY, N = CU.num;
+  // which Check this page shows: the one in progress, else the one started most recently (each Check saves under its own key)
+  function pickKey() {
+    var best = CU.KEY, bt = -1;
+    CU.KEYS.forEach(function (k) { var p = SFA.store.get(k, null), a = p && p.att; if (!a) return; var t = a.end ? a.t0 : 9e15 + a.t0; if (t > bt) { bt = t; best = k; } });
+    return best;
+  }
+  KEY = pickKey();
   var TRY = !!window.CU2_TRY, DEMO = !!window.CU2_DEMO, Q = location.search;
-  // extra time set by the teacher (percent): the check lasts at least 35 minutes × (1 + extra), whatever the start code says
+  // extra time set by the teacher (percent): the test length × (1 + extra), worked out from 20, 35 or 45 (52 and 70 already include it)
   function extraPct() { var x = me() && Number(me().extra); return x === 25 || x === 50 || x === 100 ? x : 0; }
-  function minutesFor(len) { return Math.max(len, Math.round(CU.LENS[0] * (1 + extraPct() / 100))); }
+  function minutesFor(len, lenIdx) { return Math.max(len, Math.round(CU.baseLen(lenIdx) * (1 + extraPct() / 100))); }
   var root = document.getElementById('ck'), chips = document.getElementById('ckChips');
   var LVC = ['l0', 'l1', 'l2', 'l3', 'l4'];
   var SKN = {}; CU.SK.forEach(function (k) { SKN[k.id] = k; });
@@ -301,7 +308,7 @@
       el('p', { 'class': 'ck-lead', text: 'Hi ' + nice(me().name).split(' ')[0] + '. This check shows what you can do now and what to practise next. It is not a race. The questions get harder when you are right and easier when you are wrong. So everyone meets questions they can\'t do yet. That is normal.' }),
       el('div', { 'class': 'ck-grid' }, [
         el('div', {}, [el('h3', { text: 'How it works' }), el('ul', { 'class': 'ck-list' }, [
-          el('li', { text: 'About 35 minutes. One question at a time. You can\'t go back, so check before you press Submit.' }),
+          el('li', { text: 'Mr. Crowell sets the time (20 to 35 minutes). One question at a time. You can\'t go back, so check before you press Submit.' }),
           el('li', { text: 'Everyone gets different numbers. Do your own thinking.' }),
           el('li', { text: 'Read each instruction. Sometimes you type. Sometimes you tap a graph, a table or a line of working.' }),
           el('li', { text: 'Stuck? Choose "I don\'t know yet". That helps Mr. Crowell help you. It is not a failure.' }),
@@ -309,11 +316,11 @@
         ])]),
         el('div', {}, [el('h3', { text: 'What is recorded' }), el('ul', { 'class': 'ck-list' }, RECORDED.map(function (t) { return el('li', { text: t }); })), el('p', { 'class': 'muted', text: 'These are notes for Mr. Crowell. They do not change your result. A calculator is fine. Other tabs, apps and AI helpers are not.' })])
       ]),
-      extraPct() ? el('p', { 'class': 'ck-extra', text: '⏱ You have extra time: ' + minutesFor(CU.LENS[0]) + ' minutes instead of 35.' }) : null,
+      extraPct() ? el('p', { 'class': 'ck-extra', text: '⏱ You have extra time: ' + (extraPct() === 100 ? 'double' : extraPct() + '% more') + ' (a 35-minute check becomes ' + minutesFor(35, 0) + ' minutes, a 20-minute one ' + minutesFor(20, 4) + ').' }) : null,
       DEMO ? el('div', { 'class': 'ck-start' }, [el('div', { 'class': 'ck-demo' }, [el('b', { text: 'Teacher demo. ' }), 'Nothing here reaches the class results. How long should this demo run? ', el('span', { 'class': 'ck-seg', role: 'group', 'aria-label': 'Demo length' }, [5, 10, 35].map(function (m) { var b = el('button', { type: 'button', 'aria-pressed': m === demoLen ? 'true' : 'false', text: m + ' min', onclick: function () { demoLen = m; [].forEach.call(b.parentNode.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); } }); return b; }))]), go])
         : el('div', { 'class': 'ck-start' }, [el('label', {}, ['Start code from Mr. Crowell ', inp]), go]),
       msg,
-      TRY ? el('p', { 'class': 'muted' }, ['Practice mode: ', el('button', { type: 'button', 'class': 'btn small', text: 'Use a practice code', onclick: function () { inp.value = CU.makeCode(Date.now(), 0, 0); } }), ' (the real code comes from the teacher dashboard).']) : null
+      TRY ? el('p', { 'class': 'muted' }, ['Practice mode: ', el('button', { type: 'button', 'class': 'btn small', text: 'Use a practice code', onclick: function () { inp.value = CU.makeCode(Date.now(), 0, 0, 0); } }), ' (the real code comes from the teacher dashboard).']) : null
     ]));
     if (P.past.length) root.appendChild(el('p', { 'class': 'muted', text: 'Earlier attempts: ' + P.past.map(function (x) { return new Date(x.t0).toLocaleDateString() + ' (scale ' + x.scale + ')'; }).join(', ') }));
     // on a phone, focusing the code box scrolls past the instructions: let the student read from the top first
@@ -321,9 +328,11 @@
   }
 
   function begin(r) {
+    var k = CU.keyFor(r.check);
+    if (k !== KEY) { KEY = k; P = load(); if (P.att && P.att.sid && P.att.sid !== me().sid) P = fresh(); }   // another Check: its own saved state
     var now = Date.now(), n = (P.att ? P.att.n : P.past.length) + 1;
     if (P.att && P.att.end) { var sc = CU.score(P.att.log); P.past.push({ t0: P.att.t0, code: P.att.code, scale: sc.scale, n: sc.n, why: P.att.end.why }); P.past = P.past.slice(-5); }
-    var mm = TRY && Q.match(/[?&]mins=([\d.]+)/), mins = mm ? parseFloat(mm[1]) : r.demo ? r.len : minutesFor(r.len);
+    var mm = TRY && Q.match(/[?&]mins=([\d.]+)/), mins = mm ? parseFloat(mm[1]) : r.demo ? r.len : minutesFor(r.len, r.lenIdx);
     P.att = { n: n, sid: me().sid, code: r.code, lenIdx: r.lenIdx, top: r.top, lenMs: Math.round(mins * 60000), seed: CU.hash(me().sid + '|' + r.code + '|' + now) & 0x7fffffff, t0: now, log: [], cur: null, end: null, ext: 0, extMs: 0, reloads: 0, papers: [] };
     save(); render();
   }
@@ -340,7 +349,7 @@
     if (!a.cur) {
       if (a.log.length >= CU.MAX_ITEMS) { finish('max'); return null; }
       if (CU.stable(a.log, a.top)) { finish('stable'); return null; }
-      var nx = CU.next(a.seed, a.log, true, a.top);
+      var nx = CU.next(a.seed, a.log, a.lenMs < 30 * 60000 ? 1 : true, a.top);   // a short Check: one worked-out question at most
       a.cur = { i: nx.i, s: nx.s, d: nx.d, p: nx.paper, t0: Date.now(), part: 0, resp: [], f: 0, a: 0, b: 0, r: 0 };
       SFA.store.set(KEY, P);
     }
@@ -499,8 +508,9 @@
   var lastSid = me() ? me().sid : null;
   if (S && S.onChange) S.onChange(function () {
     var sid = me() ? me().sid : null;
-    if (sid !== lastSid) { lastSid = sid; P = load(); render(); return; }   // signed in (the saved copy from the Sheet may have arrived) or out
+    if (sid !== lastSid) { lastSid = sid; KEY = pickKey(); P = load(); render(); return; }   // signed in (the saved copy from the Sheet may have arrived) or out
     if (view === 'gate' && sid) render();
+    else if (!(P.att && !P.att.end) && pickKey() !== KEY) { KEY = pickKey(); P = load(); if (view !== 'test') render(); }   // the saved copy from the Sheet arrived
   });
   // teacher demo: always the pretend student (practice backend only), even if a practice student was signed in here
   if (DEMO && S && !(me() && me().sid === 'demo')) { if (me()) S.signOut(); P = fresh(); S.signInCode('DEMO00').then(function () { P = load(); render(); }, function () { }); }

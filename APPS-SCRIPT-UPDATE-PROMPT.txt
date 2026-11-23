@@ -25,7 +25,8 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
      Logger.log('coWho ok: ' + w.ok + ', co-teacher key: ' + w.coKey + ', her classes: ' + (w.classes.join(', ') || 'none yet') + ', AUTH_MODE: ' + w.authMode);
      var k = route({ op: 'coClass', teacherKey: w.coKey });
      Logger.log('coClass with the co-teacher key ok: ' + k.ok + ', her students: ' + k.roster.length);
-     Logger.log('checkState ok: ' + route({ op: 'checkState' }).ok + ', open: ' + route({ op: 'checkState' }).open);
+     var g = route({ op: 'checkState', teacherKey: key });
+     Logger.log('checkState ok: ' + g.ok + ', my classes open: ' + g.open + ', co-teacher classes open: ' + (g.co && g.co.open));
    }
    Expected: {"ok":true,...}, "climbClass ok: true ... questions today: 0", "report ok: true",
    "coWho ok: true, co-teacher key: (16 letters and numbers) ... AUTH_MODE: code" (or both), "coClass ... ok: true" and "checkState ok: true, open: false".
@@ -33,11 +34,12 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
    Write down the co-teacher key: it is also shown on co-teacher.html when I open it with my teacher key.
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
-   Description "One live console at a time, Unit 2 Check switch" > Deploy. Do NOT use "New deployment" (that changes the URL).
+   Description "Unit 2 Check: separate switches for each teacher, Checks 1-4" > Deploy. Do NOT use "New deployment" (that changes the URL).
 
 5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
 
-Latest change: only one teacher console can run the live lesson. setLive accepts "owner" (an id for that console) and "claim" (true when the teacher presses Go live). The owner is kept in the script cache as liveOwner; setLive from any other console returns {ok:false, error:"taken"} and that console stops itself. Nothing to set up.
+Latest change: the Unit 2 Check has two open/closed switches, CHECK_OPEN (main teacher's classes) and CHECK_OPEN_CO (the co-teacher's classes), so both teachers can run a Check at the same time; checkGate takes the co-teacher key too. The co-teacher can also see Checks 1 to 4 (games g91 to g94). Nothing to set up.
+Earlier change: only one teacher console can run the live lesson. setLive accepts "owner" (an id for that console) and "claim" (true when the teacher presses Go live). The owner is kept in the script cache as liveOwner; setLive from any other console returns {ok:false, error:"taken"} and that console stops itself. Nothing to set up.
 Before that: an open/closed switch for the Unit 2 Check. New operations checkState (anyone; returns open and until) and checkGate (main teacher key only; {open: true} opens it until the end of today, {open: false} closes it), stored in a new script property CHECK_OPEN (made automatically). Students can start the Check only while it is open.
 Before that: extra time on the Unit 2 Check. New operation coExtra (teacher or co-teacher key) saves a student's extra time (25, 50 or 100 percent) in a new script property EXTRA_TIME (JSON, made automatically), and every student object the script returns now carries "extra" when it is set.
 Before that: a co-teacher page (co-teacher.html). New operations coWho, coRoster, coAdd and coClass, and two new script properties: COTEACHER_KEY (a second, smaller key; run setup once, or the page makes it the first time Mr. Crowell opens it with the main teacher key) and COTEACHER_CLASSES (filled in automatically as the co-teacher adds classes). coAdd appends rows to the Roster tab with new student codes. Student codes only work when AUTH_MODE is code or both.

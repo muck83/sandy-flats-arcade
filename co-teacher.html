@@ -52,7 +52,7 @@ select.xt.saved{border-color:var(--green)}
 <div id="cards" aria-hidden="true"></div>
 <script src="config.js"></script>
 <script>if (/[?&]demo\b/.test(location.search)) { window.CU2_COTRY_DEMO = 1; try { sessionStorage.setItem('sfa.cokey', 'co'); } catch (e) { } }
-if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120f"><\/script>'); }</script>
+if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261123a"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script>
 (function () {
@@ -178,7 +178,7 @@ if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.wri
       list.forEach(function (r) { t.appendChild(el('tr', { 'class': S.fresh[r.sid] ? 'new' : '' }, [el('td', { text: nice(r.name) }), el('td', { 'class': 'hide-s', text: r.cls }), el('td', { 'class': 'code', text: r.code || '–' }), el('td', {}, [extraPick(r)])])); });
       if (!list.length) t.appendChild(el('tr', {}, [el('td', { colspan: '4', 'class': 'muted', text: 'No students in this class yet.' })]));
       sec.appendChild(t);
-      sec.appendChild(el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Extra time: the Unit 2 Check gives that student longer automatically (35 minutes becomes 44, 53 or 70). Everyone uses the same start code. Set it before the student starts.' }));
+      sec.appendChild(el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Extra time: the Unit 2 Check gives that student longer automatically (35 minutes becomes 44, 53 or 70; 20 becomes 25, 30 or 40). Everyone uses the same start code. Set it before the student starts.' }));
       sec.appendChild(el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Spelling mistake or a student who left? Ask Mr. Crowell to fix the row on the Roster tab of the results sheet.' }));
     }
     body.appendChild(sec);
@@ -198,9 +198,9 @@ if (/[?&](try|demo)\b/.test(location.search)) { window.CU2_TRY = 1; document.wri
     body.appendChild(el('section', { 'class': 'panel' }, [
       el('h2', { text: '3. Run the Unit 2 Check and see the results' }),
       el('ol', { 'class': 'steps' }, [
-        el('li', { text: 'Ask Mr. Crowell to open the Check: students can only start it while he has it open. Then open the dashboard below and press "Make a start code". Write the code on the board.' }),
+        el('li', { text: 'Open the dashboard below and press "Open the Check" (your switch is for your classes only, so you and Mr. Crowell can both run a Check at the same time). Pick the Check and the test length, press "Make a start code" and write the code on the board.' }),
         el('li', {}, ['Students open ', el('b', { text: SITE.replace(/^https?:\/\//, '') + 'check-u2.html' + Q }), ', sign in with their own code from the card, then type the start code. They need scrap paper and a pencil for working things out.']),
-        el('li', { text: 'The test takes 35 minutes. The dashboard updates every 30 seconds while they work.' }),
+        el('li', { text: 'The test takes the length you chose (20, 35 or 45 minutes). The dashboard updates every 30 seconds while they work. Each Check (1 to 4) keeps its own results, so a later Check never replaces an earlier one.' }),
         el('li', { text: 'Nothing is handed in. The dashboard shows each student\'s worked-out questions with full solutions, for talking through their thinking.' })
       ]),
       el('div', { 'class': 'bar' }, [el('a', { 'class': 'btn primary big', href: 'check-u2-teacher.html?co' + (TRY ? '&try' : ''), text: '🎯 Open the Unit 2 Check dashboard' })]),

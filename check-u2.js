@@ -21,6 +21,10 @@
 (function () {
   'use strict';
   var CU = window.CU2 = { v: 1, KEY: 'g91' };
+  /* Each Check the teacher runs (Check 1 to 4) saves under its own key, so a new Check never replaces an earlier one's
+     results. The start code says which Check it starts. Check 1 is g91, where every attempt before this switch lives. */
+  CU.KEYS = ['g91', 'g92', 'g93', 'g94'];
+  CU.keyFor = function (n) { return CU.KEYS[n] || CU.KEYS[0]; };
 
   /* ---------------- numbers (the same rules as the review) ---------------- */
   function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = a % b; a = b; b = t; } return a || 1; }
@@ -702,8 +706,9 @@
       var sc = score(log), best = -1, R = rng(hash(seed + '|pick|' + i)), lastS = log[i - 1].s;
       act.forEach(function (id) { if (id === lastS) return; var e = sc.skill[id], v = e.se + (e.n < 3 ? .3 : 0) + R.f() * .05; if (v > best) { best = v; sk = id; } });
     }
-    var d = levelFor(log, sk), paper = 0;
-    if (i < N && canPaper !== false && paperSkills(seed).indexOf(sk) >= 0 && CU.paperOK(sk)) { paper = 1; d = d >= 4 ? 4 : 3; }
+    // canPaper: false (none), a number (at most that many: a short Check), or anything else (the usual three)
+    var d = levelFor(log, sk), paper = 0, maxP = canPaper === false ? 0 : typeof canPaper === 'number' ? canPaper : 3;
+    if (i < N && log.filter(function (e) { return e.p; }).length < maxP && paperSkills(seed).indexOf(sk) >= 0 && CU.paperOK(sk)) { paper = 1; d = d >= 4 ? 4 : 3; }
     return { i: i, s: sk, d: d, paper: paper };
   };
 
@@ -897,12 +902,15 @@
      accepts it only on the same day and only for a short window after it was made, so the test cannot be started
      early, at home, or tomorrow. It is worked out in the browser (no server), so it stops casual misuse, not a
      determined student who reads this file. */
-  var LENS = CU.LENS = [35, 45, 52, 70], OPEN_MIN = CU.OPEN_MIN = 25, ALPHA = 'BCDFGHJKLMNPQRSTVWXZ', SPACE = 1381;
+  var LENS = CU.LENS = [35, 45, 52, 70, 20], OPEN_MIN = CU.OPEN_MIN = 25, ALPHA = 'BCDFGHJKLMNPQRSTVWXZ', SPACE = 173;
+  CU.LEN_ORDER = [4, 0, 1, 2, 3];   // the order the dashboard shows them: 20, 35, 45, 52, 70
+  // the length extra time is worked out from: 52 and 70 are already 35 × 1.5 and × 2 for the whole class
+  CU.baseLen = function (lenIdx) { return lenIdx === 2 || lenIdx === 3 ? LENS[0] : LENS[lenIdx] || LENS[0]; };
   function dayKey(t) { var d = new Date(t); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
   function slotOf(t) { var d = new Date(t); return Math.floor((d.getHours() * 60 + d.getMinutes()) / 5); }
-  // the code holds: the 5-minute slot it was made in, the test length and the topics (one bit: inequalities in)
-  CU.makeCode = function (t, lenIdx, top) {
-    var slot = slotOf(t), pay = (slot * 4 + (lenIdx || 0)) * 2 + ((top == null ? CU.ALL_TOP : top) & 1), chk = hash('sfa-u2-check|' + dayKey(t) + '|' + pay) % SPACE, n = pay * SPACE + chk, s = '';
+  // the code holds: the 5-minute slot it was made in, the test length, which Check (1 to 4) and the topics (one bit: inequalities in)
+  CU.makeCode = function (t, lenIdx, top, check) {
+    var slot = slotOf(t), pay = (((slot * 8 + (lenIdx || 0)) * 4 + ((check || 0) & 3)) * 2) + ((top == null ? CU.ALL_TOP : top) & 1), chk = hash('sfa-u2-check|' + dayKey(t) + '|' + pay) % SPACE, n = pay * SPACE + chk, s = '';
     for (var i = 0; i < 5; i++) { s = ALPHA[n % 20] + s; n = Math.floor(n / 20); }
     return s;
   };
@@ -910,12 +918,12 @@
     str = String(str || '').toUpperCase().replace(/[^A-Z]/g, '');
     if (str.length !== 5) return { ok: false, why: 'The start code has 5 letters.' };
     var n = 0; for (var i = 0; i < 5; i++) { var k = ALPHA.indexOf(str[i]); if (k < 0) return { ok: false, why: 'That code isn\'t right. Check the letters on the board.' }; n = n * 20 + k; }
-    var chk = n % SPACE, pay = Math.floor(n / SPACE), top = pay % 2, slot = Math.floor(pay / 8), lenIdx = Math.floor(pay / 2) % 4;
-    if (slot > 287 || hash('sfa-u2-check|' + dayKey(now) + '|' + pay) % SPACE !== chk) return { ok: false, why: 'That code isn\'t right for today. Check the letters on the board.' };
+    var chk = n % SPACE, pay = Math.floor(n / SPACE), top = pay % 2, check = Math.floor(pay / 2) % 4, lenIdx = Math.floor(pay / 8) % 8, slot = Math.floor(pay / 64);
+    if (slot > 287 || lenIdx >= LENS.length || hash('sfa-u2-check|' + dayKey(now) + '|' + pay) % SPACE !== chk) return { ok: false, why: 'That code isn\'t right for today. Check the letters on the board.' };
     var d = new Date(now); d.setHours(0, 0, 0, 0); var start = d.getTime() + slot * 5 * 60000;
     if (now < start - 6 * 60000) return { ok: false, why: 'That code isn\'t open yet. Check the clock on this device.' };
     if (now > start + (OPEN_MIN + 5) * 60000) return { ok: false, why: 'That code has closed. Ask Mr. Crowell for a new one.' };
-    return { ok: true, code: str, len: LENS[lenIdx], lenIdx: lenIdx, top: top, opened: start, closes: start + (OPEN_MIN + 5) * 60000 };
+    return { ok: true, code: str, len: LENS[lenIdx], lenIdx: lenIdx, top: top, check: check, opened: start, closes: start + (OPEN_MIN + 5) * 60000 };
   };
 
   /* ---------------- the summary that reaches the dashboard ----------------

@@ -17,12 +17,17 @@
     if (String(url) !== EP) return inner(url, opts);
     var r; try { r = JSON.parse(opts.body); } catch (e) { return inner(url, opts); }
     if (window.CU2_MOCK_OFFLINE) return Promise.reject(new TypeError('offline (practice)'));
-    // the open/closed switch: open unless the practice teacher (key "test") closed it
+    // the open/closed switches, one per teacher: open unless that teacher closed it (practice teacher "test", co-teacher "co")
     if (r.op === 'checkState' || r.op === 'checkGate') {
-      var dg = db();
-      if (r.op === 'checkGate') { if (r.teacherKey !== 'test') return Promise.resolve(reply({ ok: false, error: 'teacher key' })); dg.gate = r.open ? 1 : -1; put(dg); }
-      var eod = new Date(); eod.setHours(23, 59, 0, 0);
-      return Promise.resolve(reply({ ok: true, open: dg.gate !== -1, until: dg.gate !== -1 ? eod.getTime() : 0 }));
+      var dg = db(), eod = new Date(); eod.setHours(23, 59, 0, 0);
+      var gst = function (g) { return { open: g !== -1, until: g !== -1 ? eod.getTime() : 0 }; };
+      if (r.teacherKey && r.teacherKey !== 'test' && r.teacherKey !== 'co') return Promise.resolve(reply({ ok: false, error: 'teacher key' }));
+      var mainT = r.teacherKey === 'test';
+      if (r.op === 'checkGate') { if (mainT && !r.co) dg.gate = r.open ? 1 : -1; else dg.gateCo = r.open ? 1 : -1; put(dg); }
+      if (r.teacherKey) { var o = gst(mainT ? dg.gate : dg.gateCo); o.ok = true; if (mainT) o.co = gst(dg.gateCo); return Promise.resolve(reply(o)); }
+      var dcs = dg.co || { classes: [], students: [] }, me = dcs.students.filter(function (x) { return x.code === String(r.code || '').toUpperCase(); })[0];
+      var so = gst(me && dcs.classes.indexOf(me.cls) >= 0 ? dg.gateCo : dg.gate); so.ok = true;
+      return Promise.resolve(reply(so));
     }
     // co-teacher practice: key "co" (or the teacher key "test"); her classes start empty; added students live in this browser
     var CO = /^(coWho|coRoster|coAdd|coClass|coExtra)$/.test(r.op);
@@ -53,7 +58,7 @@
         }
         var mineR = all.filter(function (x) { return sees(x.cls); }), ids = {}; mineR.forEach(function (x) { ids[x.sid] = 1; });
         return reply({ ok: true, roster: mineR.map(function (x) { return { sid: x.sid, name: x.name, cls: x.cls, extra: x.extra }; }), events: [], climb: [],
-          progress: Object.keys(dc.rows || {}).map(function (k) { var o = Object.assign({}, dc.rows[k]); delete o.raw; return o; }).filter(function (o) { return ids[o.sid] && o.game === 'g91'; }) });
+          progress: Object.keys(dc.rows || {}).map(function (k) { var o = Object.assign({}, dc.rows[k]); delete o.raw; return o; }).filter(function (o) { return ids[o.sid] && /^g9[1-4]$/.test(o.game); }) });
       });
     }
     // a student added on the co-teacher page signs in here (the Climb practice backend doesn't know them)

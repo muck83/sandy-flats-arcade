@@ -128,10 +128,10 @@ body.hide .nmv{filter:blur(6px)}
 <div id="sheets" aria-hidden="true"></div>
 <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Student detail"></aside>
 <script src="config.js"></script>
-<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261120f"><\/script>'); }</script>
+<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261123a"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
-<script src="check-u2.js?v=20261122a"></script>
+<script src="check-u2.js?v=20261123a"></script>
 <script>
 (function () {
   'use strict';
@@ -158,15 +158,19 @@ body.hide .nmv{filter:blur(6px)}
   function pref(k, d) { try { var v = localStorage.getItem('sfa.ckdash.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function setPref(k, v) { try { localStorage.setItem('sfa.ckdash.' + k, JSON.stringify(v)); } catch (e) { } }
 
-  var S = { rows: [], cls: pref('cls', ''), q: '', sort: pref('sort', 'name'), auto: pref('auto', true), at: null, code: null, len: pref('len', 0), top: pref('top', 0), day: pref('day', 'all') };
+  var S = { rows: [], cls: pref('cls', ''), q: '', sort: pref('sort', 'name'), auto: pref('auto', true), at: null, code: null, len: pref('len', 0), top: pref('top', 0), chk: pref('chk', 0), names: pref('names', {}), raw: null, day: pref('day', 'all') };
   var timer = null;
   function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
   function hhmm(t) { return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
   function nm(r) { return el('span', { 'class': 'nmv', text: nice(r.name) }); }
+  // Check 1 to 4: each keeps its own results; the teacher can name them (kept in this browser)
+  function label(n) { return (S.names && S.names[n]) || 'Check ' + (n + 1); }
 
   /* ---------- one row per student, rebuilt from the saved summary by the same engine the student page used ---------- */
   function build(j) {
-    var by = {}; (j.progress || []).forEach(function (p) { if (p.game === CU.KEY) by[p.sid] = p; });
+    S.raw = j; S.count = [0, 0, 0, 0];
+    var key = CU.keyFor(S.chk), by = {}; var on = {}; (j.roster || []).forEach(function (s) { on[s.sid] = 1; });
+    (j.progress || []).forEach(function (p) { if (!on[p.sid]) return; var n = CU.KEYS.indexOf(p.game); if (n >= 0) S.count[n]++; if (p.game === key) by[p.sid] = p; });
     return (j.roster || []).map(function (s) {
       var p = by[s.sid], att = p ? CU.decode(p.levels) : null, r = { sid: s.sid, name: s.name, cls: s.cls || '', extra: s.extra || 0, p: p, att: att && att.ok ? att : null, updated: p ? p.updated : '' };
       if (!r.att) return r;
@@ -205,6 +209,7 @@ body.hide .nmv{filter:blur(6px)}
     var all = S.rows.filter(inScope), rows = shown(), done = all.filter(function (r) { return r.att; });
     body.innerHTML = '';
     body.appendChild(toolbar());
+    body.appendChild(checkPicker());
     body.appendChild(codePanel());
     if (!all.length) { body.appendChild(el('p', { 'class': 'muted', text: 'No students on the roster for this class.' })); return; }
 
@@ -255,36 +260,55 @@ body.hide .nmv{filter:blur(6px)}
   function sortTh(label, key) { return el('th', { 'class': 'sortable', tabindex: '0', role: 'button', onclick: function () { S.sort = key; setPref('sort', key); render(); }, onkeydown: function (e) { if (e.key === 'Enter') { S.sort = key; render(); } } }, [label + (S.sort === key || (label === 'Scale ±' && (S.sort === 'low' || S.sort === 'high')) ? ' ▾' : '')]); }
   function copy(t) { try { navigator.clipboard.writeText(t).then(function () { SFA.toast('Names copied'); }, function () { SFA.toast(t, 6000); }); } catch (e) { SFA.toast(t, 6000); } }
 
-  /* ---------- open / closed: students can start only while Mr. Crowell has the Check open ---------- */
+  /* ---------- which Check: results and the start code both follow this choice ---------- */
+  function checkPicker() {
+    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Which Check' }, CU.KEYS.map(function (k, n) {
+      var c = S.count ? S.count[n] : 0;
+      return el('button', { type: 'button', 'aria-pressed': S.chk === n ? 'true' : 'false', text: label(n) + (c ? ' · ' + c : ''), title: c + ' student result' + (c === 1 ? '' : 's'), onclick: function () {
+        if (S.chk === n) return; S.chk = n; setPref('chk', n); S.code = null; try { sessionStorage.removeItem('sfa.ckdash.code'); } catch (e) { }
+        if (S.raw) S.rows = build(S.raw); closeDrawer(); render(); } });
+    }));
+    var ren = el('button', { type: 'button', 'class': 'btn small', text: '✏️ Rename', onclick: function () {
+      var v = window.prompt('A name for ' + label(S.chk) + ' (for example: Formative, 20 min, 24 Nov). Leave empty for "Check ' + (S.chk + 1) + '".', S.names[S.chk] || '');
+      if (v == null) return; v = v.replace(/\s+/g, ' ').trim().slice(0, 40); S.names = Object.assign({}, S.names); if (v) S.names[S.chk] = v; else delete S.names[S.chk]; setPref('names', S.names); render(); } });
+    return el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Which Check' }),
+      el('p', { 'class': 'sub', text: 'Each Check keeps its own results, so a new Check never replaces an earlier one. Pick the Check before you make a start code: the code starts this Check, and the table, groups, CSV and task sheets below show this Check\'s results. The number is how many students have a result in it. Results from before this switch are in Check 1. A student who takes the same Check twice keeps only the newer attempt.' }),
+      el('div', { 'class': 'bar', style: 'margin:0' }, [seg, ren])]);
+  }
+
+  /* ---------- open / closed: students can start only while their teacher has the Check open ---------- */
   function gatePanel() {
     var g = DEMO ? { open: true } : S.gate || {}, msg = el('span', { 'class': 'muted', role: 'status' });
     var old = /unknown op/.test(g.err || '');
-    function set(on) { msg.textContent = ' Saving…'; api('checkGate', { open: on }).then(function (j) { S.gate = j; render(); }, function (e) { msg.textContent = ' ' + e.message; }); }
+    function set(on, co) { msg.textContent = ' Saving…'; api('checkGate', { open: on, co: !!co }).then(function (j) { return api('checkState'); }).then(function (j) { S.gate = j; render(); }, function (e) { msg.textContent = ' ' + e.message; }); }
     var state = el('div', {}, [el('b', { style: 'font-size:18px;color:' + (g.open ? '#7BE0A0' : '#FF8E84'), text: g.open ? '🟢 The Check is OPEN' : '🔴 The Check is CLOSED' }),
-      el('div', { 'class': 'muted', style: 'font-size:13px', text: old ? 'The results script needs updating before the switch works: paste the new backend/Code.gs and deploy a new version.' : g.err ? 'Couldn\'t read the switch: ' + g.err : g.open ? 'Students can start it with a start code until you close it (it closes itself at midnight). Students already working keep going after you close it.' : CO ? 'Students can\'t start it until Mr. Crowell opens it from his dashboard.' : 'Students see "closed" and can\'t start, even with a start code. Open it when the class is ready.' })]);
-    var btn = CO || DEMO || old ? null : g.open ? el('button', { type: 'button', 'class': 'btn', text: 'Close the Check', onclick: function () { set(false); } }) : el('button', { type: 'button', 'class': 'btn primary', text: 'Open the Check', onclick: function () { set(true); } });
-    return el('div', { 'class': 'codebox', style: 'margin-bottom:12px' }, [state, btn, msg]);
+      el('div', { 'class': 'muted', style: 'font-size:13px', text: old ? 'The results script needs updating before the switch works: paste the new backend/Code.gs and deploy a new version.' : g.err ? 'Couldn\'t read the switch: ' + g.err : g.open ? 'Your students can start it with a start code until you close it (it closes itself at midnight). Students already working keep going after you close it.' : 'Your students see "closed" and can\'t start, even with a start code. Open it when the class is ready.' }),
+      el('div', { 'class': 'muted', style: 'font-size:13px', text: CO ? 'This switch is for your classes only. Mr. Crowell has his own, so you can both run a Check at the same time.' : 'This switch is for your classes. Your co-teacher\'s classes have their own switch, so you can both run a Check at the same time.' })]);
+    var btn = DEMO || old ? null : g.open ? el('button', { type: 'button', 'class': 'btn', text: 'Close the Check', onclick: function () { set(false); } }) : el('button', { type: 'button', 'class': 'btn primary', text: 'Open the Check', onclick: function () { set(true); } });
+    var co = !CO && !DEMO && g.co ? el('div', { 'class': 'muted', style: 'flex-basis:100%;font-size:13px;margin-top:4px' }, ['Co-teacher\'s classes: ', el('b', { style: 'color:' + (g.co.open ? '#7BE0A0' : '#FF8E84'), text: g.co.open ? 'open' : 'closed' }), ' (she opens and closes it from her dashboard) ',
+      el('button', { type: 'button', 'class': 'btn small', text: g.co.open ? 'Close hers' : 'Open hers', onclick: function () { set(!g.co.open, true); } })]) : null;
+    return el('div', { 'class': 'codebox', style: 'margin-bottom:12px;flex-wrap:wrap' }, [state, btn, msg, co]);
   }
 
   /* ---------- the start code ---------- */
   function codePanel() {
     var box = el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Run the check' }), el('ol', { 'class': 'sub', style: 'margin:0 0 10px;padding-left:20px' }, [
       el('li', { text: 'Students need scrap paper and a pencil for working things out. They open the arcade front page, press 🎯 Unit 2 Check (or go straight to check-u2.html) and sign in.' }),
-      el('li', { text: CO ? 'Ask Mr. Crowell to open the Check (the switch below must say OPEN). Then pick the test length, press Make a start code, and put the code on the board. Students type it to start.' : 'Press Open the Check. Then pick the test length, press Make a start code, and put the code on the board. Students type it to start. Close the Check when everyone has started.' }),
+      el('li', { text: 'Press Open the Check. Make sure the right Check is chosen above, pick the test length, press Make a start code, and put the code on the board. Students type it to start. Close the Check when everyone has started.' }),
       el('li', { text: 'The code works today only, for ' + CU.OPEN_MIN + ' minutes, so nobody can start early or at home. A student who has started keeps going after the code closes: the clock runs from their own start, even through a reload.' }),
       el('li', { text: 'A latecomer, or a student who ran out of time and needs 10 more minutes? Make a new code.' }),
-      el('li', { text: 'Up to three questions per student ask them to work it out on paper first. Nothing is handed in. The worked-out questions list below shows each student\'s problem and its full solution, for talking through their thinking.' })])]);
-    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Test length' }, CU.LENS.map(function (m, i) { return el('button', { type: 'button', 'aria-pressed': S.len === i ? 'true' : 'false', text: m + ' min' + (i === 0 ? '' : i === 2 ? ' (×1.5)' : i === 3 ? ' (×2)' : ''), onclick: function () { S.len = i; setPref('len', i); S.code = null; render(); } }); }));
+      el('li', { text: 'Up to three questions per student (one in a 20-minute Check) ask them to work it out on paper first. Nothing is handed in. The worked-out questions list below shows each student\'s problem and its full solution, for talking through their thinking.' })])]);
+    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Test length' }, CU.LEN_ORDER.map(function (i) { var m = CU.LENS[i]; return el('button', { type: 'button', 'aria-pressed': S.len === i ? 'true' : 'false', text: m + ' min' + (i === 2 ? ' (×1.5)' : i === 3 ? ' (×2)' : ''), onclick: function () { S.len = i; setPref('len', i); S.code = null; render(); } }); }));
     box.appendChild(gatePanel());
     var live = S.code && CU.readCode(S.code.code, Date.now());
     var row = el('div', { 'class': 'codebox' }, [el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Test length for this code' }), seg]),
-      el('button', { type: 'button', 'class': 'btn primary', text: S.code ? 'Make a new code' : 'Make a start code', onclick: function () { var now = Date.now(); S.code = { code: CU.makeCode(now, S.len, S.top), at: now }; try { sessionStorage.setItem('sfa.ckdash.code', JSON.stringify(S.code)); } catch (e) { } render(); } })]);
+      el('button', { type: 'button', 'class': 'btn primary', text: S.code ? 'Make a new code' : 'Make a start code', onclick: function () { var now = Date.now(); S.code = { code: CU.makeCode(now, S.len, S.top, S.chk), at: now }; try { sessionStorage.setItem('sfa.ckdash.code', JSON.stringify(S.code)); } catch (e) { } render(); } })]);
     box.appendChild(row);
     var ti = el('input', { type: 'checkbox', id: 'ckTop' }); ti.checked = !!(S.top & 1);
     ti.onchange = function () { S.top = ti.checked ? 1 : 0; setPref('top', S.top); S.code = null; try { sessionStorage.removeItem('sfa.ckdash.code'); } catch (e) { } render(); };
     box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:10px' }, [el('label', { 'for': 'ckTop', style: 'display:flex;gap:8px;align-items:center;cursor:pointer' }, [ti, el('span', {}, [el('b', { text: 'Include inequalities' }), el('span', { 'class': 'muted', text: ' (skill: Inequalities: write, solve and graph). Leave off until it has been taught; turn on for the summative. The start code carries this choice.' })])])]));
     if (S.code) box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:12px' }, [el('div', { 'class': 'bigcode', text: S.code.code, 'aria-label': 'Start code ' + S.code.code.split('').join(' ') }),
-      el('div', {}, [el('b', { text: live && live.ok ? 'Open: students can start until ' + hhmm(live.closes) : 'This code has closed. Make a new one for anyone still to start.' }), el('div', { 'class': 'muted', text: live && live.ok ? live.len + '-minute test · ' + CU.topText(live.top) + '. Extended-time students: make a second code with a longer length and give it to them quietly.' : '' })])]));
+      el('div', {}, [el('b', { text: live && live.ok ? 'Open: students can start until ' + hhmm(live.closes) : 'This code has closed. Make a new one for anyone still to start.' }), el('div', { 'class': 'muted', text: live && live.ok ? label(live.check) + ' · ' + live.len + '-minute test · ' + CU.topText(live.top) + '. Students with extra time set on their row get it automatically (' + (live.len === 20 ? '20 becomes 25, 30 or 40 minutes' : '35 becomes 44, 53 or 70 minutes') + ').' + (live.len === 20 ? ' In 20 minutes most students answer about one question per skill, so many skills show a first read rather than a level.' : '') : '' })])]));
     return box;
   }
 
@@ -349,7 +373,7 @@ body.hide .nmv{filter:blur(6px)}
     var st = el('span', { 'class': 'muted' });
     return el('details', { 'class': 'how' }, [el('summary', { text: 'How the check works, and how far to trust it' }), el('ul', {}, [
       el('li', { text: 'Adaptive rule: each criterion starts at level 2 of 4 (1 Foundation, 2 Emerging-level, 3 Developed-level = the unit goal, 4 Deep-level). Right moves that criterion up a level, wrong or "I don\'t know yet" moves it down. A skill\'s first question is asked at its criterion\'s current level; after that the skill follows its own last answer.' }),
-      el('li', { text: 'Coverage: questions 1 to 13 visit every skill once and 14 to 26 visit them again, criteria taking turns; later questions go to the skill with the least certain estimate. The test stops at the time limit, at 40 questions, or early (after at least 26) once the overall and criterion estimates have settled.' }),
+      el('li', { text: 'Coverage: the first 13 questions (12 with inequalities left out) visit every skill once and the next 13 visit them again, criteria taking turns; later questions go to the skill with the least certain estimate. The test stops at the time limit, at 40 questions, or early (after at least 26) once the overall and criterion estimates have settled.' }),
       el('li', { text: 'Scoring: an estimate on a scale where 500 is the middle of Emerging-to-Developed; cut scores 450 (Emerging), 550 (Developed), 650 (Deep). The ± is one standard error: the true score is inside it about two times in three. Tap-to-choose questions are discounted for lucky guesses.' }),
       el('li', { text: 'Criteria here are estimated from all their questions (unlike the review dashboard, which takes the weakest skill). Skill squares rest on 2 or 3 questions each: use them to choose where to look, not as a verdict.' }),
       el('li', { text: 'Flags are observations, not proof, and nothing is deducted for them. Leaving the tab can be a notification or a calculator app. The strongest signals are "Right after leaving", "Paste", and "Very fast and right" on hard questions.' }),
@@ -381,7 +405,7 @@ body.hide .nmv{filter:blur(6px)}
     if (!r.att) { drawer.appendChild(el('p', { 'class': 'muted', text: 'Has not started the check.' })); }
     else {
       var sc = r.sc, a = r.att;
-      drawer.appendChild(el('p', { 'class': 'muted', text: (r.cls ? 'Class ' + r.cls + ' · ' : '') + r.state + ' · started ' + new Date(a.t0).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' with code ' + a.code + ' · ' + sc.n + ' questions (' + sc.right + ' right) in ' + r.mins + ' min' + (a.n > 1 ? ' · attempt ' + a.n : '') }));
+      drawer.appendChild(el('p', { 'class': 'muted', text: label(S.chk) + ' · ' + (r.cls ? 'Class ' + r.cls + ' · ' : '') + r.state + ' · started ' + new Date(a.t0).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' with code ' + a.code + ' · ' + sc.n + ' questions (' + sc.right + ' right) in ' + r.mins + ' min' + (a.n > 1 ? ' · attempt ' + a.n : '') }));
       drawer.appendChild(el('p', { 'class': 'noprint' }, [el('button', { 'class': 'btn small primary', type: 'button', text: '🖨 Task sheet for ' + nice(r.name), onclick: function () { printSheets([r]); } })]));
       drawer.appendChild(el('p', {}, [el('span', { 'class': 'badge l' + sc.level, text: LV[sc.level] }), sc.level ? ' Scale ' + sc.scale + ' ± ' + sc.pm : ' Fewer than ' + CU.NEED.all + ' answers.']));
       if (r.tags.length) drawer.appendChild(el('p', {}, r.tags.map(function (x) { return el('span', { 'class': 'tag' + (x[1] ? '' : ' soft'), text: x[0] }); })));
@@ -408,20 +432,20 @@ body.hide .nmv{filter:blur(6px)}
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
 
   function csv() {
-    var head = ['Student', 'Class', 'Status', 'Started', 'Start code', 'Questions', 'Right', 'Minutes', 'Scale score', 'Plus or minus', 'Overall level']
+    var head = ['Student', 'Class', 'Check', 'Test length (min)', 'Status', 'Started', 'Start code', 'Questions', 'Right', 'Minutes', 'Scale score', 'Plus or minus', 'Overall level']
       .concat([].concat.apply([], CRIT.map(function (c) { return [c.short + ' (criterion)', c.short + ' scale', c.short + ' questions']; })))
       .concat(SK.map(function (k) { return k.name; })).concat(SK.map(function (k) { return k.name + ' (right/asked)'; }))
       .concat(['Left tab (questions)', 'Seconds away', 'Paste', 'Copied question', 'Very fast and right (L3+)', 'Rapid wrong guesses', 'Very slow', 'Don\'t know', 'Reloads', 'Extra time', 'Worked-out questions (results)', 'Suggested group']);
     var lines = [head].concat(shown().map(function (r) {
-      if (!r.att) return [nice(r.name), r.cls, 'Not started'];
+      if (!r.att) return [nice(r.name), r.cls, label(S.chk), '', 'Not started'];
       var sc = r.sc, f = r.flags, px = paperItems(r);
-      return [nice(r.name), r.cls, r.state, new Date(r.att.t0).toLocaleString(), r.att.code, sc.n, sc.right, r.mins, sc.level ? sc.scale : '', sc.level ? sc.pm : '', LV[sc.level]]
+      return [nice(r.name), r.cls, label(S.chk), CU.LENS[r.att.lenIdx] || '', r.state, new Date(r.att.t0).toLocaleString(), r.att.code, sc.n, sc.right, r.mins, sc.level ? sc.scale : '', sc.level ? sc.pm : '', LV[sc.level]]
         .concat([].concat.apply([], CRIT.map(function (c) { var e = sc.crit[c.id]; return [LV[e.level], e.level ? e.scale : '', e.n]; })))
         .concat(SK.map(function (k) { var e = sc.skill[k.id]; return e.n ? LV[e.level] : 'Not reached'; })).concat(SK.map(function (k) { var e = sc.skill[k.id]; return "'" + e.right + '/' + e.n; }))
         .concat([f.away, f.awaySecs, f.paste, f.copy, f.quick, f.guess, f.slow, f.idk, f.reloads, f.ext, px.map(function (x) { return 'Q' + (x.p.i + 1) + ' ' + (x.e && x.e.ok ? 'right' : 'wrong'); }).join(', '), r.weak && r.sc.crit[r.weak.id].level <= 2 ? 'Reteach: ' + r.weak.short : r.weak ? 'Extend' : 'Not enough evidence']);
     }));
     var text = lines.map(function (l) { return l.map(function (x) { x = String(x == null ? '' : x); if (/^[=+\-@]/.test(x)) x = "'" + x; return /[",\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; }).join(','); }).join('\n');
-    var a = el('a', { href: URL.createObjectURL(new Blob(['﻿' + text], { type: 'text/csv' })), download: 'unit2-check-results.csv' }); document.body.appendChild(a); a.click(); a.remove();
+    var a = el('a', { href: URL.createObjectURL(new Blob(['﻿' + text], { type: 'text/csv' })), download: 'unit2-' + label(S.chk).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-results.csv' }); document.body.appendChild(a); a.click(); a.remove();
     window.CU2_LAST_CSV = text;
   }
 
@@ -467,7 +491,7 @@ body.hide .nmv{filter:blur(6px)}
     var sc = r.sc, a = r.att, d = new Date(a.end ? a.end.at || a.t0 : a.t0);
     var pg = el('section', { 'class': 'ts' });
     pg.appendChild(el('div', { 'class': 'hd' }, [
-      el('div', {}, [el('h1', { text: 'Unit 2 Formative: Linear Relationships' }), el('div', { 'class': 'meta', text: 'Unit 2 Check (adaptive, 35 minutes) · ' + d.toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' }) + ' · ' + sc.n + ' questions answered, ' + sc.right + ' right' })]),
+      el('div', {}, [el('h1', { text: 'Unit 2: Linear Equations' + (CU.uses('r3', a.top) ? ' and Inequalities' : '') }), el('div', { 'class': 'meta', text: 'Unit 2 ' + label(S.chk) + ' (adaptive, ' + (CU.LENS[a.lenIdx] || 35) + ' minutes' + (r.extra ? ' + ' + r.extra + '% extra time' : '') + ') · ' + d.toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' }) + ' · ' + sc.n + ' questions answered, ' + sc.right + ' right' + (CU.uses('r3', a.top) ? '' : ' · Inequalities not assessed yet') })]),
       el('div', { 'class': 'who' }, [el('b', { text: nice(r.name) }), el('br'), r.cls ? 'Class ' + r.cls : ''])
     ]));
     var t = el('table', {}, [el('colgroup', {}, [el('col', { 'class': 'c1' }), el('col', { 'class': 'c2' }), el('col'), el('col'), el('col'), el('col')])]), hr = el('tr', {}, [el('th', { text: 'Success criterion / strand' }), el('th', { text: 'Level reached' })]);
@@ -495,7 +519,7 @@ body.hide .nmv{filter:blur(6px)}
     ]));
     pg.appendChild(el('div', { 'class': 'two' }, [el('div', { 'class': 'box' }, [el('h3', { text: 'Teacher comment' }), el('div', { 'class': 'lines' }), el('div', { 'class': 'lines' })]),
       el('div', { 'class': 'box' }, [el('h3', { text: 'Student reflection: one thing I will do next' }), el('div', { 'class': 'lines' }), el('div', { 'class': 'lines' })])]));
-    pg.appendChild(el('div', { 'class': 'fine', text: 'Adaptive check: a skill needs 2 answers and a criterion 3 for a level; "first read" means one answer so far.' }));
+    pg.appendChild(el('div', { 'class': 'fine', text: 'Adaptive check: a skill needs 2 answers and a criterion 3 for a level; "first read" means one answer so far.' + (CU.LENS[a.lenIdx] === 20 ? ' A 20-minute check gives about one question per skill, so most skills are a first read: use it to choose what to practise, not as a final level.' : '') }));
     return pg;
   }
 
@@ -543,7 +567,7 @@ body.hide .nmv{filter:blur(6px)}
     return { roster: roster, progress: progress };
   }
 
-  try { S.code = JSON.parse(sessionStorage.getItem('sfa.ckdash.code') || 'null'); if (S.code && new Date(S.code.at).toDateString() !== new Date().toDateString()) S.code = null; } catch (e) { }
+  try { S.code = JSON.parse(sessionStorage.getItem('sfa.ckdash.code') || 'null'); if (S.code && (new Date(S.code.at).toDateString() !== new Date().toDateString() || (CU.readCode(S.code.code, S.code.at).check || 0) !== S.chk)) S.code = null; } catch (e) { }
   setInterval(function () { if (S.code && S.rows.length && !DEMO && !drawer.classList.contains('open') && !body.querySelector('details[open]') && document.activeElement.tagName !== 'INPUT') { var p = body.querySelector('.codebox b'); var live = CU.readCode(S.code.code, Date.now()); if (p && !live.ok && /^Open/.test(p.textContent)) render(); } }, 20000);
   load(true);
   window.CU2_DASH = { rows: function () { return S.rows; }, csv: csv };

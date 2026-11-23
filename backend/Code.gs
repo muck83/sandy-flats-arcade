@@ -110,16 +110,16 @@ function route(req) {
     case 'coAdd': return coAdd(req);
     case 'coClass': return coClass(req);
     case 'coExtra': return coExtra(req);
-    case 'checkState': return checkState();
-    case 'checkGate': teacher(req); return checkGate(req);
+    case 'checkState': return checkState(req);
+    case 'checkGate': return checkGate(req);
     default: throw new Error('unknown op');
   }
 }
 
 /* ---------------- co-teacher (co-teacher.html) ----------------
    The co-teacher key reaches only the co-teacher's own classes: their roster and codes, adding students, and their
-   Unit 2 Check results (game g91). The main teacher key can do all of it for every class. */
-var CO_GAMES = /^g91$/, CO_CLASS = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,19}$/;
+   Unit 2 Check results (games g91 to g94: Check 1 to 4). The main teacher key can do all of it for every class. */
+var CO_GAMES = /^g9[1-4]$/, CO_CLASS = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,19}$/;
 function coClasses() { return prop('COTEACHER_CLASSES').split(',').map(function (c) { return c.trim(); }).filter(Boolean); }
 function coKey() {
   var p = PropertiesService.getScriptProperties(), k = p.getProperty('COTEACHER_KEY');
@@ -201,15 +201,28 @@ function coClass(req) {
   return { ok: true, roster: roster.map(publicStudent), progress: prog, events: [], climb: [] };
 }
 
-/* ---------------- the Unit 2 Check open/closed switch ----------------
-   Students can start the Check only while Mr. Crowell has it open (main teacher key only, not the co-teacher key).
-   It closes itself at the end of the day it was opened. A student already in the middle of an attempt keeps going. */
-function checkState() { var u = Number(prop('CHECK_OPEN')) || 0, on = u > Date.now(); return { ok: true, open: on, until: on ? u : 0 }; }
+/* ---------------- the Unit 2 Check open/closed switches ----------------
+   Students can start the Check only while their teacher has it open. There are two switches: CHECK_OPEN for Mr. Crowell's
+   classes and CHECK_OPEN_CO for the co-teacher's (COTEACHER_CLASSES), so both can run a Check at the same time.
+   The main teacher key can work both; the co-teacher key only hers. Each closes itself at the end of the day it was
+   opened. A student already in the middle of an attempt keeps going. */
+function gateUntil(k) { var u = Number(prop(k)) || 0; return u > Date.now() ? u : 0; }
+function checkState(req) {
+  req = req || {};
+  if (req.teacherKey) {
+    var who = coTeacher(req), mine = gateUntil(who.all ? 'CHECK_OPEN' : 'CHECK_OPEN_CO'), out = { ok: true, open: !!mine, until: mine };
+    if (who.all) { var c = gateUntil('CHECK_OPEN_CO'); out.co = { open: !!c, until: c }; }
+    return out;
+  }
+  var s = null; try { s = auth(req); } catch (e) { }
+  var u = s ? gateUntil(coClasses().indexOf(s.cls) >= 0 ? 'CHECK_OPEN_CO' : 'CHECK_OPEN') : Math.max(gateUntil('CHECK_OPEN'), gateUntil('CHECK_OPEN_CO'));
+  return { ok: true, open: !!u, until: u };
+}
 function checkGate(req) {
-  var p = PropertiesService.getScriptProperties();
-  if (req.open) { var d = new Date(); d.setHours(23, 59, 0, 0); p.setProperty('CHECK_OPEN', String(d.getTime())); }
-  else p.deleteProperty('CHECK_OPEN');
-  return checkState();
+  var who = coTeacher(req), k = who.all && !req.co ? 'CHECK_OPEN' : 'CHECK_OPEN_CO', p = PropertiesService.getScriptProperties();
+  if (req.open) { var d = new Date(); d.setHours(23, 59, 0, 0); p.setProperty(k, String(d.getTime())); }
+  else p.deleteProperty(k);
+  return checkState({ teacherKey: req.teacherKey });
 }
 
 /* ---------------- auth ---------------- */
