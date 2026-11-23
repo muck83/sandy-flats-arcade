@@ -23,8 +23,11 @@
   var CU = window.CU2 = { v: 1, KEY: 'g91' };
   /* Each Check the teacher runs (Check 1 to 4) saves under its own key, so a new Check never replaces an earlier one's
      results. The start code says which Check it starts. Check 1 is g91, where every attempt before this switch lives. */
-  CU.KEYS = ['g91', 'g92', 'g93', 'g94'];
-  CU.keyFor = function (n) { return CU.KEYS[n] || CU.KEYS[0]; };
+  CU.KEYS = ['g91', 'g92', 'g93', 'g94', 'g95', 'g96', 'g97', 'g98', 'g88', 'g89'];   // Check 1 to 10 (g90 and g99 belong to other pages)
+  // a practice check: the student starts it themselves (10, 20 or 30 minutes), any time; it saves apart from the real Checks
+  CU.PRACTICE = 'p'; CU.PRACTICE_KEY = 'g87';
+  CU.keyFor = function (n) { return n === CU.PRACTICE ? CU.PRACTICE_KEY : CU.KEYS[n] || CU.KEYS[0]; };
+  CU.ALL_KEYS = CU.KEYS.concat([CU.PRACTICE_KEY]);
 
   /* ---------------- numbers (the same rules as the review) ---------------- */
   function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = a % b; a = b; b = t; } return a || 1; }
@@ -902,10 +905,11 @@
      accepts it only on the same day and only for a short window after it was made, so the test cannot be started
      early, at home, or tomorrow. It is worked out in the browser (no server), so it stops casual misuse, not a
      determined student who reads this file. */
-  var LENS = CU.LENS = [35, 45, 52, 70, 20], OPEN_MIN = CU.OPEN_MIN = 25, ALPHA = 'BCDFGHJKLMNPQRSTVWXZ', SPACE = 173;
+  var LENS = CU.LENS = [35, 45, 52, 70, 20, 10, 30], OPEN_MIN = CU.OPEN_MIN = 25, ALPHA = 'BCDFGHJKLMNPQRSTVWXZ', SPACE = 173;
   // the lengths the dashboard offers: 20, 35, 45. Extra time is per student (set on the dashboard or the My Students page);
   // 52 and 70 (35 × 1.5 and × 2 for a whole class) are no longer offered but old codes and results still read correctly
   CU.LEN_ORDER = [4, 0, 1];
+  CU.PRACTICE_LENS = [5, 4, 6];   // 10, 20, 30 minutes
   // the length extra time is worked out from: 52 and 70 are already 35 × 1.5 and × 2 for the whole class
   CU.baseLen = function (lenIdx) { return lenIdx === 2 || lenIdx === 3 ? LENS[0] : LENS[lenIdx] || LENS[0]; };
   // in UTC, not the device's own time zone: a teacher laptop and a student device set to different zones still agree

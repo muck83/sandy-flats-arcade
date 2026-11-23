@@ -128,10 +128,10 @@ body.hide .nmv{filter:blur(6px)}
 <div id="sheets" aria-hidden="true"></div>
 <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Student detail"></aside>
 <script src="config.js"></script>
-<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261123d"><\/script>'); }</script>
+<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261123e"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
-<script src="check-u2.js?v=20261123d"></script>
+<script src="check-u2.js?v=20261123e"></script>
 <script>
 (function () {
   'use strict';
@@ -158,22 +158,31 @@ body.hide .nmv{filter:blur(6px)}
   function pref(k, d) { try { var v = localStorage.getItem('sfa.ckdash.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function setPref(k, v) { try { localStorage.setItem('sfa.ckdash.' + k, JSON.stringify(v)); } catch (e) { } }
 
-  var S = { rows: [], cls: pref('cls', ''), q: '', sort: pref('sort', 'name'), auto: pref('auto', true), at: null, code: null, len: [4, 0, 1].indexOf(pref('len', 0)) >= 0 ? pref('len', 0) : 0, top: pref('top', 0), chk: pref('chk', 0), names: pref('names', {}), raw: null, day: pref('day', 'all') };
+  var S = { rows: [], cls: pref('cls', ''), q: '', sort: pref('sort', 'name'), auto: pref('auto', true), at: null, code: null, len: [4, 0, 1].indexOf(pref('len', 0)) >= 0 ? pref('len', 0) : 0, top: pref('top', 0), chk: pref('chk', 0), names: pref('names', {}), merge: pref('merge', {}), raw: null, day: pref('day', 'all') };
   var timer = null;
   function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
   function hhmm(t) { return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
   function nm(r) { return el('span', { 'class': 'nmv', text: nice(r.name) }); }
   // Check 1 to 4: each keeps its own results; the teacher can name them (kept in this browser)
   var STU = location.href.replace(/[^/]*$/, '') + 'check-u2.html' + (TRY ? '?try' : '');   // the link students open
-  function label(n) { return (S.names && S.names[n]) || 'Check ' + (n + 1); }
+  function label(n) { return n === CU.PRACTICE ? 'Practice' : (S.names && S.names[n]) || 'Check ' + (n + 1); }
 
   /* ---------- one row per student, rebuilt from the saved summary by the same engine the student page used ---------- */
   function build(j) {
-    S.raw = j; S.count = [0, 0, 0, 0];
+    S.raw = j; S.count = CU.KEYS.map(function () { return 0; }); S.countP = 0;
     S.sessCount = {};
     (j.progress || []).forEach(function (p) { var mc = String(p.levels || '').match(/(?:^| )A[0-9a-z]{7}\.([a-z]{5})/); if (mc) S.sessCount[mc[1].toUpperCase()] = (S.sessCount[mc[1].toUpperCase()] || 0) + 1; });
-    var key = CU.keyFor(S.chk), by = {}; var on = {}; (j.roster || []).forEach(function (s) { on[s.sid] = 1; });
-    (j.progress || []).forEach(function (p) { if (!on[p.sid]) return; var n = CU.KEYS.indexOf(p.game); if (n >= 0) S.count[n]++; if (p.game === key) by[p.sid] = p; });
+    // the Checks shown here: the chosen one, plus any combined into it (S.merge: {from: into}, kept in this browser).
+    // A student with an attempt in more than one: the attempt with the most answers (then the latest) counts.
+    var keys = {}; keys[CU.keyFor(S.chk)] = 1;
+    if (S.chk !== CU.PRACTICE) Object.keys(S.merge || {}).forEach(function (f) { if (S.merge[f] === S.chk) keys[CU.keyFor(+f)] = 1; });
+    var by = {}, on = {}; (j.roster || []).forEach(function (s) { on[s.sid] = 1; });
+    var weight = function (p) { var a = CU.decode(p.levels); return a.ok ? a.log.length * 1e13 + (a.t0 || 0) : -1; };
+    (j.progress || []).forEach(function (p) {
+      if (!on[p.sid]) return; var n = CU.KEYS.indexOf(p.game); if (n >= 0) S.count[n]++; if (p.game === CU.PRACTICE_KEY) S.countP++;
+      if (keys[p.game] && (!by[p.sid] || weight(p) > weight(by[p.sid]))) by[p.sid] = p;
+    });
+    S.shownN = Object.keys(by).length;
     return (j.roster || []).map(function (s) {
       var p = by[s.sid], att = p ? CU.decode(p.levels) : null, r = { sid: s.sid, name: s.name, cls: s.cls || '', extra: s.extra || 0, p: p, att: att && att.ok ? att : null, updated: p ? p.updated : '' };
       if (!r.att) return r;
@@ -265,18 +274,34 @@ body.hide .nmv{filter:blur(6px)}
 
   /* ---------- which Check: results and the next opening both follow this choice ---------- */
   function checkPicker() {
-    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Which Check' }, CU.KEYS.map(function (k, n) {
-      var c = S.count ? S.count[n] : 0;
-      return el('button', { type: 'button', 'aria-pressed': S.chk === n ? 'true' : 'false', text: label(n) + (c ? ' · ' + c : ''), title: c + ' student result' + (c === 1 ? '' : 's'), onclick: function () {
+    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Which Check' }, CU.KEYS.map(function (k, n) { return n; }).concat([CU.PRACTICE]).map(function (n) {
+      var c = n === CU.PRACTICE ? S.countP || 0 : S.count ? S.count[n] : 0, into = n !== CU.PRACTICE && S.merge[n] != null ? S.merge[n] : null;
+      if (n === S.chk && S.shownN != null && S.shownN !== c) c = S.shownN;
+      return el('button', { type: 'button', 'aria-pressed': S.chk === n ? 'true' : 'false', text: label(n) + (c ? ' · ' + c : '') + (into != null ? ' → ' + label(into) : ''), title: c + ' student result' + (c === 1 ? '' : 's'), onclick: function () {
         if (S.chk === n) return; S.chk = n; setPref('chk', n);
         if (S.raw) S.rows = build(S.raw); closeDrawer(); render(); } });
     }));
-    var ren = el('button', { type: 'button', 'class': 'btn small', text: '✏️ Rename', onclick: function () {
+    var ren = S.chk === CU.PRACTICE ? null : el('button', { type: 'button', 'class': 'btn small', text: '✏️ Rename', onclick: function () {
       var v = window.prompt('A name for ' + label(S.chk) + ' (for example: Formative, 20 min, 24 Nov). Leave empty for "Check ' + (S.chk + 1) + '".', S.names[S.chk] || '');
       if (v == null) return; v = v.replace(/\s+/g, ' ').trim().slice(0, 40); S.names = Object.assign({}, S.names); if (v) S.names[S.chk] = v; else delete S.names[S.chk]; setPref('names', S.names); render(); } });
     return el('section', { 'class': 'panel noprint' }, [el('h2', { text: 'Which Check' }),
-      el('p', { 'class': 'sub', text: 'Each Check keeps its own results, so a new Check never replaces an earlier one. Pick the Check before you open it: opening starts this Check, and the table, groups, CSV and task sheets below show this Check\'s results. The number is how many students have a result in it. Results from before this switch are in Check 1. A student who takes the same Check twice keeps only the newer attempt.' }),
-      el('div', { 'class': 'bar', style: 'margin:0' }, [seg, ren])]);
+      el('p', { 'class': 'sub', text: 'Each Check keeps its own results, so a new Check never replaces an earlier one. Pick the Check before you open it: opening starts this Check, and the table, groups, CSV and task sheets below show this Check\'s results. The number is how many students have a result in it. Results from before this switch are in Check 1. A student who takes the same Check twice keeps only the newer attempt. Practice shows each student\'s latest practice check: students start those themselves (10, 20 or 30 minutes) from the Check page, any time, without the switch.' }),
+      el('div', { 'class': 'bar', style: 'margin:0' }, [seg, ren]), combineBox()]);
+  }
+  // show other Checks' results inside the chosen one (opened several by mistake, or one Check run over several sessions).
+  // Nothing on the results sheet changes: untick to separate them again.
+  function combineBox() {
+    if (S.chk === CU.PRACTICE || S.merge[S.chk] != null) return S.merge[S.chk] != null ? el('p', { 'class': 'muted', style: 'font-size:13px;margin:8px 0 0', text: label(S.chk) + ' is combined into ' + label(S.merge[S.chk]) + ': its results show there. To separate it, choose ' + label(S.merge[S.chk]) + ' and untick it under Combine.' }) : null;
+    var list = CU.KEYS.map(function (k, n) { return n; }).filter(function (n) { return n !== S.chk && (S.count[n] || S.merge[n] === S.chk) && (S.merge[n] == null || S.merge[n] === S.chk); });
+    var merged = list.filter(function (n) { return S.merge[n] === S.chk; });
+    if (!list.length) return null;
+    return el('details', { style: 'margin-top:10px', open: merged.length ? 'open' : null }, [el('summary', { text: '🔀 Combine other Checks into ' + label(S.chk) + (merged.length ? ' (' + merged.map(label).join(', ') + ' combined)' : '') }),
+      el('p', { 'class': 'muted', style: 'font-size:13px', text: 'Tick a Check to show its results here too: the table, groups, CSV and task sheets then treat them as one Check. Use it if you opened several Checks by mistake. Nothing on the results sheet changes, and you can untick it any time. A student with an attempt in more than one counts once, with the attempt that has the most answers. This is saved in this browser.' }),
+      el('div', { 'class': 'bar', style: 'margin:0;gap:14px' }, list.map(function (n) {
+        var cb = el('input', { type: 'checkbox', id: 'mg' + n }); cb.checked = S.merge[n] === S.chk;
+        cb.onchange = function () { S.merge = Object.assign({}, S.merge); if (cb.checked) S.merge[n] = S.chk; else delete S.merge[n]; setPref('merge', S.merge); if (S.raw) S.rows = build(S.raw); render(); };
+        return el('label', { 'for': 'mg' + n, style: 'display:flex;gap:6px;align-items:center;cursor:pointer' }, [cb, label(n) + ' (' + S.count[n] + ')']);
+      }))]);
   }
 
   /* ---------- open / closed: students start only while their teacher has the Check open ----------
@@ -301,9 +326,9 @@ body.hide .nmv{filter:blur(6px)}
     var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Test length' }, CU.LEN_ORDER.map(function (i) { return el('button', { type: 'button', 'aria-pressed': S.len === i ? 'true' : 'false', text: CU.LENS[i] + ' min', onclick: function () { S.len = i; setPref('len', i); render(); } }); }));
     var ti = el('input', { type: 'checkbox', id: 'ckTop' }); ti.checked = !!(S.top & 1);
     ti.onchange = function () { S.top = ti.checked ? 1 : 0; setPref('top', S.top); render(); };
-    var cur = g.session, differs = cur && (cur.check !== S.chk || cur.len !== S.len || cur.top !== S.top);
+    var btns0 = null, cur = g.session, differs = cur && (cur.check !== S.chk || cur.len !== S.len || cur.top !== S.top);
     box.appendChild(el('div', { 'class': 'codebox', style: 'flex-wrap:wrap;gap:12px 22px' }, [
-      el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Check' }), el('b', { text: label(S.chk) + ' (choose above)' })]),
+      el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Check' }), el('b', { text: S.chk === CU.PRACTICE ? 'Choose Check 1 to 10 above' : label(S.chk) + ' (choose above)' })]),
       el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Test length' }), seg]),
       el('label', { 'for': 'ckTop', style: 'display:flex;gap:8px;align-items:center;cursor:pointer;max-width:440px' }, [ti, el('span', {}, [el('b', { text: 'Include inequalities' }), el('span', { 'class': 'muted', text: ' Leave off until it has been taught; turn on for the summative.' })])])
     ]));
@@ -311,11 +336,12 @@ body.hide .nmv{filter:blur(6px)}
     var state = el('div', {}, [el('b', { style: 'font-size:18px;color:' + (g.open ? '#7BE0A0' : '#FF8E84'), text: g.open ? '🟢 OPEN: ' + (cur ? sessText(cur) : '') : '🔴 The Check is CLOSED' }),
       el('div', { 'class': 'muted', style: 'font-size:13px', text: old ? 'The results script needs updating before the switch works: paste the new backend/Code.gs and deploy a new version (see APPS-SCRIPT-UPDATE-PROMPT.txt).' : g.err ? 'Couldn\'t read the switch: ' + g.err : g.open ? 'Opened ' + hhmm(cur.at) + ', closes itself at ' + hhmm(g.until) + '. Your students can start now.' + (differs ? ' The settings above are different: press "Open with these settings" to switch (students already working keep their check).' : '') : 'Your students see "closed" and can\'t start. Open it when the class is ready.' }),
       el('div', { 'class': 'muted', style: 'font-size:13px', text: CO ? 'This switch is for your classes only. Mr. Crowell has his own, so you can both run a Check at the same time.' : 'This switch is for your classes. Your co-teacher\'s classes have their own switch, so you can both run a Check at the same time.' })]);
-    var btns = DEMO || old ? [] : g.open ? [differs ? el('button', { type: 'button', 'class': 'btn primary', text: 'Open with these settings', onclick: function () { set(true); } }) : null, el('button', { type: 'button', 'class': 'btn', text: 'Close the Check', onclick: function () { set(false); } })]
+    if (S.chk === CU.PRACTICE && !DEMO && !old) btns0 = el('div', { 'class': 'muted', style: 'font-size:13px;flex-basis:100%', text: 'Practice is chosen above: students start practice checks themselves. To run a real Check, choose Check 1 to 10 first.' });
+    var btns = DEMO || old ? [] : S.chk === CU.PRACTICE ? (g.open ? [el('button', { type: 'button', 'class': 'btn', text: 'Close the Check', onclick: function () { set(false); } })] : []) : g.open ? [differs ? el('button', { type: 'button', 'class': 'btn primary', text: 'Open with these settings', onclick: function () { set(true); } }) : null, el('button', { type: 'button', 'class': 'btn', text: 'Close the Check', onclick: function () { set(false); } })]
       : [el('button', { type: 'button', 'class': 'btn primary', text: 'Open the Check', onclick: function () { set(true); } })];
     var co = !CO && !DEMO && g.co ? el('div', { 'class': 'muted', style: 'flex-basis:100%;font-size:13px;margin-top:4px' }, ['Co-teacher\'s classes: ', el('b', { style: 'color:' + (g.co.open ? '#7BE0A0' : '#FF8E84'), text: g.co.open && g.co.session ? 'open, ' + sessText(g.co.session) : 'closed' }), ' (she opens it from her dashboard) ',
       g.co.open ? el('button', { type: 'button', 'class': 'btn small', text: 'Close hers', onclick: function () { set(false, true); } }) : null]) : null;
-    box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:12px;flex-wrap:wrap' }, [state].concat(btns, [msg, co])));
+    box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:12px;flex-wrap:wrap' }, [state].concat(btns, [msg, co, btns0])));
     if (DEMO) box.appendChild(el('p', { 'class': 'muted', text: 'Sample class: the switch is off here.' }));
     // history: every time this switch was opened, with what, and who started in it
     var log = (g.log || []).slice().reverse();

@@ -8,7 +8,7 @@
   // which Check this page shows: the one in progress, else the one started most recently (each Check saves under its own key)
   function pickKey() {
     var best = CU.KEY, bt = -1;
-    CU.KEYS.forEach(function (k) { var p = SFA.store.get(k, null), a = p && p.att; if (!a) return; var t = a.end ? a.t0 : 9e15 + a.t0; if (t > bt) { bt = t; best = k; } });
+    CU.ALL_KEYS.forEach(function (k) { var p = SFA.store.get(k, null), a = p && p.att; if (!a) return; var t = a.end ? a.t0 : 9e15 + a.t0; if (t > bt) { bt = t; best = k; } });
     return best;
   }
   KEY = pickKey();
@@ -291,6 +291,7 @@
   function sessionText(s) { return 'Check ' + (s.check + 1) + ' · ' + (CU.LENS[s.len] || 35) + ' minutes' + (extraPct() ? ' (' + minutesFor(CU.LENS[s.len] || 35, s.len) + ' for you, with your extra time)' : ''); }
   // 10 more minutes given from the dashboard: an attempt that ran out of time carries on
   function moreTime(a) {
+    if (a.code === 'PRACT') return false;
     if (a.more == null) a.more = 0;
     var k = (GATE.more || 0) - a.more; if (k <= 0) return false;
     a.more = GATE.more;
@@ -302,12 +303,29 @@
     var msg = el('p', { 'class': 'ck-msg', role: 'status', 'aria-live': 'polite' });
     root.appendChild(card([el('h2', { text: GATE.known ? 'The Unit 2 Check is closed' : 'Checking whether the Check is open…' }),
       GATE.known ? el('p', { 'class': 'ck-lead', text: 'Mr. Crowell opens the Unit 2 Check in class. Keep this page open: it starts by itself when he opens it.' }) : null,
+      GATE.known ? practiceBox() : null,
       GATE.known ? el('p', {}, [el('a', { 'class': 'btn', href: 'review-u2.html', text: '📝 Practise with the Unit 2 Review' }), ' ', el('button', { type: 'button', 'class': 'btn', text: 'Check again', onclick: function () { msg.textContent = 'Checking…'; poll(); } })]) : null,
       msg]));
     var wasKnown = GATE.known;
     function poll() { gateCheck().then(function (on) { if (view !== 'closed') return; if (on || !wasKnown || !GATE.known) render(); else msg.textContent = 'Still closed.'; }); }
     if (!GATE.known) poll();
     tick = setInterval(poll, 15000);
+  }
+
+  /* a practice check: same questions and feedback, started by the student, 10, 20 or 30 minutes, saved apart (Mr. Crowell
+     sees it under Practice). Inequalities are in once a real Check has included them. */
+  function practiceTop() { var t = GATE.session ? GATE.session.top : 0; CU.KEYS.forEach(function (k) { var p = SFA.store.get(k, null); if (p && p.att && p.att.top === 1) t = 1; }); return t; }
+  function practice(i) {
+    var a = P.att; if (a && !a.end) return;
+    var b = function () { begin({ ok: true, code: 'PRACT', len: CU.LENS[i], lenIdx: i, top: practiceTop(), check: CU.PRACTICE }); };
+    if (DEMO) return b();
+    refreshMe().then(b);
+  }
+  function practiceBox(again) {
+    return el('div', { 'class': 'ck-practice', style: 'margin:12px 0;padding:12px 14px;border:2px dashed var(--line);border-radius:12px' }, [
+      el('b', { text: again ? 'Another practice check?' : 'Practice check' }),
+      el('p', { 'class': 'muted', style: 'margin:4px 0 8px', text: 'Any time, as often as you like: the same kind of questions and feedback as the real Unit 2 Check. It does not replace a real Check. Mr. Crowell can see how you did.' }),
+      el('div', { 'class': 'ck-start' }, CU.PRACTICE_LENS.map(function (i) { return el('button', { type: 'button', 'class': 'btn', text: CU.LENS[i] + ' minutes', onclick: function () { practice(i); } }); }))]);
   }
 
   var demoLen = 10;
@@ -482,7 +500,7 @@
     function showSync() { var st = S.status, un = S.unsent ? S.unsent() : 0; sync.textContent = st === 'saved' && !un ? '✓ Your result has reached Mr. Crowell.' : 'Your result is saved on this device and is still being sent. Keep this page open until it says it has reached Mr. Crowell.'; sync.classList.toggle('warn', !(st === 'saved' && !un)); }
     tick = setInterval(showSync, 1500); showSync();
 
-    var top = [el('h2', { text: a.log.length ? 'Check finished. Here is where you are.' : 'Check finished' }), el('p', { 'class': 'muted', text: why + ' You answered ' + a.log.length + ' question' + (a.log.length === 1 ? '' : 's') + ' in ' + mins + ' minute' + (mins === 1 ? '' : 's') + '.' })];
+    var top = [el('h2', { text: (a.code === 'PRACT' ? 'Practice check finished' : 'Check finished') + (a.log.length ? '. Here is where you are.' : '') }), el('p', { 'class': 'muted', text: why + ' You answered ' + a.log.length + ' question' + (a.log.length === 1 ? '' : 's') + ' in ' + mins + ' minute' + (mins === 1 ? '' : 's') + '.' })];
     if (sc.level) {
       top.push(el('div', { 'class': 'ck-overall' }, [el('div', {}, [el('div', { 'class': 'k', text: 'Overall, right now' }), badge(sc.level), el('div', { 'class': 'ck-sc' }, [el('b', { text: String(sc.scale) }), ' ± ' + sc.pm + ' on the Unit 2 scale'])]), scaleBar(sc)]));
       top.push(el('p', { 'class': 'muted', text: 'The ± is honest uncertainty: one check can\'t pin you down exactly. Developed (550 and up) is the goal for Unit 2. Below: what you can do now, and exactly what to work on next.' }));
@@ -492,7 +510,7 @@
     var news = GATE.open && GATE.session && GATE.session.code !== a.code;
     if (news) root.appendChild(card([el('h2', { text: 'Mr. Crowell has opened ' + sessionText(GATE.session) }), el('p', { text: 'Your result below is saved. Start the new check when you are ready: the clock starts when you press Start.' }),
       el('button', { type: 'button', 'class': 'btn primary', text: 'Start the check', onclick: function () { var b = this; b.disabled = true; gateCheck().then(function (on) { if (!on) { b.disabled = false; return render(); } refreshMe().then(function () { begin(sessionR()); }); }); } })], 'ck-new'));
-    if (a.end.why === 'time' && a.log.length < CU.MAX_ITEMS) top.push(el('p', { 'class': 'ck-msg', text: 'Ran out of time? Mr. Crowell can give you 10 more minutes from his dashboard. Keep this page open: it carries on by itself.' }));
+    if (a.end.why === 'time' && a.log.length < CU.MAX_ITEMS && a.code !== 'PRACT') top.push(el('p', { 'class': 'ck-msg', text: 'Ran out of time? Mr. Crowell can give you 10 more minutes from his dashboard. Keep this page open: it carries on by itself.' }));
     poll2 = setInterval(function () { if (DEMO) return; gateCheck().then(function () { if (view !== 'summary') return; if (moreTime(P.att) || (GATE.open && GATE.session && GATE.session.code !== P.att.code) !== news) render(); }); }, 15000);
     root.appendChild(card(top));
 
@@ -520,10 +538,11 @@
     var more = [el('a', { 'class': 'btn', href: 'review-u2.html', text: '📝 Open the Unit 2 Review' }), el('a', { 'class': 'btn', href: 'index.html', text: '🕹️ Back to the arcade' })];
     var cm = el('span', { 'class': 'ck-msg', role: 'status' });
     // a second go at the same session (only if Mr. Crowell asks for one): it replaces this attempt on his dashboard
-    var tools = GATE.open && !news && !DEMO ? el('details', { 'class': 'ck-tools' }, [el('summary', { text: 'Mr. Crowell asked you to start again?' }), el('p', { 'class': 'muted', text: 'Only if Mr. Crowell asks you to. A new attempt has new numbers and replaces this one on his dashboard.' }),
+    var tools = a.code === 'PRACT' ? practiceBox(true) : GATE.open && !news && !DEMO ? el('details', { 'class': 'ck-tools' }, [el('summary', { text: 'Mr. Crowell asked you to start again?' }), el('p', { 'class': 'muted', text: 'Only if Mr. Crowell asks you to. A new attempt has new numbers and replaces this one on his dashboard.' }),
       el('div', { 'class': 'ck-start' }, [el('button', { type: 'button', 'class': 'btn small', text: 'Start a new attempt', onclick: function () { gateCheck().then(function (on) { if (!on) { cm.textContent = ' The Check is closed now.'; return; } if (window.confirm('Start a new attempt? Mr. Crowell will see the new attempt in place of this one.')) refreshMe().then(function () { begin(sessionR()); }); }); } }), cm])]) : null;
     root.appendChild(el('div', { 'class': 'ck-end' }, more));
     if (tools) root.appendChild(tools);
+    if (a.code !== 'PRACT' && !DEMO) root.appendChild(practiceBox());
   }
 
   /* ---------------- start up ---------------- */
