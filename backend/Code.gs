@@ -112,6 +112,7 @@ function route(req) {
     case 'coExtra': return coExtra(req);
     case 'checkState': return checkState(req);
     case 'checkGate': return checkGate(req);
+    case 'checkMore': return checkMore(req);
     default: throw new Error('unknown op');
   }
 }
@@ -202,27 +203,70 @@ function coClass(req) {
 }
 
 /* ---------------- the Unit 2 Check open/closed switches ----------------
-   Students can start the Check only while their teacher has it open. There are two switches: CHECK_OPEN for Mr. Crowell's
-   classes and CHECK_OPEN_CO for the co-teacher's (COTEACHER_CLASSES), so both can run a Check at the same time.
-   The main teacher key can work both; the co-teacher key only hers. Each closes itself at the end of the day it was
-   opened. A student already in the middle of an attempt keeps going. */
-function gateUntil(k) { var u = Number(prop(k)) || 0; return u > Date.now() ? u : 0; }
+   Students start the Check only while their teacher has it open; no start codes. There are two switches: CHECK_OPEN for
+   Mr. Crowell's classes and CHECK_OPEN_CO for the co-teacher's (COTEACHER_CLASSES), so both can run a Check at the same
+   time. Opening one saves the session's settings with it: which Check (0-3), the test length (lenIdx), the topics (top)
+   and a 5-letter session id that every attempt started in it records. A session closes itself after 6 hours. A student
+   already in the middle of an attempt keeps going after it closes. CHECK_LOG keeps the last 40 sessions (both teachers)
+   for the dashboard's history. CHECK_MORE counts "10 more minutes" grants per student (checkMore), for 12 hours. */
+var CHECK_HOURS = 6, CHECK_ALPHA = 'BCDFGHJKLMNPQRSTVWXZ';
+function gateRead(k) {
+  var v = prop(k), o = null; if (!v) return null;
+  try { o = JSON.parse(v); } catch (e) { return null; }
+  if (typeof o === 'number') o = { until: o, check: 0, len: 0, top: 1, code: 'OLDCK', at: o - 864e5 };   // a switch opened before sessions
+  return o && o.until > Date.now() ? o : null;
+}
+function gatePublic(o) { return o ? { open: true, until: o.until, session: { code: o.code, check: o.check, len: o.len, top: o.top, at: o.at } } : { open: false, until: 0, session: null }; }
+function jsonProp(k, d) { try { return JSON.parse(prop(k) || '') || d; } catch (e) { return d; } }
 function checkState(req) {
   req = req || {};
   if (req.teacherKey) {
-    var who = coTeacher(req), mine = gateUntil(who.all ? 'CHECK_OPEN' : 'CHECK_OPEN_CO'), out = { ok: true, open: !!mine, until: mine };
-    if (who.all) { var c = gateUntil('CHECK_OPEN_CO'); out.co = { open: !!c, until: c }; }
+    var who = coTeacher(req), out = gatePublic(gateRead(who.all ? 'CHECK_OPEN' : 'CHECK_OPEN_CO'));
+    out.ok = true;
+    if (who.all) out.co = gatePublic(gateRead('CHECK_OPEN_CO'));
+    out.log = jsonProp('CHECK_LOG', []).filter(function (x) { return who.all || x.who === 'co'; });
+    var more = jsonProp('CHECK_MORE', {}), mine = {};
+    Object.keys(more).forEach(function (sid) { if (more[sid].at > Date.now() - 12 * 36e5) mine[sid] = more[sid].n; });
+    out.more = mine;
     return out;
   }
   var s = null; try { s = auth(req); } catch (e) { }
-  var u = s ? gateUntil(coClasses().indexOf(s.cls) >= 0 ? 'CHECK_OPEN_CO' : 'CHECK_OPEN') : Math.max(gateUntil('CHECK_OPEN'), gateUntil('CHECK_OPEN_CO'));
-  return { ok: true, open: !!u, until: u };
+  var g = s ? gateRead(coClasses().indexOf(s.cls) >= 0 ? 'CHECK_OPEN_CO' : 'CHECK_OPEN') : (gateRead('CHECK_OPEN') || gateRead('CHECK_OPEN_CO'));
+  var res = gatePublic(g); res.ok = true; res.now = Date.now();
+  if (s) { var m = jsonProp('CHECK_MORE', {})[s.sid]; res.more = m && m.at > Date.now() - 12 * 36e5 ? m.n : 0; }
+  return res;
 }
+// open: { open: true, check, len, top } (opening again while open replaces the settings: a new session); close: { open: false }.
+// The main teacher can close the co-teacher's switch with co: true.
 function checkGate(req) {
-  var who = coTeacher(req), k = who.all && !req.co ? 'CHECK_OPEN' : 'CHECK_OPEN_CO', p = PropertiesService.getScriptProperties();
-  if (req.open) { var d = new Date(); d.setHours(23, 59, 0, 0); p.setProperty(k, String(d.getTime())); }
-  else p.deleteProperty(k);
+  var who = coTeacher(req), co = !who.all || !!req.co, k = co ? 'CHECK_OPEN_CO' : 'CHECK_OPEN', p = PropertiesService.getScriptProperties();
+  var lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    var log = jsonProp('CHECK_LOG', []), cur = gateRead(k), now = Date.now();
+    if (cur) log.forEach(function (x) { if (x.code === cur.code && x.who === (co ? 'co' : 'main') && !x.closed) x.closed = now; });
+    if (req.open && !(who.all && req.co)) {
+      var code = ''; for (var i = 0; i < 5; i++) code += CHECK_ALPHA.charAt(Math.floor(Math.random() * 20));
+      var o = { until: now + CHECK_HOURS * 36e5, check: Math.max(0, Math.min(3, Number(req.check) || 0)), len: Math.max(0, Math.min(7, Number(req.len) || 0)), top: Number(req.top) ? 1 : 0, code: code, at: now };
+      p.setProperty(k, JSON.stringify(o));
+      log.push({ who: co ? 'co' : 'main', code: code, check: o.check, len: o.len, top: o.top, at: now, until: o.until });
+    } else p.deleteProperty(k);
+    p.setProperty('CHECK_LOG', JSON.stringify(log.slice(-40)));
+  } finally { lock.releaseLock(); }
   return checkState({ teacherKey: req.teacherKey });
+}
+// 10 more minutes for one student who ran out of time: their page picks it up by itself
+function checkMore(req) {
+  var who = coTeacher(req), sid = String(req.sid || '');
+  var st = rosterRows().filter(function (r) { return r.sid === sid; })[0];
+  if (!st || !coSees(who, st.cls)) throw new Error('no such student');
+  var lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    var m = jsonProp('CHECK_MORE', {}), now = Date.now(), e = m[sid] && m[sid].at > now - 12 * 36e5 ? m[sid] : { n: 0 };
+    m[sid] = { n: e.n + 1, at: now };
+    Object.keys(m).forEach(function (k) { if (m[k].at < now - 12 * 36e5) delete m[k]; });
+    PropertiesService.getScriptProperties().setProperty('CHECK_MORE', JSON.stringify(m));
+    return { ok: true, sid: sid, more: m[sid].n };
+  } finally { lock.releaseLock(); }
 }
 
 /* ---------------- auth ---------------- */
