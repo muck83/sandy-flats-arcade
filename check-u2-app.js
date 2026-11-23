@@ -15,6 +15,16 @@
   var TRY = !!window.CU2_TRY, DEMO = !!window.CU2_DEMO, Q = location.search;
   // extra time set by the teacher (percent): the test length × (1 + extra), worked out from 20, 35 or 45 (52 and 70 already include it)
   function extraPct() { var x = me() && Number(me().extra); return x === 25 || x === 50 || x === 100 ? x : 0; }
+  // the sign-in copy of the student is kept on this device for days, so ask the results sheet for their extra time now
+  // (the teacher may have set it since they signed in). Offline: keep what this device has.
+  function refreshMe() {
+    if (DEMO || !S || !S.call || !me()) return Promise.resolve();
+    return S.call('hello', {}).then(function (j) {
+      var st = j && j.student, m = me(); if (!st || !m || st.sid !== m.sid) return;
+      if (st.extra) m.extra = st.extra; else delete m.extra;
+      SFA.store.set('sync.me', m);
+    }, function () { });
+  }
   function minutesFor(len, lenIdx) { return Math.max(len, Math.round(CU.baseLen(lenIdx) * (1 + extraPct() / 100))); }
   var root = document.getElementById('ck'), chips = document.getElementById('ckChips');
   var LVC = ['l0', 'l1', 'l2', 'l3', 'l4'];
@@ -301,7 +311,7 @@
       var r = CU.readCode(inp.value, Date.now());
       if (!r.ok) { msg.textContent = r.why; inp.focus(); return; }
       go.disabled = true; msg.textContent = 'Starting…';
-      gateCheck().then(function (on) { go.disabled = false; if (on) begin(r); else render(); });
+      gateCheck().then(function (on) { if (!on) { go.disabled = false; return render(); } return refreshMe().then(function () { go.disabled = false; begin(r); }); });
     }
     root.appendChild(card([
       el('h2', { text: again ? 'A new attempt' : 'Unit 2 Check: Linear Equations and Inequalities' }),
@@ -494,7 +504,7 @@
 
     var more = [el('a', { 'class': 'btn', href: 'review-u2.html', text: '📝 Open the Unit 2 Review' }), el('a', { 'class': 'btn', href: 'index.html', text: '🕹️ Back to the arcade' })];
     var codeIn = el('input', { type: 'text', 'class': 'ck-code small', maxlength: '5', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'New start code', placeholder: '•••••' }), cm = el('span', { 'class': 'ck-msg', role: 'status' });
-    function withCode(f) { var r = CU.readCode(codeIn.value, Date.now()); if (!r.ok) { cm.textContent = ' ' + r.why; return; } gateCheck().then(function (on) { if (on) f(r); else cm.textContent = ' The Check is closed. Mr. Crowell opens it in class.'; }); }
+    function withCode(f) { var r = CU.readCode(codeIn.value, Date.now()); if (!r.ok) { cm.textContent = ' ' + r.why; return; } gateCheck().then(function (on) { if (on) refreshMe().then(function () { f(r); }); else cm.textContent = ' The Check is closed. Mr. Crowell opens it in class.'; }); }
     var tools = el('details', { 'class': 'ck-tools' }, [el('summary', { text: 'Mr. Crowell gave you a new code?' }), el('p', { 'class': 'muted', text: 'A new start code can give you 10 more minutes on this attempt (if it ended because time ran out today) or start a fresh attempt with new numbers.' }),
       el('div', { 'class': 'ck-start' }, [codeIn,
         a.end.why === 'time' && a.log.length < CU.MAX_ITEMS ? el('button', { type: 'button', 'class': 'btn small', text: '+10 minutes', onclick: function () { withCode(function () { a.ext = (a.ext || 0) + 1; a.extMs = Date.now() + 600000 - a.t0 - a.lenMs; a.end = null; save(); render(); }); } }) : null,
@@ -515,5 +525,6 @@
   // teacher demo: always the pretend student (practice backend only), even if a practice student was signed in here
   if (DEMO && S && !(me() && me().sid === 'demo')) { if (me()) S.signOut(); P = fresh(); S.signInCode('DEMO00').then(function () { P = load(); render(); }, function () { }); }
   render();
+  if (me() && !(P.att && !P.att.end)) refreshMe().then(function () { if (view === 'intro') render(); });   // show the right extra time on the start screen
   window.CU2_APP = { state: function () { return P; }, render: render, hook: function () { return view === 'test' ? hook : null; } };
 })();

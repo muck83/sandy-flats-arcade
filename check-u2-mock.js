@@ -68,6 +68,8 @@
       ask = function (b) { return Promise.resolve(b.op === 'load' ? { ok: true, student: pubA, games: {}, sums: {} } : { ok: true, student: pubA }); };
       if (r.op === 'hello') return Promise.resolve(reply({ ok: true, student: pubA }));
     } else ask = ask0;
+    // extra time set on the dashboard reaches a signed-in practice student, like publicStudent on the real script
+    if (r.op === 'hello' && !added) return ask(r).then(function (j) { var xt = (db().co || {}).extra || {}; if (j.ok && j.student && xt[j.student.sid]) j.student.extra = xt[j.student.sid]; return reply(j); });
     if (r.op === 'save') return ask({ op: 'hello', code: r.code }).then(function (j) {
       if (!j.ok) return reply(j);
       if (!/^g[1-9][0-9]?$/.test(String(r.game))) return reply({ ok: false, error: 'bad game' });
@@ -84,7 +86,8 @@
     });
     if (r.op === 'class') return ask(r).then(function (j) {
       if (!j.ok) return reply(j);
-      var d = db(); j.progress = (j.progress || []).concat(Object.keys(d.rows || {}).map(function (k) { var o = Object.assign({}, d.rows[k]); delete o.raw; return o; }));
+      var d = db(), xt = (d.co && d.co.extra) || {}; (j.roster || []).forEach(function (x) { if (xt[x.sid]) x.extra = xt[x.sid]; });
+      j.progress = (j.progress || []).concat(Object.keys(d.rows || {}).map(function (k) { var o = Object.assign({}, d.rows[k]); delete o.raw; return o; }));
       return reply(j);
     });
     return inner(url, opts);

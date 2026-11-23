@@ -29,7 +29,7 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
      Logger.log('checkState ok: ' + g.ok + ', my classes open: ' + g.open + ', co-teacher classes open: ' + (g.co && g.co.open));
    }
    Expected: {"ok":true,...}, "climbClass ok: true ... questions today: 0", "report ok: true",
-   "coWho ok: true, co-teacher key: (16 letters and numbers) ... AUTH_MODE: code" (or both), "coClass ... ok: true" and "checkState ok: true, open: false".
+   "coWho ok: true, co-teacher key: (16 letters and numbers) ... AUTH_MODE: code" (or both), "coClass ... ok: true" and "checkState ok: true, my classes open: ..., co-teacher classes open: ..." (true or false).
    If it says "unknown op", the old code is still in Code.gs. If AUTH_MODE says google, change it to both in step 2.
    Write down the co-teacher key: it is also shown on co-teacher.html when I open it with my teacher key.
 

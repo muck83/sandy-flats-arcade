@@ -903,7 +903,9 @@
      early, at home, or tomorrow. It is worked out in the browser (no server), so it stops casual misuse, not a
      determined student who reads this file. */
   var LENS = CU.LENS = [35, 45, 52, 70, 20], OPEN_MIN = CU.OPEN_MIN = 25, ALPHA = 'BCDFGHJKLMNPQRSTVWXZ', SPACE = 173;
-  CU.LEN_ORDER = [4, 0, 1, 2, 3];   // the order the dashboard shows them: 20, 35, 45, 52, 70
+  // the lengths the dashboard offers: 20, 35, 45. Extra time is per student (set on the dashboard or the My Students page);
+  // 52 and 70 (35 × 1.5 and × 2 for a whole class) are no longer offered but old codes and results still read correctly
+  CU.LEN_ORDER = [4, 0, 1];
   // the length extra time is worked out from: 52 and 70 are already 35 × 1.5 and × 2 for the whole class
   CU.baseLen = function (lenIdx) { return lenIdx === 2 || lenIdx === 3 ? LENS[0] : LENS[lenIdx] || LENS[0]; };
   function dayKey(t) { var d = new Date(t); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }

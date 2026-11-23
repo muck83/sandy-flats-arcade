@@ -128,10 +128,10 @@ body.hide .nmv{filter:blur(6px)}
 <div id="sheets" aria-hidden="true"></div>
 <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Student detail"></aside>
 <script src="config.js"></script>
-<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261123a"><\/script>'); }</script>
+<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261123b"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
-<script src="check-u2.js?v=20261123a"></script>
+<script src="check-u2.js?v=20261123b"></script>
 <script>
 (function () {
   'use strict';
@@ -158,7 +158,7 @@ body.hide .nmv{filter:blur(6px)}
   function pref(k, d) { try { var v = localStorage.getItem('sfa.ckdash.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function setPref(k, v) { try { localStorage.setItem('sfa.ckdash.' + k, JSON.stringify(v)); } catch (e) { } }
 
-  var S = { rows: [], cls: pref('cls', ''), q: '', sort: pref('sort', 'name'), auto: pref('auto', true), at: null, code: null, len: pref('len', 0), top: pref('top', 0), chk: pref('chk', 0), names: pref('names', {}), raw: null, day: pref('day', 'all') };
+  var S = { rows: [], cls: pref('cls', ''), q: '', sort: pref('sort', 'name'), auto: pref('auto', true), at: null, code: null, len: [4, 0, 1].indexOf(pref('len', 0)) >= 0 ? pref('len', 0) : 0, top: pref('top', 0), chk: pref('chk', 0), names: pref('names', {}), raw: null, day: pref('day', 'all') };
   var timer = null;
   function nice(n) { n = String(n || ''); if (n.indexOf(',') < 0) return n; var p = n.split(','); return (p[1].trim().split(' ')[0] + ' ' + p[0].trim()).trim(); }
   function hhmm(t) { return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
@@ -296,9 +296,10 @@ body.hide .nmv{filter:blur(6px)}
       el('li', { text: 'Students need scrap paper and a pencil for working things out. They open the arcade front page, press 🎯 Unit 2 Check (or go straight to check-u2.html) and sign in.' }),
       el('li', { text: 'Press Open the Check. Make sure the right Check is chosen above, pick the test length, press Make a start code, and put the code on the board. Students type it to start. Close the Check when everyone has started.' }),
       el('li', { text: 'The code works today only, for ' + CU.OPEN_MIN + ' minutes, so nobody can start early or at home. A student who has started keeps going after the code closes: the clock runs from their own start, even through a reload.' }),
+      el('li', { text: 'Extra time is set per student, not per code: click a student\'s name in the class table and choose +25%, +50% or double before they start. Everyone uses the same start code; the Check gives that student longer automatically (20 minutes becomes 25, 30 or 40; 35 becomes 44, 53 or 70).' }),
       el('li', { text: 'A latecomer, or a student who ran out of time and needs 10 more minutes? Make a new code.' }),
       el('li', { text: 'Up to three questions per student (one in a 20-minute Check) ask them to work it out on paper first. Nothing is handed in. The worked-out questions list below shows each student\'s problem and its full solution, for talking through their thinking.' })])]);
-    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Test length' }, CU.LEN_ORDER.map(function (i) { var m = CU.LENS[i]; return el('button', { type: 'button', 'aria-pressed': S.len === i ? 'true' : 'false', text: m + ' min' + (i === 2 ? ' (×1.5)' : i === 3 ? ' (×2)' : ''), onclick: function () { S.len = i; setPref('len', i); S.code = null; render(); } }); }));
+    var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Test length' }, CU.LEN_ORDER.map(function (i) { var m = CU.LENS[i]; return el('button', { type: 'button', 'aria-pressed': S.len === i ? 'true' : 'false', text: m + ' min', onclick: function () { S.len = i; setPref('len', i); S.code = null; render(); } }); }));
     box.appendChild(gatePanel());
     var live = S.code && CU.readCode(S.code.code, Date.now());
     var row = el('div', { 'class': 'codebox' }, [el('div', {}, [el('div', { 'class': 'muted', style: 'font-size:13px;margin-bottom:4px', text: 'Test length for this code' }), seg]),
@@ -308,7 +309,7 @@ body.hide .nmv{filter:blur(6px)}
     ti.onchange = function () { S.top = ti.checked ? 1 : 0; setPref('top', S.top); S.code = null; try { sessionStorage.removeItem('sfa.ckdash.code'); } catch (e) { } render(); };
     box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:10px' }, [el('label', { 'for': 'ckTop', style: 'display:flex;gap:8px;align-items:center;cursor:pointer' }, [ti, el('span', {}, [el('b', { text: 'Include inequalities' }), el('span', { 'class': 'muted', text: ' (skill: Inequalities: write, solve and graph). Leave off until it has been taught; turn on for the summative. The start code carries this choice.' })])])]));
     if (S.code) box.appendChild(el('div', { 'class': 'codebox', style: 'margin-top:12px' }, [el('div', { 'class': 'bigcode', text: S.code.code, 'aria-label': 'Start code ' + S.code.code.split('').join(' ') }),
-      el('div', {}, [el('b', { text: live && live.ok ? 'Open: students can start until ' + hhmm(live.closes) : 'This code has closed. Make a new one for anyone still to start.' }), el('div', { 'class': 'muted', text: live && live.ok ? label(live.check) + ' · ' + live.len + '-minute test · ' + CU.topText(live.top) + '. Students with extra time set on their row get it automatically (' + (live.len === 20 ? '20 becomes 25, 30 or 40 minutes' : '35 becomes 44, 53 or 70 minutes') + ').' + (live.len === 20 ? ' In 20 minutes most students answer about one question per skill, so many skills show a first read rather than a level.' : '') : '' })])]));
+      el('div', {}, [el('b', { text: live && live.ok ? 'Open: students can start until ' + hhmm(live.closes) : 'This code has closed. Make a new one for anyone still to start.' }), el('div', { 'class': 'muted', text: live && live.ok ? label(live.check) + ' · ' + live.len + '-minute test · ' + CU.topText(live.top) + '. Students with extra time (⏱ next to their name) get it automatically (' + (live.len === 20 ? '20 becomes 25, 30 or 40 minutes' : '35 becomes 44, 53 or 70 minutes') + ').' + (live.len === 20 ? ' In 20 minutes most students answer about one question per skill, so many skills show a first read rather than a level.' : '') : '' })])]));
     return box;
   }
 
@@ -402,6 +403,7 @@ body.hide .nmv{filter:blur(6px)}
     drawer.innerHTML = '';
     drawer.appendChild(el('button', { 'class': 'btn small x', type: 'button', text: '✕ Close', onclick: closeDrawer }));
     drawer.appendChild(el('h2', {}, [nm(r)]));
+    if (!DEMO) drawer.appendChild(extraRow(r));
     if (!r.att) { drawer.appendChild(el('p', { 'class': 'muted', text: 'Has not started the check.' })); }
     else {
       var sc = r.sc, a = r.att;
@@ -427,6 +429,17 @@ body.hide .nmv{filter:blur(6px)}
       drawer.appendChild(el('div', { style: 'overflow-x:auto' }, [t]));
     }
     drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); drawer.querySelector('.x').focus();
+  }
+  // extra time for one student (saved on the results sheet; the student page reads it when they start)
+  function extraRow(r) {
+    var sel = el('select', { 'aria-label': 'Extra time for ' + nice(r.name), style: 'font:600 14px var(--ui);padding:5px 8px;border-radius:8px;border:2px solid var(--line);background:#0E0C14;color:var(--ink)' }), msg = el('span', { 'class': 'muted', role: 'status', style: 'font-size:13px' });
+    [[0, 'None'], [25, '+25%'], [50, '+50%'], [100, 'Double']].forEach(function (o) { var op = el('option', { value: String(o[0]), text: o[1] }); if ((r.extra || 0) === o[0]) op.selected = true; sel.appendChild(op); });
+    sel.onchange = function () {
+      var v = +sel.value, was = r.extra || 0; sel.disabled = true; msg.textContent = ' Saving…';
+      api('coExtra', { sid: r.sid, extra: v }).then(function () { r.extra = v; sel.disabled = false; msg.textContent = ' Saved ✓' + (r.att && !r.att.end ? ' (this attempt keeps its time; a new start code gives 10 more minutes)' : ''); render(); },
+        function (e) { sel.disabled = false; sel.value = String(was); msg.textContent = ' Couldn\'t save: ' + e.message; });
+    };
+    return el('p', { 'class': 'noprint', style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, [el('b', { text: '⏱ Extra time' }), sel, el('span', { 'class': 'muted', style: 'font-size:13px', text: '20 min → 25 / 30 / 40 · 35 min → 44 / 53 / 70. Set it before they start.' }), msg]);
   }
   function closeDrawer() { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); }
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
