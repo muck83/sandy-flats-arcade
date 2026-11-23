@@ -908,8 +908,10 @@
   CU.LEN_ORDER = [4, 0, 1];
   // the length extra time is worked out from: 52 and 70 are already 35 × 1.5 and × 2 for the whole class
   CU.baseLen = function (lenIdx) { return lenIdx === 2 || lenIdx === 3 ? LENS[0] : LENS[lenIdx] || LENS[0]; };
-  function dayKey(t) { var d = new Date(t); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
-  function slotOf(t) { var d = new Date(t); return Math.floor((d.getHours() * 60 + d.getMinutes()) / 5); }
+  // in UTC, not the device's own time zone: a teacher laptop and a student device set to different zones still agree
+  // (only the clocks themselves need to be right). The UTC day turns over at 3 am in Riyadh, outside school hours.
+  function dayKey(t) { var d = new Date(t); return d.getUTCFullYear() + '-' + (d.getUTCMonth() + 1) + '-' + d.getUTCDate() + 'z'; }
+  function slotOf(t) { var d = new Date(t); return Math.floor((d.getUTCHours() * 60 + d.getUTCMinutes()) / 5); }
   // the code holds: the 5-minute slot it was made in, the test length, which Check (1 to 4) and the topics (one bit: inequalities in)
   CU.makeCode = function (t, lenIdx, top, check) {
     var slot = slotOf(t), pay = (((slot * 8 + (lenIdx || 0)) * 4 + ((check || 0) & 3)) * 2) + ((top == null ? CU.ALL_TOP : top) & 1), chk = hash('sfa-u2-check|' + dayKey(t) + '|' + pay) % SPACE, n = pay * SPACE + chk, s = '';
@@ -921,10 +923,13 @@
     if (str.length !== 5) return { ok: false, why: 'The start code has 5 letters.' };
     var n = 0; for (var i = 0; i < 5; i++) { var k = ALPHA.indexOf(str[i]); if (k < 0) return { ok: false, why: 'That code isn\'t right. Check the letters on the board.' }; n = n * 20 + k; }
     var chk = n % SPACE, pay = Math.floor(n / SPACE), top = pay % 2, check = Math.floor(pay / 2) % 4, lenIdx = Math.floor(pay / 8) % 8, slot = Math.floor(pay / 64);
-    if (slot > 287 || lenIdx >= LENS.length || hash('sfa-u2-check|' + dayKey(now) + '|' + pay) % SPACE !== chk) return { ok: false, why: 'That code isn\'t right for today. Check the letters on the board.' };
-    var d = new Date(now); d.setHours(0, 0, 0, 0); var start = d.getTime() + slot * 5 * 60000;
-    if (now < start - 6 * 60000) return { ok: false, why: 'That code isn\'t open yet. Check the clock on this device.' };
-    if (now > start + (OPEN_MIN + 5) * 60000) return { ok: false, why: 'That code has closed. Ask Mr. Crowell for a new one.' };
+    // the code's UTC day: today, or yesterday/tomorrow (a class that runs across midnight UTC, which is daytime in the Americas)
+    var day0 = new Date(now); day0.setUTCHours(0, 0, 0, 0);
+    var off = slot > 287 || lenIdx >= LENS.length ? null : [0, -1, 1].filter(function (o) { return hash('sfa-u2-check|' + dayKey(day0.getTime() + o * 864e5 + 36e5) + '|' + pay) % SPACE === chk; })[0];
+    if (off == null) return { ok: false, why: 'That code isn\'t right for today. Check the letters on the board.' };
+    var start = day0.getTime() + off * 864e5 + slot * 5 * 60000, clock = new Date(now).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    if (now < start - 6 * 60000) return { ok: false, why: 'That code isn\'t open yet. This device\'s clock says ' + clock + ': if that is wrong, fix the time (Settings > Date and time, set automatically) and try again.' };
+    if (now > start + (OPEN_MIN + 5) * 60000) return { ok: false, why: 'That code has closed (this device\'s clock says ' + clock + '). Ask Mr. Crowell for a new one.' };
     return { ok: true, code: str, len: LENS[lenIdx], lenIdx: lenIdx, top: top, check: check, opened: start, closes: start + (OPEN_MIN + 5) * 60000 };
   };
 
