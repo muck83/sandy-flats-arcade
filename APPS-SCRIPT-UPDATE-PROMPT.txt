@@ -34,11 +34,12 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
    Write down the co-teacher key: it is also shown on co-teacher.html when I open it with my teacher key.
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
-   Description "Unit 2 Check: open switch carries the settings, no start codes" > Deploy. Do NOT use "New deployment" (that changes the URL).
+   Description "Unit 2 Check: ten Checks and practice checks" > Deploy. Do NOT use "New deployment" (that changes the URL).
 
 5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
 
-Latest change: no more start codes for the Unit 2 Check. Opening a switch (checkGate {open: true, check, len, top}) saves the session's settings and a 5-letter session id in CHECK_OPEN / CHECK_OPEN_CO as JSON; checkState returns them (students get their own teacher's session), plus a history of the last 40 openings (CHECK_LOG). A session closes itself after 6 hours. New operation checkMore (teacher or co-teacher key) gives a student 10 more minutes; the counts are kept for 12 hours in CHECK_MORE. All properties are made automatically: nothing to set up.
+Latest change: the Unit 2 Check has ten Checks (games g91-g98, g88, g89) and student practice checks (g87); checkGate accepts check 0 to 9 and the co-teacher sees all of them. Nothing to set up.
+Before that: no more start codes for the Unit 2 Check. Opening a switch (checkGate {open: true, check, len, top}) saves the session's settings and a 5-letter session id in CHECK_OPEN / CHECK_OPEN_CO as JSON; checkState returns them (students get their own teacher's session), plus a history of the last 40 openings (CHECK_LOG). A session closes itself after 6 hours. New operation checkMore (teacher or co-teacher key) gives a student 10 more minutes; the counts are kept for 12 hours in CHECK_MORE. All properties are made automatically: nothing to set up.
 Before that: the Unit 2 Check has two open/closed switches, CHECK_OPEN (main teacher's classes) and CHECK_OPEN_CO (the co-teacher's classes), so both teachers can run a Check at the same time; checkGate takes the co-teacher key too. The co-teacher can also see Checks 1 to 4 (games g91 to g94). Nothing to set up.
 Earlier change: only one teacher console can run the live lesson. setLive accepts "owner" (an id for that console) and "claim" (true when the teacher presses Go live). The owner is kept in the script cache as liveOwner; setLive from any other console returns {ok:false, error:"taken"} and that console stops itself. Nothing to set up.
 Before that: an open/closed switch for the Unit 2 Check. New operations checkState (anyone; returns open and until) and checkGate (main teacher key only; {open: true} opens it until the end of today, {open: false} closes it), stored in a new script property CHECK_OPEN (made automatically). Students can start the Check only while it is open.

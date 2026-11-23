@@ -119,8 +119,8 @@ function route(req) {
 
 /* ---------------- co-teacher (co-teacher.html) ----------------
    The co-teacher key reaches only the co-teacher's own classes: their roster and codes, adding students, and their
-   Unit 2 Check results (games g91 to g94: Check 1 to 4). The main teacher key can do all of it for every class. */
-var CO_GAMES = /^g9[1-4]$/, CO_CLASS = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,19}$/;
+   Unit 2 Check results (Check 1 to 10: g91-g98, g88, g89; practice checks: g87). The main teacher key can do all of it for every class. */
+var CO_GAMES = /^g(9[1-8]|8[7-9])$/, CO_CLASS = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,19}$/;
 function coClasses() { return prop('COTEACHER_CLASSES').split(',').map(function (c) { return c.trim(); }).filter(Boolean); }
 function coKey() {
   var p = PropertiesService.getScriptProperties(), k = p.getProperty('COTEACHER_KEY');
@@ -205,7 +205,7 @@ function coClass(req) {
 /* ---------------- the Unit 2 Check open/closed switches ----------------
    Students start the Check only while their teacher has it open; no start codes. There are two switches: CHECK_OPEN for
    Mr. Crowell's classes and CHECK_OPEN_CO for the co-teacher's (COTEACHER_CLASSES), so both can run a Check at the same
-   time. Opening one saves the session's settings with it: which Check (0-3), the test length (lenIdx), the topics (top)
+   time. Opening one saves the session's settings with it: which Check (0-9), the test length (lenIdx), the topics (top)
    and a 5-letter session id that every attempt started in it records. A session closes itself after 6 hours. A student
    already in the middle of an attempt keeps going after it closes. CHECK_LOG keeps the last 40 sessions (both teachers)
    for the dashboard's history. CHECK_MORE counts "10 more minutes" grants per student (checkMore), for 12 hours. */
@@ -246,7 +246,7 @@ function checkGate(req) {
     if (cur) log.forEach(function (x) { if (x.code === cur.code && x.who === (co ? 'co' : 'main') && !x.closed) x.closed = now; });
     if (req.open && !(who.all && req.co)) {
       var code = ''; for (var i = 0; i < 5; i++) code += CHECK_ALPHA.charAt(Math.floor(Math.random() * 20));
-      var o = { until: now + CHECK_HOURS * 36e5, check: Math.max(0, Math.min(3, Number(req.check) || 0)), len: Math.max(0, Math.min(7, Number(req.len) || 0)), top: Number(req.top) ? 1 : 0, code: code, at: now };
+      var o = { until: now + CHECK_HOURS * 36e5, check: Math.max(0, Math.min(9, Number(req.check) || 0)), len: Math.max(0, Math.min(7, Number(req.len) || 0)), top: Number(req.top) ? 1 : 0, code: code, at: now };
       p.setProperty(k, JSON.stringify(o));
       log.push({ who: co ? 'co' : 'main', code: code, check: o.check, len: o.len, top: o.top, at: now, until: o.until });
     } else p.deleteProperty(k);
