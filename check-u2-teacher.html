@@ -131,7 +131,7 @@ body.hide .nmv{filter:blur(6px)}
 <script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261123e"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
-<script src="check-u2.js?v=20261123e"></script>
+<script src="check-u2.js?v=20261123g"></script>
 <script>
 (function () {
   'use strict';
@@ -167,6 +167,8 @@ body.hide .nmv{filter:blur(6px)}
   var STU = location.href.replace(/[^/]*$/, '') + 'check-u2.html' + (TRY ? '?try' : '');   // the link students open
   var PRAC = STU + (TRY ? '&' : '?') + 'practice';   // straight to a practice check (10, 20 or 30 minutes)
   function copyTxt(t, what) { try { navigator.clipboard.writeText(t).then(function () { SFA.toast(what + ' copied'); }, function () { SFA.toast(t, 6000); }); } catch (e) { SFA.toast(t, 6000); } }
+  // L, E, D, D+, or a range like L–E when the ± crosses a cut score
+  function spanAbbr(o) { var s = CU.span(o); return !s ? ABBR[0] : s.lo === s.hi ? ABBR[s.lo] : ABBR[s.lo] + '–' + ABBR[s.hi]; }
   function label(n) { return n === CU.PRACTICE ? 'Practice' : (S.names && S.names[n]) || 'Check ' + (n + 1); }
 
   /* ---------- one row per student, rebuilt from the saved summary by the same engine the student page used ---------- */
@@ -253,9 +255,9 @@ body.hide .nmv{filter:blur(6px)}
       if (!r.att) { tr.appendChild(el('td', { 'class': 'meta', colspan: String(5 + SK.length + CRIT.length), style: 'text-align:left', text: 'not started' })); t.appendChild(tr); return; }
       var sc = r.sc;
       tr.appendChild(el('td', { 'class': 'sc', text: sc.level ? sc.scale + ' ±' + sc.pm : '·', title: 'Scale score, give or take' }));
-      tr.appendChild(el('td', { 'class': 'c cr l' + sc.level, text: ABBR[sc.level], title: nice(r.name) + ' overall: ' + LV[sc.level] }));
+      tr.appendChild(el('td', { 'class': 'c cr l' + sc.level, text: spanAbbr(sc), title: nice(r.name) + ' overall: ' + CU.spanText(sc) + (CU.isShort(r.att) ? ' (short check: a starting point)' : '') }));
       CRIT.forEach(function (c) {
-        var e = sc.crit[c.id]; tr.appendChild(el('td', { 'class': 'c cr l' + e.level, text: ABBR[e.level], title: c.short + ': ' + LV[e.level] + ' · ' + e.right + ' of ' + e.n + ' right' + (e.level ? ' · ' + e.scale + ' ±' + e.pm : '') }));
+        var e = sc.crit[c.id]; tr.appendChild(el('td', { 'class': 'c cr l' + e.level, text: spanAbbr(e), title: c.short + ': ' + CU.spanText(e) + ' · ' + e.right + ' of ' + e.n + ' right' + (e.level ? ' · ' + e.scale + ' ±' + e.pm : '') }));
         c.skills.forEach(function (id) { var k = sc.skill[id]; tr.appendChild(el('td', { 'class': 'c l' + k.level, text: k.n === 1 ? (k.right ? '✓' : '✗') : k.n ? ABBR[k.level] : '', title: SKN[id].name + ': ' + (k.n === 1 ? 'one question only (level ' + (k.top || r.att.log.filter(function (e) { return e.s === id; })[0].d) + '), ' + (k.right ? 'right' : 'not right') + ': not enough for a level' : k.n ? LV[k.level] + ' · ' + k.right + ' of ' + k.n + ' right' : 'not reached') })); });
       });
       tr.appendChild(el('td', { 'class': 'meta', text: String(sc.n) })); tr.appendChild(el('td', { 'class': 'meta', text: String(r.mins), title: r.state }));
@@ -463,7 +465,8 @@ body.hide .nmv{filter:blur(6px)}
       var sc = r.sc, a = r.att;
       drawer.appendChild(el('p', { 'class': 'muted', text: label(S.chk) + ' · ' + (r.cls ? 'Class ' + r.cls + ' · ' : '') + r.state + ' · started ' + new Date(a.t0).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' · ' + sc.n + ' questions (' + sc.right + ' right) in ' + r.mins + ' min' + (a.n > 1 ? ' · attempt ' + a.n : '') }));
       drawer.appendChild(el('p', { 'class': 'noprint' }, [el('button', { 'class': 'btn small primary', type: 'button', text: '🖨 Task sheet for ' + nice(r.name), onclick: function () { printSheets([r]); } })]));
-      drawer.appendChild(el('p', {}, [el('span', { 'class': 'badge l' + sc.level, text: LV[sc.level] }), sc.level ? ' Scale ' + sc.scale + ' ± ' + sc.pm : ' Fewer than ' + CU.NEED.all + ' answers.']));
+      drawer.appendChild(el('p', {}, [el('span', { 'class': 'badge l' + sc.level, text: CU.spanText(sc) }), sc.level ? ' Scale ' + sc.scale + ' ± ' + sc.pm + (CU.isShort(a) ? ' · short check: a starting point' : '') : ' Fewer than ' + CU.NEED.all + ' answers.']));
+      drawer.appendChild(el('p', { 'class': 'muted', style: 'font-size:13px', text: 'What the student was told: ' + CU.explain(sc, a.log) }));
       if (r.tags.length) drawer.appendChild(el('p', {}, r.tags.map(function (x) { return el('span', { 'class': 'tag' + (x[1] ? '' : ' soft'), text: x[0] }); })));
       CRIT.forEach(function (c) {
         var e = sc.crit[c.id];
@@ -499,14 +502,14 @@ body.hide .nmv{filter:blur(6px)}
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
 
   function csv() {
-    var head = ['Student', 'Class', 'Check', 'Test length (min)', 'Status', 'Started', 'Session', 'Questions', 'Right', 'Minutes', 'Scale score', 'Plus or minus', 'Overall level']
+    var head = ['Student', 'Class', 'Check', 'Test length (min)', 'Status', 'Started', 'Session', 'Questions', 'Right', 'Minutes', 'Scale score', 'Plus or minus', 'Overall level', 'Overall range']
       .concat([].concat.apply([], CRIT.map(function (c) { return [c.short + ' (criterion)', c.short + ' scale', c.short + ' questions']; })))
       .concat(SK.map(function (k) { return k.name; })).concat(SK.map(function (k) { return k.name + ' (right/asked)'; }))
       .concat(['Left tab (questions)', 'Seconds away', 'Paste', 'Copied question', 'Very fast and right (L3+)', 'Rapid wrong guesses', 'Very slow', 'Don\'t know', 'Reloads', 'Extra time', 'Worked-out questions (results)', 'Suggested group']);
     var lines = [head].concat(shown().map(function (r) {
       if (!r.att) return [nice(r.name), r.cls, label(S.chk), '', 'Not started'];
       var sc = r.sc, f = r.flags, px = paperItems(r);
-      return [nice(r.name), r.cls, label(S.chk), CU.LENS[r.att.lenIdx] || '', r.state, new Date(r.att.t0).toLocaleString(), r.att.code, sc.n, sc.right, r.mins, sc.level ? sc.scale : '', sc.level ? sc.pm : '', LV[sc.level]]
+      return [nice(r.name), r.cls, label(S.chk), CU.LENS[r.att.lenIdx] || '', r.state, new Date(r.att.t0).toLocaleString(), r.att.code, sc.n, sc.right, r.mins, sc.level ? sc.scale : '', sc.level ? sc.pm : '', LV[sc.level], CU.spanText(sc)]
         .concat([].concat.apply([], CRIT.map(function (c) { var e = sc.crit[c.id]; return [LV[e.level], e.level ? e.scale : '', e.n]; })))
         .concat(SK.map(function (k) { var e = sc.skill[k.id]; return e.n ? LV[e.level] : 'Not reached'; })).concat(SK.map(function (k) { var e = sc.skill[k.id]; return "'" + e.right + '/' + e.n; }))
         .concat([f.away, f.awaySecs, f.paste, f.copy, f.quick, f.guess, f.slow, f.idk, f.reloads, f.ext, px.map(function (x) { return 'Q' + (x.p.i + 1) + ' ' + (x.e && x.e.ok ? 'right' : 'wrong'); }).join(', '), r.weak && r.sc.crit[r.weak.id].level <= 2 ? 'Reteach: ' + r.weak.short : r.weak ? 'Extend' : 'Not enough evidence']);
@@ -564,7 +567,7 @@ body.hide .nmv{filter:blur(6px)}
     var t = el('table', {}, [el('colgroup', {}, [el('col', { 'class': 'c1' }), el('col', { 'class': 'c2' }), el('col'), el('col'), el('col'), el('col')])]), hr = el('tr', {}, [el('th', { text: 'Success criterion / strand' }), el('th', { text: 'Level reached' })]);
     LVN.forEach(function (l) { hr.appendChild(el('th', { text: l })); }); t.appendChild(hr);
     CRIT.forEach(function (c) {
-      var e = sc.crit[c.id], tr = el('tr', {}, [el('td', { 'class': 'cn', text: c.strand + ': ' + c.short }), el('td', { 'class': 'lv', text: e.level ? LVN[e.level - 1] : 'Too few answers' })]);
+      var e = sc.crit[c.id], tr = el('tr', {}, [el('td', { 'class': 'cn', text: c.strand + ': ' + c.short }), el('td', { 'class': 'lv', text: e.level ? CU.spanText(e) : 'Too few answers' })]);
       (c.id === 'represent' && !CU.uses('r3', a.top) ? DESC_NOINEQ : DESC[c.id]).forEach(function (txt, i) { tr.appendChild(el('td', { 'class': e.level === i + 1 ? 'hit' : '', text: txt })); });
       t.appendChild(tr);
       c.skills.forEach(function (id) {
@@ -576,7 +579,8 @@ body.hide .nmv{filter:blur(6px)}
       });
     });
     pg.appendChild(t);
-    pg.appendChild(el('div', { 'class': 'tsov' }, [el('span', {}, ['Overall: ', el('b', { text: sc.level ? LVN[sc.level - 1] : 'Not enough evidence' })]), sc.level ? el('span', { text: 'Scale score ' + sc.scale + ' (± ' + sc.pm + ')' }) : null]));
+    pg.appendChild(el('div', { 'class': 'tsov' }, [el('span', {}, [CU.isShort(a) ? 'Starting point: ' : 'Overall: ', el('b', { text: sc.level ? CU.spanText(sc) : 'Not enough evidence' })]), el('span', { text: sc.right + ' of ' + sc.n + ' right' + (sc.level && !CU.isShort(a) ? ' · scale score ' + sc.scale + ' (± ' + sc.pm + ')' : '') })]));
+    pg.appendChild(el('div', { 'class': 'how2', text: CU.explain(sc, a.log) + (CU.isShort(a) ? ' This was a short check, so it is a starting point: with more questions it can move a level either way.' : '') }));
     // the same feedback the student saw on their finish screen
     var fb = CU.feedback(sc, a.log, a.top), steps = CU.nextSteps(fb, sc, 3);
     var good = fb.filter(function (x) { return x.can && x.level >= 2; }).sort(function (p, q) { return q.level - p.level; }).slice(0, 3);

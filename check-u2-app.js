@@ -365,7 +365,7 @@
           el('li', { text: (GATE.session && !DEMO ? (CU.LENS[GATE.session.len] || 35) + ' minutes.' : 'Mr. Crowell sets the time.') + ' One question at a time. You can\'t go back, so check before you press Submit.' }),
           el('li', { text: 'Everyone gets different numbers. Do your own thinking.' }),
           el('li', { text: 'Read each instruction. Sometimes you type. Sometimes you tap a graph, a table or a line of working.' }),
-          el('li', { text: 'Stuck? Choose "I don\'t know yet". That helps Mr. Crowell help you. It is not a failure.' }),
+          el('li', { text: 'Stuck? Choose "I don\'t know yet". That helps Mr. Crowell help you. It counts as not right, so if you have a first step, try it.' }),
           el('li', {}, [el('b', { text: 'Have paper and a pencil ready. ' }), 'Some questions ask you to work it out on paper first. Write out your thinking one step at a time, then type your answer. Writing it out is how you catch your own mistakes.'])
         ])]),
         el('div', {}, [el('h3', { text: 'What is recorded' }), el('ul', { 'class': 'ck-list' }, RECORDED.map(function (t) { return el('li', { text: t }); })), el('p', { 'class': 'muted', text: 'These are notes for Mr. Crowell. They do not change your result. A calculator is fine. Other tabs, apps and AI helpers are not.' })])
@@ -496,6 +496,11 @@
   }
 
   /* ---------------- the summary: what you can do, what to practise next ---------------- */
+  // a level, or a range of two levels when the ± crosses a cut score
+  function spanBadge(o) {
+    var s = CU.span(o); if (!s) return badge(0);
+    return s.lo === s.hi ? badge(s.lo) : el('span', { 'class': 'ck-span' }, [badge(s.lo), ' to ', badge(s.hi)]);
+  }
   function scaleBar(sc) {
     var pos = function (v) { return Math.max(0, Math.min(100, (v - 250) / 5)); };
     var bar = el('div', { 'class': 'ck-scale', role: 'img', 'aria-label': 'Scale score ' + sc.scale + ', give or take ' + sc.pm });
@@ -516,8 +521,11 @@
 
     var top = [el('h2', { text: (a.code === 'PRACT' ? 'Practice check finished' : 'Check finished') + (a.log.length ? '. Here is where you are.' : '') }), el('p', { 'class': 'muted', text: why + ' You answered ' + a.log.length + ' question' + (a.log.length === 1 ? '' : 's') + ' in ' + mins + ' minute' + (mins === 1 ? '' : 's') + '.' })];
     if (sc.level) {
-      top.push(el('div', { 'class': 'ck-overall' }, [el('div', {}, [el('div', { 'class': 'k', text: 'Overall, right now' }), badge(sc.level), el('div', { 'class': 'ck-sc' }, [el('b', { text: String(sc.scale) }), ' ± ' + sc.pm + ' on the Unit 2 scale'])]), scaleBar(sc)]));
-      top.push(el('p', { 'class': 'muted', text: 'The ± is honest uncertainty: one check can\'t pin you down exactly. Developed (550 and up) is the goal for Unit 2. Below: what you can do now, and exactly what to work on next.' }));
+      var short = CU.isShort(a);
+      top.push(el('div', { 'class': 'ck-overall' }, [el('div', {}, [el('div', { 'class': 'k', text: short ? 'Your starting point' : 'Overall, right now' }), spanBadge(sc),
+        el('div', { 'class': 'ck-sc' }, short ? [el('b', { text: sc.right + ' of ' + sc.n }), ' right'] : [el('b', { text: String(sc.scale) }), ' ± ' + sc.pm + ' on the Unit 2 scale'])]), scaleBar(sc)]));
+      top.push(el('p', { 'class': 'ck-why', text: CU.explain(sc, a.log) }));
+      top.push(el('p', { 'class': 'muted', text: (short ? 'This was a short check, so treat it as a starting point: with more questions it can move a level either way. ' : 'One check can\'t pin you down exactly: when your result could be either of two levels, it shows both. ') + 'Developed is the goal for Unit 2. Below: what you can do now, and exactly what to work on next.' }));
     } else top.push(el('p', { text: 'There are not enough answers yet for an overall level (at least ' + CU.NEED.all + ' are needed). Whatever you did answer is still below.' }));
     top.push(sync);
     // Mr. Crowell has opened a new session since this attempt: start it from here
@@ -546,7 +554,7 @@
 
     root.appendChild(card([el('h2', { text: 'The four success criteria' }), el('div', { 'class': 'ck-crits' }, CU.CRIT.map(function (c) {
       var e = sc.crit[c.id];
-      return el('div', { 'class': 'ck-crit ' + LVC[e.level] }, [el('div', {}, [el('small', { text: c.strand }), el('b', { text: c.name })]), el('div', { 'class': 'r' }, [badge(e.level), el('small', { text: e.n + ' question' + (e.n === 1 ? '' : 's') + (e.level ? ' · ' + e.scale + ' ± ' + e.pm : '') })])]);
+      return el('div', { 'class': 'ck-crit ' + LVC[e.level] }, [el('div', {}, [el('small', { text: c.strand }), el('b', { text: c.name })]), el('div', { 'class': 'r' }, [spanBadge(e), el('small', { text: e.right + ' of ' + e.n + ' right' })])]);
     }))]));
 
     var more = [el('a', { 'class': 'btn', href: 'review-u2.html', text: '📝 Open the Unit 2 Review' }), el('a', { 'class': 'btn', href: 'index.html', text: '🕹️ Back to the arcade' })];

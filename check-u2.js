@@ -753,6 +753,31 @@
     return out;
   }
   CU.score = score;
+
+  /* ---------------- how a result is shown ----------------
+     span: the levels inside the ± (one standard error each way). When the ± crosses a cut score the honest result is a
+     range, "Limited to Emerging", not one word. isShort: a 20-minute (or shorter) check, or fewer than 12 answers: shown to
+     the student as a starting point. explain: one or two plain sentences on why the level is what it is. */
+  CU.span = function (o) {
+    if (!o || !o.level) return null;
+    var lo = levelOf(o.th - o.se), hi = levelOf(o.th + o.se);
+    lo = Math.min(lo, o.level); hi = Math.max(hi, o.level);
+    return { lo: lo, hi: hi, text: lo === hi ? CU.LV[lo] : CU.LV[lo] + ' to ' + CU.LV[hi] };
+  };
+  CU.spanText = function (o) { var s = CU.span(o); return s ? s.text : CU.LV[0]; };
+  CU.isShort = function (att) { return (LENS[att.lenIdx] || 35) <= 20 || (att.log || []).length < 12; };
+  CU.explain = function (sc, log) {
+    if (!log || !log.length) return '';
+    var miss = log.filter(function (e) { return !e.ok; }), idk = log.filter(function (e) { return e.idk; }).length;
+    var s = 'You got ' + sc.right + ' of ' + sc.n + ' right' + (idk ? ' (' + idk + ' were "I don\'t know yet", which counts as not right)' : '') + '. ';
+    if (!miss.length) return s + 'Every answer was right.';
+    var by = {}; miss.forEach(function (e) { var c = CRIT_OF[e.s]; by[c] = (by[c] || 0) + 1; });
+    var worst = CRIT.filter(function (c) { return by[c.id]; }).sort(function (a, b) { return by[b.id] - by[a.id]; })[0];
+    var easy = miss.filter(function (e) { return e.d <= 2; }).length >= miss.length / 2;
+    s += (easy ? 'Most of the ones you missed were the earlier, easier steps' : 'Most of the ones you missed were the harder questions') + (worst ? ', especially in the ' + worst.short + ' questions' : '') + '. ';
+    s += easy ? 'Your level depends on those steps more than on how many you got right, so start there: they unlock the rest.' : 'The easier steps are in place: the next steps below show what to work on to move up.';
+    return s;
+  };
   // "stable": two full rounds answered, and the overall estimate and every criterion estimate have settled
   CU.STABLE = { min: 26, se: 0.36, critSe: 0.72 };
   CU.stable = function (log, top) {
