@@ -488,7 +488,7 @@
       away(false);
       var t = Math.max(1, Math.round((Date.now() - c.t0) / 1000)), f = c.f || 0;
       if (CU.fast(t, it.exp)) f |= CU.FLAG.fast; if (CU.slow(t, it.exp)) f |= CU.FLAG.slow;
-      a.log.push({ s: c.s, d: c.d, ok: ok ? 1 : 0, p: c.p ? 1 : 0, idk: idk ? 1 : 0, t: t, f: f, a: c.a || 0, b: c.b || 0, r: c.r || 0 });
+      a.log.push({ s: c.s, d: c.d, ok: ok ? 1 : 0, p: c.p ? 1 : 0, idk: idk ? 1 : 0, t: t, f: f, a: c.a || 0, b: c.b || 0, r: c.r || 0, x: (c.resp || []).slice(0, c.part) });   // x: what they answered, for the task sheet's addendum
       if (c.p) a.papers.push({ s: c.s, i: c.i, chk: it.chk });
       P.done['a' + a.n + 'i' + c.i] = 1; a.cur = null;
       save(); render();

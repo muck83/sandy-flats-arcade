@@ -113,6 +113,7 @@ function route(req) {
     case 'checkState': return checkState(req);
     case 'checkGate': return checkGate(req);
     case 'checkMore': return checkMore(req);
+    case 'checkAnswers': return checkAnswers(req);
     default: throw new Error('unknown op');
   }
 }
@@ -200,6 +201,24 @@ function coClass(req) {
   var prog = (n0 < 2 ? [] : sh.getRange(2, 1, n0 - 1, 12).getValues()).filter(function (r) { return r[0] && ids[String(r[0])] && CO_GAMES.test(String(r[1])); })
     .map(function (r) { var o = summaryRow(r); o.sid = String(r[0]); return o; });
   return { ok: true, roster: roster.map(publicStudent), progress: prog, events: [], climb: [] };
+}
+
+// What each student answered on a Unit 2 Check, for the task sheets' addendum: games is a list of Check save keys
+// (g87-g98). Read from the attempt saved in the Progress tab's raw column. The co-teacher key gets her classes only.
+function checkAnswers(req) {
+  var who = coTeacher(req), want = {}, ids = {}, out = [];
+  (Array.isArray(req.games) ? req.games : []).slice(0, 12).forEach(function (g) { g = String(g || ''); if (CO_GAMES.test(g)) want[g] = 1; });
+  rosterRows().forEach(function (r) { if (coSees(who, r.cls)) ids[r.sid] = 1; });
+  var sh = progressSheet(), n = sh.getLastRow();
+  if (n < 2) return { ok: true, rows: out };
+  sh.getRange(2, 1, n - 1, 13).getValues().forEach(function (r) {
+    var sid = String(r[0]), g = String(r[1]), a = null;
+    if (!ids[sid] || !want[g]) return;
+    try { a = (JSON.parse(String(r[12] || '{}')) || {}).att; } catch (e) { a = null; }
+    if (!a || !Array.isArray(a.log)) return;
+    out.push({ sid: sid, game: g, seed: a.seed, t0: a.t0, x: a.log.map(function (e) { return e && e.x !== undefined ? e.x : null; }) });
+  });
+  return { ok: true, rows: out };
 }
 
 /* ---------------- the Unit 2 Check open/closed switches ----------------

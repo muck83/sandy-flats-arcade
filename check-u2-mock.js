@@ -48,7 +48,7 @@
       return Promise.resolve(reply(so));
     }
     // co-teacher practice: key "co" (or the teacher key "test"); her classes start empty; added students live in this browser
-    var CO = /^(coWho|coRoster|coAdd|coClass|coExtra)$/.test(r.op);
+    var CO = /^(coWho|coRoster|coAdd|coClass|coExtra|checkAnswers)$/.test(r.op);
     if (CO) {
       var dc = db(), main = r.teacherKey === 'test'; dc.co = dc.co || { classes: [], students: [] };
       if (!main && r.teacherKey !== 'co') return Promise.resolve(reply({ ok: false, error: 'teacher key' }));
@@ -75,6 +75,9 @@
           put(dc); return reply({ ok: true, added: out, classes: dc.co.classes });
         }
         var mineR = all.filter(function (x) { return sees(x.cls); }), ids = {}; mineR.forEach(function (x) { ids[x.sid] = 1; });
+        if (r.op === 'checkAnswers') return reply({ ok: true, rows: Object.keys(dc.rows || {}).map(function (k) { return dc.rows[k]; }).filter(function (o) { return ids[o.sid] && (r.games || []).indexOf(o.game) >= 0; }).map(function (o) {
+          var a = null; try { a = JSON.parse(o.raw).att; } catch (e) { } return a && a.log ? { sid: o.sid, game: o.game, seed: a.seed, t0: a.t0, x: a.log.map(function (e) { return e && e.x !== undefined ? e.x : null; }) } : null;
+        }).filter(Boolean) });
         return reply({ ok: true, roster: mineR.map(function (x) { return { sid: x.sid, name: x.name, cls: x.cls, extra: x.extra }; }), events: [], climb: [],
           progress: Object.keys(dc.rows || {}).map(function (k) { var o = Object.assign({}, dc.rows[k]); delete o.raw; return o; }).filter(function (o) { return ids[o.sid] && /^g(9[1-8]|8[7-9])$/.test(o.game); }) });
       });

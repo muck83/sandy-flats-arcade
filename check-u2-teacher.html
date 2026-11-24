@@ -117,6 +117,23 @@ body.hide .nmv{filter:blur(6px)}
   .ts .how2{font-size:8pt;color:#333;margin-top:2px}
   .ts .lines{border-bottom:1px solid #999;height:.22in}
   .ts .fine{font-size:8pt;color:#444;margin-top:5px}
+  .ts.tsa .hd h1{font-size:13pt}
+  .ts table.qa col.q1{width:4%}.ts table.qa col.q2{width:48%}.ts table.qa col.q3{width:22%}.ts table.qa col.q4{width:22%}.ts table.qa col.q5{width:4%}
+  .ts table.qa td{font-size:8pt;line-height:1.25}
+  .ts table.qa tr{page-break-inside:avoid}
+  .ts table.qa td.n,.ts table.qa td.mk{text-align:center;font-weight:700}
+  .ts table.qa td.mk{font-size:11pt}
+  .ts table.qa tr.no td.yr{background:#eee}
+  .ts .qsk{font-size:7pt;color:#444;text-transform:uppercase;letter-spacing:.03em}
+  .ts .qp{margin-top:2px}
+  .ts .qp b{font-weight:700}
+  .ts .mg{float:right;margin:0 0 2px 6px}
+  .ts table.ftab{width:auto;margin:2px 0;border-collapse:collapse}
+  .ts table.ftab td,.ts table.ftab th{border:1px solid #999;padding:0 5px;font-size:7.5pt}
+  .ts ol.fw{margin:2px 0;padding-left:1.6em}
+  .ts .ph svg{max-width:1.5in;height:auto}
+  .ts .ph table{width:auto}
+  .ts .ph table td,.ts .ph table th{padding:0 4px}
 }
 </style>
 </head><body>
@@ -128,7 +145,7 @@ body.hide .nmv{filter:blur(6px)}
 <div id="sheets" aria-hidden="true"></div>
 <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Student detail"></aside>
 <script src="config.js"></script>
-<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261123e"><\/script>'); }</script>
+<script>if (/[?&]try\b/.test(location.search)) { window.CU2_TRY = 1; document.write('<script src="climb/dev/mock.js"><\/script><script src="check-u2-mock.js?v=20261123h"><\/script>'); }</script>
 <script src="sfa-kit.js"></script>
 <script src="review-u2.js?v=20261118e"></script>
 <script src="check-u2.js?v=20261123g"></script>
@@ -549,8 +566,12 @@ body.hide .nmv{filter:blur(6px)}
   var LVN = ['Limited', 'Emerging', 'Developed', 'Deep'];
   function printSheets(list) {
     if (!list.length) { SFA.toast ? SFA.toast('Nobody in this class has taken the check yet.', 3000) : alert('Nobody in this class has taken the check yet.'); return; }
+    if (SFA.toast) SFA.toast('Getting the answers…', 2000);
+    fetchAnswers(list).then(function () { printNow(list); });
+  }
+  function printNow(list) {
     var box = document.getElementById('sheets'); box.innerHTML = '';
-    list.forEach(function (r) { box.appendChild(sheet(r)); });
+    list.forEach(function (r) { box.appendChild(sheet(r)); var ad = addendum(r); if (ad) box.appendChild(ad); });
     document.body.classList.add('sheets');
     var off = function () { document.body.classList.remove('sheets'); window.removeEventListener('afterprint', off); };
     window.addEventListener('afterprint', off);
@@ -591,6 +612,90 @@ body.hide .nmv{filter:blur(6px)}
     pg.appendChild(el('div', { 'class': 'two' }, [el('div', { 'class': 'box' }, [el('h3', { text: 'Teacher comment' }), el('div', { 'class': 'lines' }), el('div', { 'class': 'lines' })]),
       el('div', { 'class': 'box' }, [el('h3', { text: 'Student reflection: one thing I will do next' }), el('div', { 'class': 'lines' }), el('div', { 'class': 'lines' })])]));
     pg.appendChild(el('div', { 'class': 'fine', text: 'Adaptive check: a skill needs 2 answers and a criterion 3 for a level; "first read" means one answer so far.' + (CU.LENS[a.lenIdx] === 20 ? ' A 20-minute check gives about one question per skill, so most skills are a first read: use it to choose what to practise, not as a final level.' : '') }));
+    return pg;
+  }
+
+  /* ---------- the addendum: every question the student answered, what they answered, and the right answer ----------
+     Each question is made again from the student's seed, so it has the numbers they saw. What they answered comes from
+     the attempt saved in the Sheet (checkAnswers). Attempts from before answers were saved show right / not right only. */
+  var ANS = {}, N = CU.num;   // sid|game -> {seed, x: [responses per question]}
+  function fetchAnswers(list) {
+    var games = {}; list.forEach(function (r) { if (r.p && r.p.game) games[r.p.game] = 1; });
+    if (DEMO || !Object.keys(games).length) return Promise.resolve();
+    return api('checkAnswers', { games: Object.keys(games) }).then(function (j) { (j.rows || []).forEach(function (x) { ANS[x.sid + '|' + x.game] = x; }); }, function () { });
+  }
+  function itemAt(a, e, i) {
+    var it = e.p ? CU.paper(e.s, e.d, a.seed) : null;
+    return it || CU.make(e.s, e.d, a.seed + '|' + i) || CU.make(e.s, e.d, a.seed + '|' + i + '|alt');
+  }
+  function tx(s) { return String(s == null ? '' : s).replace(/\[\[(.+?)\]\]/g, '$1').replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/\s+/g, ' ').replace(/\s([,.?;:])/g, '$1').trim(); }
+  function ptTxt(p) { return '(' + N.ng(p.x) + ', ' + N.ng(p.y) + ')'; }
+  function optTxt(o) { return typeof o === 'string' ? tx(o) : o && o.g ? 'the graph of ' + tx(N.lineEq(o.g.m, o.g.b)) : ''; }
+  function labTxt(l, v) { l = tx(l); return !l ? v : /=$/.test(l) ? l + ' ' + v : l + ': ' + v; }
+  // a response (the student's, or the answer key's) as words
+  function rTxt(p, r, it) {
+    if (r == null) return '';
+    try {
+      if (p.kind === 'num') return p.labs.map(function (l, k) { return labTxt(l, r[k] == null ? '' : String(r[k])); }).join(', ');
+      if (p.kind === 'mc') return 'ABCDEF'[r] + '. ' + optTxt(p.opts[r]);
+      if (p.kind === 'row') { var f = it.fig || {}, isT = f.t === 'table', rows = isT ? (f.rows || []).map(function (x) { return x.join(', '); }) : (f.lines || []); return (isT ? 'Row ' : 'Line ') + (r + 1) + (rows[r] != null ? ' (' + tx(rows[r]) + ')' : ''); }
+      if (p.kind === 'point') return ptTxt(r);
+      if (p.kind === 'line') return 'a line through ' + r.map(ptTxt).join(' and ');
+      if (p.kind === 'order') return r.map(function (k, n) { return (n + 1) + ') ' + tx(p.lines[k]); }).join('  ');
+      if (p.kind === 'ineq') return (r.solid ? 'solid' : 'dashed') + ' line, shade ' + (r.above ? 'above' : 'below');
+      if (p.kind === 'multi') return p.subs.map(function (s, k) { return rTxt(s, r[k], it); }).join('; ');
+    } catch (e) { }
+    return '';
+  }
+  // a small printed grid for a graph figure
+  function miniGraph(f) {
+    var U = 5, W = 16 * U, gx = function (x) { return ((x + 8) * U).toFixed(1); }, gy = function (y) { return ((8 - y) * U).toFixed(1); }, s = '', i;
+    for (i = -8; i <= 8; i++) s += '<line x1="' + gx(i) + '" y1="0" x2="' + gx(i) + '" y2="' + W + '" stroke="#ccc" stroke-width=".35"/><line x1="0" y1="' + gy(i) + '" x2="' + W + '" y2="' + gy(i) + '" stroke="#ccc" stroke-width=".35"/>';
+    s += '<line x1="' + gx(0) + '" y1="0" x2="' + gx(0) + '" y2="' + W + '" stroke="#000" stroke-width=".7"/><line x1="0" y1="' + gy(0) + '" x2="' + W + '" y2="' + gy(0) + '" stroke="#000" stroke-width=".7"/>';
+    [-8, -4, 4, 8].forEach(function (k) { s += '<text x="' + gx(k) + '" y="' + (+gy(0) + 5) + '" font-size="4" text-anchor="middle">' + k + '</text><text x="' + (+gx(0) - 1.5) + '" y="' + (+gy(k) + 1.5) + '" font-size="4" text-anchor="end">' + k + '</text>'; });
+    (f.lines || []).forEach(function (L) { var m = N.fv(L.m), b = N.fv(L.b); s += '<line x1="' + gx(-9) + '" y1="' + gy(m * -9 + b) + '" x2="' + gx(9) + '" y2="' + gy(m * 9 + b) + '" stroke="#000" stroke-width="1"' + (L.dash ? ' stroke-dasharray="3 2"' : '') + '/>'; });
+    (f.pts || []).forEach(function (p) { s += '<circle cx="' + gx(p.x) + '" cy="' + gy(p.y) + '" r="1.6"/>' + (p.label ? '<text x="' + (+gx(p.x) + (p.x > 6 ? -6 : 2.5)) + '" y="' + (+gy(p.y) + (p.y > 6 ? 6 : -2.5)) + '" font-size="5" font-weight="700">' + SFA.esc(p.label) + '</text>' : ''); });
+    var box = el('span', { 'class': 'mg' }); box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + W + '" width="1.05in" height="1.05in" overflow="hidden">' + s + '</svg>';
+    return box;
+  }
+  function figNode(it) {
+    var f = it.fig, ineq = (it.parts || []).filter(function (p) { return p.kind === 'ineq'; })[0];
+    if (it.figHtml) { var h = el('div', { 'class': 'ph' }); h.innerHTML = it.figHtml; return h; }
+    if (!f) return ineq ? miniGraph({ lines: [ineq.line] }) : null;
+    if (f.t === 'graph') return miniGraph(f);
+    if (f.t === 'table') return el('table', { 'class': 'ftab' }, [el('tr', {}, f.head.map(function (x) { return el('th', { text: tx(x) }); }))].concat(f.rows.map(function (r) { return el('tr', {}, r.map(function (x) { return el('td', { text: tx(x) }); })); })));
+    if (f.t === 'work') return el('ol', { 'class': 'fw' }, f.lines.map(function (x) { return el('li', { text: tx(x) }); }));
+    return null;
+  }
+  function addendum(r) {
+    var a = r.att, log = a.log || []; if (!log.length) return null;
+    var got = r.p ? ANS[r.sid + '|' + r.p.game] : null, saved = !!(got && got.seed === a.seed && got.x && got.x.some(function (v) { return v != null; }));
+    var pg = el('section', { 'class': 'ts tsa' });
+    pg.appendChild(el('div', { 'class': 'hd' }, [el('div', {}, [el('h1', { text: 'Addendum: your questions and answers' }), el('div', { 'class': 'meta', text: 'Unit 2 ' + label(S.chk) + ' · every question in the order you met it, what you answered, and the right answer' + (saved ? '' : ' (your own answers were not saved for this attempt: it shows whether each one was right)') })]),
+      el('div', { 'class': 'who' }, [el('b', { text: nice(r.name) }), el('br'), r.cls ? 'Class ' + r.cls : ''])]));
+    var t = el('table', { 'class': 'qa' }, [el('colgroup', {}, [1, 2, 3, 4, 5].map(function (k) { return el('col', { 'class': 'q' + k }); })),
+      el('tr', {}, ['#', 'Question', 'Your answer', 'Right answer', ''].map(function (h) { return el('th', { text: h }); }))]);
+    log.forEach(function (e, i) {
+      var it = itemAt(a, e, i), x = saved ? got.x[i] : null, sk = SKN[e.s];
+      var q = el('td', {}, [el('div', { 'class': 'qsk', text: (sk ? sk.name : e.s) + (e.p ? ' · worked out on paper' : '') })]), yours = el('td', { 'class': 'yr' }), key = el('td');
+      if (!it) { q.appendChild(el('div', { text: 'This question could not be rebuilt.' })); }
+      else {
+        var fg = figNode(it); if (fg) q.appendChild(fg);
+        if (it.html) { var st = el('div', { 'class': 'ph' }); st.innerHTML = it.stem; q.appendChild(st); } else q.appendChild(el('div', { text: tx(it.stem) }));
+        var parts = it.parts.length === 1 && it.parts[0].kind === 'multi' ? it.parts[0].subs : it.parts, xs = it.parts.length === 1 && it.parts[0].kind === 'multi' && x ? (x[0] || []) : x;
+        parts.forEach(function (p, k) {
+          var many = parts.length > 1, tag = many ? (k + 1) + ') ' : '';
+          q.appendChild(el('div', { 'class': 'qp' }, [el('b', { text: tag }), tx(p.q)].concat(p.kind === 'mc' ? p.opts.map(function (o, n) { return el('div', { style: 'padding-left:1em', text: 'ABCDEF'[n] + '. ' + optTxt(o) }); }) : [])));
+          key.appendChild(el('div', { text: tag + rTxt(p, CU.keyOf(p), it) }));
+          if (xs && xs[k] != null) yours.appendChild(el('div', { text: tag + rTxt(p, xs[k], it) }));
+        });
+      }
+      if (e.idk) yours.appendChild(el('div', { text: 'I don\'t know yet' }));
+      else if (!yours.childNodes.length) yours.appendChild(el('div', { text: (e.ok ? 'Right' : 'Not right') + ' (answer not saved)' }));
+      t.appendChild(el('tr', { 'class': e.ok ? 'ok' : 'no' }, [el('td', { 'class': 'n', text: String(i + 1) }), q, yours, key, el('td', { 'class': 'mk', text: e.ok ? '✓' : e.idk ? '–' : '✗', title: e.ok ? 'Right' : e.idk ? 'I don\'t know yet' : 'Not right' })]));
+    });
+    pg.appendChild(t);
+    pg.appendChild(el('div', { 'class': 'fine', text: '✓ right · ✗ not right · – "I don\'t know yet" (counts as not right). Where a question can have more than one right answer (a point on a line, two points that make a line, an equivalent fraction), the right answer shows one of them.' }));
     return pg;
   }
 
