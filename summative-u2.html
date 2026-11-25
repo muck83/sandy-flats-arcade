@@ -3,7 +3,7 @@
 <title>Unit 2 Summative · Sandy Flats</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
 <link rel="stylesheet" href="sfa-kit.css?v=20261118">
-<link rel="stylesheet" href="summative-u2.css?v=20261125a">
+<link rel="stylesheet" href="summative-u2.css?v=20261125c">
 </head><body>
 <div class="wrap su">
   <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Unit 2 Summative</h1><div class="chips"><span class="chip static">📄 The Pop-Up Arcade</span></div></header>
@@ -17,6 +17,7 @@
       <li>Show your working every time. A right answer with no working counts for very little.</li>
       <li><b>Stuck?</b> Questions marked <span class="star" style="margin:0">★ Core</span> are the ones to do first. Every question has a <b>💡 Need a hint?</b> button with up to three hints. Using hints is fine: your teacher just sees how many you used. On paper, ask for the hint cards in the support pack.</li>
     </ul>
+    <div class="langpick" id="langpick"></div>
     <div class="links">
       <a href="summative-u2-planner.html"><b>🏖️ Boathouse Planner</b><span>Try out plans before Part 1: add machines and watch the floor, the budget and the takings change.</span></a>
       <a href="summative-u2-support.html"><b>🧰 Support pack</b><span>Symbol card, a worked example, half-filled tables, the boathouse floor plan to cut out, and hint cards.</span></a>
@@ -35,37 +36,37 @@
   <section class="sheet" id="p0">
     <div class="phead"><div><div class="kicker">Unit 2 Summative · Linear equations and inequalities</div><h2>The Pop-Up Arcade</h2></div>
       <div class="who">Name <input class="ln" data-id="name" aria-label="Your name" style="width:150px"> &nbsp; Class <input class="ln" data-id="class" aria-label="Your class" style="width:60px"></div></div>
-    <p>This summer, the Sandy Flats Arcade is opening a pop-up arcade in the old boathouse on the beach. Priya, Marcus and Gus have to decide what goes inside. They can rent two kinds of machines for the summer: <b>claw machines</b> and <b>air hockey tables</b>. These are the limits they have to work with.</p>
+    <p data-tr="sit.intro">This summer, the Sandy Flats Arcade is opening a pop-up arcade in the old boathouse on the beach. Priya, Marcus and Gus have to decide what goes inside. They can rent two kinds of machines for the summer: <b>claw machines</b> and <b>air hockey tables</b>. These are the limits they have to work with.</p>
     <ul class="facts">
-      <li><b>Floor space.</b> A claw machine takes up 2 m² of floor. An air hockey table takes up 6 m², including room for the players. The boathouse has 60 m² of floor for machines.</li>
-      <li><b>Budget.</b> Renting a claw machine for the summer costs $200. Renting an air hockey table costs $350. The arcade has given them $4400 to spend on machines.</li>
-      <li><b>Prize deal.</b> The prize company only delivers prizes if the pop-up has <b>at least 4</b> claw machines.</li>
-      <li><b>Stock.</b> There are only 8 air hockey tables for rent in town.</li>
-      <li><b>Staff pay.</b> The pop-up must take in <b>more than</b> $300 a day to pay its two summer staff. On a normal day, one claw machine takes in $20 and one air hockey table takes in $50.</li>
+      <li data-tr="sit.f1"><b>Floor space.</b> A claw machine takes up 2 m² of floor. An air hockey table takes up 6 m², including room for the players. The boathouse has 60 m² of floor for machines.</li>
+      <li data-tr="sit.f2"><b>Budget.</b> Renting a claw machine for the summer costs $200. Renting an air hockey table costs $350. The arcade has given them $4400 to spend on machines.</li>
+      <li data-tr="sit.f3"><b>Prize deal.</b> The prize company only delivers prizes if the pop-up has <b>at least 4</b> claw machines.</li>
+      <li data-tr="sit.f4"><b>Stock.</b> There are only 8 air hockey tables for rent in town.</li>
+      <li data-tr="sit.f5"><b>Staff pay.</b> The pop-up must take in <b>more than</b> $300 a day to pay its two summer staff. On a normal day, one claw machine takes in $20 and one air hockey table takes in $50.</li>
     </ul>
-    <div class="box"><b class="t">The question</b>How many claw machines and how many air hockey tables should they rent, so that the pop-up takes in the most money each day?</div>
+    <div class="box" data-tr="sit.q"><b class="t">The question</b>How many claw machines and how many air hockey tables should they rent, so that the pop-up takes in the most money each day?</div>
     <p>The three of them already disagree:</p>
     <div class="voices">
-      <div class="voice"><b>Marcus</b>"Easy. Ten of each. Fair to both machines."</div>
-      <div class="voice"><b>Priya</b>"Claw machines are small and cheap. Rent as many claw machines as we can, and nothing else."</div>
-      <div class="voice"><b>Gus</b>"Air hockey takes in more. Rent all 8 air hockey tables, then fill the space that's left with claw machines."</div>
+      <div class="voice" data-tr="sit.vm"><b>Marcus</b>"Easy. Ten of each. Fair to both machines."</div>
+      <div class="voice" data-tr="sit.vp"><b>Priya</b>"Claw machines are small and cheap. Rent as many claw machines as we can, and nothing else."</div>
+      <div class="voice" data-tr="sit.vg"><b>Gus</b>"Air hockey takes in more. Rent all 8 air hockey tables, then fill the space that's left with claw machines."</div>
     </div>
-    <p>By the end of this task you will know who is right, or whether there is a better plan than all three.</p>
-    <div class="goal"><b>Use these letters the whole way through:</b> <span class="m">c</span> = the number of claw machines, <span class="m">h</span> = the number of air hockey tables. You can only rent whole machines.</div>
+    <p data-tr="sit.end">By the end of this task you will know who is right, or whether there is a better plan than all three.</p>
+    <div class="goal" data-tr="sit.vars"><b>Use these letters the whole way through:</b> <span class="m">c</span> = the number of claw machines, <span class="m">h</span> = the number of air hockey tables. You can only rent whole machines.</div>
   </section>
 
   <!-- ============ PART 1 ============ -->
   <section class="sheet" id="p1">
     <div class="phead"><div><div class="kicker">Part 1 of 4</div><h2>One machine at a time</h2></div><div class="who">Name ____________________</div></div>
-    <div class="goal"><b>Goal:</b> write each limit as an inequality in <b>one</b> variable, solve it, and show its solutions on a number line. Use a closed dot ● when the number is included and an open dot ○ when it isn't.</div>
+    <div class="goal" data-tr="goal.1"><b>Goal:</b> write each limit as an inequality in <b>one</b> variable, solve it, and show its solutions on a number line. Use a closed dot ● when the number is included and an open dot ○ when it isn't.</div>
 
-    <div class="q"><div class="qt"><span class="n">1.</span>The prize deal: write an inequality for <span class="m">c</span>. Then graph it. <span class="star">★ Core</span></div><div class="hints noblank" data-q="1"></div>
+    <div class="q"><div class="qt" data-tr="q.1"><span class="n">1.</span>The prize deal: write an inequality for <span class="m">c</span>. Then graph it. <span class="star">★ Core</span></div><div class="hints noblank" data-q="1"></div>
       <div class="nlrow"><div class="ans" data-id="p1q1" data-label="Question 1 inequality" style="--rows:1"></div><div class="nl" data-min="0" data-max="12" data-every="1" data-var="c"></div></div></div>
 
-    <div class="q"><div class="qt"><span class="n">2.</span>The stock limit: write an inequality for <span class="m">h</span>. (Can <span class="m">h</span> be negative?) Then graph it. <span class="star">★ Core</span></div><div class="hints noblank" data-q="2"></div>
+    <div class="q"><div class="qt" data-tr="q.2"><span class="n">2.</span>The stock limit: write an inequality for <span class="m">h</span>. (Can <span class="m">h</span> be negative?) Then graph it. <span class="star">★ Core</span></div><div class="hints noblank" data-q="2"></div>
       <div class="nlrow"><div class="ans" data-id="p1q2" data-label="Question 2 inequality" style="--rows:1"></div><div class="nl" data-min="0" data-max="12" data-every="1" data-var="h"></div></div></div>
 
-    <div class="q"><div class="qt"><span class="n">3.</span>Priya's idea: <b>claw machines only</b> (<span class="m">h = 0</span>). For each limit, write an inequality in <span class="m">c</span>, solve it, and graph the solution. <span class="star">★ Core</span></div><div class="hints noblank" data-q="3"></div>
+    <div class="q"><div class="qt" data-tr="q.3"><span class="n">3.</span>Priya's idea: <b>claw machines only</b> (<span class="m">h = 0</span>). For each limit, write an inequality in <span class="m">c</span>, solve it, and graph the solution. <span class="star">★ Core</span></div><div class="hints noblank" data-q="3"></div>
       <div class="sub">a) Floor space</div>
       <div class="nlrow"><div class="ans" data-id="p1q3a" data-label="3a floor space, claw machines only" style="--rows:2"></div><div class="nl" data-min="0" data-max="32" data-every="4" data-var="c"></div></div>
       <div class="sub">b) Budget</div>
@@ -75,31 +76,31 @@
       <div class="sub">d) Put 3a, 3b, 3c and the prize deal together: which numbers of claw machines work for <b>every</b> limit? Graph them, then list the whole numbers.</div>
       <div class="nlrow"><div class="ans" data-id="p1q3d" data-label="3d all limits together, claw machines only" style="--rows:2"></div><div class="nl" data-min="0" data-max="32" data-every="4" data-var="c"></div></div></div>
 
-    <div class="q"><div class="qt"><span class="n">4.</span>Now suppose they rent exactly <b>4 claw machines</b> (the fewest the prize deal allows). Write and solve an inequality in <span class="m">h</span> for each limit. Show your steps.</div><div class="hints noblank" data-q="4"></div>
+    <div class="q"><div class="qt" data-tr="q.4"><span class="n">4.</span>Now suppose they rent exactly <b>4 claw machines</b> (the fewest the prize deal allows). Write and solve an inequality in <span class="m">h</span> for each limit. Show your steps.</div><div class="hints noblank" data-q="4"></div>
       <div class="sub">a) Floor space</div><div class="ans" data-id="p1q4a" data-label="4a floor space with 4 claw machines" style="--rows:2"></div>
       <div class="sub">b) Budget</div><div class="ans" data-id="p1q4b" data-label="4b budget with 4 claw machines" style="--rows:2"></div>
       <div class="sub">c) Staff pay</div><div class="ans" data-id="p1q4c" data-label="4c staff pay with 4 claw machines" style="--rows:2"></div>
       <div class="sub">d) With 4 claw machines, how many air hockey tables are possible? Use the stock limit too. Graph them, then list the whole numbers.</div>
       <div class="nlrow"><div class="ans" data-id="p1q4d" data-label="4d all limits together with 4 claw machines" style="--rows:2"></div><div class="nl" data-min="0" data-max="12" data-every="1" data-var="h"></div></div></div>
 
-    <div class="selfcheck"><b>🔎 Self-check (no answers given away):</b> in 3d your list should have <b>7</b> whole numbers, and in 4d it should have <b>4</b>. If not, look again at which dots are open.</div>
+    <div class="selfcheck" data-tr="self.1"><b>🔎 Self-check (no answers given away):</b> in 3d your list should have <b>7</b> whole numbers, and in 4d it should have <b>4</b>. If not, look again at which dots are open.</div>
     <div class="check"><b>Before you move on, check:</b><ul><li>Every inequality uses <span class="m">c</span> or <span class="m">h</span>, and the sign matches the words (at least, no more than, more than, up to).</li><li>Every dot is open or closed for a reason.</li><li>You can say what your answer means in the boathouse, not only as a number.</li></ul></div>
   </section>
 
   <!-- ============ PART 2 ============ -->
   <section class="sheet" id="p2">
     <div class="phead"><div><div class="kicker">Part 2 of 4</div><h2>Both machines at once</h2></div><div class="who">Name ____________________</div></div>
-    <div class="goal"><b>Goal:</b> write each limit as an inequality in <b>two</b> variables, <span class="m">c</span> and <span class="m">h</span>, and use the inequalities to test a plan.</div>
+    <div class="goal" data-tr="goal.2"><b>Goal:</b> write each limit as an inequality in <b>two</b> variables, <span class="m">c</span> and <span class="m">h</span>, and use the inequalities to test a plan.</div>
 
-    <div class="q"><div class="qt"><span class="n">5.</span>Write an inequality for each limit. Say in a few words what each term means. <span class="star">★ Core</span></div><div class="hints noblank" data-q="5"></div>
+    <div class="q"><div class="qt" data-tr="q.5"><span class="n">5.</span>Write an inequality for each limit. Say in a few words what each term means. <span class="star">★ Core</span></div><div class="hints noblank" data-q="5"></div>
       <div class="sub">a) Floor space</div><div class="ans" data-id="p2q5a" data-label="5a floor space inequality" style="--rows:2"></div>
       <div class="sub">b) Budget</div><div class="ans" data-id="p2q5b" data-label="5b budget inequality" style="--rows:2"></div>
       <div class="sub">c) Staff pay. Explain why your sign is &gt; or ≥.</div><div class="ans" data-id="p2q5c" data-label="5c staff pay inequality" style="--rows:2"></div></div>
 
-    <div class="q"><div class="qt"><span class="n">6.</span>Write the whole <b>system</b>: every inequality a plan has to satisfy, including the prize deal and the stock limit from Part 1. <span class="star">★ Core</span></div><div class="hints noblank" data-q="6"></div>
+    <div class="q"><div class="qt" data-tr="q.6"><span class="n">6.</span>Write the whole <b>system</b>: every inequality a plan has to satisfy, including the prize deal and the stock limit from Part 1. <span class="star">★ Core</span></div><div class="hints noblank" data-q="6"></div>
       <div class="ans" data-id="p2q6" data-label="6 the whole system" style="--rows:4"></div></div>
 
-    <div class="q"><div class="qt"><span class="n">7.</span>Test the three plans, and one plan of your own. Write ✓ if the plan meets the limit and ✗ if it doesn't. Show the working for at least one ✗. <span class="star">★ Core</span></div><div class="hints noblank" data-q="7"></div>
+    <div class="q"><div class="qt" data-tr="q.7"><span class="n">7.</span>Test the three plans, and one plan of your own. Write ✓ if the plan meets the limit and ✗ if it doesn't. Show the working for at least one ✗. <span class="star">★ Core</span></div><div class="hints noblank" data-q="7"></div>
       <div class="tw"><table class="pt"><tr><th>Plan</th><th>(c, h)</th><th>Prize deal</th><th>Stock</th><th>Floor space</th><th>Budget</th><th>Staff pay</th><th>Possible?</th></tr>
         <tr><td class="l">Marcus</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
         <tr><td class="l">Priya</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
@@ -107,78 +108,79 @@
         <tr><td class="l">My plan</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr></table></div>
       <div class="ans" data-id="p2q7" data-label="7 test results and working" data-rows="4" style="--rows:4"></div></div>
 
-    <div class="q"><div class="qt"><span class="n">8.</span>Rewrite the floor space boundary <span class="m">2c + 6h = 60</span> in slope-intercept form, <span class="m">h = mc + b</span>. Do the same for the budget boundary.</div><div class="hints noblank" data-q="8"></div>
+    <div class="q"><div class="qt" data-tr="q.8"><span class="n">8.</span>Rewrite the floor space boundary <span class="m">2c + 6h = 60</span> in slope-intercept form, <span class="m">h = mc + b</span>. Do the same for the budget boundary.</div><div class="hints noblank" data-q="8"></div>
       <div class="ans" data-id="p2q8" data-label="8 slope-intercept forms" style="--rows:3"></div></div>
 
-    <div class="q"><div class="qt"><span class="n">9.</span>What does the slope of the floor space line mean in the boathouse? Finish the sentence: "For every air hockey table they add, they have room for ___ fewer claw machines, because …"</div><div class="hints noblank" data-q="9"></div>
+    <div class="q"><div class="qt" data-tr="q.9"><span class="n">9.</span>What does the slope of the floor space line mean in the boathouse? Finish the sentence: "For every air hockey table they add, they have room for ___ fewer claw machines, because …"</div><div class="hints noblank" data-q="9"></div>
       <div class="ans" data-id="p2q9" data-label="9 meaning of the slope" style="--rows:2"></div></div>
 
-    <div class="selfcheck"><b>🔎 Self-check:</b> in question 7, exactly <b>one</b> of the three friends' plans is impossible. In question 8, both slopes are <b>negative fractions</b>.</div>
+    <div class="selfcheck" data-tr="self.2"><b>🔎 Self-check:</b> in question 7, exactly <b>one</b> of the three friends' plans is impossible. In question 8, both slopes are <b>negative fractions</b>.</div>
     <div class="check"><b>Before you move on, check:</b><ul><li>Your system has every limit in it, including the ones about only one machine.</li><li>Your ✓ and ✗ come from putting the numbers into the inequalities, not from guessing.</li></ul></div>
   </section>
 
   <!-- ============ PART 3 ============ -->
   <section class="sheet" id="p3">
     <div class="phead"><div><div class="kicker">Part 3 of 4</div><h2>Graph the system</h2></div><div class="who">Name ____________________</div></div>
-    <div class="goal"><b>Goal:</b> graph every inequality on one grid, shade the region where every limit is met (the <b>feasible region</b>) and find its corners.</div>
+    <div class="goal" data-tr="goal.3"><b>Goal:</b> graph every inequality on one grid, shade the region where every limit is met (the <b>feasible region</b>) and find its corners.</div>
 
-    <div class="q"><div class="qt"><span class="n">10.</span>Find where each boundary line crosses the axes. <span class="star">★ Core</span></div><div class="hints noblank" data-q="10"></div>
+    <div class="q"><div class="qt" data-tr="q.10"><span class="n">10.</span>Find where each boundary line crosses the axes. <span class="star">★ Core</span></div><div class="hints noblank" data-q="10"></div>
       <div class="tw"><table class="pt"><tr><th>Boundary line</th><th>Crosses the c-axis at (h = 0)</th><th>Crosses the h-axis at (c = 0)</th><th>Solid or dashed?</th></tr>
         <tr><td class="l">Floor space</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
         <tr><td class="l">Budget</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
         <tr><td class="l">Staff pay</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr></table></div>
       <div class="ans" data-id="p3q10" data-label="10 intercepts and solid or dashed" style="--rows:3"></div></div>
 
-    <div class="q"><div class="qt"><span class="n">11.</span>On the grid: draw all five boundary lines (floor space, budget, staff pay, <span class="m">c = 4</span> and <span class="m">h = 8</span>) and label each one. Use a test point to decide which side of each line to keep. Shade the feasible region and label it. <span class="star">★ Core</span></div><div class="hints noblank" data-q="11"></div>
+    <div class="q"><div class="qt" data-tr="q.11"><span class="n">11.</span>On the grid: draw all five boundary lines (floor space, budget, staff pay, <span class="m">c = 4</span> and <span class="m">h = 8</span>) and label each one. Use a test point to decide which side of each line to keep. Shade the feasible region and label it. <span class="star">★ Core</span></div><div class="hints noblank" data-q="11"></div>
       <div class="grid"></div>
       <div class="photo" data-id="graph" data-label="Working on a computer? Draw your graph on paper, then add a photo of it:" data-alt="My graph of the system"></div></div>
 
-    <div class="q"><div class="qt"><span class="n">12.</span>The floor space and budget lines cross at a corner of the region, but not on a grid point. Estimate the point from your graph. Then show that <span class="m">(10.8, 6.4)</span> fits <b>both</b> equations. Can the arcade use this plan? Why or why not?</div><div class="hints noblank" data-q="12"></div>
+    <div class="q"><div class="qt" data-tr="q.12"><span class="n">12.</span>The floor space and budget lines cross at a corner of the region, but not on a grid point. You don't need to solve anything: <b>zoom in</b>. On the zoomed grid below, plot <span class="m">(12, 6)</span> and <span class="m">(9, 7)</span> (both on the floor space line) and <span class="m">(15, 4)</span> and <span class="m">(8, 8)</span> (both on the budget line). Join each pair and estimate where the lines cross. Then check that <span class="m">(10.8, 6.4)</span> fits <b>both</b> equations. Can the arcade use this plan? Why or why not?</div><div class="hints noblank" data-q="12"></div>
+      <div class="zoom" style="max-width:420px"></div>
       <div class="ans" data-id="p3q12" data-label="12 where floor space and budget cross" style="--rows:3"></div></div>
 
-    <div class="q"><div class="qt"><span class="n">13.</span>Mark and label Marcus's, Priya's and Gus's plans on your graph. Which plans are inside the feasible region? How does the graph show it? <span class="star">★ Core</span></div><div class="hints noblank" data-q="13"></div>
+    <div class="q"><div class="qt" data-tr="q.13"><span class="n">13.</span>Mark and label Marcus's, Priya's and Gus's plans on your graph. Which plans are inside the feasible region? How does the graph show it? <span class="star">★ Core</span></div><div class="hints noblank" data-q="13"></div>
       <div class="ans" data-id="p3q13" data-label="13 the three plans on the graph" style="--rows:3"></div></div>
 
-    <div class="selfcheck"><b>🔎 Self-check:</b> your three c-axis crossings add up to <b>67</b>, and exactly <b>one</b> of your h-axis crossings is not a whole number.</div>
+    <div class="selfcheck" data-tr="self.3"><b>🔎 Self-check:</b> your three c-axis crossings add up to <b>67</b>, and exactly <b>one</b> of your h-axis crossings is not a whole number.</div>
     <div class="check"><b>Before you move on, check:</b><ul><li>Both axes are labelled, and the dashed line really is dashed.</li><li>Pick a point in your shaded region and test it in every inequality. Does it pass them all?</li></ul></div>
   </section>
 
   <!-- ============ PART 4 ============ -->
   <section class="sheet" id="p4">
     <div class="phead"><div><div class="kicker">Part 4 of 4</div><h2>Make the decision</h2></div><div class="who">Name ____________________</div></div>
-    <div class="goal"><b>Goal:</b> use the corners of the feasible region to find the plan that takes in the most money, and argue for it.</div>
+    <div class="goal" data-tr="goal.4"><b>Goal:</b> use the corners of the feasible region to find the plan that takes in the most money, and argue for it.</div>
 
-    <div class="q"><div class="qt"><span class="n">14.</span>Write a rule for the money the pop-up takes in each day, <span class="m">M</span>, in terms of <span class="m">c</span> and <span class="m">h</span>. <span class="star">★ Core</span></div><div class="hints noblank" data-q="14"></div>
+    <div class="q"><div class="qt" data-tr="q.14"><span class="n">14.</span>Write a rule for the money the pop-up takes in each day, <span class="m">M</span>, in terms of <span class="m">c</span> and <span class="m">h</span>. <span class="star">★ Core</span></div><div class="hints noblank" data-q="14"></div>
       <div class="ans" data-id="p4q14" data-label="14 daily money rule" style="--rows:1"></div></div>
 
-    <div class="q"><div class="qt"><span class="n">15.</span>List the corners of your feasible region and work out <span class="m">M</span> for each one. Mark any corner the arcade can't actually use: one on the dashed line, or one that isn't whole numbers. <span class="star">★ Core</span></div><div class="hints noblank" data-q="15"></div>
+    <div class="q"><div class="qt" data-tr="q.15"><span class="n">15.</span>List the corners of your feasible region and work out <span class="m">M</span> for each one. Mark any corner the arcade can't actually use: one on the dashed line, or one that isn't whole numbers. <span class="star">★ Core</span></div><div class="hints noblank" data-q="15"></div>
       <div class="tw"><table class="pt"><tr><th>Corner (c, h)</th><th>Working: M = …</th><th>Money each day</th></tr>
         <tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr></table></div>
       <div class="ans" data-id="p4q15" data-label="15 corners and money" style="--rows:4"></div></div>
 
-    <div class="q"><div class="qt"><span class="n">16.</span><b>The whole-number hunt.</b> The best corner isn't whole numbers, and you can't rent part of a machine. Test whole-number plans close to it: check each one against every limit and work out <span class="m">M</span>. (Is rounding both numbers down the best you can do?) Which plan takes in the most money? Is it Marcus's, Priya's, Gus's, or a different one? Use your table and your graph to explain. <span class="star">★ Core</span></div><div class="hints noblank" data-q="16"></div>
+    <div class="q"><div class="qt" data-tr="q.16"><span class="n">16.</span><b>The whole-number hunt.</b> The best corner isn't whole numbers, and you can't rent part of a machine. Test whole-number plans close to it: check each one against every limit and work out <span class="m">M</span>. (Is rounding both numbers down the best you can do?) Which plan takes in the most money? Is it Marcus's, Priya's, Gus's, or a different one? Use your table and your graph to explain. <span class="star">★ Core</span></div><div class="hints noblank" data-q="16"></div>
       <div class="tw" style="margin-left:30px"><table class="pt"><tr><th>Whole-number plan (c, h)</th><th>Floor ≤ 60?</th><th>Budget ≤ 4400?</th><th>Staff pay &gt; 300?</th><th>M</th></tr>
         <tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr></table></div>
       <div class="ans" data-id="p4q16" data-label="16 the whole-number hunt and the best plan" style="--rows:4"></div></div>
 
-    <div class="q"><div class="qt"><span class="n">17.</span>Marcus says, "Ten of each takes in $700 a day. That beats your answer." Write him a reply he can't argue with.</div><div class="hints noblank" data-q="17"></div>
+    <div class="q"><div class="qt" data-tr="q.17"><span class="n">17.</span>Marcus says, "Ten of each takes in $700 a day. That beats your answer." Write him a reply he can't argue with.</div><div class="hints noblank" data-q="17"></div>
       <div class="ans" data-id="p4q17" data-label="17 reply to Marcus" style="--rows:3"></div></div>
 
-    <div class="q"><div class="qt"><span class="n">18.</span><b>What if?</b> A new air hockey game is so popular that each table now takes in $70 a day. Claw machines still take in $20. Does the best plan change? Show why or why not.</div><div class="hints noblank" data-q="18"></div>
+    <div class="q"><div class="qt" data-tr="q.18"><span class="n">18.</span><b>What if?</b> A new air hockey game is so popular that each table now takes in $70 a day. Claw machines still take in $20. Does the best plan change? Show why or why not.</div><div class="hints noblank" data-q="18"></div>
       <div class="ans" data-id="p4q18" data-label="18 what if air hockey takes in 70 dollars" style="--rows:4"></div></div>
 
-        <div class="q"><div class="qt"><span class="n">19.</span><b>News flash!</b> Something has changed in Sandy Flats. Your teacher hands you a card, or you draw one here. Change only what the card says, then find the best plan again. Show the new inequality or money rule, the new corners and their takings, and say whether the best plan changes, and why.</div><div class="hints noblank" data-q="19"></div>
+        <div class="q"><div class="qt" data-tr="q.19"><span class="n">19.</span><b>News flash!</b> Something has changed in Sandy Flats. Your teacher hands you a card, or you draw one here. Change only what the card says, then find the best plan again. Show the new inequality or money rule, the new corners and their takings, and say whether the best plan changes, and why.</div><div class="hints noblank" data-q="19"></div>
       <div class="newsflash sub"></div>
       <div class="ans" data-id="p4q19" data-label="19 news flash" style="--rows:5"></div></div>
 
-    <div class="selfcheck"><b>🔎 Self-check:</b> the best plan beats every possible friend's plan, and it is <b>not</b> at a corner, and the digits of its daily takings add up to <b>8</b>.</div>
+    <div class="selfcheck" data-tr="self.4"><b>🔎 Self-check:</b> the best plan beats every possible friend's plan, and it is <b>not</b> at a corner, and the digits of its daily takings add up to <b>8</b>.</div>
     <div class="check"><b>Before you move on, check:</b><ul><li>Your best plan is inside the region and has whole numbers.</li><li>You compared it with all three friends' plans, using numbers.</li></ul></div>
   </section>
 
   <!-- ============ PART 5 ============ -->
   <section class="sheet" id="p5">
     <div class="phead"><div><div class="kicker">Part 5 · Put it together</div><h2>The Pop-Up Arcade Plan</h2></div><div class="who">Name ____________________</div></div>
-    <p>Now turn your four parts into <b>one finished plan</b> for the Sandy Flats Arcade: in the format you choose (below). Someone who has never seen this task should be able to read it and understand your decision. Don't just staple the parts together: choose your best work and tidy it up.</p>
+    <p data-tr="p5.intro">Now turn your four parts into <b>one finished plan</b> for the Sandy Flats Arcade: in the format you choose (below). Someone who has never seen this task should be able to read it and understand your decision. Don't just staple the parts together: choose your best work and tidy it up.</p>
     <h3>Choose your format</h3>
     <div class="choices">
       <div class="choice"><b>📄 The plan</b>One or two pages, on paper or typed: the classic report to the arcade.</div>
@@ -186,7 +188,7 @@
       <div class="choice"><b>🎬 The pitch</b>A 90-second video pitch to the arcade. Show your graph and table on screen while you talk, and upload a photo of them too.</div>
     </div>
     <h3>Your plan must include (in every format)</h3>
-    <ol>
+    <ol data-tr="p5.list">
       <li><b>The question</b> in your own words, and what <span class="m">c</span> and <span class="m">h</span> stand for.</li>
       <li><b>The limits table:</b> each limit in words, its inequality, and (for the prize deal and the stock limit) its number line.</li>
       <li><b>The system</b> of inequalities.</li>
@@ -195,7 +197,7 @@
       <li><b>Your recommendation:</b> a short paragraph to the arcade that names the plan, gives the money it takes in, says why it is better than Marcus's, Priya's and Gus's plans, and answers the what-if question and your news flash.</li>
     </ol>
     <div class="photo" data-id="plan" data-label="Made your plan on paper? You can add a photo of it here before you save as PDF:" data-alt="My finished plan"></div>
-    <div class="box dashed"><b class="t">How to hand it in</b>
+    <div class="box dashed" data-tr="p5.handin"><b class="t">How to hand it in</b>
       <ul>
         <li><b>On paper:</b> take a clear photo of every page (flat, in good light, all of the page in the picture), or scan it to one PDF.</li>
         <li><b>On this page:</b> press <b>Print or save my work as PDF</b> at the top and choose <b>Save as PDF</b>. Check your graph photo is in it.</li>
@@ -219,6 +221,7 @@
   </section>
 </div>
 <script src="config.js"></script>
-<script src="summative-u2.js?v=20261125b"></script>
+<script src="summative-u2-i18n.js?v=20261125a"></script>
+<script src="summative-u2.js?v=20261125c"></script>
 <script src="sfa-nav.js"></script>
 </body></html>

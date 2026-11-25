@@ -64,6 +64,33 @@
     box.appendChild(svg);
     box.su2 = { svg: svg, X: X, Y: Y, inv: function (px, py) { return [(px - ml) / cell * cpc, ny - (py - mt) / cell]; }, W: W, H: H };
   }
+  /* ---------- zoom grid: c from 6 to 16 (1 per square), h from 4 to 9 (half a unit per square), to estimate where the
+     floor space and budget lines cross without solving the system. data-ans draws both lines and the crossing. ---------- */
+  function zoom(box) {
+    var cell = 30, ml = 40, mr = 14, mt = 14, mb = 40, nx = 10, ny = 10, c0 = 6, h0 = 4;
+    var W = ml + nx * cell + mr, H = mt + ny * cell + mb;
+    var X = function (c) { return ml + (c - c0) * cell; }, Y = function (h) { return mt + (9 - h) * 2 * cell; };
+    var svg = s('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Zoomed grid: c from 6 to 16 across, h from 4 to 9 up, each square is 1 claw machine across and half a table up' + (box.dataset.ans ? ', with the answer drawn' : '') });
+    s('rect', { x: ml, y: mt, width: nx * cell, height: ny * cell, 'class': 'gbg' }, svg);
+    for (var i = 0; i <= nx; i++) s('line', { x1: X(c0 + i), y1: mt, x2: X(c0 + i), y2: mt + ny * cell, 'class': 'gl mj' }, svg);
+    for (var j = 0; j <= ny; j++) s('line', { x1: ml, y1: mt + j * cell, x2: ml + nx * cell, y2: mt + j * cell, 'class': 'gl' + (j % 2 ? '' : ' mj') }, svg);
+    s('rect', { x: ml, y: mt, width: nx * cell, height: ny * cell, fill: 'none', 'class': 'gax' }, svg);
+    for (i = 0; i <= nx; i++) txt(svg, X(c0 + i), mt + ny * cell + 15, String(c0 + i), 'gnum', { 'text-anchor': 'middle' });
+    for (j = 0; j <= ny; j += 2) txt(svg, ml - 6, Y(h0 + j / 2) + 4, String(h0 + j / 2), 'gnum', { 'text-anchor': 'end' });
+    txt(svg, ml + nx * cell / 2, H - 6, 'c (claw machines)', 'gttl', { 'text-anchor': 'middle' });
+    txt(svg, 13, mt + ny * cell / 2, 'h (tables)', 'gttl', { 'text-anchor': 'middle', transform: 'rotate(-90 13 ' + (mt + ny * cell / 2) + ')' });
+    if (box.dataset.ans) {
+      var line = function (a, b, cls) { s('line', { x1: X(a[0]), y1: Y(a[1]), x2: X(b[0]), y2: Y(b[1]), 'class': 'bd ' + cls }, svg); };
+      line([6, 8], [15, 5], 'sp'); line([8, 8], [15, 4], 'bu');
+      [[12, 6], [9, 7], [15, 4], [8, 8]].forEach(function (p) { s('circle', { cx: X(p[0]), cy: Y(p[1]), r: 4.5, 'class': 'cpt' }, svg); });
+      s('circle', { cx: X(10.8), cy: Y(6.4), r: 6, 'class': 'cpt o' }, svg);
+      txt(svg, X(10.8) + 9, Y(6.4) - 6, 'about (10.8, 6.4)', 'glab');
+      txt(svg, X(13.2), Y(5.6) - 6, 'floor space', 'glab sp'); txt(svg, X(13.3), Y(4.9) + 16, 'budget', 'glab bu');
+      s('path', { d: 'M' + X(9) + ' ' + (Y(7) - 8) + ' l2.4 5 5.4 .6 -4 3.7 1.1 5.3 -4.9 -2.7 -4.9 2.7 1.1 -5.3 -4 -3.7 5.4 -.6z', fill: '#E8A317', stroke: '#7A4A00', 'stroke-width': 1 }, svg);
+      txt(svg, X(9) - 4, Y(7) - 12, '(9, 7) best', 'glab', { 'text-anchor': 'end' });
+    }
+    box.appendChild(svg);
+  }
   // the support grid: floor space and budget already drawn, the rest is the student's
   function drawPre(svg, X, Y) {
     var line = function (a, b, cls) { s('line', { x1: X(a[0]), y1: Y(a[1]), x2: X(b[0]), y2: Y(b[1]), 'class': 'bd ' + cls }, svg); };
@@ -102,6 +129,7 @@
 
   document.querySelectorAll('.nl').forEach(numberLine);
   document.querySelectorAll('.grid').forEach(grid);
+  document.querySelectorAll('.zoom').forEach(zoom);
 
   /* ---------- hints: three levels per question (a nudge, the first step, an example from another setting).
      The handout opens them one at a time and notes the deepest level used. The support pack prints them all as cards. ---------- */
@@ -117,22 +145,22 @@
     9: ['Look at your slope. When h goes up by 1, what happens to c?', 'One air hockey table uses 6 m². How many 2 m² claw machines is that?', 'Example: a burrito uses 4 minutes, the same as 2 tacos, so each extra burrito means 2 fewer tacos.'],
     10: ['To find where a line crosses the c-axis, put h = 0.', 'Floor: 2c + 6(0) = 60, so c = 30 and the point is (30, 0). Now put c = 0 to find where it crosses the h-axis.', 'Dashed for < or > (the line itself isn\'t included). Solid for ≤ or ≥.'],
     11: ['Plot the two crossing points from question 10 and join them with a ruler. Across, each square is 2 machines.', 'Test point (0, 0): is 2(0) + 6(0) ≤ 60? Yes, so keep the side with (0, 0). Test every line the same way.', 'The feasible region is where all the "keep" sides overlap. It has six corners.'],
-    12: ['Find where the floor space and budget lines meet. Read across, then up.', 'Put (10.8, 6.4) into 2c + 6h and into 200c + 350h.', 'Both should come out exactly at the limit: 60 and 4400. Then ask: can you rent 0.8 of a machine?'],
+    12: ['On the zoomed grid, plot (12, 6) and (9, 7) for floor space, and (15, 4) and (8, 8) for budget. Join each pair with a ruler.', 'Put (10.8, 6.4) into 2c + 6h and into 200c + 350h.', 'Both should come out exactly at the limit: 60 and 4400. Then ask: can you rent 0.8 of a machine?'],
     13: ['Plot (10, 10), (22, 0) and (6, 8).', 'A plan is possible if it is in the shaded region or on a solid edge.', 'One of the three should be well outside. Where are the other two?'],
     14: ['Each claw machine takes in $20 a day, so c machines take in 20c.', 'M = 20c + ___h', 'Example: tacos make $3 each and burritos $5 each: P = 3t + 5b.'],
     15: ['The corners are where two edges of the shaded region meet.', 'One corner is where floor space meets budget. Others are on the c-axis, on h = 8 and on c = 4.', 'For each corner: M = 20 × c + 50 × h. Example: (22, 0) → 20 × 22 + 50 × 0 = $440.'],
-    16: ['Try the whole-number points around (10.8, 6.4): (10, 6), (11, 6), (10, 7), (9, 7) and more. Check every limit for each one.', 'A point that breaks the floor or the budget doesn\'t count, however much money it takes in. Rounding down isn\'t always best: try moving along the floor line.', 'Frame: "The best plan is ___ claw machines and ___ air hockey tables. It takes in $___ a day, which is $___ more than Gus\'s plan and $___ more than Priya\'s."'],
+    16: ['Use your zoomed grid. Try the whole-number points around (10.8, 6.4): (10, 6), (11, 6), (10, 7), (9, 7) and more. Check every limit for each one.', 'A point that breaks the floor or the budget doesn\'t count, however much money it takes in. Rounding down isn\'t always best: try moving along the floor line.', 'Frame: "The best plan is ___ claw machines and ___ air hockey tables. It takes in $___ a day, which is $___ more than Gus\'s plan and $___ more than Priya\'s."'],
     17: ['Look at your ✓ and ✗ table for Marcus.', 'Name each limit his plan breaks, with numbers.', 'Frame: "Ten of each would need ___ m², but there are only 60 m². It would cost $___, but …"'],
     18: ['The new rule is M = 20c + 70h.', 'Work out M again for your best plan from question 16 and for (6, 8), (4, 8) and (22, 0).', 'To explain why: going from (9, 7) to (6, 8) loses 3 claw machines and gains 1 table. Compare the money lost with the money gained.'],
     19: ['Read your card. Which limit or which takings number changes?', 'Rewrite that one inequality (or the money rule), redraw that one line, and find the new corners.', 'Work out M at the new corners. Is the best plan the same as before? Say why or why not.']
   };
   var CARDS = [
-    { t: 'Rent rise', d: 'The air hockey company raises its summer rent to $600 a table. Everything else stays the same.' },
+    { t: 'Summer sale', d: 'The air hockey company has a summer sale: renting a table now costs $300. Everything else stays the same.' },
     { t: 'Broken tables', d: 'Three of the town\'s air hockey tables are broken. Only 5 can be rented now.' },
-    { t: 'Bigger boathouse', d: 'The council clears out a storeroom. There are now 72 m² of floor for machines.' },
+    { t: 'Storage boxes', d: 'The council needs to store boxes in the boathouse. Only 56 m² of floor is left for machines.' },
     { t: 'New prize deal', d: 'The prize company changes its deal: it now wants at least 10 claw machines.' },
-    { t: 'Claw craze', d: 'A new prize is going viral. Each claw machine now takes in $30 a day.' },
-    { t: 'Sponsor', d: 'A sponsor adds money. The budget for machines is now $6000.' }
+    { t: 'Claw price rise', d: 'The claw machine company puts its summer rent up to $250 a machine.' },
+    { t: 'Sponsor', d: 'A sponsor adds money. The budget for machines is now $4900.' }
   ];
   window.SU2 = { HINTS: HINTS, CARDS: CARDS };
 
@@ -186,6 +214,58 @@
     wrap.appendChild(lab); wrap.appendChild(inp); wrap.appendChild(rm); box.appendChild(wrap);
   });
 
+  /* ---------- translation help (summative-u2-i18n.js): the chosen language appears under the English ---------- */
+  var I18N = window.SU2_I18N || {}, LKEY = 'sfa.su2.lang', redraws = [];
+  var lang = ''; try { lang = localStorage.getItem(LKEY) || ''; } catch (e) { }
+  if (!I18N[lang]) lang = '';
+  function T() { return I18N[lang] || null; }
+  function look(key) { var t = T(); if (!t) return ''; var v = t; key.split('.').forEach(function (k) { v = v == null ? null : v[k]; }); return typeof v === 'string' ? v : ''; }
+  // a translated block: {{ … }} becomes left-to-right maths, also inside Arabic
+  function trNode(text, tag) {
+    var t = T(), n = document.createElement(tag || 'div');
+    n.className = 'tr'; n.lang = lang; n.dir = t.dir;
+    text.split(/\{\{|\}\}/).forEach(function (part, i) {
+      if (i % 2) { var b = document.createElement('bdi'); b.className = 'm'; b.dir = 'ltr'; b.textContent = part; n.appendChild(b); }
+      else n.appendChild(document.createTextNode(part));
+    });
+    return n;
+  }
+  function applyTr() {
+    document.querySelectorAll('.tr').forEach(function (n) { n.remove(); });
+    var gl = document.getElementById('gloss'); if (gl) gl.remove();
+    if (T()) {
+      document.querySelectorAll('[data-tr]').forEach(function (el) {
+        var txt = look(el.dataset.tr); if (!txt) return;
+        var inside = el.tagName === 'LI' || el.tagName === 'OL' || /\b(voice|box|goal|selfcheck)\b/.test(el.className);
+        if (inside) el.appendChild(trNode(txt)); else el.parentNode.insertBefore(trNode(txt), el.nextSibling);
+      });
+      var pick = document.getElementById('langpick');
+      if (pick) {
+        var d = document.createElement('details'); d.id = 'gloss'; d.className = 'gloss';
+        var sm = document.createElement('summary'); sm.textContent = '📖 ' + T().ui.label + ': key words'; d.appendChild(sm);
+        d.appendChild(trNode(T().ui.note, 'p'));
+        var tb = document.createElement('table');
+        T().gloss.forEach(function (g) { var tr = document.createElement('tr'), a = document.createElement('td'), b = document.createElement('td'); a.textContent = g[0]; b.textContent = g[1]; b.lang = lang; b.dir = T().dir; tr.appendChild(a); tr.appendChild(b); tb.appendChild(tr); });
+        d.appendChild(tb); pick.parentNode.insertBefore(d, pick.nextSibling);
+      }
+    }
+    redraws.forEach(function (f) { f(); });
+  }
+  var pickBox = document.getElementById('langpick');
+  if (pickBox) {
+    var lab = document.createElement('span'); lab.className = 'muted'; lab.textContent = '🌐 Translation help:'; pickBox.appendChild(lab);
+    [['', 'English only']].concat(Object.keys(I18N).map(function (k) { return [k, I18N[k].name]; })).forEach(function (o) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = o[1]; if (o[0]) b.lang = o[0];
+      b.setAttribute('aria-pressed', String(lang === o[0]));
+      b.addEventListener('click', function () {
+        lang = o[0]; try { localStorage.setItem(LKEY, lang); } catch (e) { }
+        pickBox.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        applyTr();
+      });
+      pickBox.appendChild(b);
+    });
+  }
+
   // hint drawers: one level at a time; the deepest level used is kept and printed (so the teacher sees it)
   document.querySelectorAll('.hints[data-q]').forEach(function (box) {
     var q = box.dataset.q, hs = HINTS[q] || [], used = +saved['hint' + q] || 0;
@@ -194,13 +274,13 @@
     var names = ['Nudge', 'First step', 'Example'];
     function draw() {
       list.innerHTML = '';
-      for (var i = 0; i < used; i++) { var p = document.createElement('p'); p.className = 'hl'; p.innerHTML = '<b>' + names[i] + ':</b> '; p.appendChild(document.createTextNode(hs[i])); list.appendChild(p); }
+      for (var i = 0; i < used; i++) { var p = document.createElement('p'); p.className = 'hl'; p.innerHTML = '<b>' + names[i] + ':</b> '; p.appendChild(document.createTextNode(hs[i])); var th = T() && T().hints[q] && T().hints[q][i]; if (th) p.appendChild(trNode(th)); list.appendChild(p); }
       btn.textContent = used >= hs.length ? '💡 All hints shown' : used ? '💡 Next hint (' + (used + 1) + ' of ' + hs.length + ')' : '💡 Need a hint?';
       btn.disabled = used >= hs.length;
       note.textContent = used ? 'Hints used on this question: ' + used + ' of ' + hs.length : '';
     }
     btn.addEventListener('click', function () { if (used < hs.length) { used++; saved['hint' + q] = used; save(); draw(); } });
-    box.appendChild(btn); box.appendChild(list); box.appendChild(note); draw();
+    box.appendChild(btn); box.appendChild(list); box.appendChild(note); draw(); redraws.push(draw);
   });
 
   // news flash: drawn at random on screen (kept), or picked to match the paper card the teacher handed out
@@ -217,12 +297,16 @@
       card.hidden = false;
       var b = document.createElement('b'); b.textContent = '📰 News flash ' + (+i + 1) + ': ' + CARDS[i].t; card.appendChild(b);
       card.appendChild(document.createTextNode(CARDS[i].d));
+      var tc = T() && T().cards[i]; if (tc) card.appendChild(trNode(T().ui.card + ' ' + (+i + 1) + ': ' + tc[0] + '. ' + tc[1]));
     }
     sel.addEventListener('change', function () { saved.card = sel.value === '' ? null : +sel.value; save(); show(); });
     draw.addEventListener('click', function () { saved.card = Math.floor(Math.random() * CARDS.length); save(); show(); });
     var row = document.createElement('div'); row.className = 'pbtn noprint'; row.appendChild(sel); row.appendChild(draw);
-    box.appendChild(row); box.appendChild(card); show();
+    box.appendChild(row); box.appendChild(card); show(); redraws.push(show);
   });
+
+  applyTr();
+  window.SU2.tr = { T: T, trNode: trNode, lang: function () { return lang; }, onLang: function (f) { redraws.push(f); } };
 
   function on(id, fn) { var b = document.getElementById(id); if (b) b.addEventListener('click', fn); }
   on('printMine', function () { document.body.classList.remove('blank'); window.print(); });

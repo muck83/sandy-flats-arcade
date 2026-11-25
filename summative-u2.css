@@ -63,7 +63,8 @@ table.pt .key{font-family:var(--mono);font-weight:600;color:#1E7A4C}
 
 /* number lines and the coordinate grid */
 .nl{margin:8px 0 0 30px;max-width:620px}
-.nl svg,.grid svg{display:block;width:100%;height:auto}
+.nl svg,.grid svg,.zoom svg{display:block;width:100%;height:auto}
+.zoom{margin:10px auto 0}
 .nlrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:6px 14px;align-items:center;margin:6px 0 0 30px}
 .nlrow .nl{margin:0}
 .nlrow .ans{margin:0}
@@ -158,3 +159,18 @@ table.rub td.cr small{color:#6B6676;font-weight:600;letter-spacing:.04em;text-tr
   body.blank .hused,body.blank .ncard{display:none}
   .ncard[hidden]{display:none}
 }
+
+/* translation help: the chosen language sits under the English */
+.langpick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px}
+.tr{margin-top:4px;padding:4px 10px;border-left:3px solid #8DA2E8;background:rgba(141,162,232,.12);border-radius:0 8px 8px 0;font-size:.95em;line-height:1.5;font-weight:400;color:inherit}
+.tr[dir="rtl"]{border-left:0;border-right:3px solid #8DA2E8;border-radius:8px 0 0 8px;text-align:right;font-size:1.02em}
+.tr .m{font-family:var(--mono);font-weight:600;unicode-bidi:isolate}
+.sheet .tr{color:#2B2A55}
+.qt + .tr{margin-left:30px}
+.gloss{margin-top:10px;background:var(--panel2);border:2px solid var(--line);border-radius:12px;padding:8px 12px}
+.gloss summary{cursor:pointer;font-weight:700}
+.gloss table{border-collapse:collapse;margin-top:6px;font-size:14px}
+.gloss td{border-bottom:1px solid var(--line);padding:3px 12px 3px 0}
+.gloss .tr{color:var(--ink);background:none;border:0;padding:0}
+@media (max-width:600px){ .qt + .tr{margin-left:0} }
+@media print{ .tr{background:none;border-color:#999} .sheet .tr{color:#000} .gloss{display:none} }

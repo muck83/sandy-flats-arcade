@@ -4,7 +4,7 @@
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
 <link rel="stylesheet" href="sfa-kit.css?v=20261118">
-<link rel="stylesheet" href="summative-u2.css?v=20261125a">
+<link rel="stylesheet" href="summative-u2.css?v=20261125c">
 </head><body>
 <div class="wrap su">
   <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Unit 2 Summative · Key</h1><div class="chips"><span class="chip static">📄 The Pop-Up Arcade</span></div></header>
@@ -106,7 +106,8 @@
       <div class="ka">Test point (0, 0): it passes floor space and budget, so shade <i>below</i> those lines. It fails staff pay (0 &gt; 300 is false), so shade <i>above</i> the dashed line. Keep the side of <span class="m">c = 4</span> to the right and the side of <span class="m">h = 8</span> below. The feasible region has six corners: (22, 0), (6, 8) and (4, 8) are whole-number plans; (10.8, 6.4), where floor space meets budget, is not whole numbers; (15, 0) and (4, 4.4) are on the dashed line, so not included.</div>
       <div class="err"><b>Common errors:</b> reading the across-scale as 1 per square (it's 2). Shading the whole space below the staff-pay line. A solid staff-pay line. Leaving out <span class="m">c = 4</span> and <span class="m">h = 8</span>.</div></div>
     <div class="q"><div class="qt"><span class="n">12.</span>Where floor space and budget cross (not a whole-number point)</div>
-      <div class="ka">From the graph, about (11, 6.5). Check <span class="m">(10.8, 6.4)</span>: <span class="m">2(10.8) + 6(6.4) = 21.6 + 38.4 = 60</span> ✓ and <span class="m">200(10.8) + 350(6.4) = 2160 + 2240 = 4400</span> ✓. The arcade can't use it: you can't rent 10.8 claw machines or 6.4 tables. (It would take in $536, the most possible if parts of machines were allowed.)</div></div>
+      <div class="zoom" data-ans="1" style="max-width:420px"></div>
+      <div class="ka">No system solving is needed. On the zoomed grid the lines cross at about (10.8, 6.4); estimates between (10.5, 6.3) and (11, 6.5) are fine. Check <span class="m">(10.8, 6.4)</span>: <span class="m">2(10.8) + 6(6.4) = 21.6 + 38.4 = 60</span> ✓ and <span class="m">200(10.8) + 350(6.4) = 2160 + 2240 = 4400</span> ✓. The arcade can't use it: you can't rent 10.8 claw machines or 6.4 tables. (It would take in $536, the most possible if parts of machines were allowed.)</div></div>
     <div class="q"><div class="qt"><span class="n">13.</span>The three plans on the graph</div>
       <div class="ka">Priya (22, 0) and Gus (6, 8) are on the edge of the region. Edges on solid lines count, so both plans are possible. Marcus (10, 10) is outside: above the floor space and budget lines and above <span class="m">h = 8</span>.</div></div>
   </section>
@@ -163,15 +164,15 @@
     <div class="phead"><div><div class="kicker">Answer key</div><h2>Question 19 · News flash cards</h2></div></div>
     <p>Each card changes one thing. Students should rewrite that one inequality (or the money rule), redraw that one line, find the new corners, and say whether the best plan changes. Cards are in the <a href="summative-u2-support.html#s8">support pack</a>. On screen, students can draw one at random or pick the card they were given.</p>
     <div class="tw"><table class="pt">
-      <tr><th>Card</th><th>What changes</th><th>New best plan</th><th>Why</th></tr>
-      <tr><td class="l"><b>1 Rent rise</b> (table $600)</td><td class="l"><span class="m">200c + 600h ≤ 4400</span> (c + 3h ≤ 22). The floor line no longer matters.</td><td class="key">(22, 0): $440 (Priya)</td><td class="l">Along the new budget line, each table means 3 fewer claw machines: +$50 − $60 = −$10. Fewer tables is better.</td></tr>
-      <tr><td class="l"><b>2 Broken tables</b> (only 5)</td><td class="l"><span class="m">h ≤ 5</span>. (9, 7) is cut off.</td><td class="key">(13, 5): $510</td><td class="l">On h = 5 the budget allows c ≤ 13.25, so 13 claw machines ($4350, 56 m²). Another corner that isn't whole numbers.</td></tr>
-      <tr><td class="l"><b>3 Bigger boathouse</b> (72 m²)</td><td class="l"><span class="m">2c + 6h ≤ 72</span>. Only the budget and h ≤ 8 bind near the top.</td><td class="key">(8, 8): $560</td><td class="l">8 tables leave $1600 for 8 claw machines: $4400 exactly, 64 m² ✓. Along the budget line, 1 table = 1¾ claw machines: +$50 − $35 = +$15, so go up to the stock limit.</td></tr>
-      <tr><td class="l"><b>4 New prize deal</b> (c ≥ 10)</td><td class="l"><span class="m">c ≥ 10</span>. The c = 4 line moves to c = 10.</td><td class="key">(11, 6): $520</td><td class="l">(9, 7) is cut off. On c = 10 the floor allows h ≤ 6.67, so (10, 6) $500; (11, 6) $520 is best, ahead of (13, 5) $510.</td></tr>
-      <tr><td class="l"><b>5 Claw craze</b> (claw $30)</td><td class="l"><span class="m">M = 30c + 50h</span>. The region doesn't change.</td><td class="key">(22, 0): $660 (Priya)</td><td class="l">(9, 7) → $620, (6, 8) → $580. Along the floor line one table costs 3 claw machines: +$50 − $90 = −$40.</td></tr>
-      <tr><td class="l"><b>6 Sponsor</b> ($6000)</td><td class="l"><span class="m">200c + 350h ≤ 6000</span>. Now floor space is the only one that binds.</td><td class="key">(30, 0): $600</td><td class="l">Along the floor line, each table means 3 fewer claw machines: +$50 − $60 = −$10. All claw machines, 60 m² and $6000 exactly.</td></tr>
+      <tr><th>Card</th><th>What changes</th><th>Best corner (not whole)</th><th>Best whole-number plan</th><th>The hunt</th></tr>
+      <tr><td class="l"><b>1 Summer sale</b> (table $300)</td><td class="l"><span class="m">200c + 300h ≤ 4400</span> (2c + 3h ≤ 44)</td><td>(14, 5⅓) → $546.67</td><td class="key">(12, 6): $540</td><td class="l">Rounding down to (14, 5) gives $530. (12, 6) sits on the floor line: 60 m², $4200.</td></tr>
+      <tr><td class="l"><b>2 Broken tables</b> (only 5)</td><td class="l"><span class="m">h ≤ 5</span>. (9, 7) is cut off.</td><td>(13.25, 5) → $515</td><td class="key">(13, 5): $510</td><td class="l">On h = 5 the budget allows c ≤ 13.25. The gentlest card: rounding down works.</td></tr>
+      <tr><td class="l"><b>3 Storage boxes</b> (56 m²)</td><td class="l"><span class="m">2c + 6h ≤ 56</span> (c + 3h ≤ 28)</td><td>(13.6, 4.8) → $512</td><td class="key">(13, 5): $510</td><td class="l">Rounding down to (13, 4) gives only $460, and (14, 5) needs 58 m². The best plan rounds h <i>up</i>.</td></tr>
+      <tr><td class="l"><b>4 New prize deal</b> (c ≥ 10)</td><td class="l"><span class="m">c ≥ 10</span></td><td>(10.8, 6.4) → $536, still inside</td><td class="key">(11, 6): $520</td><td class="l">The corner doesn't move, but the old best plan (9, 7) is no longer allowed. Next best: (11, 6), ahead of (13, 5) at $510.</td></tr>
+      <tr><td class="l"><b>5 Claw price rise</b> (claw $250)</td><td class="l"><span class="m">250c + 350h ≤ 4400</span> (5c + 7h ≤ 88)</td><td>(6.75, 7.75) → $522.50</td><td class="key">(6, 8): $520 (Gus)</td><td class="l">Gus's plan wins: 60 m², $4300. (7, 7) gives $490.</td></tr>
+      <tr><td class="l"><b>6 Sponsor</b> ($4900)</td><td class="l"><span class="m">200c + 350h ≤ 4900</span> (4c + 7h ≤ 98)</td><td>(16.8, 4.4) → $556</td><td class="key">(15, 5): $550</td><td class="l">Rounding down to (16, 4) gives $520. (17, 4) gives $540. (15, 5) is on the floor line: 60 m², $4750.</td></tr>
     </table></div>
-    <p class="muted" style="color:#55505F">Cards 2 and 4 keep the whole-number hunt. Cards 1, 5 and 6 move the decision to the c-axis, and card 3 to the stock limit, so they suit students aiming for Deep.</p>
+    <p class="muted" style="color:#55505F">Every card moves the best corner to another point that isn't whole numbers, so every student does a second whole-number hunt. Cards 2 and 4 are the gentlest. Cards 3, 1 and 6 punish simple rounding down, so they suit students aiming for Deep.</p>
   </section>
 
   <!-- ============ SCAFFOLDS ============ -->
@@ -183,6 +184,8 @@
       <li><b>Paper floor plan</b> (support pack page 6): good for students who need to touch it. It also raises a fair question: tables don't always fit even when the area adds up. The task models area only, and that is a good thing for students to say in the plan.</li>
       <li><b>News flash cards</b> make question 19 personal, and copying harder.</li>
       <li><b>Choice of format</b> in Part 5: plan, poster or 90-second pitch video. Every format needs the same six parts, so the rubric doesn't change.</li>
+      <li><b>Translation help</b>: a 🌐 picker at the top of the handout and the support pack shows Arabic, Korean, French or Spanish under the English (situation, questions, goals, self-checks, Part 5, hints, news flash cards) plus a key-word list. It prints too, so you can print bilingual paper copies. Students still write in the language you choose.</li>
+      <li><b>Zoomed grid</b> (question 12): students plot two easy points on each line and estimate the crossing. No system solving is needed, and the check of (10.8, 6.4) is only substitution.</li>
       <li><b>Self-checks</b> at the end of each part give a check (counts, sums) without the answers.</li>
     </ul>
     <h3>For students who struggle</h3>
@@ -209,6 +212,6 @@
   </section>
 </div>
 <script src="config.js"></script>
-<script src="summative-u2.js?v=20261125b"></script>
+<script src="summative-u2.js?v=20261125c"></script>
 <script src="sfa-nav.js"></script>
 </body></html>

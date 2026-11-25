@@ -3,7 +3,7 @@
 <title>Pop-Up Arcade Support Pack · Sandy Flats</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
 <link rel="stylesheet" href="sfa-kit.css?v=20261118">
-<link rel="stylesheet" href="summative-u2.css?v=20261125a">
+<link rel="stylesheet" href="summative-u2.css?v=20261125c">
 <style>
 /* Support pack for the Pop-Up Arcade summative: printable, one tool per page. */
 .sym{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
@@ -32,6 +32,7 @@
   <section class="card noprint">
     <p class="lead" style="margin:0">Tools for the Pop-Up Arcade task. Use the ones you need. None of them do the task for you, but each one gets you unstuck.</p>
     <div class="jump"><a class="chip" href="#s1">Symbol card</a><a class="chip" href="#s2">Worked example</a><a class="chip" href="#s3">Half-filled tables</a><a class="chip" href="#s4">Starter graph</a><a class="chip" href="#s5">Sentence frames</a><a class="chip" href="#s6">Floor plan cut-outs</a><a class="chip" href="#s7">Hint cards</a><a class="chip" href="#s8">News flash cards</a></div>
+    <div class="langpick" id="langpick"></div>
     <div class="btns"><button class="chip" type="button" onclick="window.print()">🖨️ Print the whole pack</button></div>
   </section>
 
@@ -126,23 +127,35 @@
   </section>
 </div>
 <script src="config.js"></script>
-<script src="summative-u2.js?v=20261125b"></script>
+<script src="summative-u2-i18n.js?v=20261125a"></script>
+<script src="summative-u2.js?v=20261125c"></script>
 <script>
 (function () {
   'use strict';
   var SU = window.SU2, NS = 'http://www.w3.org/2000/svg';
   function s(tag, a, p) { var n = document.createElementNS(NS, tag); for (var k in a) n.setAttribute(k, a[k]); if (p) p.appendChild(n); return n; }
-  // hint cards
-  var hc = document.getElementById('hcards'), names = ['Nudge', 'First step', 'Example'];
-  Object.keys(SU.HINTS).forEach(function (q) {
-    var d = document.createElement('div'); d.className = 'hcard';
-    var b = document.createElement('b'); b.className = 'q'; b.textContent = '💡 Question ' + q; d.appendChild(b);
-    SU.HINTS[q].forEach(function (h, i) { var p = document.createElement('p'); var bb = document.createElement('b'); bb.textContent = names[i] + ': '; p.appendChild(bb); p.appendChild(document.createTextNode(h)); d.appendChild(p); });
-    hc.appendChild(d);
-  });
-  // news flash cards
-  var nc = document.getElementById('ncards');
-  SU.CARDS.forEach(function (c, i) { var d = document.createElement('div'); d.className = 'ncard'; var b = document.createElement('b'); b.textContent = '📰 News flash ' + (i + 1) + ': ' + c.t; d.appendChild(b); d.appendChild(document.createTextNode(c.d)); nc.appendChild(d); });
+  // hint cards and news flash cards, with the chosen translation under each (the picker is at the top of the page)
+  var hc = document.getElementById('hcards'), nc = document.getElementById('ncards'), names = ['Nudge', 'First step', 'Example'], TR = SU.tr;
+  function cards() {
+    var t = TR && TR.T();
+    hc.innerHTML = ''; nc.innerHTML = '';
+    Object.keys(SU.HINTS).forEach(function (q) {
+      var d = document.createElement('div'); d.className = 'hcard';
+      var b = document.createElement('b'); b.className = 'q'; b.textContent = '💡 Question ' + q; d.appendChild(b);
+      SU.HINTS[q].forEach(function (h, i) {
+        var p = document.createElement('p'); var bb = document.createElement('b'); bb.textContent = names[i] + ': '; p.appendChild(bb); p.appendChild(document.createTextNode(h));
+        if (t && t.hints[q] && t.hints[q][i]) p.appendChild(TR.trNode(t.hints[q][i]));
+        d.appendChild(p);
+      });
+      hc.appendChild(d);
+    });
+    SU.CARDS.forEach(function (c, i) {
+      var d = document.createElement('div'); d.className = 'ncard'; var b = document.createElement('b'); b.textContent = '📰 News flash ' + (i + 1) + ': ' + c.t; d.appendChild(b); d.appendChild(document.createTextNode(c.d));
+      if (t && t.cards[i]) d.appendChild(TR.trNode(t.ui.card + ' ' + (i + 1) + ': ' + t.cards[i][0] + '. ' + t.cards[i][1]));
+      nc.appendChild(d);
+    });
+  }
+  cards(); if (TR) TR.onLang(cards);
   // floor plan: 10 × 6 m, 1 m squares, plus cut-outs (8 claw machines, 6 tables); the plan and the cut-outs share one scale
   var u = 13, W = 10 * u + 2, svg = s('svg', { viewBox: '-2 -2 ' + (W + 4) + ' ' + (6 * u + 6 + 2 * u + 4 * u + 30), role: 'img', 'aria-label': 'Boathouse floor plan, 10 by 6 metres, with machine cut-outs' }, document.getElementById('fp'));
   for (var i = 0; i <= 10; i++) s('line', { x1: i * u, y1: 0, x2: i * u, y2: 6 * u, stroke: '#CFC6AB', 'stroke-width': .4 }, svg);
