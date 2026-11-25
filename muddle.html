@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Muddle Under the Pond · Sandy Flats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css?v=20261118">
+<link rel="stylesheet" href="muddle.css?v=20261125">
+</head><body class="muddle player">
+<div class="wrap">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats</a><h1 class="mtitle">🫧 Muddle Under the Pond</h1></header>
+  <main id="play" aria-live="polite"><p class="muted">Loading…</p></main>
+</div>
+<div id="mtask" hidden></div>
+<script src="config.js"></script>
+<!-- muddle.html?try plays against the practice backend in this browser (muddle-mock.js); each tab is a separate player. -->
+<script>if (/[?&]try\b/.test(location.search)) document.write('<script src="muddle-mock.js?v=20261125"><\/script>');</script>
+<script src="muddle-core.js?v=20261125"></script>
+<script src="muddle.js?v=20261125"></script>
+</body></html>

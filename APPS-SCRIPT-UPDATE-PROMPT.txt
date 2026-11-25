@@ -31,18 +31,29 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
      Logger.log('checkAnswers ok: ' + an.ok + ', attempts: ' + an.rows.length);
      var sq = route({ op: 'squeezeBoard' });
      Logger.log('squeezeBoard ok: ' + sq.ok + ', week: ' + sq.season + ', players: ' + sq.players);
+     var rh = route({ op: 'roomHost', teacherKey: key, code: 'TSTX', owner: 'test1', pub: { ph: 'lobby' }, priv: {} });
+     var rp = route({ op: 'roomPing', code: 'TSTX', pid: 'tester1', tok: 'testtoken12345', nick: 'Test', look: 0, acts: [] });
+     var rh2 = route({ op: 'roomHost', teacherKey: key, code: 'TSTX', owner: 'test1', pub: { ph: 'lobby' }, priv: {} });
+     route({ op: 'roomHost', teacherKey: key, code: 'TSTX', owner: 'test1', end: true });
+     Logger.log('Muddle rooms ok: ' + (rh.ok && rp.ok && rp.board.ph === 'lobby') + ', players seen by the host: ' + Object.keys(rh2.players).length);
    }
    Expected: {"ok":true,...}, "climbClass ok: true ... questions today: 0", "report ok: true",
    "coWho ok: true, co-teacher key: (16 letters and numbers) ... AUTH_MODE: code" (or both), "coClass ... ok: true" and "checkState ok: true, my classes open: ..., co-teacher classes open: ..." (true or false), "checkAnswers ok: true, attempts: (a number)" and "squeezeBoard ok: true, week: (this week, like 2026-W48), players: 0" (or more).
+   Last line: "Muddle rooms ok: true, players seen by the host: 1".
    If it says "unknown op", the old code is still in Code.gs. If AUTH_MODE says google, change it to both in step 2.
    Write down the co-teacher key: it is also shown on co-teacher.html when I open it with my teacher key.
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
-   Description "Squeeze Street leaderboard" > Deploy. Do NOT use "New deployment" (that changes the URL).
+   Description "Muddle Under the Pond" > Deploy. Do NOT use "New deployment" (that changes the URL).
 
 5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
 
-Latest change: Squeeze Street, the lemonade stand game (squeeze.html), gets a public leaderboard. Two new operations:
+Latest change: Muddle Under the Pond, the advisory party game (muddle-host.html for the teacher, muddle.html for players).
+Two new operations: roomHost (teacher key; the host page sends the board and each player's secret part, and gets back the
+players' moves) and roomPing (NO sign-in: a player sends a 4-letter room code, a random id and token their device made, a
+nickname and their moves, and gets the board and only their own secret part). Nothing is written to the Sheet: rooms live in
+the script cache and disappear 3 hours after the last move. At most 40 players per room. Nothing to set up.
+Before that: Squeeze Street, the lemonade stand game (squeeze.html), gets a public leaderboard. Two new operations:
 squeezeSave (student sign-in; the page sends the week and the ten days' choices, never a score: the script replays the run
 with squeezeSim(), the same rules as squeeze-sim.js, and works out the profit itself; it only takes runs for this week or the
 week either side, and one post per student every 10 seconds) and squeezeBoard (no sign-in; each student's best run that week,

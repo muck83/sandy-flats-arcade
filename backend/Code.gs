@@ -11,6 +11,7 @@
  *   ClimbLog  time | sid | session | skill | template | seed | mode | answer | result | tag | secs | flags   (every Climb answer)
  *   Squeeze   time | sid | season | profit | cash | plan   (one row per finished Squeeze Street run: the lemonade stand game's leaderboard)
  *   (Responses, Climb, ClimbLog and Squeeze are created the first time they are needed.)
+ *   Muddle Under the Pond (the advisory party game) keeps nothing in the Sheet: its rooms live in the script cache.
  *
  * Script properties (Project Settings > Script properties):
  *   TEACHER_KEY   long random string; the class view asks for it once
@@ -118,6 +119,8 @@ function route(req) {
     case 'checkAnswers': return checkAnswers(req);
     case 'squeezeSave': return squeezeSave(auth(req), req);
     case 'squeezeBoard': return squeezeBoard(req);
+    case 'roomHost': teacher(req); return roomHost(req);
+    case 'roomPing': return roomPing(req);
     default: throw new Error('unknown op');
   }
 }
@@ -901,6 +904,76 @@ function squeezeBoard(req) {
   });
   var me = mySid && b.best[mySid] ? { rank: b.best[mySid].rank, profit: b.best[mySid].profit } : null;
   return { ok: true, season: season, rows: rows, players: b.list.length, me: me };
+}
+
+/* ---------------- Muddle Under the Pond: the advisory party game (muddle-host.html, muddle.html) ----------------
+   Players do NOT sign in: they type a 4-letter room code and a nickname. Nothing goes in the Sheet; everything lives in
+   the script cache and disappears 3 hours after the last move. The teacher's host page (teacher key) runs the game: it
+   sends the board everyone may see, plus each player's own secret part (their role, tasks, who is in their room), and
+   gets back every player's latest moves. A player's page sends its moves and reads the board and its own part, guarded
+   by a random token its device made (so no one can read someone else's role). Cache keys, per room:
+     rm_CODE  the board {at, b}      rl_CODE  the player ids that joined      ro_CODE  the host page that owns the room
+     rp_CODE_pid  a player's nickname, critter, token and unacknowledged moves      rq_CODE_pid  that player's secret part */
+var ROOM_CODE = /^[A-Z]{4}$/, ROOM_PID = /^[a-z0-9]{6,12}$/, ROOM_TOK = /^[a-z0-9]{12,32}$/, ROOM_TTL = 10800, ROOM_MAX = 40;
+function roomNick(x) { return String(x == null ? '' : x).replace(/[^A-Za-z0-9 ._-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 14); }
+function roomList(cache, code) { try { return JSON.parse(cache.get('rl_' + code) || '[]') || []; } catch (e) { return []; } }
+function roomCode(req) { var c = String(req.code || '').toUpperCase(); if (!ROOM_CODE.test(c)) throw new Error('bad room'); return c; }
+
+function roomHost(req) {
+  var code = roomCode(req), cache = CacheService.getScriptCache();
+  var own = String(req.owner || '').replace(/[^a-z0-9]/gi, '').slice(0, 40), cur = cache.get('ro_' + code);
+  if (!own) throw new Error('bad owner');
+  // one host page per room: another page (or another teacher) using the same code is told so, unless it takes over
+  if (cur && cur !== own && !req.claim) return { ok: false, error: 'taken' };
+  var list = roomList(cache, code);
+  if (req.end) {
+    var gone = ['rm_' + code, 'rl_' + code, 'ro_' + code];
+    list.forEach(function (p) { gone.push('rp_' + code + '_' + p, 'rq_' + code + '_' + p); });
+    cache.removeAll(gone);
+    return { ok: true };
+  }
+  if (!req.pub || typeof req.pub !== 'object') throw new Error('bad board');
+  var puts = {}, bj = JSON.stringify({ at: Date.now(), b: req.pub });
+  if (bj.length > 60000) throw new Error('too big');
+  puts['rm_' + code] = bj; puts['ro_' + code] = own;
+  var priv = req.priv && typeof req.priv === 'object' ? req.priv : {};
+  Object.keys(priv).slice(0, ROOM_MAX * 2).forEach(function (pid) {
+    if (!ROOM_PID.test(pid) || list.indexOf(pid) < 0) return;
+    var s = JSON.stringify(priv[pid]); if (s.length <= 8000) puts['rq_' + code + '_' + pid] = s;
+  });
+  cache.putAll(puts, ROOM_TTL);
+  var got = list.length ? cache.getAll(list.map(function (p) { return 'rp_' + code + '_' + p; })) : {}, players = {};
+  list.forEach(function (p) {
+    var v = got['rp_' + code + '_' + p]; if (!v) return;
+    try { var o = JSON.parse(v); players[p] = { n: o.n, k: o.k, a: o.a, at: o.at }; } catch (e) { }
+  });
+  return { ok: true, now: Date.now(), players: players };
+}
+
+function roomPing(req) {
+  var code = roomCode(req), pid = String(req.pid || ''), tok = String(req.tok || '');
+  if (!ROOM_PID.test(pid) || !ROOM_TOK.test(tok)) throw new Error('bad player');
+  var cache = CacheService.getScriptCache(), kb = 'rm_' + code, kp = 'rp_' + code + '_' + pid, kq = 'rq_' + code + '_' + pid;
+  var got = cache.getAll([kb, kp, kq]);
+  if (!got[kb]) return { ok: false, error: 'no room' };
+  var old = null; try { old = JSON.parse(got[kp] || 'null'); } catch (e) { }
+  if (old && old.tok !== tok) return { ok: false, error: 'bad player' };
+  var nick = roomNick(req.nick); if (!nick) throw new Error('nickname');
+  var me = { n: nick, k: Math.max(0, Math.min(99, Math.round(Number(req.look) || 0))), tok: tok, a: Array.isArray(req.acts) ? req.acts.slice(-30) : [], at: Date.now() };
+  var mj = JSON.stringify(me); if (mj.length > 5000) throw new Error('too big');
+  if (!old) {   // a new player: add their id to the room's list (the only step that needs the lock)
+    var lock = LockService.getScriptLock(); lock.waitLock(10000);
+    try {
+      var list = roomList(cache, code);
+      if (list.indexOf(pid) < 0) {
+        if (list.length >= ROOM_MAX) return { ok: false, error: 'full' };
+        list.push(pid); cache.put('rl_' + code, JSON.stringify(list), ROOM_TTL);
+      }
+    } finally { lock.releaseLock(); }
+  }
+  cache.put(kp, mj, ROOM_TTL);
+  var room = JSON.parse(got[kb]), mine = null; try { mine = JSON.parse(got[kq] || 'null'); } catch (e) { }
+  return { ok: true, now: Date.now(), at: room.at, board: room.b, me: mine };
 }
 
 /* The game's rules: an exact copy of squeeze-sim.js. Change both together. */

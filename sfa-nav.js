@@ -1,13 +1,13 @@
 /* Sandy Flats: one navigation strip shared by the arcade, the lessons and the teacher pages.
    Students: Arcade · Lessons · My Results (and, on a game, a link to that game's lesson), plus a red
    "Live now" link whenever the teacher is running a lesson. Teacher pages: Lessons · Planner · Class Results ·
-   Participation · Trophies · Climb · Unit 2 Review · Unit 2 Check · Student day · Report · Teacher guide ·
+   Participation · Trophies · Climb · Muddle (the advisory party game) · Unit 2 Review · Unit 2 Check · Student day · Report · Teacher guide ·
    Scaffolds guide · Student view. */
 (function () {
   'use strict';
   var CFG = window.SFA_CONFIG || {}, Q = location.search, page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   if (/[?&]screen/.test(Q)) return;   // the class screen stays clean for screen sharing
-  var teach = /^(class|participation|teacher|climb-teacher|day|report|review-u2-teacher|check-u2-teacher|summative-u2-teacher|summative-u2-tasksheet|planner|scaffold-guide|trophies)\.html$/.test(page) || (/^lessons?\.html$/.test(page) && /[?&]teach/.test(Q));
+  var teach = /^(class|participation|teacher|climb-teacher|day|report|review-u2-teacher|check-u2-teacher|summative-u2-teacher|summative-u2-tasksheet|planner|scaffold-guide|trophies|muddle-host)\.html$/.test(page) || (/^lessons?\.html$/.test(page) && /[?&]teach/.test(Q));
   var PLAN = [   // film order: lesson file number, the number students see (= film), its game
     { l: 10, n: 1, game: 'g9-try-zero-first.html' },
     { l: 1, n: 2, game: 'g1-crack-the-fair.html' },
@@ -106,6 +106,7 @@
     nav.appendChild(link('check-u2-teacher.html', '🎯 Unit 2 Check', page === 'check-u2-teacher.html'));
     nav.appendChild(link('summative-u2-teacher.html', '📄 Unit 2 Summative', page === 'summative-u2-teacher.html'));
     nav.appendChild(link('squeeze.html?screen#board', '🍋 Squeeze board', false));
+    nav.appendChild(link('muddle-host.html', '🫧 Muddle', page === 'muddle-host.html'));
     nav.appendChild(link('day.html', '📅 Student day', page === 'day.html'));
     nav.appendChild(link('report.html', '🧾 Report', page === 'report.html'));
     nav.appendChild(link('teacher.html', '🧭 Teacher guide', page === 'teacher.html'));
@@ -123,6 +124,7 @@
     }
     nav.appendChild(link('climb.html', '🧗 Climb', page === 'climb.html'));
     nav.appendChild(link('squeeze.html', '🍋 Squeeze Street', page === 'squeeze.html'));
+    nav.appendChild(link('muddle.html', '🫧 Muddle', page === 'muddle.html'));
     nav.appendChild(link('results.html', '⭐ My Results', page === 'results.html'));
     nav.appendChild(link('avatar.html', '👕 Wardrobe', page === 'avatar.html'));
     // on a game page the top bar also holds the game's chips: show Arcade, Lessons and My Results as icons so it stays on one row
