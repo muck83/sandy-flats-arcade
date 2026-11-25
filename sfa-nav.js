@@ -101,6 +101,7 @@
     nav.appendChild(link('review-u2-teacher.html', '📝 Unit 2 Review', page === 'review-u2-teacher.html'));
     nav.appendChild(link('check-u2-teacher.html', '🎯 Unit 2 Check', page === 'check-u2-teacher.html'));
     nav.appendChild(link('summative-u2-teacher.html', '📄 Unit 2 Summative', page === 'summative-u2-teacher.html'));
+    nav.appendChild(link('squeeze.html?screen#board', '🍋 Squeeze board', false));
     nav.appendChild(link('day.html', '📅 Student day', page === 'day.html'));
     nav.appendChild(link('report.html', '🧾 Report', page === 'report.html'));
     nav.appendChild(link('teacher.html', '🧭 Teacher guide', page === 'teacher.html'));
@@ -117,6 +118,7 @@
       if (gf) nav.appendChild(link(gf, '🕹️ Play the game', false));
     }
     nav.appendChild(link('climb.html', '🧗 Climb', page === 'climb.html'));
+    nav.appendChild(link('squeeze.html', '🍋 Squeeze Street', page === 'squeeze.html'));
     nav.appendChild(link('results.html', '⭐ My Results', page === 'results.html'));
     nav.appendChild(link('avatar.html', '👕 Wardrobe', page === 'avatar.html'));
     // on a game page the top bar also holds the game's chips: show Arcade, Lessons and My Results as icons so it stays on one row

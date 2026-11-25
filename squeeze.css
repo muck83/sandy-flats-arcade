@@ -153,3 +153,75 @@ div.qo:hover{border-color:var(--line)}
 details.more summary{font-weight:700;color:var(--marquee);cursor:pointer}
 details.card.more{padding:12px 16px}
 details.more[open] summary{margin-bottom:8px}
+
+/* ---------- small animations ---------- */
+@keyframes sqIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sqGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes sqBob{50%{transform:translateY(-4px) rotate(-3deg)}}
+@keyframes sqGlow{50%{box-shadow:0 0 0 6px rgba(255,201,74,.25)}}
+.stepcard,.fb,.res,.fc{animation:sqIn .32s ease-out both}
+.fbl li{animation:sqIn .35s ease-out both}
+.fbl li:nth-child(2){animation-delay:.08s}.fbl li:nth-child(3){animation-delay:.16s}.fbl li:nth-child(4){animation-delay:.24s}.fbl li:nth-child(5){animation-delay:.32s}.fbl li:nth-child(6){animation-delay:.4s}.fbl li:nth-child(7){animation-delay:.48s}
+.bar i{transform-origin:bottom;animation:sqGrow .5s cubic-bezier(.2,.9,.3,1.2) both}
+.lb tbody tr{animation:sqIn .35s ease-out both}
+.lb tbody tr:nth-child(2){animation-delay:.06s}.lb tbody tr:nth-child(3){animation-delay:.12s}.lb tbody tr:nth-child(n+4){animation-delay:.18s}
+.lb tr.top1 td{background:linear-gradient(90deg,rgba(255,201,74,.16),transparent)}
+.hero .art ellipse{animation:sqBob 2.4s ease-in-out infinite}
+.hero .art ellipse+ellipse{animation-delay:.4s}
+.stepcard>.btn.primary:last-child{animation:sqGlow 2.2s ease-in-out infinite}
+.sq-music[aria-pressed="false"]{opacity:.6}
+
+/* ---------- the open-the-stand reveal ---------- */
+body.rv-lock{overflow:hidden}
+.rv-ov{position:fixed;inset:0;z-index:90;background:rgba(8,6,14,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;opacity:0;transition:opacity .25s;cursor:pointer}
+.rv-ov.in{opacity:1}
+.rv-ov.out{opacity:0}
+.rv-scene{position:relative;width:min(760px,100%);aspect-ratio:16/10;max-height:62vh;border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);background:linear-gradient(#7FD3FF,#D8F3FF 70%);border:3px solid var(--marquee)}
+.rv-scene.wx-hot{background:linear-gradient(#FF9A3D,#FFE08A 70%)}
+.rv-scene.wx-cloudy{background:linear-gradient(#9BB0C4,#DCE6EE 70%)}
+.rv-scene.wx-rain{background:linear-gradient(#5D6E82,#AAB8C6 70%)}
+.rv-sky{position:absolute;inset:0;pointer-events:none}
+.rv-sun{position:absolute;right:7%;top:6%;font-size:clamp(34px,8vw,64px);animation:rvSpin 12s linear infinite}
+.wx-hot .rv-sun{font-size:clamp(46px,11vw,90px);filter:drop-shadow(0 0 18px #FFD23F)}
+.rv-heat{position:absolute;inset:40% 0 20% 0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.0) 0 10px,rgba(255,255,255,.12) 10px 12px);animation:rvHeat 1.2s ease-in-out infinite alternate}
+.rv-cloud{position:absolute;font-size:clamp(36px,9vw,70px);opacity:.9;animation:rvDrift 14s linear infinite}
+.rv-cloud.c1{top:6%;left:-20%}.rv-cloud.c2{top:16%;left:-20%;animation-delay:-7s;font-size:clamp(28px,7vw,52px)}
+.rv-rain{position:absolute;inset:0;background:repeating-linear-gradient(105deg,transparent 0 14px,rgba(255,255,255,.45) 14px 15px,transparent 15px 30px);background-size:60px 60px;animation:rvRain .5s linear infinite}
+.rv-title{position:absolute;left:4%;top:5%;font-family:var(--display);font-size:clamp(16px,3.4vw,26px);color:#1B1A22;background:rgba(255,255,255,.75);padding:4px 12px;border-radius:999px}
+.rv-stand{position:absolute;left:36%;bottom:13%;width:34%}
+.rv-stand svg{width:100%;height:auto;display:block}
+.rv-stand svg rect[y="132"]{display:none}
+.rv-sign{position:absolute;left:44%;bottom:56%;font:800 clamp(11px,2.2vw,16px) var(--ui);background:#3A3550;color:#fff;padding:3px 10px;border-radius:6px;transform-origin:top;transition:transform .35s}
+.rv-sign.open{background:#1F7A5C;animation:rvFlip .45s ease-out}
+.rv-sign.out{background:#C0302A;animation:rvFlip .45s ease-out}
+.rv-ground{position:absolute;left:0;right:0;bottom:0;height:14%;background:#E9C58A;border-top:3px solid #D2A866}
+.rv-crowd{position:absolute;inset:0}
+.rv-p{position:absolute;left:-10%;font-size:clamp(26px,6vw,44px);transition-property:left;transition-timing-function:linear;z-index:2;animation:rvWalk .32s ease-in-out infinite alternate}
+.rv-e{display:inline-block;font-style:normal}
+.rv-p.turn .rv-e{transform:scaleX(-1)}
+.rv-cup{position:absolute;left:60%;top:-55%;font-size:.6em;animation:rvPop .5s ease-out both}
+.rv-say{position:absolute;left:-30%;bottom:105%;white-space:nowrap;font:800 clamp(10px,2vw,14px) var(--ui);background:#fff;color:#C0302A;padding:3px 8px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.25);animation:rvPop .3s ease-out both}
+.rv-hud{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:center;background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:8px 18px;font-size:16px;color:var(--muted)}
+.rv-hud b{font:600 22px var(--mono);color:var(--marquee);min-width:2ch;display:inline-block}
+.rv-sep{opacity:.5}
+.rv-final{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;text-align:center;background:rgba(8,6,14,.9);opacity:0;transition:opacity .3s;cursor:default}
+.rv-final.in{opacity:1}
+.rv-fday{font-family:var(--display);font-size:clamp(22px,5vw,34px);color:var(--ink);letter-spacing:.03em}
+.rv-big{font:700 clamp(56px,15vw,120px)/1 var(--mono);letter-spacing:-.02em;animation:rvLand .6s cubic-bezier(.2,1.4,.4,1) both}
+.rv-big.up{color:var(--green);text-shadow:0 0 30px rgba(59,255,138,.35)}
+.rv-big.down{color:var(--red);text-shadow:0 0 30px rgba(232,88,76,.35)}
+.rv-fsub{color:var(--muted);font-size:16px}
+.rv-fines{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.rv-fines span{background:#3a1418;border:1px solid var(--red);color:#FFD0C8;border-radius:999px;padding:3px 10px;font-size:14px}
+.rv-skip{position:absolute;right:16px;top:16px;font:700 14px var(--ui);background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:999px;padding:8px 14px;cursor:pointer}
+@keyframes rvSpin{to{transform:rotate(360deg)}}
+@keyframes rvDrift{to{left:110%}}
+@keyframes rvRain{to{background-position:-20px 60px}}
+@keyframes rvHeat{to{transform:translateY(-6px);opacity:.6}}
+@keyframes rvFlip{0%{transform:rotateX(90deg)}100%{transform:none}}
+@keyframes rvWalk{to{margin-bottom:5px}}
+@keyframes rvPop{0%{opacity:0;transform:translateY(8px) scale(.6)}100%{opacity:1;transform:none}}
+@keyframes rvLand{0%{opacity:0;transform:scale(.4)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.stepcard,.fb,.res,.fc,.fbl li,.lb tbody tr,.bar i,.hero .art ellipse,.stepcard>.btn.primary:last-child,.rv-sun,.rv-cloud,.rv-rain,.rv-heat,.rv-p,.rv-big{animation:none}}
+.rv-stand svg circle,.rv-stand svg g{display:none}
+@media (max-width:560px){.rv-scene{aspect-ratio:4/3}.rv-stand{left:30%;width:46%}.rv-sign{left:42%}.rv-hud{font-size:13px;padding:6px 14px;gap:4px 8px}.rv-hud b{font-size:17px}.rv-say{left:-60%}}

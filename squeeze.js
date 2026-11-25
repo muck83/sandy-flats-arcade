@@ -205,14 +205,14 @@
     // step tabs: show where you are; any step can be opened
     var tabs = el('nav', { 'class': 'steps', 'aria-label': 'Steps' });
     STEPS.forEach(function (t, i) {
-      tabs.appendChild(el('button', { type: 'button', 'class': 'stp' + (i === step ? ' on' : i < step ? ' done' : ''), 'aria-current': i === step ? 'step' : null, onclick: function () { go(i); } }, [el('b', { text: String(i + 1) }), el('span', { text: t })]));
+      tabs.appendChild(el('button', { type: 'button', 'class': 'stp' + (i === step ? ' on' : i < step ? ' done' : ''), 'aria-current': i === step ? 'step' : null, onclick: function () { sfx('tap'); go(i); } }, [el('b', { text: String(i + 1) }), el('span', { text: t })]));
     });
     app.appendChild(tabs);
 
     var card = el('section', { 'class': 'card stepcard' });
     app.appendChild(card);
     var P = sp.price, Sg = sp.sugar;
-    function next(label) { return el('button', { type: 'button', 'class': 'btn primary big wide', text: label, onclick: function () { go(step + 1); } }); }
+    function next(label) { return el('button', { type: 'button', 'class': 'btn primary big wide', text: label, onclick: function () { sfx('tap'); go(step + 1); } }); }
 
     if (step === 0) {
       card.appendChild(el('h2', { text: '🏷️ Set your price' }));
@@ -270,7 +270,8 @@
       plan.appendChild(row);
       card.appendChild(plan);
       card.appendChild(el('button', { type: 'button', 'class': 'btn primary big wide', text: 'Open the stand ▶', onclick: function () {
-        run.plan.push(SQ.clean(dr)); run.draft = null; run.step = 0; save(); view();
+        run.plan.push(SQ.clean(dr)); run.draft = null; run.step = 0; save();
+        openReveal();
       } }));
     }
   }
@@ -278,7 +279,7 @@
   function stepper(label, sub, val, min, max, steps, onset, money) {
     var inp = el('input', { type: 'text', inputmode: money ? 'decimal' : 'numeric', 'aria-label': label, value: money ? d2(val) : String(val) });
     function clamp(v) { v = Math.max(min, Math.min(max, v)); return money ? Math.round(v / 5) * 5 : Math.round(v); }
-    function put(v) { val = clamp(v); inp.value = money ? d2(val) : String(val); onset(val); }
+    function put(v) { var was = val; val = clamp(v); inp.value = money ? d2(val) : String(val); onset(val); if (val !== was) { sfx('tick'); if (window.SFA_FX) window.SFA_FX.pop(inp.parentNode); } }
     inp.addEventListener('change', function () { var x = parseFloat(String(inp.value).replace(/[^0-9.]/g, '')); put(isFinite(x) ? (money ? x * 100 : x) : val); });
     var btns = [];
     steps.slice().reverse().forEach(function (st) { btns.push(el('button', { type: 'button', 'class': 'sb', 'aria-label': 'minus ' + st, text: '−' + (steps.length > 1 ? st : ''), onclick: function () { put(val - st); } })); });
@@ -301,12 +302,27 @@
     if (q.kind === 'mostCost') return el('span', { text: m(o) });
     return el('span', { text: o.P + ' pitcher' + (o.P === 1 ? '' : 's') + ' and ' + o.c + ' paper cups' });
   }
+  // the open-the-stand reveal (squeeze-fx.js), then the day's results
+  var FX = window.SFA_FX || null;
+  function sfx(n) { if (FX) FX.sfx(n); }
+  function openReveal() {
+    var R = SQ.run(run.season, run.plan), D = R.days[R.days.length - 1], sp = D.spec, o = D.out;
+    if (!window.SQFX) return view();
+    var LBL = { coop: 'co-op fee', till: 'till fee', permit: 'permit fine', inspector: 'inspector fine' };
+    window.SQFX.reveal({
+      d: sp.d, wx: sp.wx, stand: STAND, base: sp.base, sold: o.sold, price: o.p, revenue: o.revenue, profit: o.profit,
+      why: o.over ? 'pricey' : o.sweet ? 'sweet' : o.sold < o.want ? 'soldout' : '',
+      fines: o.fines.map(function (f) { return { label: LBL[f.k], amt: f.amt }; }),
+      great: !o.fines.length && !o.over && o.p === sp.price.best && o.sold >= o.want
+    }, view);
+  }
+
   function questionBody(sp, dr, onpick) {
     var box = el('div', {}, [el('p', { text: qPrompt(sp) })]);
     var list = el('div', { 'class': 'qopts', role: 'radiogroup', 'aria-label': 'Answers' });
     sp.q.opts.forEach(function (o, i) {
       list.appendChild(el('button', { type: 'button', role: 'radio', 'aria-checked': dr[4] === i ? 'true' : 'false', 'class': 'qo', onclick: function () {
-        dr[4] = dr[4] === i ? -1 : i; onpick(dr[4]);
+        dr[4] = dr[4] === i ? -1 : i; onpick(dr[4]); sfx('tap');
         Array.prototype.forEach.call(list.children, function (c, j) { c.setAttribute('aria-checked', dr[4] === j ? 'true' : 'false'); });
       } }, [el('b', { text: 'ABC'.charAt(i) }), qOpt(sp, o)]));
     });
@@ -359,7 +375,7 @@
     say(o.right, 'Tip jar', o.q < 0 ? 'skipped. The answer was ' + 'ABC'.charAt(q.ans) + '.' : o.right ? 'right, +' + m(SQ.BONUS) + '.' : 'not this time. The answer was ' + 'ABC'.charAt(q.ans) + '.');
     app.appendChild(fb);
 
-    app.appendChild(el('button', { type: 'button', 'class': 'btn primary big wide', text: d < SQ.DAYS ? 'Next morning: day ' + (d + 1) + ' ▶' : 'See your ten days ▶', onclick: function () { run.seen = run.plan.length; save(); view(); } }));
+    app.appendChild(el('button', { type: 'button', 'class': 'btn primary big wide', text: d < SQ.DAYS ? 'Next morning: day ' + (d + 1) + ' ▶' : 'See your ten days ▶', onclick: function () { sfx(d < SQ.DAYS ? 'whoosh' : 'tap'); run.seen = run.plan.length; save(); view(); } }));
 
     // the details, folded away: the till, and the tip-jar question with its answer
     var led = el('table', { 'class': 'ledger' });
@@ -385,8 +401,8 @@
     var best = R.days.reduce(function (a, D) { return Math.max(a, D.out.profit); }, 0) || 1;
     var bars = el('div', { 'class': 'bars', 'aria-label': 'Profit each day' });
     R.days.forEach(function (D) {
-      var p = D.out.profit, h = Math.max(2, Math.round(Math.abs(p) / best * 70));
-      bars.appendChild(el('div', { 'class': 'bar' + (p < 0 ? ' neg' : ''), title: 'Day ' + D.spec.d + ': ' + m(p) }, [el('i', { style: 'height:' + h + 'px' }), el('small', { text: String(D.spec.d) })]));
+      var p = D.out.profit, h = Math.max(2, Math.round(Math.abs(p) / best * 70)), k = D.spec.d;
+      bars.appendChild(el('div', { 'class': 'bar' + (p < 0 ? ' neg' : ''), title: 'Day ' + D.spec.d + ': ' + m(p) }, [el('i', { style: 'height:' + h + 'px;animation-delay:' + (k * 70) + 'ms' }), el('small', { text: String(k) })]));
     });
     var fines = 0, tips = 0; R.days.forEach(function (D) { D.out.fines.forEach(function (f) { fines += f.amt; }); tips += D.out.bonus; });
     app.appendChild(el('section', { 'class': 'card hero end' }, [
@@ -397,6 +413,7 @@
         bars
       ])
     ]));
+    if (!run.cheered) { run.cheered = true; save(); setTimeout(function () { sfx(R.profit > 0 ? 'win' : 'lose'); if (FX && R.profit > 0) FX.confetti({ ms: 3000 }); }, 300); }
     var post = el('section', { 'class': 'card post' }, [el('h2', { text: '🏆 The leaderboard' })]);
     app.appendChild(post);
     var again = el('div', { 'class': 'row' }, [
