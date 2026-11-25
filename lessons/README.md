@@ -54,6 +54,28 @@ needs no change. The Lane Clash and Boss Raid only draw their questions from `nu
 
 `id`s are lower-case letters and digits, unique in the lesson, at most 16 characters.
 
+## Hands-on kinds (sfa-ineq.js): graph, drag, sort, match, build
+
+`sfa-ineq.js` (loaded after `sfa-lesson.js` on lesson.html and lesson-practice.html) adds seven kinds, used by the
+inequality lessons (Inequalities 1 to 3, L29 to L31). Each one checks the answer on the student's device, says what to
+fix, saves as an `open` answer with right or wrong, and has **Show answer** on the console. All take `id`, `q`, and
+optional `kick` (the label above the question), `learn` (1 to 3 short teaching lines shown above the task), `help`, `why`.
+
+| k | Fields | What students do |
+|---|---|---|
+| `nl` | `range` ([−6, 6]), `step` (1 or 0.5), `v` ('x'), `ans: { at, open, dir: 'l' or 'r' }` | Drag or tap the dot onto a number line, open or closed, shade left or right |
+| `pick` | `where: 'line'` with `range`, `cond` ('2x + 1 > 5'), optional `cand`; or `where: 'plane'` with `range`, `cond` ('y < 2x − 1'), `cand: [[x, y], …]`, optional `line: { m, b, solid }` | Tap every solution. Wrong picks show the working: "2 > 2 ✗ false" |
+| `sort` | `bins` (2 to 4 names), `cards: [{ t, b, why }]` (a card can be a picture: `{ nl: { at, open, dir } }`) | Drag cards into groups (or tap a card, then a group). Right ones lock green; `why` is the hint for a wrong one |
+| `match` | `pairs: [[left, right, why], …]`; either side can be text or `{ nl: {…} }` or `{ plane: { m, b, op } }` | Drag each card onto its row |
+| `build` | `tiles` (strings), `ans` (accepted answers, e.g. 'x≤-1'; the sides may be swapped), optional `fig: { nl: {…}, range }` or `{ plane: {…} }` | Tap tiles to write the inequality |
+| `solve` | `start`, `moves: [{ q, opts, ans, res, rans, hint, why }]`, optional `graph: { range, at, open, dir }` | Pick each move, then its result; a wrong pick explains itself. Ends by graphing the answer |
+| `plane` | `range`, `m`, `b` (or `vx` for x = …), `op` ('<', '<=', '>', '>='), `parts` (any of 'line', 'style', 'shade'; without 'line' the boundary is drawn) | Plot two points on the boundary, choose solid or dashed, tap a side to shade; 🧪 Test a point shows the working for any point |
+
+On these kinds, `more` is **🔭 Go deeper**: up to three optional tasks of any of the kinds above (or `poll`, `number`,
+`open`), each with `steps` (a worked solution). A student opens them after checking the slide's task once; a task allows
+three tries (two for `number`), then shows the answer and the worked solution. They save as the slide id + x1 to x3.
+Use `moves`, never `steps`, for a `solve` task's moves: in `more`, `steps` is the worked solution.
+
 ## Differentiation inside a slide: `help` and `more`
 
 Any `poll`, `number`, `open` or `machine` slide (not `warm`, `conf` or `exit`) can carry:

@@ -1,0 +1,150 @@
+/* Sandy Flats: the hands-on inequality slides (sfa-ineq.js). Loaded after sfa-lesson.css. */
+.iqgrid{display:flex;flex-direction:column;gap:.7em;min-height:0}
+.iqgrid.side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1em 1.4em;align-items:start}
+.iqtxt{display:flex;flex-direction:column;gap:.5em}
+.iqarea{min-width:0}
+.iqfoot{display:flex;flex-direction:column;gap:.5em}
+.iqlearn{display:flex;gap:.6em;align-items:flex-start;padding:.5em .8em;border-radius:.6em;background:rgba(92,224,184,.08);border:.1em solid rgba(92,224,184,.35);font-size:.88em}
+.iqlearn ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:.15em}
+.iqlearn b{color:var(--teal)}
+.iqlico{font-size:1.2em;line-height:1.2}
+.iqw{display:flex;flex-direction:column;gap:.55em;font-size:.88em}
+.iqrow{display:flex;gap:.5em;align-items:center;flex-wrap:wrap}
+.iqhint{margin:0;font-size:.85em;color:var(--muted)}
+.iqlab{font-weight:700;font-size:.9em;color:var(--muted)}
+.slide .iqw .btn,.iqfoot .btn,.iqdeep .btn{font-size:.85em;padding:.45em .9em}
+.iqtog.on{background:var(--marquee);border-color:var(--marquee);color:#231800}
+.iqw.frozen .iqtog:not(.on){opacity:.45}
+/* number lines */
+.iqnl{width:100%;height:auto;display:block;user-select:none;-webkit-user-select:none;overflow:visible}
+.iqnl.live{cursor:pointer;touch-action:none}
+.iqnl.sm{max-width:16em}
+.iqaxis{stroke:var(--ink);stroke-width:3}
+.iqah{fill:var(--ink)}
+.iqtick{stroke:var(--ink);stroke-width:2}
+.iqtick.half{stroke:var(--muted);stroke-width:1.5}
+.iqlbl{fill:var(--ink);font:600 17px var(--mono)}
+.iqnl.sm .iqlbl{font-size:13px}
+.iqlbl.zero{fill:var(--marquee)}
+.iqray{stroke:var(--marquee);stroke-width:8;stroke-linecap:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:iqgrow .45s ease-out forwards}
+.iqnl.sm .iqray{stroke-width:5}
+.iqrayh{fill:var(--marquee)}
+.iqray.good{stroke:var(--green)}.iqrayh.good{fill:var(--green)}
+@keyframes iqgrow{to{stroke-dashoffset:0}}
+.iqdot{stroke:var(--marquee);stroke-width:4}
+.iqdot.open{fill:var(--bg)}
+.iqdot.closed{fill:var(--marquee)}
+.iqdot.unset{fill:var(--bg);stroke-dasharray:4 3}
+.iqdot.good{stroke:var(--green)}.iqdot.closed.good{fill:var(--green)}
+.iqsym{display:inline-block;width:.8em;height:.8em;border-radius:50%;border:.15em solid currentColor;vertical-align:-.05em}
+.iqsym.closed{background:currentColor}
+/* tap the solutions */
+.iqcand{cursor:pointer;outline:none}
+.iqcand .hit{fill:transparent}
+.iqcand .pt{fill:var(--bg);stroke:var(--violet);stroke-width:3}
+.iqcand:hover .pt,.iqcand:focus-visible .pt{stroke:var(--marquee)}
+.iqcand.on .pt{fill:var(--marquee);stroke:var(--marquee)}
+.iqcand.ok .pt{fill:var(--green);stroke:var(--green)}
+.iqcand.no .pt{fill:var(--red);stroke:#fff}
+.iqcand.miss .pt{stroke:var(--green);stroke-dasharray:4 3;stroke-width:3.5}
+.iqclbl{fill:var(--ink);font:700 15px var(--ui);paint-order:stroke;stroke:var(--bg);stroke-width:4px}
+.iqwork,.iqworkall{display:flex;flex-direction:column;gap:.2em;font-size:.9em}
+.iqworkall{max-height:9em;overflow:auto}
+.iqsub{font-family:var(--mono);font-size:.92em}
+.iqsub .yes{color:var(--green)}.iqsub .no{color:var(--red)}
+/* sort and match */
+.iqpoolw{display:flex;flex-direction:column;gap:.35em}
+.iqpool{display:flex;flex-wrap:wrap;gap:.45em;min-height:2.6em;padding:.45em;border-radius:.6em;border:.1em dashed var(--line);background:rgba(255,255,255,.02)}
+.iqpool.empty::after{content:'All placed. Press Check.';color:var(--muted);font-size:.85em;align-self:center}
+.iqbins{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6em}
+.iqbins.many{grid-template-columns:repeat(auto-fit,minmax(9em,1fr))}
+.iqbin{display:flex;flex-direction:column;border-radius:.7em;border:.12em solid var(--line);background:var(--panel2);overflow:hidden;cursor:default}
+.iqbinh{padding:.35em .6em;font-weight:800;background:rgba(0,0,0,.25);color:var(--marquee);font-size:.95em}
+.iqzone{display:flex;flex-wrap:wrap;gap:.4em;padding:.45em;min-height:2.8em;flex:1}
+.picking .iqbin{border-color:var(--marquee);cursor:pointer}
+.picking .iqpool{border-color:var(--marquee);cursor:pointer}
+.iqcard{font:600 1em var(--ui);color:var(--ink);background:var(--panel);border:.12em solid var(--line);border-radius:.55em;padding:.3em .6em;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;text-align:left;max-width:100%}
+.iqcard:hover{border-color:var(--marquee)}
+.iqcard.sel{border-color:var(--marquee);background:#3a2f12;box-shadow:0 0 0 .15em rgba(255,201,74,.35)}
+.iqcard.lifted{opacity:.35}
+.iqcard.ok{border-color:var(--green);background:#12301f;cursor:default}
+.iqcard.no{border-color:var(--red);background:#3a1515;animation:iqshake .4s}
+.iqcard b{color:var(--marquee)}
+.iqghost{position:fixed;z-index:9999;pointer-events:none;opacity:.92;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(0,0,0,.5);font-size:16px}
+@keyframes iqshake{20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.iqface{display:flex;flex-direction:column;gap:.15em;align-items:flex-start}
+.iqpic{background:rgba(0,0,0,.18);border-radius:.4em;padding:.1em .3em}
+.iqpic .iqnl.sm{width:12em}
+.iqrows{display:flex;flex-direction:column;gap:.45em}
+.iqrows .iqbin{flex-direction:row;align-items:stretch}
+.iqrows .iqbinh{flex:0 0 42%;display:flex;align-items:center;color:var(--ink);font-weight:700}
+.iqrows .iqzone{min-height:2.4em;align-items:center}
+.iqrows .iqzone:empty::after{content:'drop here';color:var(--muted);font-size:.8em}
+/* build */
+.iqbfig{align-self:flex-start}
+.iqstrip{display:flex;flex-wrap:wrap;gap:.35em;align-items:center;min-height:2.6em;padding:.4em .6em;border-radius:.6em;border:.14em solid var(--marquee);background:#1d1810;font-size:1.2em}
+.iqph{color:var(--muted);font-size:.75em}
+.iqbank{display:flex;flex-wrap:wrap;gap:.4em}
+.iqtile{font:600 1.05em var(--mono);min-width:2.2em;padding:.25em .55em;border-radius:.45em;border:.12em solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
+.iqtile:hover:not(:disabled){border-color:var(--marquee)}
+.iqtile:disabled{opacity:.3;cursor:default}
+.iqtile.in{background:var(--marquee);color:#231800;border-color:var(--marquee)}
+.frozen .iqtile.in{opacity:1}
+/* solve */
+.iqlines{display:flex;flex-direction:column;gap:.25em}
+.iqline{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2em .8em;padding:.2em .6em;border-radius:.45em;background:rgba(255,255,255,.03)}
+.iqline.now{background:#2a2414;border-left:.25em solid var(--marquee)}
+.iqeq{font:600 1.2em var(--mono)}
+.iqnote{font-size:.85em;color:var(--teal)}
+.iqnote::before{content:'↓ '}
+.iqwhy{font-size:.85em;color:var(--marquee);flex-basis:100%}
+.iqask{display:flex;flex-direction:column;gap:.4em}
+.iqask-q{margin:0;font-weight:700}
+.iqopts{display:flex;flex-wrap:wrap;gap:.4em}
+.iqopt{font:600 .95em var(--ui);padding:.4em .75em;border-radius:.55em;border:.12em solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer;text-align:left}
+.iqopt:hover:not(:disabled){border-color:var(--marquee)}
+.iqopt.no{border-color:var(--red);opacity:.55;text-decoration:line-through}
+.iqgbox{display:flex;flex-direction:column;gap:.4em}
+/* the plane */
+.iqplane{width:100%;max-width:min(100%,24em);height:auto;display:block;user-select:none;-webkit-user-select:none}
+.iqplane.live{touch-action:none;cursor:crosshair}
+.iqbg{fill:#14121c}
+.iqplane .iqgl{stroke:rgba(255,255,255,.1);stroke-width:1}
+.iqpax{stroke:var(--ink);stroke-width:2}
+.iqplbl{fill:var(--muted);font:600 11px var(--mono)}
+.iqplbl.ax{fill:var(--ink);font:italic 700 15px var(--ui)}
+.iqbline{stroke:var(--marquee);stroke-width:4}
+.iqbline.dash{stroke-dasharray:12 9}
+.iqbline.unset{stroke:var(--muted);stroke-width:3}
+.iqbline.given{stroke:#cfc8dc}
+.iqbline.given.dash{stroke:var(--marquee)}
+.iqshd{fill:rgba(255,201,74,.28)}
+.iqshd.good{fill:rgba(59,255,138,.22)}
+.iqshd.given{fill:rgba(180,140,255,.25)}
+.iqpp{fill:var(--marquee);stroke:#231800;stroke-width:2.5}
+.iqpp.drag{r:10}
+.iqtp circle{stroke:#fff;stroke-width:2}
+.iqtp.yes circle{fill:var(--green)}.iqtp.no circle{fill:var(--red)}.iqtp.on circle{fill:var(--violet)}
+.iqtp text{font:800 13px var(--ui);fill:#fff;paint-order:stroke;stroke:#000;stroke-width:3px}
+.iqctl{display:flex;flex-direction:column;gap:.4em}
+.iqtest{font-size:.88em;line-height:1.35}
+.iqtest:empty{display:none}
+.iqls{display:inline-block;width:1.4em;border-top:.18em solid currentColor;vertical-align:.25em}
+.iqls.dash{border-top-style:dashed}
+.iqpic.plane .iqplane{width:13em}
+.iqfoot .grp{white-space:nowrap}
+/* go deeper */
+.iqdeep .iqxq .iqw{font-size:.95em}
+.iqxdone .xsol .iqw{margin-top:.4em}
+.iqgrid.side .iqarea{position:sticky;top:0}
+@media (max-width:760px){
+  .iqgrid.side{grid-template-columns:1fr}
+  .iqgrid.side .iqarea{position:static;order:2}
+  .iqgrid.side .iqtxt{display:contents}
+  .iqgrid.side .iqtxt>.iqfoot{order:3}
+  .iqplane{max-width:100%}
+  .iqbins{grid-template-columns:1fr 1fr}
+  .iqrows .iqbinh{flex-basis:46%}
+  .iqlbl{font-size:20px}
+}
+@media (prefers-reduced-motion:reduce){.iqray{animation:none;stroke-dashoffset:0}.iqcard.no{animation:none}}

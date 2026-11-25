@@ -8,7 +8,7 @@
   var SFA = window.SFA, el = SFA.el, esc = SFA.esc, CFG = window.SFA_CONFIG || {}, S = SFA.sync;
   var Q = new URLSearchParams(location.search);
   var MODE = Q.has('teach') ? 'teach' : Q.has('screen') ? 'screen' : 'student';
-  var N = Math.max(1, Math.min(28, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
+  var N = Math.max(1, Math.min(31, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
   var TEACHER = 'Mr. Crowell';
   var LIVE_FRESH = 10 * 60 * 1000;   // a live session counts as running while the console has checked in within 10 minutes
   document.body.classList.add('lesson', 'm-' + MODE);
@@ -2482,9 +2482,15 @@
   window.SFA_LESSON_API.tg = { cur: function () { return cur; }, feed: function () { return feed; }, liveRun: liveRun, upd: upd, broadcast: function () { broadcast(); }, go: go, reveal: reveal, heroLv: heroLv, pushCounts: function () { pushCountsIfChanged(); },
     busy: function () { return !!(console_ && lobbyBusy()); },
     sendZ: function (id, text) { mine[id] = { answer: String(text), correct: null, sent: false, kind: 'open', run: liveRun() }; saveLocal(); flush(); } };
+  /* Slide kinds from other files (sfa-ineq.js: number lines, sorting, matching, graphing on the plane). A file loaded
+     after this one adds KINDS.name and sets NEWK.name = 1 so the console counts right answers and offers Show answer. */
+  window.SFA_LESSON_API.kit = { KINDS: KINDS, NEWK: NEWK, H: H, fmt: fmt, plain: plain, head: head, qline: qline, tallyFor: tallyFor,
+    rightSoFar: rightSoFar, retry: retry, record: record, stateLine: stateLine, helpFor: helpFor, confetti: confetti, reveal: reveal,
+    peeking: peeking, onScreen: onScreen, answerGroups: answerGroups, seeded: seeded, xid: xid, saveLocal: saveLocal, locked: locked,
+    numTxt: numTxt, slideEl: function () { return slideEl; }, cur: function () { return cur; } };
   window.SFA_LESSON = function (L) { LES = L; };
   var sc = document.createElement('script');
-  sc.src = 'lessons/' + LID + '.js?v=20261120b';   // bump when lesson files change
+  sc.src = 'lessons/' + LID + '.js?v=20261124a';   // bump when lesson files change
   sc.onload = function () { if (!LES) return fail(); document.title = (LES.label || 'Lesson ' + LES.n) + ': ' + LES.title + ' · Sandy Flats'; boot(); };
   sc.onerror = fail;
   function fail() { document.querySelector('.lmain').innerHTML = '<div class="card keybox"><h2>That lesson isn\'t here</h2><p class="muted">Go back to <a href="lessons.html">all lessons</a>.</p></div>'; }
