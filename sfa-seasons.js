@@ -18,7 +18,8 @@
   function get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
   // a film number as students see it: Under the Pond counts on from 18; the Rewinds are 11.5 to 11.7
   function ofFilm(n) { return +n >= 18 ? 2 : 1; }
-  function ofGame(idOrFile) { var m = String(idOrFile || '').match(/g(\d+)/); return m && +m[1] >= 18 ? 2 : 1; }
+  // Unit 2 pages (review-u2.html, the game of the Review and Inequalities lessons; check-u2, summative-u2) are Under the Pond too
+  function ofGame(idOrFile) { var f = String(idOrFile || ''); if (/-u2\b/.test(f)) return 2; var m = f.match(/g(\d+)/); return m && +m[1] >= 18 ? 2 : 1; }
   function ofLesson(L) { return L && +L.n >= 18 ? 2 : 1; }
   // how a film is named in its own season: Under the Pond's films are floors and gates
   var TAG = { 18: ['Floor', '1'], 19: ['Floor', '2'], 20: ['Floor', '3'], 21: ['Gate', 'A'] };
