@@ -59,7 +59,7 @@
 (function () {
   'use strict';
   var SFA = window.SFA, el = SFA.el, CFG = window.SFA_CONFIG || {}, C = window.CLIMB || window.Climb || window.C || null, body = document.getElementById('body');
-  var DEMO = /[?&]demo/.test(location.search), MAXL = 31;
+  var DEMO = /[?&]demo/.test(location.search), MAXL = 33;
   var LES = {}, data = null, roster = null, cls = SFA.store.get('teacher.lesson.cls', ''), count = 3;
   var KEY = 'sfa.classkey';
   var Key = {
@@ -300,5 +300,5 @@
   for (var i = 1; i <= MAXL; i++) { var s = document.createElement('script'); s.src = 'lessons/L' + i + '.js'; s.onload = s.onerror = function () { if (--left === 0) whenPlan(load, 40); }; document.head.appendChild(s); }
 })();
 </script>
-<script src="sfa-nav.js?v=20261124a"></script>
+<script src="sfa-nav.js?v=20261125a"></script>
 </body></html>

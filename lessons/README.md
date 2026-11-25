@@ -63,18 +63,21 @@ optional `kick` (the label above the question), `learn` (1 to 3 short teaching l
 
 | k | Fields | What students do |
 |---|---|---|
-| `nl` | `range` ([−6, 6]), `step` (1 or 0.5), `v` ('x'), `ans: { at, open, dir: 'l' or 'r' }` | Drag or tap the dot onto a number line, open or closed, shade left or right |
-| `pick` | `where: 'line'` with `range`, `cond` ('2x + 1 > 5'), optional `cand`; or `where: 'plane'` with `range`, `cond` ('y < 2x − 1'), `cand: [[x, y], …]`, optional `line: { m, b, solid }` | Tap every solution. Wrong picks show the working: "2 > 2 ✗ false" |
+| `nl` | `range` ([−6, 6]), `step` (1 or 0.5), `v` ('x'), `ans: { at, open, dir: 'l' or 'r' }`, or two ends: `ans: { at, open, to, toOpen, dir: 'b' }`; `between: true` shows the Between button on a one-end question too | Drag or tap the dot onto a number line, open or closed, shade left, right or between two dots |
+| `pick` | `where: 'line'` with `range`, `v`, `cond` ('2x + 1 > 5', or several limits: 'k ≥ 2, k ≤ 16'), optional `cand`; or `where: 'plane'` with `range`, `vars` (['k', 'p']), `cond`, `cand: [[x, y], …]`, optional `line` / `lines: [{ m, b, solid, lab: [x, y, 'name'] }]`, `region` ('start' or 'end': shade the feasible region), `right` (indexes of the right candidates, e.g. corners) with `notes` (one line per candidate) | Tap every solution. Wrong picks show the working: "2 > 2 ✗ false" |
 | `sort` | `bins` (2 to 4 names), `cards: [{ t, b, why }]` (a card can be a picture: `{ nl: { at, open, dir } }`) | Drag cards into groups (or tap a card, then a group). Right ones lock green; `why` is the hint for a wrong one |
 | `match` | `pairs: [[left, right, why], …]`; either side can be text or `{ nl: {…} }` or `{ plane: { m, b, op } }` | Drag each card onto its row |
 | `build` | `tiles` (strings), `ans` (accepted answers, e.g. 'x≤-1'; the sides may be swapped), optional `fig: { nl: {…}, range }` or `{ plane: {…} }` | Tap tiles to write the inequality |
 | `solve` | `start`, `moves: [{ q, opts, ans, res, rans, hint, why }]`, optional `graph: { range, at, open, dir }` | Pick each move, then its result; a wrong pick explains itself. Ends by graphing the answer |
-| `plane` | `range`, `m`, `b` (or `vx` for x = …), `op` ('<', '<=', '>', '>='), `parts` (any of 'line', 'style', 'shade'; without 'line' the boundary is drawn) | Plot two points on the boundary, choose solid or dashed, tap a side to shade; 🧪 Test a point shows the working for any point |
+| `plane` | `range`, `vars`, `m`, `b` (or `vx` for x = …), `op` ('<', '<=', '>', '>='), `parts` (any of 'line', 'style', 'shade'; without 'line' the boundary is drawn), optional `hint` (shown when the line is wrong) | Plot two points on the boundary, choose solid or dashed, tap a side to shade; 🧪 Test a point shows the working for any point |
 
 On these kinds, `more` is **🔭 Go deeper**: up to three optional tasks of any of the kinds above (or `poll`, `number`,
 `open`), each with `steps` (a worked solution). A student opens them after checking the slide's task once; a task allows
 three tries (two for `number`), then shows the answer and the worked solution. They save as the slide id + x1 to x3.
 Use `moves`, never `steps`, for a `solve` task's moves: in `more`, `steps` is the worked solution.
+
+A `play` slide may carry `file` and `btn` to open another page than the lesson's game (the Inequalities lessons open the
+Boathouse Planner and each part of the Unit 2 Summative this way).
 
 ## Differentiation inside a slide: `help` and `more`
 

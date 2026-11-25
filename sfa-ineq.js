@@ -41,9 +41,17 @@
   function cmp(a, op, b) { return op === '<' ? a < b - EPS : op === '>' ? a > b + EPS : op === '<=' ? a <= b + EPS : op === '>=' ? a >= b - EPS : Math.abs(a - b) < EPS; }
   function normOp(o) { return String(o).replace('≤', '<=').replace('≥', '>='); }
   function strictOp(o) { o = normOp(o); return o === '<' || o === '>'; }
-  // 'y < 2x + 1', '−3x + 4 > 19': a condition in x and y, checked on the student's device
-  function parseCond(str) {
+  /* 'y < 2x + 1', '−3x + 4 > 19': a condition in x and y, checked on the student's device. vars renames them
+     (['k', 'p'] reads k as x and p as y). Several limits at once: 'k ≥ 2, 3k + 4p ≤ 48' (comma or "and"): all must hold. */
+  function parseCond(str, vars) {
+    vars = vars || ['x', 'y'];
+    var all = String(str).split(/\s*(?:,|\band\b)\s*/).filter(Boolean);
+    if (all.length > 1) {
+      var ps = all.map(function (p) { return parseCond(p, vars); }); if (ps.some(function (p) { return !p; })) return null;
+      return { multi: ps, src: String(str), vars: vars, test: function (x, y) { return ps.every(function (p) { return p.test(x, y); }); } };
+    }
     var t = String(str).replace(/≤/g, '<=').replace(/≥/g, '>=').replace(/[−–]/g, '-').replace(/×/g, '*').replace(/÷/g, '/').replace(/\s+/g, '');
+    if (vars[0] !== 'x' || vars[1] !== 'y') t = t.replace(/[a-z]/g, function (ch) { return ch === vars[0] ? 'x' : ch === vars[1] ? 'y' : ch; });
     var m = /^(.*?)(<=|>=|<|>|=)(.*)$/.exec(t); if (!m) return null;
     function js(e) {
       e = e.replace(/(\d|\))(?=[xy(])/g, '$1*').replace(/([xy])(?=[\d(xy])/g, '$1*');
@@ -51,11 +59,16 @@
       try { return new Function('x', 'y', 'return (' + e + ');'); } catch (er) { return null; }
     }
     var L = js(m[1]), R = js(m[3]); if (!L || !R) return null;
-    return { op: m[2], L: L, R: R, src: String(str), test: function (x, y) { return cmp(L(x, y || 0), m[2], R(x, y || 0)); } };
+    return { op: m[2], L: L, R: R, src: String(str), vars: vars, test: function (x, y) { return cmp(L(x, y || 0), m[2], R(x, y || 0)); } };
   }
-  // the working for one point: "3 + 2 > 5 → 5 > 5 ✗ false"
+  // the working for one point: "3 + 2 > 5 → 5 > 5 ✗ false". With several limits: the first one that fails (or all, if none does)
   function subst(c, x, y) {
-    var shown = String(c.src).replace(/(\d)?\s*([xy])/g, function (all, d, v) { var val = v === 'x' ? x : y, t = frac(val); return d ? d + '(' + t + ')' : val < 0 ? '(' + t + ')' : t; });
+    if (c.multi) {
+      var bad = c.multi.filter(function (p) { return !p.test(x, y); });
+      return { ok: !bad.length, html: bad.length ? subst(bad[0], x, y).html : '<span class="iqsub"><b class="yes">✓ passes every limit</b></span>' };
+    }
+    var vx = c.vars ? c.vars[0] : 'x', vy = c.vars ? c.vars[1] : 'y', re = new RegExp('(\\d)?\\s*([' + vx + vy + '])(?![a-z])', 'g');
+    var shown = String(c.src).replace(re, function (all, d, v) { var val = v === vx ? x : y, t = frac(val); return d ? d + '(' + t + ')' : val < 0 ? '(' + t + ')' : t; });
     var ok = c.test(x, y), parts = shown.split(/\s*(<=|>=|≤|≥|<|>|=)\s*/), lv = frac(c.L(x, y || 0)), rv = frac(c.R(x, y || 0));
     var same = parts.length === 3 && parts[0].replace(/[()]/g, '') === lv && parts[2].replace(/[()]/g, '') === rv;
     return { ok: ok, html: '<span class="iqsub">' + fmt(shown) + (same ? '' : ' → ' + lv + ' ' + (PRETTY[c.op] || c.op) + ' ' + rv) + ' <b class="' + (ok ? 'yes' : 'no') + '">' + (ok ? '✓ true' : '✗ false') + '</b></span>', parts: parts };
@@ -94,14 +107,28 @@
       S_('path', { d: 'M0,0 L10,5 L0,10 z', 'class': 'iqrayh ' + (cls || '') }, mk);
       ray.style.setProperty('--len', Math.abs(end - x));
     }
-    S_('circle', { 'class': 'iqdot ' + (st.open ? 'open ' : st.open === false ? 'closed ' : 'unset ') + (cls || ''), cx: x, cy: ax.cy, r: r }, g);
+    // between two dots (dir 'b'): a segment from at to to, and a second dot with its own open or closed
+    if (st.dir === 'b' && st.to != null) {
+      var x2 = ax.X(st.to), seg = S_('line', { 'class': 'iqray ' + (cls || ''), x1: Math.min(x, x2), x2: Math.max(x, x2), y1: ax.cy, y2: ax.cy }, g);
+      seg.style.setProperty('--len', Math.abs(x2 - x));
+      S_('circle', { 'class': 'iqdot ' + (st.toOpen ? 'open ' : st.toOpen === false ? 'closed ' : 'unset ') + (st.sel === 1 && !cls ? 'sel ' : '') + (cls || ''), cx: x2, cy: ax.cy, r: r }, g);
+    }
+    S_('circle', { 'class': 'iqdot ' + (st.open ? 'open ' : st.open === false ? 'closed ' : 'unset ') + (st.dir === 'b' && st.sel === 0 && !cls ? 'sel ' : '') + (cls || ''), cx: x, cy: ax.cy, r: r }, g);
   }
-  function nlRead(v, st) { if (st.at == null) return ''; var op = st.dir === 'r' ? (st.open ? '>' : '≥') : st.dir === 'l' ? (st.open ? '<' : '≤') : '?'; return (v || 'x') + ' ' + op + ' ' + frac(st.at); }
+  function nlRead(v, st) {
+    if (st.at == null) return ''; v = v || 'x';
+    if (st.dir === 'b' && st.to != null) {
+      var lo = st.at <= st.to ? [st.at, st.open] : [st.to, st.toOpen], hi = st.at <= st.to ? [st.to, st.toOpen] : [st.at, st.open];
+      return frac(lo[0]) + ' ' + (lo[1] ? '<' : '≤') + ' ' + v + ' ' + (hi[1] ? '<' : '≤') + ' ' + frac(hi[0]);
+    }
+    var op = st.dir === 'r' ? (st.open ? '>' : '≥') : st.dir === 'l' ? (st.open ? '<' : '≤') : '?'; return v + ' ' + op + ' ' + frac(st.at);
+  }
   function nlPic(spec, range) { var ax = nlAxis(range || spec.range || [-6, 6], 1, true); nlDraw(ax, spec); var b = H('div', 'iqpic'); b.appendChild(ax.svg); return b; }
 
   /* ---------------- the coordinate plane ---------------- */
   var PW = 400, PP = 22;
-  function planeAxis(range) {
+  function planeAxis(range, vars) {
+    vars = vars || ['x', 'y'];
     var lo = range[0], hi = range[1], u = (PW - 2 * PP) / (hi - lo);
     var svg = S_('svg', { viewBox: '0 0 ' + PW + ' ' + PW, 'class': 'iqplane', role: 'img' });
     function X(v) { return PP + (v - lo) * u; } function Y(v) { return PW - PP - (v - lo) * u; }
@@ -121,8 +148,8 @@
       var tx = S_('text', { x: X(v), y: Y(0) + 13, 'text-anchor': 'middle', 'class': 'iqplbl' }, svg); tx.textContent = frac(v);
       var ty = S_('text', { x: X(0) - 5, y: Y(v) + 4, 'text-anchor': 'end', 'class': 'iqplbl' }, svg); ty.textContent = frac(v);
     }
-    var xl = S_('text', { x: PW - PP + 2, y: Y(0) - 6, 'text-anchor': 'end', 'class': 'iqplbl ax' }, svg); xl.textContent = 'x';
-    var yl = S_('text', { x: X(0) + 6, y: PP + 10, 'class': 'iqplbl ax' }, svg); yl.textContent = 'y';
+    var xl = S_('text', { x: PW - PP + 2, y: Y(0) - 6, 'text-anchor': 'end', 'class': 'iqplbl ax' }, svg); xl.textContent = vars[0];
+    var yl = S_('text', { x: X(0) + 6, y: PP + 10, 'class': 'iqplbl ax' }, svg); yl.textContent = vars[1];
     var lineG = S_('g', { 'clip-path': 'url(#' + clip + ')' }, svg), top = S_('g', {}, svg);
     return { svg: svg, X: X, Y: Y, lo: lo, hi: hi, u: u, shade: shade, lineG: lineG, top: top,
       at: function (e, snap) { var p = svgPt(svg, e), x = lo + (p.x - PP) / u, y = lo + (PW - PP - p.y) / u; if (snap) { x = Math.round(x); y = Math.round(y); } return { x: Math.max(lo, Math.min(hi, x)), y: Math.max(lo, Math.min(hi, y)) }; } };
@@ -144,14 +171,15 @@
   }
   function sideOf(ln, x, y) { if (ln.vx != null) return Math.abs(x - ln.vx) < 0.15 ? null : x > ln.vx ? 'right' : 'left'; var d = y - (ln.m * x + ln.b); return Math.abs(d) < 0.15 * Math.max(1, Math.abs(ln.m)) ? null : d > 0 ? 'above' : 'below'; }
   function lineOf(p, q) { if (!p || !q || (p.x === q.x && p.y === q.y)) return null; if (Math.abs(p.x - q.x) < EPS) return { vx: p.x }; var m = (q.y - p.y) / (q.x - p.x); return { m: m, b: p.y - m * p.x }; }
-  function lineTxt(ln, v) {
-    if (ln.vx != null) return 'x = ' + frac(ln.vx);
+  function lineTxt(ln, vars) {
+    vars = typeof vars === 'string' ? ['x', vars] : vars || ['x', 'y'];
+    if (ln.vx != null) return vars[0] + ' = ' + frac(ln.vx);
     var m = ln.m, b = ln.b, t = '';
-    if (Math.abs(m) > EPS) t = (Math.abs(m - 1) < EPS ? '' : Math.abs(m + 1) < EPS ? '−' : frac(m)) + 'x';
+    if (Math.abs(m) > EPS) t = (Math.abs(m - 1) < EPS ? '' : Math.abs(m + 1) < EPS ? '−' : frac(m)) + vars[0];
     if (Math.abs(b) > EPS || !t) t += t ? (b > 0 ? ' + ' : ' − ') + frac(Math.abs(b)) : frac(b);
-    return (v || 'y') + ' = ' + t;
+    return vars[1] + ' = ' + t;
   }
-  function ineqTxt(ln, op) { return lineTxt(ln).replace(' = ', ' ' + (PRETTY[normOp(op)] || op) + ' '); }
+  function ineqTxt(ln, op, vars) { return lineTxt(ln, vars).replace(' = ', ' ' + (PRETTY[normOp(op)] || op) + ' '); }
   function rightSide(spec) { var op = normOp(spec.op); return spec.vx != null ? (op[0] === '>' ? 'right' : 'left') : (op[0] === '>' ? 'above' : 'below'); }
   function targetLine(spec) { return spec.vx != null ? { vx: spec.vx } : { m: spec.m, b: spec.b }; }
   function onTarget(spec, p) { return spec.vx != null ? Math.abs(p.x - spec.vx) < EPS : Math.abs(p.y - (spec.m * p.x + spec.b)) < 1e-7; }
@@ -176,52 +204,114 @@
     var root = H('div', 'iqw iqnlw'), ax = nlAxis(range, step), drag = false;
     root.appendChild(ax.svg);
     var bOpen = btn('<span class="iqsym open"></span> Open dot', 'small iqtog'), bClosed = btn('<span class="iqsym closed"></span> Closed dot', 'small iqtog');
-    var bL = btn('◀ Shade left', 'small iqtog'), bR = btn('Shade right ▶', 'small iqtog');
+    var bL = btn('◀ Shade left', 'small iqtog'), bR = btn('Shade right ▶', 'small iqtog'), bB = btn('◀▶ Between two dots', 'small iqtog');
+    var between = !!spec.between || ans.dir === 'b';
     var hint = H('p', 'iqhint', 'Tap or drag on the line to put the dot.');
+    st.sel = 0;
     function draw() {
       nlDraw(ax, st, frozen && o.right ? 'good' : '');
-      bOpen.classList.toggle('on', st.open === true); bClosed.classList.toggle('on', st.open === false);
-      bL.classList.toggle('on', st.dir === 'l'); bR.classList.toggle('on', st.dir === 'r');
-      hint.textContent = st.at == null ? 'Tap or drag on the line to put the dot.' : st.open == null ? 'Dot at ' + frac(st.at) + '. Now: open or closed?' : st.dir == null ? 'Now: which way do the solutions go?' : 'Drag the dot to move it. Change anything, then Check.';
+      var curOpen = st.dir === 'b' && st.sel === 1 ? st.toOpen : st.open;
+      bOpen.classList.toggle('on', curOpen === true); bClosed.classList.toggle('on', curOpen === false);
+      bL.classList.toggle('on', st.dir === 'l'); bR.classList.toggle('on', st.dir === 'r'); bB.classList.toggle('on', st.dir === 'b');
+      hint.textContent = st.at == null ? 'Tap or drag on the line to put the dot.' :
+        st.dir === 'b' ? 'Two dots: drag either one. Tap a dot to pick it (it glows), then choose open or closed for that dot.' :
+        st.open == null ? 'Dot at ' + frac(st.at) + '. Now: open or closed?' : st.dir == null ? 'Now: which way do the solutions go?' : 'Drag the dot to move it. Change anything, then Check.';
     }
-    bOpen.onclick = function () { if (frozen) return; st.open = true; draw(); };
-    bClosed.onclick = function () { if (frozen) return; st.open = false; draw(); };
-    bL.onclick = function () { if (frozen) return; st.dir = 'l'; draw(); };
-    bR.onclick = function () { if (frozen) return; st.dir = 'r'; draw(); };
+    function setOpen(v) { if (frozen) return; if (st.dir === 'b' && st.sel === 1) st.toOpen = v; else st.open = v; draw(); }
+    bOpen.onclick = function () { setOpen(true); };
+    bClosed.onclick = function () { setOpen(false); };
+    bL.onclick = function () { if (frozen) return; st.dir = 'l'; st.sel = 0; draw(); };
+    bR.onclick = function () { if (frozen) return; st.dir = 'r'; st.sel = 0; draw(); };
+    bB.onclick = function () {
+      if (frozen) return; st.dir = 'b';
+      if (st.at == null) st.at = range[0];
+      if (st.to == null) { var t = st.at + 3 * step; if (t > range[1]) t = st.at - 3 * step; st.to = Math.max(range[0], Math.min(range[1], t)); st.toOpen = null; }
+      st.sel = 1; draw();
+    };
     if (!o.show) {
-      root.appendChild(row([bOpen, bClosed, bL, bR], 'iqwrap')); root.appendChild(hint);
-      ax.svg.addEventListener('pointerdown', function (e) { if (frozen) return; drag = true; try { ax.svg.setPointerCapture(e.pointerId); } catch (er) { } st.at = ax.vOf(svgPt(ax.svg, e).x); draw(); e.preventDefault(); });
-      ax.svg.addEventListener('pointermove', function (e) { if (!drag || frozen) return; var nv = ax.vOf(svgPt(ax.svg, e).x); if (nv !== st.at) { st.at = nv; draw(); } });
+      root.appendChild(row([bOpen, bClosed, bL, bR, between ? bB : null], 'iqwrap')); root.appendChild(hint);
+      ax.svg.addEventListener('pointerdown', function (e) {
+        if (frozen) return; drag = true; try { ax.svg.setPointerCapture(e.pointerId); } catch (er) { }
+        var v0 = ax.vOf(svgPt(ax.svg, e).x);
+        if (st.dir === 'b' && st.to != null) st.sel = Math.abs(v0 - st.to) < Math.abs(v0 - st.at) ? 1 : 0;
+        if (st.dir === 'b' && st.sel === 1) st.to = v0; else st.at = v0;
+        draw(); e.preventDefault();
+      });
+      ax.svg.addEventListener('pointermove', function (e) {
+        if (!drag || frozen) return; var nv = ax.vOf(svgPt(ax.svg, e).x);
+        if (st.dir === 'b' && st.sel === 1) { if (nv !== st.to) { st.to = nv; draw(); } } else if (nv !== st.at) { st.at = nv; draw(); }
+      });
       ['pointerup', 'pointercancel'].forEach(function (ev) { ax.svg.addEventListener(ev, function () { drag = false; }); });
       ax.svg.classList.add('live');
     }
     draw();
+    // the answer's two ends in order, low then high, each [value, open]
+    function ends(a, b, ao, bo) { return a <= b ? [[a, ao], [b, bo]] : [[b, bo], [a, ao]]; }
     return { root: root,
       check: function () {
         if (st.at == null) { toast('Put the dot on the line first.'); return null; }
-        if (st.open == null) { toast('Choose: open dot or closed dot.'); return null; }
-        if (st.dir == null) { toast('Choose which way to shade: left or right.'); return null; }
-        var okAt = Math.abs(st.at - ans.at) < EPS, okO = st.open === !!ans.open, okD = st.dir === ans.dir, msgs = [];
-        if (!okAt) msgs.push('The dot goes on the *boundary*: the number the inequality compares ' + v + ' to.');
-        if (!okO) msgs.push(ans.open ? '< and > do *not* include the boundary number, so the dot is *open*.' : '≤ and ≥ *include* the boundary number, so the dot is *closed* (filled in).');
-        if (!okD) msgs.push('Test a number on one side. If it makes the inequality true, shade *that* side.');
-        return { ok: okAt && okO && okD, ans: nlRead(v, st), msg: 'Your graph shows *' + nlRead(v, st) + '*. ' + msgs.join(' ') };
+        if (st.dir == null) { toast(between ? 'Choose: shade left, shade right, or between two dots.' : 'Choose which way to shade: left or right.'); return null; }
+        if (st.open == null || (st.dir === 'b' && st.toOpen == null)) { toast(st.dir === 'b' ? 'Choose open or closed for both dots: tap a dot, then pick.' : 'Choose: open dot or closed dot.'); return null; }
+        var msgs = [], ok;
+        if (ans.dir === 'b') {
+          if (st.dir !== 'b') { ok = false; msgs.push('This one has *two* limits, one on each side. Use *Between two dots*.'); }
+          else {
+            var A = ends(ans.at, ans.to, !!ans.open, !!ans.toOpen), M = ends(st.at, st.to, st.open, st.toOpen);
+            var okE = Math.abs(A[0][0] - M[0][0]) < EPS && Math.abs(A[1][0] - M[1][0]) < EPS, okO = okE && A[0][1] === M[0][1] && A[1][1] === M[1][1];
+            if (!okE) msgs.push('Check where each dot goes: one at the smallest number allowed, one at the biggest.');
+            else if (!okO) msgs.push('Look at each end on its own: is that number allowed (closed ●) or not (open ○)?');
+            ok = okE && okO;
+          }
+        } else {
+          if (st.dir === 'b') { ok = false; msgs.push('This one has only *one* limit: the solutions keep going one way. Shade left or right.'); }
+          else {
+            var okAt = Math.abs(st.at - ans.at) < EPS, okO1 = st.open === !!ans.open, okD = st.dir === ans.dir;
+            if (!okAt) msgs.push('The dot goes on the *boundary*: the number the inequality compares ' + v + ' to.');
+            if (!okO1) msgs.push(ans.open ? '< and > do *not* include the boundary number, so the dot is *open*.' : '≤ and ≥ *include* the boundary number, so the dot is *closed* (filled in).');
+            if (!okD) msgs.push('Test a number on one side. If it makes the inequality true, shade *that* side.');
+            ok = okAt && okO1 && okD;
+          }
+        }
+        return { ok: ok, ans: nlRead(v, st), msg: 'Your graph shows *' + nlRead(v, st) + '*. ' + msgs.join(' ') };
       },
-      showAnswer: function () { st.at = ans.at; st.open = !!ans.open; st.dir = ans.dir; draw(); },
-      freeze: function (good) { frozen = true; o.right = good; root.classList.add('frozen'); [bOpen, bClosed, bL, bR].forEach(function (b) { b.disabled = true; }); hint.remove(); draw(); }
+      showAnswer: function () { st.at = ans.at; st.open = !!ans.open; st.dir = ans.dir; if (ans.dir === 'b') { st.to = ans.to; st.toOpen = !!ans.toOpen; } st.sel = -1; draw(); },
+      freeze: function (good) { frozen = true; o.right = good; st.sel = -1; root.classList.add('frozen'); [bOpen, bClosed, bL, bR, bB].forEach(function (b) { b.disabled = true; }); hint.remove(); draw(); }
     };
   };
 
+  /* the feasible region: the grid square cut down by every limit in c (each one linear), drawn as one shaded shape */
+  function drawRegion(ax, g, c) {
+    var lo = ax.lo, hi = ax.hi, poly = [[lo, lo], [hi, lo], [hi, hi], [lo, hi]];
+    (c.multi || [c]).forEach(function (p) {
+      var f = function (x, y) { return p.L(x, y) - p.R(x, y); }, f0 = f(0, 0), a = f(1, 0) - f0, b = f(0, 1) - f0, sg = p.op[0] === '>' ? -1 : 1;
+      var keep = function (q) { return sg * (a * q[0] + b * q[1] + f0) <= 1e-9; }, out = [];
+      for (var i = 0; i < poly.length; i++) {
+        var P = poly[i], Q = poly[(i + 1) % poly.length], kp = keep(P), kq = keep(Q);
+        if (kp) out.push(P);
+        if (kp !== kq) { var fp = a * P[0] + b * P[1] + f0, fq = a * Q[0] + b * Q[1] + f0, t = fp / (fp - fq); out.push([P[0] + t * (Q[0] - P[0]), P[1] + t * (Q[1] - P[1])]); }
+      }
+      poly = out;
+    });
+    clear(g); if (poly.length < 3) return;
+    S_('polygon', { 'class': 'iqregion', points: poly.map(function (q) { return ax.X(q[0]).toFixed(1) + ',' + ax.Y(q[1]).toFixed(1); }).join(' ') }, g);
+  }
+
   // 👆 tap every solution, on a number line or on the plane
   W.pick = function (spec, o) {
-    var c = parseCond(spec.cond), plane = spec.where === 'plane', root = H('div', 'iqw iqpick' + (plane ? ' plane' : '')), sel = {}, marks = {}, frozen = !!o.show;
-    if (!c) { root.appendChild(H('p', 'state bad', 'This question\'s condition could not be read.')); return { root: root, check: function () { return null; }, showAnswer: function () { }, freeze: function () { } }; }
+    var plane = spec.where === 'plane', vars = spec.vars || [spec.v || 'x', 'y'], c = spec.cond ? parseCond(spec.cond, vars) : null, right = spec.right;
+    var root = H('div', 'iqw iqpick' + (plane ? ' plane' : '')), sel = {}, marks = {}, frozen = !!o.show, regG = null;
+    if (!c && !right) { root.appendChild(H('p', 'state bad', 'This question\'s condition could not be read.')); return { root: root, check: function () { return null; }, showAnswer: function () { }, freeze: function () { } }; }
     var cand, key = function (p) { return plane ? p[0] + ',' + p[1] : String(p); }, ax, dots = {};
     var hint = H('p', 'iqhint', plane ? 'Tap the points that are solutions. Tap again to undo.' : 'Tap every number that makes it true. Tap again to undo.');
     var work = H('div', 'iqwork');
     if (plane) {
-      ax = planeAxis(spec.range || [-5, 5]); cand = spec.cand || [];
-      if (spec.line) { var bl = bLine(ax, spec.line, spec.line.solid === false ? 'dash' : spec.line.solid ? '' : 'given'); if (spec.line.shade) bShade(ax, spec.line, spec.line.shade, 'given'); }
+      ax = planeAxis(spec.range || [-5, 5], vars); cand = spec.cand || [];
+      regG = S_('g', {}, ax.shade);
+      if (spec.region === 'start') drawRegion(ax, regG, c);
+      [].concat(spec.line || [], spec.lines || []).forEach(function (ln) {
+        bLine(ax, ln, ln.solid === false ? 'dash' : ln.solid ? '' : 'given'); if (ln.shade) bShade(ax, ln, ln.shade, 'given');
+        if (ln.lab) { var tl = S_('text', { x: ax.X(ln.lab[0]), y: ax.Y(ln.lab[1]), 'class': 'iqllbl' }, ax.top); tl.textContent = ln.lab[2]; }
+      });
       cand.forEach(function (p, i) {
         var g = S_('g', { 'class': 'iqcand', tabindex: o.show ? -1 : 0 }, ax.top);
         S_('circle', { cx: ax.X(p[0]), cy: ax.Y(p[1]), r: 16, 'class': 'hit' }, g);
@@ -250,7 +340,8 @@
       root.appendChild(hint);
     }
     root.appendChild(work);
-    function truth(p) { return plane ? c.test(p[0], p[1]) : c.test(p, 0); }
+    function truth(p) { if (right) return right.indexOf(cand.indexOf(p)) >= 0; return plane ? c.test(p[0], p[1]) : c.test(p, 0); }
+    function why(p, i) { if (spec.notes && spec.notes[i]) return H('p', '', '<b>' + esc_(lab(p, i)) + ':</b> ' + fmt(spec.notes[i])); if (!c) return null; var sb = subst(c, plane ? p[0] : p, plane ? p[1] : 0); return H('p', '', '<b>' + esc_(lab(p, i)) + ':</b> ' + sb.html); }
     return { root: root,
       check: function () {
         var picked = cand.filter(function (p) { return sel[key(p)]; });
@@ -260,11 +351,11 @@
         cand.forEach(function (p, i) {
           var k = key(p), t = truth(p);
           if (sel[k] && !t) marks[k] = 'no'; else if (!sel[k] && t) marks[k] = 'miss'; else if (sel[k]) marks[k] = 'ok';
-          if (marks[k] === 'no' && shown < 3) { shown++; var sb = subst(c, plane ? p[0] : p, plane ? p[1] : 0); work.appendChild(H('p', '', '<b>' + esc_(lab(p, i)) + ':</b> ' + sb.html)); }
+          if (marks[k] === 'no' && shown < 3) { var wy = why(p, i); if (wy) { shown++; work.appendChild(wy); } }
         });
         draw();
         var ok = !extra && !miss, ansT = plane ? picked.map(function (p) { return 'ABCDEFGHIJ'.charAt(cand.indexOf(p)); }).join(', ') : picked.map(frac).join(', ');
-        var msg = ok ? '' : 'You found *' + hit + ' of ' + good.length + '*.' + (extra ? ' ' + extra + ' you picked ' + (extra === 1 ? 'is' : 'are') + ' not a solution (red): the working shows why.' : '') + (miss ? ' ' + (miss === 1 ? 'One solution is' : miss + ' solutions are') + ' still missing (dashed ring).' : '');
+        var msg = ok ? '' : 'You found *' + hit + ' of ' + good.length + '*.' + (extra ? ' ' + extra + ' you picked ' + (extra === 1 ? 'is' : 'are') + ' not ' + (right ? 'right' : 'a solution') + ' (red)' + (c || spec.notes ? ': the working shows why.' : '.') : '') + (miss ? ' ' + (miss === 1 ? (right ? 'One is' : 'One solution is') : miss + (right ? ' are' : ' solutions are')) + ' still missing (dashed ring).' : '');
         return { ok: ok, ans: 'picked ' + ansT, msg: msg };
       },
       showAnswer: function () { sel = {}; marks = {}; cand.forEach(function (p) { if (truth(p)) { sel[key(p)] = true; marks[key(p)] = 'ok'; } }); draw(); },
@@ -272,7 +363,8 @@
         frozen = true; root.classList.add('frozen'); hint.remove(); work.innerHTML = '';
         // the working for every candidate, so the right answer explains itself
         var list = H('div', 'iqworkall');
-        cand.forEach(function (p, i) { var sb = subst(c, plane ? p[0] : p, plane ? p[1] : 0); list.appendChild(H('p', '', '<b>' + esc_(lab(p, i)) + ':</b> ' + sb.html)); });
+        if (plane && spec.region && spec.region !== 'start' && c) drawRegion(ax, regG, c);
+        cand.forEach(function (p, i) { var wy = why(p, i); if (wy) list.appendChild(wy); });
         if (cand.length <= 8) work.appendChild(list);
       }
     };
@@ -402,10 +494,17 @@
     };
   };
   function planePic(p) {
-    var ax = planeAxis(p.range || [-5, 5]), ln = targetLine(p);
+    var ax = planeAxis(p.range || [-5, 5], p.vars), b = H('div', 'iqpic plane' + (p.big ? ' big' : ''));
+    if (p.lines) {   // a system: several labelled boundaries and the region where every limit holds
+      if (p.region) drawRegion(ax, S_('g', {}, ax.shade), parseCond(p.region, p.vars));
+      p.lines.forEach(function (ln) { bLine(ax, ln, ln.solid === false ? 'dash' : ''); if (ln.lab) { var tl = S_('text', { x: ax.X(ln.lab[0]), y: ax.Y(ln.lab[1]), 'class': 'iqllbl' }, ax.top); tl.textContent = ln.lab[2]; } });
+      (p.pts || []).forEach(function (q) { S_('circle', { cx: ax.X(q[0]), cy: ax.Y(q[1]), r: 6, 'class': 'iqpp' + (q[3] ? ' hollow' : '') }, ax.top); if (q[2]) { var t = S_('text', { x: ax.X(q[0]) + 8, y: ax.Y(q[1]) - 8, 'class': 'iqclbl' }, ax.top); t.textContent = q[2]; } });
+      b.appendChild(ax.svg); return b;
+    }
+    var ln = targetLine(p);
     if (p.shade !== false && p.op) bShade(ax, ln, rightSide(p), 'given');
     bLine(ax, ln, strictOp(p.op || '<=') ? 'dash' : '');
-    var b = H('div', 'iqpic plane'); b.appendChild(ax.svg); return b;
+    b.appendChild(ax.svg); return b;
   }
 
   // 🪜 solve it one move at a time
@@ -468,7 +567,7 @@
   // 📈 graph a two-variable inequality on the plane
   W.plane = function (spec, o) {
     var range = spec.range || [-6, 6], parts = spec.parts || ['line', 'style', 'shade'], has = function (p) { return parts.indexOf(p) >= 0; };
-    var tl = targetLine(spec), frozen = !!o.show, root = H('div', 'iqw iqplanew'), ax = planeAxis(range);
+    var V = spec.vars || ['x', 'y'], tl = targetLine(spec), frozen = !!o.show, root = H('div', 'iqw iqplanew'), ax = planeAxis(range, V);
     var st = { pts: [], solid: has('style') ? null : !strictOp(spec.op), side: null, tests: [] }, mode = has('line') ? 'plot' : has('shade') ? 'shade' : 'test', dragI = -1;
     root.appendChild(ax.svg);
     var info = H('div', 'iqtest');
@@ -485,7 +584,7 @@
       st.tests.forEach(function (t) { var g = S_('g', { 'class': 'iqtp ' + (t.ok == null ? 'on' : t.ok ? 'yes' : 'no') }, ax.top); S_('circle', { cx: ax.X(t.x), cy: ax.Y(t.y), r: 6 }, g); var tx = S_('text', { x: ax.X(t.x) + 8, y: ax.Y(t.y) + 14 }, g); tx.textContent = t.ok == null ? 'on' : t.ok ? '✓' : '✗'; });
       bPlot.classList.toggle('on', mode === 'plot'); bShadeB.classList.toggle('on', mode === 'shade'); bTest.classList.toggle('on', mode === 'test');
       bSolid.classList.toggle('on', st.solid === true); bDash.classList.toggle('on', st.solid === false);
-      hint.innerHTML = mode === 'plot' ? (st.pts.length < 2 ? 'Tap two points that are on <b>' + esc_(lineTxt(tl)) + '</b>. (' + st.pts.length + ' of 2)' : 'Drag a point to move it, or tap it to take it away.') :
+      hint.innerHTML = mode === 'plot' ? (st.pts.length < 2 ? 'Tap two points that are on <b>' + esc_(lineTxt(tl, V)) + '</b>. (' + st.pts.length + ' of 2)' : 'Drag a point to move it, or tap it to take it away.') :
         mode === 'shade' ? (ln ? 'Tap the side of the line to shade.' : 'Plot the line first.') : 'Tap any point to test it in the inequality.';
       ax.svg.setAttribute('data-mode', frozen ? '' : mode);
     }
@@ -511,7 +610,7 @@
           var sd = sideOf(ln, q.x, q.y); if (!sd) { toast('That is on the line. Tap one side of it.'); return; }
           st.side = sd; draw();
         } else {
-          var t = ax.at(e, true), c = parseCond(ineqTxt(tl, spec.op)), on = onTarget(spec, t);
+          var t = ax.at(e, true), c = parseCond(ineqTxt(tl, spec.op, V), V), on = onTarget(spec, t);
           st.tests = st.tests.filter(function (x) { return x.x !== t.x || x.y !== t.y; }).slice(-3);
           st.tests.push({ x: t.x, y: t.y, ok: on && strictOp(spec.op) ? false : on ? true : c.test(t.x, t.y) });
           var sb = subst(c, t.x, t.y);
@@ -523,14 +622,14 @@
       ['pointerup', 'pointercancel'].forEach(function (ev) { ax.svg.addEventListener(ev, function () { if (dragI >= 0) { if (!st.moved) st.pts.splice(dragI, 1); dragI = -1; draw(); } }); });
     }
     draw();
-    function readMine() { var ln = myLine(); if (!ln) return 'no line'; var op = st.side === 'above' || st.side === 'right' ? (st.solid ? '≥' : '>') : st.side ? (st.solid ? '≤' : '<') : '?'; return st.side ? ineqTxt(ln, op === '≥' ? '>=' : op === '≤' ? '<=' : op) : lineTxt(ln) + (st.solid == null ? '' : st.solid ? ', solid' : ', dashed'); }
+    function readMine() { var ln = myLine(); if (!ln) return 'no line'; var op = st.side === 'above' || st.side === 'right' ? (st.solid ? '≥' : '>') : st.side ? (st.solid ? '≤' : '<') : '?'; return st.side ? ineqTxt(ln, op === '≥' ? '>=' : op === '≤' ? '<=' : op, V) : lineTxt(ln, V) + (st.solid == null ? '' : st.solid ? ', solid' : ', dashed'); }
     return { root: root,
       check: function () {
         if (has('line') && st.pts.length < 2) { toast('Plot two points on the boundary line first.'); return null; }
         if (has('style') && st.solid == null) { toast('Choose a solid or a dashed line.'); return null; }
         if (has('shade') && !st.side) { toast('Tap the side of the line to shade.'); return null; }
         var okL = !has('line') || (onTarget(spec, st.pts[0]) && onTarget(spec, st.pts[1])), okS = st.solid === !strictOp(spec.op), okH = !has('shade') || st.side === rightSide(spec), msgs = [];
-        if (!okL) msgs.push(spec.vx != null ? 'Every point on x = ' + frac(spec.vx) + ' has x = ' + frac(spec.vx) + '.' : 'Your line isn\'t ' + lineTxt(tl) + ' yet. Start at the y-intercept (0, ' + frac(spec.b) + '), then use the slope ' + frac(spec.m) + ' for the second point.');
+        if (!okL) msgs.push(spec.vx != null ? 'Every point on ' + V[0] + ' = ' + frac(spec.vx) + ' has ' + V[0] + ' = ' + frac(spec.vx) + '.' : 'Your line isn\'t ' + lineTxt(tl, V) + ' yet. ' + (spec.hint || 'Start where it crosses the ' + V[1] + '-axis, (0, ' + frac(spec.b) + '), then use the slope ' + frac(spec.m) + ' for the second point. Or find where it crosses each axis.'));
         if (!okS) msgs.push(strictOp(spec.op) ? '< and >: points *on* the line are not solutions, so the line is *dashed*.' : '≤ and ≥: points *on* the line are solutions too, so the line is *solid*.');
         if (!okH) msgs.push('Use *🧪 Test a point*: try (0, 0) or another point off the line. True? Shade its side. False? Shade the other side.');
         return { ok: okL && okS && okH, ans: readMine(), msg: (has('line') || has('shade') ? 'Your graph shows *' + readMine() + '*. ' : '') + msgs.join(' ') };

@@ -8,7 +8,7 @@
   var SFA = window.SFA, el = SFA.el, esc = SFA.esc, CFG = window.SFA_CONFIG || {}, S = SFA.sync;
   var Q = new URLSearchParams(location.search);
   var MODE = Q.has('teach') ? 'teach' : Q.has('screen') ? 'screen' : 'student';
-  var N = Math.max(1, Math.min(31, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
+  var N = Math.max(1, Math.min(33, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
   var TEACHER = 'Mr. Crowell';
   var LIVE_FRESH = 10 * 60 * 1000;   // a live session counts as running while the console has checked in within 10 minutes
   document.body.classList.add('lesson', 'm-' + MODE);
@@ -687,7 +687,8 @@
       var c = H('div', 'cols top grow'), l = H('div', 'st'), r = H('div', 'st');
       var ol = H('ol', 'pts'); (s.steps || []).forEach(function (p) { ol.appendChild(H('li', '', fmt(p))); }); l.appendChild(ol);
       if (s.aim) l.appendChild(H('p', 'note', fmt(s.aim)));
-      var a = H('a', 'go', '🕹️ Open ' + esc(LES.game.title)); a.href = LES.game.file; a.target = '_blank'; a.rel = 'noopener'; r.appendChild(a);
+      // s.file and s.btn: a play slide can open another page (a part of the Unit 2 Summative, the Boathouse Planner)
+      var a = H('a', 'go', esc(s.btn || '🕹️ Open ' + LES.game.title)); a.href = s.file || LES.game.file; a.target = '_blank'; a.rel = 'noopener'; r.appendChild(a);
       r.appendChild(H('p', 'onyours', 'It opens in a new tab. Come back to this tab when the timer ends.'));
       var tbox = H('div', 'timer'); r.appendChild(tbox);
       c.appendChild(l); c.appendChild(r); d.appendChild(c);
@@ -2490,7 +2491,7 @@
     numTxt: numTxt, slideEl: function () { return slideEl; }, cur: function () { return cur; } };
   window.SFA_LESSON = function (L) { LES = L; };
   var sc = document.createElement('script');
-  sc.src = 'lessons/' + LID + '.js?v=20261124a';   // bump when lesson files change
+  sc.src = 'lessons/' + LID + '.js?v=20261125b';   // bump when lesson files change
   sc.onload = function () { if (!LES) return fail(); document.title = (LES.label || 'Lesson ' + LES.n) + ': ' + LES.title + ' · Sandy Flats'; boot(); };
   sc.onerror = fail;
   function fail() { document.querySelector('.lmain').innerHTML = '<div class="card keybox"><h2>That lesson isn\'t here</h2><p class="muted">Go back to <a href="lessons.html">all lessons</a>.</p></div>'; }

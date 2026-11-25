@@ -37,9 +37,11 @@
     { l: 26, n: 21.2, label: 'Review 2', game: 'review-u2.html' },
     { l: 27, n: 21.3, label: 'Review 3', game: 'review-u2.html' },
     { l: 28, n: 21.4, label: 'Review 4', game: 'review-u2.html' },
-    { l: 29, n: 21.5, label: 'Inequalities 1', game: 'review-u2.html' },   // the inequalities arc: no film, every slide hands-on (sfa-ineq.js), number line to the plane
-    { l: 30, n: 21.6, label: 'Inequalities 2', game: 'review-u2.html' },
-    { l: 31, n: 21.7, label: 'Inequalities 3', game: 'review-u2.html' }
+    { l: 29, n: 21.5, label: 'Inequalities 1', game: 'summative-u2.html' },   // the inequalities arc runs with the Unit 2 Summative: lesson n teaches what Part n needs, then students do Part n
+    { l: 30, n: 21.6, label: 'Inequalities 2', game: 'summative-u2.html' },
+    { l: 31, n: 21.7, label: 'Inequalities 3', game: 'summative-u2.html' },
+    { l: 32, n: 21.8, label: 'Inequalities 4', game: 'summative-u2.html' },
+    { l: 33, n: 21.9, label: 'Inequalities 5', game: 'summative-u2.html' }
   ];
   var LESSON_OF = {}, NUM = {}, LABEL = {};   // game file -> lesson file number; lesson file number -> number shown; -> its name ("Lesson 12", "Rewind 1")
   PLAN.forEach(function (p) { if (!LESSON_OF[p.game]) LESSON_OF[p.game] = p.l; NUM[p.l] = p.n; LABEL[p.l] = p.label || 'Lesson ' + p.n; });

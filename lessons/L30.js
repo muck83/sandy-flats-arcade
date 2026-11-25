@@ -1,129 +1,100 @@
+/* Inequalities 2 of 5: the Unit 2 Summative's lesson 2 (Part 2: both machines at once). Taught on the Pond Boat Hire
+   (k kayaks, p pedal boats): dock 3k + 4p ≤ 48 · budget 100k + 200p ≤ 2000 · k ≥ 2 · 0 ≤ p ≤ 7 · takings 15k + 40p > 120. */
 SFA_LESSON({
-  id: 'L30', n: 21.6, label: 'Inequalities 2', title: 'Turn the Sign',
-  game: { title: 'Unit 2 Review', file: 'review-u2.html#r3' },
-  big: 'Solve an inequality like an equation: do the same thing to both sides. One exception: multiply or divide both sides by a negative number and the symbol turns around. Then check with a number, and round word answers so they make sense.',
+  id: 'L30', n: 21.6, label: 'Inequalities 2', title: 'Both at Once',
+  game: { title: 'Unit 2 Summative', file: 'summative-u2.html#p2' },
+  big: 'With two things to choose, each limit becomes an inequality in two variables: each term is the amount for one, times how many. Every limit together is the system. A plan is possible only if it passes every inequality. Rewrite a boundary as y = mx + b, and the slope is the trade between the two.',
   slides: [
-    { k: 'title', min: 1, kicker: 'Under the Pond · Inequalities 2 of 3', title: 'Turn the Sign', sub: 'Floor Three\'s incident slip said: "Divided by a negative. Did not turn the sign." Today you find out why that matters, and you never get that slip.', art: '🔄' },
-    { k: 'signin', min: 1, title: 'Today you will', points: ['Solve inequalities with one and two steps', 'Find out when the symbol flips, and test why', 'Graph every answer on a number line', 'Solve a word problem and round the answer so it makes sense'] },
-    { k: 'poll', min: 1, id: 'warm', warm: true, q: 'Which incident slip would you be most embarrassed to get?', opts: ['Fell in the duck pond (again)', 'Forgot to turn the sign', 'Argued with the Voice', 'Left Doug behind'] },
+    { k: 'title', min: 1, kicker: 'Unit 2 Summative · Lesson 2 of 5', title: 'Both at Once', sub: 'Part 1 changed one machine at a time. Real plans change both. Today every limit gets two variables, and you test the friends\' plans properly.', art: '⚖️' },
+    { k: 'signin', min: 1, title: 'Today you will', points: ['Write a limit with two variables, and say what each term means', 'Put every limit together into a system', 'Test a plan against every limit', 'Rewrite a boundary in slope-intercept form and explain its slope', 'Do Part 2 of the summative'] },
+    { k: 'poll', min: 1, id: 'warm', warm: true, q: 'Which do you think breaks first in the boathouse: floor space, budget or staff pay?', opts: ['Floor space', 'Budget', 'Staff pay', 'All at once'] },
 
-    { k: 'pick', min: 3, id: 'guess', where: 'line', range: [-2, 6], cond: '2x + 1 > 7', kick: 'Guess and check first', q: 'Tap every number that makes *2x + 1 > 7* true. Check each one.',
-      learn: ['Testing works, but it is slow. Solving finds *all* the answers at once.'],
-      help: 'Try x = 3: 2(3) + 1 = 7. Is 7 > 7?',
-      why: 'x = 3 gives 7 > 7: false. x = 4, 5, 6 work. So the answer is x > 3. Next slide: get there without guessing.',
+    { k: 'build', min: 3, id: 'two', kick: 'Two variables', q: 'Pond Boat Hire: a kayak needs *3 m²* of dock, a pedal boat needs *4 m²*, and the dock has *48 m²*. Build the dock inequality (k kayaks, p pedal boats).',
+      learn: ['Each term is (the amount for one) × (how many): 3k is the dock space for k kayaks.', 'Add the terms for both, then compare with the limit.'],
+      tiles: ['3k', '4p', '4k', '3p', '+', '≤', '≥', '<', '48'], ans: ['3k+4p≤48'],
+      help: 'Space for the kayaks is 3k. Space for the pedal boats is 4p. Together they can\'t go over 48.',
+      why: '3k + 4p ≤ 48: kayak space plus boat space, no more than the 48 m² dock.',
       more: [
-        { k: 'pick', where: 'line', range: [-4, 4], cond: 'x − 4 ≤ −2', q: 'Tap every number that makes *x − 4 ≤ −2* true.', why: 'x = 2 gives −2 ≤ −2, which is true. Smaller x works too: x ≤ 2.',
-          steps: ['x = 2: 2 − 4 = −2, and −2 ≤ −2 ✓.', 'x = 3: −1 ≤ −2 ✗.', 'So −4 up to 2: x ≤ 2.'] },
-        { k: 'pick', where: 'line', range: [-4, 4], cond: '−2x > 2', q: 'Strange one: tap every number that makes *−2x > 2* true.', why: 'Only the numbers *less than* −1 work: −2(−2) = 4 > 2. Remember this one: the answer is x < −1, not x > −1.',
-          steps: ['x = 1: −2 > 2 ✗. x = 0: 0 > 2 ✗.', 'x = −1: 2 > 2 ✗. x = −2: 4 > 2 ✓.', 'So x < −1. The answers went the *opposite* way to what you might guess.'] }
+        { k: 'build', q: 'Budget: a kayak costs *$100* to hire, a pedal boat *$200*, and there is *$2000*. Build it.', tiles: ['100k', '200p', '15k', '40p', '+', '≤', '≥', '>', '2000'], ans: ['100k+200p≤2000'],
+          why: '100k + 200p ≤ 2000. Careful: $15 and $40 are what they take in each day, not what they cost.', steps: ['Cost of kayaks: 100k. Cost of boats: 200p.', 'Together: no more than $2000.', '100k + 200p ≤ 2000.'] },
+        { k: 'build', q: 'Takings: a kayak takes in *$15* a day, a pedal boat *$40*, and the hire must take in *more than $120*. Build it.', tiles: ['15k', '40p', '100k', '200p', '+', '>', '≥', '≤', '120'], ans: ['15k+40p>120'],
+          why: '15k + 40p > 120. Strict: exactly $120 is not enough.', steps: ['Money from kayaks: 15k. From boats: 40p.', '"More than": >, not ≥.', '15k + 40p > 120.'] },
+        { k: 'poll', q: 'Why is the takings inequality *>* and not *≥*?', opts: ['"More than $120" means $120 exactly is not enough', 'Because takings are money', 'Because it is the last limit'], ans: 0,
+          why: 'At exactly $120 the rule is not met. > leaves 120 out; ≥ would let it in.', steps: ['More than: >.', 'At least: ≥.', 'The words decide the sign.'] }
       ] },
 
-    { k: 'solve', min: 3, id: 's1', q: 'Solve *x + 5 > 8*, then graph it.', start: 'x + 5 > 8',
-      learn: ['Undo what is done to x. Do the *same* to both sides.'],
-      moves: [{ q: 'What undoes the + 5?', opts: ['Subtract 5 from both sides', 'Add 5 to both sides', 'Divide both sides by 5'], ans: 0, res: ['x > 3', 'x > 13', 'x < 3'], rans: 0 }],
-      graph: { range: [-6, 6], at: 3, open: true, dir: 'r' },
-      help: 'What number is added to x? Take it away from both sides.',
-      why: 'x + 5 > 8 → x > 3. Check: x = 4 gives 9 > 8 ✓.',
+    { k: 'match', min: 2, id: 'terms', kick: 'What each term means', q: 'Match each term to what it means at the Pond Boat Hire.',
+      pairs: [['3k', 'm² of dock the kayaks use'], ['4p', 'm² of dock the pedal boats use'], ['200p', 'dollars spent hiring pedal boats'], ['15k', 'dollars the kayaks take in each day']],
+      help: 'Look at the number: 3 and 4 are square metres, 200 is a hire cost, 15 is daily takings.',
+      why: 'The number tells you which limit it belongs to; the letter tells you which boat.',
       more: [
-        { k: 'solve', q: 'Solve *x − 2 ≤ −5* and graph it.', start: 'x − 2 ≤ −5', moves: [{ q: 'What undoes − 2?', opts: ['Add 2 to both sides', 'Subtract 2 from both sides'], ans: 0, res: ['x ≤ −3', 'x ≤ −7', 'x ≥ −3'], rans: 0 }],
-          graph: { range: [-6, 6], at: -3, open: false, dir: 'l' }, why: 'x ≤ −3: closed dot at −3, shade left.', steps: ['Add 2 to both sides: x ≤ −3.', 'Closed dot (≤) at −3.', 'Shade left.'] },
-        { k: 'solve', q: 'Solve *4 + x ≥ 1* and graph it.', start: '4 + x ≥ 1', moves: [{ q: 'First move?', opts: ['Subtract 4 from both sides', 'Subtract 1 from both sides', 'Divide by 4'], ans: 0, res: ['x ≥ −3', 'x ≥ 5', 'x ≤ −3'], rans: 0 }],
-          graph: { range: [-6, 6], at: -3, open: false, dir: 'r' }, why: 'x ≥ −3: closed dot at −3, shade right.', steps: ['Subtract 4: x ≥ 1 − 4 = −3.', 'Closed dot at −3.', 'Shade right.'] },
-        { k: 'number', q: 'Solve *x + 12 < 4*. The answer is x < ?', ans: -8, hint: 'Subtract 12 from both sides: 4 − 12.', why: 'x < −8.', steps: ['Subtract 12 from both sides.', 'x < 4 − 12.', 'x < *−8*.'] }
+        { k: 'sort', q: 'Which limit is each inequality? (One is written a different way.)', bins: ['Dock space', 'Budget', 'Takings'],
+          cards: [{ t: '3k + 4p ≤ 48', b: 0 }, { t: '100k + 200p ≤ 2000', b: 1 }, { t: '15k + 40p > 120', b: 2 }, { t: 'k + 2p ≤ 20', b: 1, why: 'Divide every term of 100k + 200p ≤ 2000 by 100: k + 2p ≤ 20. Same limit, smaller numbers.' }],
+          why: 'k + 2p ≤ 20 is the budget divided by 100.', steps: ['Dock uses m²: 3 and 4.', 'Budget uses hire costs: 100 and 200 (or 1 and 2 after dividing by 100).', 'Takings use daily money: 15 and 40.'] },
+        { k: 'open', q: 'Explain what *100k + 200p ≤ 2000* means, in a sentence a parent would understand.', ph: 'It means…',
+          model: 'The money spent hiring kayaks ($100 each) plus the money spent hiring pedal boats ($200 each) can\'t be more than the $2000 they have.',
+          steps: ['100k: money for kayaks.', '200p: money for pedal boats.', '≤ 2000: no more than the $2000 budget.'] }
       ] },
 
-    { k: 'sort', min: 4, id: 'test', kick: 'Experiment', q: 'Start with *4 < 10* (true). Do something to both sides. Is it still true? Sort the results.', bins: ['Still true', 'Now false'],
-      learn: ['On a number line, −8 is to the *right* of −20, so −8 > −20.'],
-      cards: [{ t: '+ 3: 7 < 13', b: 0 }, { t: '− 6: −2 < 4', b: 0 }, { t: '× 2: 8 < 20', b: 0 }, { t: '× (−2): −8 < −20', b: 1, why: '−8 is to the right of −20 on the number line, so −8 is BIGGER.' }, { t: '÷ 2: 2 < 5', b: 0 }, { t: '÷ (−2): −2 < −5', b: 1, why: '−2 is bigger than −5.' }, { t: '× (−2): −8 > −20', b: 0 }, { t: '÷ (−2): −2 > −5', b: 0 }],
-      help: 'For each card, picture both numbers on a number line. Which is further right?',
-      why: 'Adding, subtracting, and multiplying or dividing by a positive keep it true. Multiplying or dividing by a negative makes it false, unless you turn the symbol around.',
+    { k: 'sort', min: 3, id: 'test', kick: 'Test a plan', q: 'Plan: *10 kayaks and 6 pedal boats*, (10, 6). Put the numbers in. Does it pass each limit?', bins: ['✓ Passes', '✗ Breaks'],
+      learn: ['Put k = 10 and p = 6 into every inequality.', 'One ✗ and the plan is impossible.'],
+      cards: [{ t: 'k ≥ 2', b: 0 }, { t: '0 ≤ p ≤ 7', b: 0 }, { t: '3k + 4p ≤ 48', b: 1, why: '3(10) + 4(6) = 30 + 24 = 54, and 54 ≤ 48 is false.' }, { t: '100k + 200p ≤ 2000', b: 1, why: '1000 + 1200 = 2200, more than $2000.' }, { t: '15k + 40p > 120', b: 0, why: '150 + 240 = 390 > 120 ✓.' }],
+      help: 'Dock: 3 × 10 + 4 × 6. Is it 48 or less?',
+      why: '(10, 6) passes three limits but breaks the dock (54 m²) and the budget ($2200), so it is impossible.',
       more: [
-        { k: 'pick', where: 'line', range: [-10, 10], cond: 'x > −6', q: 'Multiplying by −1 mirrors numbers across 0. Tap every whole number with *x > −6* to see which side −6 is "bigger" on.', cand: [-10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10],
-          why: 'Everything to the right of −6 is bigger. Mirror 4 < 6 across zero and you get −4 and −6: now −4 is the bigger one. That is why the sign turns.', steps: ['4 < 6.', 'Times −1: −4 and −6.', '−4 is to the right of −6, so −4 > −6: the symbol turned.'] },
-        { k: 'open', q: 'In your own words: why does multiplying both sides by a negative turn the symbol around?', ph: 'Because…',
-          model: 'Multiplying by a negative mirrors both numbers across zero. The bigger number ends up further left, so it becomes the smaller one, and the symbol has to turn to stay true.',
-          steps: ['Take 2 < 5.', 'Times −1: −2 and −5. Now −2 is further right.', 'So −2 > −5: the order flipped, so the symbol must flip too.'] }
+        { k: 'pick', where: 'plane', range: [0, 20], vars: ['k', 'p'], cond: 'k ≥ 2, p ≥ 0, p ≤ 7, 3k + 4p ≤ 48, 100k + 200p ≤ 2000, 15k + 40p > 120',
+          cand: [[6, 7], [10, 6], [16, 0], [2, 2], [4, 5], [12, 4], [10, 10]], q: 'Which plans pass *every* limit? Tap them. (The working appears for any you get wrong.)',
+          why: 'A (6, 7), C (16, 0) and E (4, 5) pass everything. (2, 2) only takes in $110, (12, 4) needs 52 m², and (10, 10) breaks the stock, dock and budget.',
+          steps: ['A (6, 7): 46 m², $2000, $370 ✓.', 'B (10, 6): 54 m² ✗. D (2, 2): $110 ✗. F (12, 4): 52 m² ✗.', 'C (16, 0) and E (4, 5) pass all five.', 'G (10, 10): 10 > 7 boats ✗.'] },
+        { k: 'sort', q: 'Doug says "Ten of each!" Sort the limits for (10, 10).', bins: ['✓ Passes', '✗ Breaks'],
+          cards: [{ t: 'k ≥ 2', b: 0 }, { t: 'p ≤ 7', b: 1 }, { t: '3k + 4p ≤ 48', b: 1, why: '30 + 40 = 70 m².' }, { t: '100k + 200p ≤ 2000', b: 1, why: '$3000.' }, { t: '15k + 40p > 120', b: 0 }],
+          why: 'It takes in lots ($550), but breaks three limits.', steps: ['p = 10 > 7 ✗.', 'Dock 70 > 48 ✗. Budget 3000 > 2000 ✗.', 'Lots of money, impossible plan.'] }
       ] },
 
-    { k: 'sort', min: 3, id: 'flip', kick: 'Flip or keep?', q: 'For each move, does the symbol *flip* or *stay*?', bins: ['🔄 Flip it', '➡️ Keep it'],
-      learn: ['Flip only when you *multiply or divide* by a *negative*.'],
-      cards: [{ t: 'Divide both sides by −3', b: 0 }, { t: 'Multiply both sides by 4', b: 1 }, { t: 'Subtract 7 from both sides', b: 1 }, { t: 'Add −5 to both sides', b: 1, why: 'Adding or subtracting never flips, even when the number is negative.' }, { t: 'Multiply both sides by −1', b: 0 }, { t: 'Divide both sides by 2', b: 1 }, { t: 'Subtract −8 from both sides', b: 1, why: 'Subtracting never flips.' }, { t: 'Divide both sides by −½', b: 0, why: '−½ is negative, and you are dividing: flip.' }],
-      help: 'Ask two questions: am I multiplying or dividing? Is the number negative? Flip only if both are yes.',
-      why: 'Flip only for × or ÷ by a negative number. Adding or subtracting a negative does not flip.',
-      more: [
-        { k: 'sort', q: 'Doug wrote these. Which are right?', bins: ['✓ Right', '✗ Wrong'],
-          cards: [{ t: '−x > 4 → x < −4', b: 0 }, { t: '3x ≤ −9 → x ≥ −3', b: 1, why: 'Dividing by +3 does not flip: x ≤ −3.' }, { t: '−2x < 6 → x > −3', b: 0 }, { t: 'x − 5 ≥ −1 → x ≤ 4', b: 1, why: 'Adding 5 does not flip: x ≥ 4.' }, { t: 'x ÷ (−3) > 2 → x < −6', b: 0 }],
-          why: 'Look at the move, not the numbers: only × or ÷ by a negative flips.', steps: ['−x > 4: divide by −1, flip → x < −4 ✓.', '3x ≤ −9: divide by +3, keep → x ≤ −3 (Doug flipped ✗).', 'x − 5 ≥ −1: add 5, keep → x ≥ 4 (Doug flipped ✗).'] },
-        { k: 'poll', q: 'Marcus solves *−5x ≥ 20* and gets *x ≥ −4*. Test x = 0 in the original: is 0 a solution?', opts: ['Yes, so Marcus is right', 'No: −5(0) = 0, and 0 ≥ 20 is false. Marcus forgot to flip', 'You cannot test 0'], ans: 1,
-          why: 'His answer says 0 works, but 0 ≥ 20 is false. The answer is x ≤ −4.', steps: ['Marcus\' answer x ≥ −4 includes 0.', 'Original: −5(0) = 0, and 0 ≥ 20 ✗.', 'So he is wrong. Dividing by −5 flips: x ≤ −4.'] }
-      ] },
-
-    { k: 'solve', min: 4, id: 's2', q: 'Solve *−3x > 12*, then graph it.', start: '−3x > 12',
-      learn: ['Dividing by a negative? *Turn the sign.* Then check with a number.'],
-      moves: [{ q: 'What undoes × (−3)?', opts: ['Divide both sides by −3', 'Divide both sides by 3', 'Add 3 to both sides'], ans: 0, res: ['x > −4', 'x < −4', 'x < 4'], rans: 1, why: 'You divided by −3, a negative, so > turned into <.' }],
-      graph: { range: [-8, 4], at: -4, open: true, dir: 'l' },
-      help: 'Divide by −3. Did you divide by a negative? Then the sign turns.',
-      why: 'x < −4. Check x = −5: −3(−5) = 15, and 15 > 12 ✓.',
-      more: [
-        { k: 'solve', q: 'Solve *−2x ≤ 10* and graph it.', start: '−2x ≤ 10', moves: [{ q: 'First move?', opts: ['Divide both sides by −2', 'Subtract 2', 'Divide both sides by 2'], ans: 0, res: ['x ≤ −5', 'x ≥ −5', 'x ≥ 5'], rans: 1, why: 'Divided by a negative: ≤ becomes ≥.' }],
-          graph: { range: [-8, 4], at: -5, open: false, dir: 'r' }, why: 'x ≥ −5.', steps: ['Divide both sides by −2 and flip.', 'x ≥ −5.', 'Check x = 0: 0 ≤ 10 ✓.'] },
-        { k: 'solve', q: 'Solve *x ÷ (−4) < 1* and graph it.', start: 'x ÷ (−4) < 1', moves: [{ q: 'What undoes ÷ (−4)?', opts: ['Multiply both sides by −4', 'Divide both sides by −4', 'Add 4'], ans: 0, res: ['x < −4', 'x > −4', 'x > 4'], rans: 1, why: 'Multiplied by a negative: < becomes >.' }],
-          graph: { range: [-8, 4], at: -4, open: true, dir: 'r' }, why: 'x > −4.', steps: ['Multiply both sides by −4 and flip.', 'x > −4.', 'Check x = 0: 0 ÷ (−4) = 0 < 1 ✓.'] },
-        { k: 'number', q: 'Solve *−6x ≥ −18*. The answer is x ≤ ? (Careful: two negatives.)', ans: 3, hint: 'Divide both sides by −6. −18 ÷ −6 is positive.', why: 'x ≤ 3. Check x = 0: 0 ≥ −18 ✓.', steps: ['Divide by −6 and flip ≥ to ≤.', '−18 ÷ (−6) = 3.', 'x ≤ *3*.'] }
-      ] },
-
-    { k: 'solve', min: 4, id: 's3', q: 'Two steps: solve *−3x + 4 > 19*, then graph it.', start: '−3x + 4 > 19',
-      learn: ['Undo adding and subtracting first. Then multiplying and dividing.'],
+    { k: 'solve', min: 3, id: 'si', kick: 'Slope-intercept form', q: 'Rewrite the dock boundary *3k + 4p = 48* as *p = mk + b*.', start: '3k + 4p = 48',
+      learn: ['Get the p term alone, then divide *every* term by the number in front of p.'],
       moves: [
-        { q: 'First move?', opts: ['Subtract 4 from both sides', 'Divide both sides by −3', 'Add 4 to both sides'], ans: 0, res: ['−3x > 15', '−3x > 23', '−3x < 15'], rans: 0 },
-        { q: 'Next move?', opts: ['Divide both sides by −3', 'Divide both sides by 3', 'Subtract 3'], ans: 0, res: ['x > −5', 'x < −5', 'x < 5'], rans: 1, why: 'Divided by −3: > turns into <.' }],
-      graph: { range: [-8, 2], at: -5, open: true, dir: 'l' },
-      help: 'Get rid of the + 4 first. Then deal with the −3.',
-      why: 'x < −5. Check x = −6: −3(−6) + 4 = 22, and 22 > 19 ✓.',
+        { q: 'First move?', opts: ['Subtract 3k from both sides', 'Divide both sides by 4', 'Subtract 48 from both sides'], ans: 0, res: ['4p = −3k + 48', '4p = 3k + 48', '4p = −3k − 48'], rans: 0 },
+        { q: 'Next move?', opts: ['Divide every term by 4', 'Divide only the 48 by 4'], ans: 0, res: ['p = −¾k + 12', 'p = −3k + 12', 'p = −¾k + 48'], rans: 0, why: 'Divide both terms on the right: −3k ÷ 4 and 48 ÷ 4.' }],
+      help: 'Move the 3k to the other side first. Its sign changes.',
+      why: 'p = −¾k + 12. Slope −¾, and it crosses the p-axis at 12.',
       more: [
-        { k: 'solve', q: 'Solve *2x − 7 ≤ 3* and graph it.', start: '2x − 7 ≤ 3', moves: [
-          { q: 'First move?', opts: ['Add 7 to both sides', 'Divide by 2', 'Subtract 7'], ans: 0, res: ['2x ≤ 10', '2x ≤ −4', '2x ≥ 10'], rans: 0 },
-          { q: 'Next move?', opts: ['Divide both sides by 2', 'Divide both sides by −2', 'Subtract 2'], ans: 0, res: ['x ≤ 5', 'x ≥ 5', 'x ≤ 8'], rans: 0, why: 'Dividing by +2: no flip.' }],
-          graph: { range: [-2, 8], at: 5, open: false, dir: 'l' }, why: 'x ≤ 5.', steps: ['Add 7: 2x ≤ 10.', 'Divide by 2 (positive, keep): x ≤ 5.', 'Closed dot at 5, shade left.'] },
-        { k: 'solve', q: 'Solve *5 − x > 2*. (The x has a hidden −1 in front.)', start: '5 − x > 2', moves: [
-          { q: 'First move?', opts: ['Subtract 5 from both sides', 'Add x to both sides', 'Divide by 5'], ans: 0, res: ['−x > −3', '−x > 7', 'x > −3'], rans: 0 },
-          { q: 'Next move?', opts: ['Divide both sides by −1', 'Add 1', 'Nothing: x > −3'], ans: 0, res: ['x > 3', 'x < 3', 'x < −3'], rans: 1, why: '−x means −1 × x. Dividing by −1 flips.' }],
-          graph: { range: [-2, 8], at: 3, open: true, dir: 'l' }, why: 'x < 3.', steps: ['Subtract 5: −x > −3.', 'Divide by −1 and flip: x < 3.', 'Check x = 0: 5 > 2 ✓.'] },
-        { k: 'number', q: 'Solve *−4x − 1 ≥ 11*. The answer is x ≤ ?', ans: -3, hint: 'Add 1, then divide by −4 and flip.', why: 'x ≤ −3.', steps: ['Add 1: −4x ≥ 12.', 'Divide by −4, flip: x ≤ −3.', 'Check x = −4: 16 − 1 = 15 ≥ 11 ✓.'] }
+        { k: 'solve', q: 'Now the budget boundary: *100k + 200p = 2000*.', start: '100k + 200p = 2000', moves: [
+          { q: 'First move?', opts: ['Subtract 100k from both sides', 'Divide by 100k'], ans: 0, res: ['200p = −100k + 2000', '200p = 100k + 2000'], rans: 0 },
+          { q: 'Next?', opts: ['Divide every term by 200', 'Divide by 100'], ans: 0, res: ['p = −½k + 10', 'p = −2k + 10', 'p = −½k + 2000'], rans: 0 }],
+          why: 'p = −½k + 10.', steps: ['Subtract 100k: 200p = −100k + 2000.', 'Divide by 200: p = −½k + 10.'] },
+        { k: 'solve', q: 'The takings boundary: *15k + 40p = 120*.', start: '15k + 40p = 120', moves: [
+          { q: 'First move?', opts: ['Subtract 15k from both sides', 'Divide by 15'], ans: 0, res: ['40p = −15k + 120', '40p = 15k + 120'], rans: 0 },
+          { q: 'Next?', opts: ['Divide every term by 40', 'Divide by 15'], ans: 0, res: ['p = −⅜k + 3', 'p = −15k + 3'], rans: 0 }],
+          why: 'p = −⅜k + 3.', steps: ['40p = −15k + 120.', 'Divide by 40: −15/40 = −⅜, 120/40 = 3.'] },
+        { k: 'solve', kick: 'For the Unit 2 Check (Deep)', q: 'A negative in front of y: get y alone in *−3y > 6x − 9*.', start: '−3y > 6x − 9', moves: [
+          { q: 'First move?', opts: ['Divide every term by −3', 'Divide every term by 3'], ans: 0, res: ['y < −2x + 3', 'y > −2x + 3'], rans: 0, why: 'Dividing by −3 turns > into <.' }],
+          why: 'y < −2x + 3.', steps: ['Divide every term by −3.', 'Turn the sign: y < −2x + 3.'] }
       ] },
 
-    { k: 'match', min: 3, id: 'm1', kick: 'Same numbers, different answers', q: 'Match each inequality to its solution. Watch for the negatives.',
-      pairs: [['−2x < 8', 'x > −4'], ['2x < 8', 'x < 4'], ['x − 2 < 8', 'x < 10'], ['−x < 8', 'x > −8']],
-      help: 'Which ones divide by a negative? Those are the flipped ones.',
-      why: '−2x < 8 and −x < 8 divide by a negative, so they flip to >.',
+    { k: 'sort', min: 2, id: 'slope', kick: 'What the slope means', q: 'The dock boundary is *p = −¾k + 12*. Sort each statement: true or false?', bins: ['True', 'False'],
+      learn: ['Slope −¾: p goes *down 3* when k goes *up 4*.'],
+      cards: [{ t: 'Add 4 kayaks and there is room for 3 fewer pedal boats', b: 0 }, { t: 'Add 3 kayaks and there is room for 4 fewer pedal boats', b: 1, why: 'Backwards: −¾ is down 3 for every 4 across.' }, { t: '3 pedal boats use the same dock as 4 kayaks', b: 0, why: '3 × 4 = 12 m² and 4 × 3 = 12 m².' }, { t: 'The 12 means 12 pedal boats fit with no kayaks', b: 0 }, { t: 'The slope is negative because more kayaks leave less room for boats', b: 0 }, { t: 'The slope is −¾ because a kayak costs ¾ of a boat', b: 1, why: 'That slope comes from dock space. A kayak costs ½ of a boat: that is the budget slope.' }],
+      help: 'Check with real numbers: 4 kayaks take 12 m². How many pedal boats is that?',
+      why: 'The slope is the trade: 4 kayaks use the same dock as 3 pedal boats.',
       more: [
-        { k: 'match', q: 'Match each inequality to its graph.', range: [-5, 5],
-          pairs: [['−x ≥ 2', { nl: { at: -2, open: false, dir: 'l' } }], ['x ≥ 2', { nl: { at: 2, open: false, dir: 'r' } }], ['−3x < 6', { nl: { at: -2, open: true, dir: 'r' } }], ['3x < 6', { nl: { at: 2, open: true, dir: 'l' } }]],
-          why: 'Solve each first: −x ≥ 2 → x ≤ −2; −3x < 6 → x > −2; 3x < 6 → x < 2.', steps: ['−x ≥ 2: divide by −1, flip → x ≤ −2.', '−3x < 6: divide by −3, flip → x > −2.', '3x < 6 → x < 2. x ≥ 2 stays.'] },
-        { k: 'build', q: 'Solve *−5x + 2 > −13* and build the answer.', tiles: ['x', '<', '>', '≤', '≥', '3', '−3', '11/5'], ans: ['x<3'], why: '−5x > −15, then divide by −5 and flip: x < 3.',
-          steps: ['Subtract 2: −5x > −15.', 'Divide by −5 and flip: x < 3.', 'Check x = 0: 2 > −13 ✓.'] }
+        { k: 'open', q: 'Finish the sentence for the budget slope, −½: "For every pedal boat they add, they can afford ___ fewer kayaks, because …"', ph: 'For every pedal boat they add…',
+          model: 'For every pedal boat they add, they can afford 2 fewer kayaks, because one pedal boat ($200) costs the same as two kayaks ($100 each).',
+          steps: ['p = −½k + 10: up 1 boat, back 2 kayaks.', 'A boat costs $200, a kayak $100.', 'One boat = two kayaks in money.'] },
+        { k: 'poll', q: 'Which boundary is *steeper*: dock (−¾) or budget (−½)?', opts: ['Dock: −¾ is steeper than −½', 'Budget', 'They are the same'], ans: 0,
+          why: '¾ is bigger than ½, so the dock line drops faster. That is why the two lines cross.', steps: ['Compare sizes: ¾ = 0.75, ½ = 0.5.', 'Bigger size: steeper.', 'Different slopes, so the lines cross somewhere.'] }
       ] },
 
-    { k: 'solve', min: 5, id: 'word', kick: 'Word problem', q: 'You have *$40* for the Sandy Flats fair. Entry is *$10* and each ride is *$4*. What is the *greatest* number of rides? Solve *10 + 4x ≤ 40*.', start: '10 + 4x ≤ 40',
-      learn: ['"Have $40" means you can spend up to and including 40: ≤.', 'Rides come in whole numbers, so round at the end. You cannot go over the limit.'],
-      moves: [
-        { q: 'First move?', opts: ['Subtract 10 from both sides', 'Divide both sides by 4', 'Add 10'], ans: 0, res: ['4x ≤ 30', '4x ≤ 50', '4x ≥ 30'], rans: 0 },
-        { q: 'Next move?', opts: ['Divide both sides by 4', 'Subtract 4', 'Multiply by 4'], ans: 0, res: ['x ≤ 7.5', 'x ≥ 7.5', 'x ≤ 26'], rans: 0 },
-        { q: 'You cannot ride half a ride. What is the most you can take?', opts: ['Round down: 7 rides', 'Round up: 8 rides', '7.5 rides'], ans: 0, res: ['7 rides. Check: 10 + 4(7) = 38 ≤ 40 ✓', '8 rides. Check: 10 + 4(8) = 42 ≤ 40 ✗'], rans: 0, why: '8 rides costs $42: over the limit. At most → round down.' }],
-      help: 'Solve it like an equation first. Then ask: does rounding up take you over $40?',
-      why: 'x ≤ 7.5, and you cannot go over, so round down: *7 rides* ($38).',
+    { k: 'play', min: 18, title: 'Your turn: Summative Part 2', file: 'summative-u2.html#p2', btn: '📄 Open Part 2', minutes: 18,
+      steps: ['Questions 5 to 9. ★ CORE first: 5, 6 and 7.', 'Write what each term means, like 3k = dock space for kayaks.', 'In question 7, put the numbers in. Show the working for at least one ✗.', 'Keep your page for Part 5.'],
+      aim: 'Done when 5 to 9 are answered and the Part 2 self-check matches.' },
+    { k: 'number', min: 1, id: 'chk', kick: 'Part 2 self-check', q: 'In question 7, how many of the three friends\' plans are *impossible*?', ans: 1,
+      hint: 'Put each plan into every inequality, including the prize deal and the stock limit.', why: 'That matches the self-check.',
       more: [
-        { k: 'number', q: 'You need *at least 50 points* for the next floor. You have 14 and earn 8 per puzzle: 14 + 8x ≥ 50. What is the *least* number of puzzles?', ans: 5, hint: '8x ≥ 36, so x ≥ 4.5. Do you round up or down to reach 50?',
-          why: 'x ≥ 4.5, and you must reach 50, so round up: 5 puzzles (14 + 40 = 54).', steps: ['Subtract 14: 8x ≥ 36.', 'Divide by 8: x ≥ 4.5.', '4 puzzles gives 46: not enough. Round *up* to *5*.'] },
-        { k: 'poll', q: 'The cart holds at most 300 kg. Doug weighs 70 kg and each crate weighs 25 kg. Which inequality fits?', opts: ['70 + 25c ≤ 300', '70 + 25c ≥ 300', '70c + 25 ≤ 300', '25 + 70c < 300'], ans: 0,
-          why: 'Doug once (70), plus 25 for every crate. At most 300: ≤.', steps: ['Start: Doug\'s 70 kg.', 'Each crate adds 25: + 25c.', 'At most 300: 70 + 25c ≤ 300.'] },
-        { k: 'number', q: 'Solve it: 70 + 25c ≤ 300. What is the *most* crates Doug can take?', ans: 9, hint: '25c ≤ 230, so c ≤ 9.2. Round which way?',
-          why: 'c ≤ 9.2. 10 crates is 320 kg: too much. So 9.', steps: ['Subtract 70: 25c ≤ 230.', 'Divide by 25: c ≤ 9.2.', 'At most → round *down*: *9* crates (295 kg).'] }
+        { k: 'poll', q: 'In question 8, what kind of numbers are your two slopes?', opts: ['Both negative fractions', 'Both positive whole numbers', 'One positive, one negative'], ans: 0, why: 'That matches the self-check.',
+          steps: ['More of one machine leaves room or money for fewer of the other.', 'So both slopes are negative.', 'And they are fractions.'] }
       ] },
-
-    { k: 'conf', min: 1, id: 'conf', q: 'Solving inequalities and turning the sign: how do you feel?' },
-    { k: 'exit', min: 4, id: 'exit', q: 'Solve *−2x + 3 ≥ 11*. Show each step, say where you turned the sign and why, then describe the graph.', ph: 'Step 1: … Step 2: … I turned the sign because… Graph: …',
-      model: 'Subtract 3: −2x ≥ 8. Divide by −2: x ≤ −4. I turned ≥ into ≤ because I divided by a negative. Graph: closed dot at −4, shaded left.' },
-    { k: 'end', title: 'You turned the sign.', next: 'Next: *Inequalities 3, Shade the Floor*. Two variables, a boundary line, and which side to shade.' }
+    { k: 'conf', min: 1, id: 'conf', q: 'Writing a system and testing plans: how do you feel?' },
+    { k: 'end', title: 'Part 2: both machines at once.', next: 'Keep your Part 2 with Part 1. Next lesson: *Inequalities 3* and Part 3, graphing the system.' }
   ]
 });
