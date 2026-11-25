@@ -63,7 +63,7 @@ Keep your Part 3.
 
 DAY 4: "Pop-Up Arcade 4: Make the decision"
 Do Part 4 (questions 14 to 19): https://muck83.github.io/sandy-flats-arcade/summative-u2.html#p4
-Use the corners to find the plan that takes in the most money, then answer Marcus. Question 19 is your news flash: use
+Use the corners to find the plan that takes in the most money. Careful: the best corner isn't whole numbers, so question 16 is a whole-number hunt. Then answer Marcus. Question 19 is your news flash: use
 the card you're given in class, or draw one on the page. Keep your Part 4.
 
 DAY 5: "Pop-Up Arcade 5: Put it together and hand in"
@@ -97,7 +97,7 @@ Rubric (levels: Limited, Emerging, Developed = the goal, Deep):
 - C3 Problem solving · Making the decision
   Limited: chooses a plan with little use of the limits.
   Emerging: tests some plans or finds the money for some points, but doesn't reach the best plan.
-  Developed: tests the corners, finds the best whole-number plan, shows why each friend's plan is worse or not possible.
+  Developed: tests the corners, hunts for the best whole-number plan near the best corner, shows why each friend's plan is worse or not possible.
   Deep: Developed, plus the what-if and news flash answered correctly, with reasons.
 - C2 Communicating · The finished plan
   Limited: hard to follow; parts missing, few labels.

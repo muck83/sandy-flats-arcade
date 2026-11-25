@@ -3,7 +3,7 @@
 <title>Pop-Up Arcade Support Pack · Sandy Flats</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
 <link rel="stylesheet" href="sfa-kit.css?v=20261118">
-<link rel="stylesheet" href="summative-u2.css?v=20261124c">
+<link rel="stylesheet" href="summative-u2.css?v=20261125a">
 <style>
 /* Support pack for the Pop-Up Arcade summative: printable, one tool per page. */
 .sym{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
@@ -50,7 +50,7 @@
       <li><b>Boundary line:</b> the line you get when you change the inequality sign to =. Solid if the line is included (≤ or ≥), dashed if it isn't (&lt; or &gt;).</li>
       <li><b>Test point:</b> a point you put into an inequality to see which side of the line to keep. (0, 0) is the easiest, if it isn't on the line.</li>
       <li><b>Feasible region:</b> the area where every inequality is true: all the possible plans.</li>
-      <li><b>Corner:</b> a point where two edges of the feasible region meet. The best plan is always at a corner.</li>
+      <li><b>Corner:</b> a point where two edges of the feasible region meet. The best value is at a corner. But if that corner isn't whole numbers, you have to hunt for the best whole-number point near it.</li>
     </ul>
   </section>
 
@@ -65,7 +65,7 @@
       <li><b>Slope-intercept form.</b> <span class="m">2t + 4b = 240</span> → <span class="m">4b = −2t + 240</span> → <span class="m">b = −½t + 60</span>. Meaning: every extra burrito uses the grill time of 2 tacos.</li>
       <li><b>Intercepts.</b> Grill: <span class="m">t = 0</span> gives <span class="m">b = 60</span>, so (0, 60). <span class="m">b = 0</span> gives <span class="m">t = 120</span>, so (120, 0). Tortillas: (0, 80) and (80, 0). Both lines are solid (≤).</li>
       <li><b>Shade.</b> Test (0, 0): <span class="m">0 ≤ 240</span> ✓ and <span class="m">0 ≤ 80</span> ✓, so keep the side with (0, 0) for both. Keep above <span class="m">b = 10</span>.</li>
-      <li><b>Crossing point.</b> The lines cross at (40, 40). Check: <span class="m">2(40) + 4(40) = 240</span> ✓ and <span class="m">40 + 40 = 80</span> ✓.</li>
+      <li><b>Crossing point.</b> Here the lines cross at a whole-number point, (40, 40). (In the Pop-Up Arcade they don't: see the whole-number hunt in question 16.) Check: <span class="m">2(40) + 4(40) = 240</span> ✓ and <span class="m">40 + 40 = 80</span> ✓.</li>
       <li><b>Corners and profit</b> with <span class="m">P = 3t + 5b</span>: (0, 10) → $50 · (70, 10) → $260 · (40, 40) → <b>$320</b> · (0, 60) → $300. The best plan is 40 tacos and 40 burritos.</li>
       <li><b>Argue.</b> "Make 40 tacos and 40 burritos for $320 profit. It uses all the grill time and all the tortillas. Burritos only (60) makes $300, which is $20 less."</li>
     </ol>
@@ -75,18 +75,18 @@
     <div class="phead"><div><div class="kicker">Support pack · 3</div><h2>Half-filled tables</h2></div></div>
     <p>The first row of each table is done for you. Finish the rest in the same way.</p>
     <h3>Question 7: test the plans</h3>
-    <div class="tw"><table class="pt"><tr><th>Plan</th><th>(c, h)</th><th>Prize deal c ≥ 4</th><th>Stock h ≤ 8</th><th>Floor 2c + 6h ≤ 60</th><th>Budget 200c + 400h ≤ 4800</th><th>Staff pay 20c + 50h &gt; 300</th><th>Possible?</th></tr>
-      <tr><td class="l">Marcus</td><td>(10, 10)</td><td>10 ≥ 4 ✓</td><td>10 ≤ 8? ✗</td><td>20 + 60 = 80 ≤ 60? ✗</td><td>2000 + 4000 = 6000 ≤ 4800? ✗</td><td>200 + 500 = 700 &gt; 300 ✓</td><td>No</td></tr>
+    <div class="tw"><table class="pt"><tr><th>Plan</th><th>(c, h)</th><th>Prize deal c ≥ 4</th><th>Stock h ≤ 8</th><th>Floor 2c + 6h ≤ 60</th><th>Budget 200c + 350h ≤ 4400</th><th>Staff pay 20c + 50h &gt; 300</th><th>Possible?</th></tr>
+      <tr><td class="l">Marcus</td><td>(10, 10)</td><td>10 ≥ 4 ✓</td><td>10 ≤ 8? ✗</td><td>20 + 60 = 80 ≤ 60? ✗</td><td>2000 + 3500 = 5500 ≤ 4400? ✗</td><td>200 + 500 = 700 &gt; 300 ✓</td><td>No</td></tr>
       <tr><td class="l">Priya</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
       <tr><td class="l">Gus</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr></table></div>
     <h3>Question 10: where the lines cross the axes</h3>
     <div class="tw"><table class="pt"><tr><th>Boundary line</th><th>Put h = 0</th><th>Put c = 0</th><th>Solid or dashed?</th></tr>
       <tr><td class="l">Floor 2c + 6h = 60</td><td>2c = 60 → c = 30 → (30, 0)</td><td>6h = 60 → h = 10 → (0, 10)</td><td>solid (≤)</td></tr>
-      <tr><td class="l">Budget 200c + 400h = 4800</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="l">Budget 200c + 350h = 4400</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
       <tr><td class="l">Staff pay 20c + 50h = 300</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr></table></div>
     <h3>Question 15: money at the corners</h3>
     <div class="tw"><table class="pt"><tr><th>Corner (c, h)</th><th>M = 20c + 50h</th><th>Money each day</th></tr>
-      <tr><td>(24, 0)</td><td>20 × 24 + 50 × 0</td><td>$480</td></tr>
+      <tr><td>(22, 0)</td><td>20 × 22 + 50 × 0</td><td>$440</td></tr>
       <tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr></table></div>
   </section>
 
@@ -100,9 +100,9 @@
     <div class="phead"><div><div class="kicker">Support pack · 5</div><h2>Sentence frames</h2></div></div>
     <div class="frames">
       <p><b>Slope (Q9):</b> For every air hockey table they add, they have room for ____ fewer claw machines, because one table uses ____ m², the same as ____ claw machines.</p>
-      <p><b>Best plan (Q16):</b> The best plan is ____ claw machines and ____ air hockey tables. It takes in $____ a day. That is $____ more than Gus's plan and $____ more than Priya's plan. I know it is the best because I checked every corner of the feasible region and ____.</p>
+      <p><b>Whole-number hunt (Q16):</b> The best corner is (____, ____), but you can't rent part of a machine. I tested these whole-number plans near it: ____. The best one that meets every limit is ____ claw machines and ____ air hockey tables, which takes in $____ a day. Rounding down to (____, ____) would only take in $____.</p>
       <p><b>Reply to Marcus (Q17):</b> Ten of each would take in $700, but it isn't possible. It needs ____ m² of floor and there are only ____ m². It costs $____ and the budget is only $____. And ____.</p>
-      <p><b>What if (Q18):</b> With $70 a table, the best corner is ____ because ____. Moving from (12, 6) to (6, 8) loses ____ claw machines (−$____) and gains ____ tables (+$____).</p>
+      <p><b>What if (Q18):</b> With $70 a table, the best corner is ____ because ____. Moving from (9, 7) to (6, 8) loses ____ claw machines (−$____) and gains ____ table (+$____).</p>
       <p><b>Recommendation (Part 5):</b> We recommend renting ____ claw machines and ____ air hockey tables. This plan meets every limit: ____. It takes in $____ a day, more than ____. If ____ (news flash), we would change the plan to ____ because ____.</p>
     </div>
   </section>
@@ -126,7 +126,7 @@
   </section>
 </div>
 <script src="config.js"></script>
-<script src="summative-u2.js?v=20261124c"></script>
+<script src="summative-u2.js?v=20261125b"></script>
 <script>
 (function () {
   'use strict';

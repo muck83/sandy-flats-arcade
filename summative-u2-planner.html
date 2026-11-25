@@ -3,7 +3,7 @@
 <title>Boathouse Planner · Sandy Flats</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
 <link rel="stylesheet" href="sfa-kit.css?v=20261118">
-<link rel="stylesheet" href="summative-u2.css?v=20261124c">
+<link rel="stylesheet" href="summative-u2.css?v=20261125a">
 <style>
 /* Boathouse Planner: try plans for the Pop-Up Arcade and watch each limit. Floor and budget are drawn as blocks, so the
    area and the money can be counted, not just read off a number. */
@@ -49,15 +49,15 @@ table.log td.y{color:var(--green)}table.log td.n{color:#FF8E84}
   <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Boathouse Planner</h1><div class="chips"><a class="chip" href="summative-u2.html">📄 Back to the task</a></div></header>
 
   <section class="card">
-    <p class="lead" style="margin:0">Fill the boathouse with <b>claw machines</b> (2 m², $200 rent, takes in $20 a day) and <b>air hockey tables</b> (6 m², $400 rent, takes in $50 a day). Watch every limit. Click the grid to jump to a plan. Then try to beat Marcus, Priya and Gus.</p>
-    <div class="who3"><button class="chip" data-p="10,10" type="button">Marcus: 10 and 10</button><button class="chip" data-p="24,0" type="button">Priya: claw only</button><button class="chip" data-p="6,8" type="button">Gus: 8 tables first</button></div>
+    <p class="lead" style="margin:0">Fill the boathouse with <b>claw machines</b> (2 m², $200 rent, takes in $20 a day) and <b>air hockey tables</b> (6 m², $350 rent, takes in $50 a day). Watch every limit. Click the grid to jump to a plan. Then try to beat Marcus, Priya and Gus.</p>
+    <div class="who3"><button class="chip" data-p="10,10" type="button">Marcus: 10 and 10</button><button class="chip" data-p="22,0" type="button">Priya: claw only</button><button class="chip" data-p="6,8" type="button">Gus: 8 tables first</button></div>
   </section>
 
   <div class="pl">
     <section class="card">
       <div class="ctl">
         <div class="step"><div class="lbl">🧸 Claw machines, c<small>2 m² · $200 · $20 a day</small></div><div class="row"><button type="button" data-k="c" data-d="-1" aria-label="One fewer claw machine">−</button><input id="c" type="number" min="0" max="40" value="4" aria-label="Claw machines"><button type="button" data-k="c" data-d="1" aria-label="One more claw machine">+</button></div></div>
-        <div class="step"><div class="lbl">🏒 Air hockey tables, h<small>6 m² · $400 · $50 a day</small></div><div class="row"><button type="button" data-k="h" data-d="-1" aria-label="One fewer air hockey table">−</button><input id="h" type="number" min="0" max="20" value="2" aria-label="Air hockey tables"><button type="button" data-k="h" data-d="1" aria-label="One more air hockey table">+</button></div></div>
+        <div class="step"><div class="lbl">🏒 Air hockey tables, h<small>6 m² · $350 · $50 a day</small></div><div class="row"><button type="button" data-k="h" data-d="-1" aria-label="One fewer air hockey table">−</button><input id="h" type="number" min="0" max="20" value="2" aria-label="Air hockey tables"><button type="button" data-k="h" data-d="1" aria-label="One more air hockey table">+</button></div></div>
       </div>
       <div class="lim" id="lim" aria-live="polite"></div>
       <div class="take"><span class="v" id="take">$0</span><span class="muted">taken in each day (needs to be more than $300)</span></div>
@@ -73,25 +73,25 @@ table.log td.y{color:var(--green)}table.log td.n{color:#FF8E84}
   </div>
 </div>
 <script src="config.js"></script>
-<script src="summative-u2.js?v=20261124c"></script>
+<script src="summative-u2.js?v=20261125b"></script>
 <script>
 (function () {
   'use strict';
   var NS = 'http://www.w3.org/2000/svg', g = document.getElementById('g'), G = g.su2, cI = document.getElementById('c'), hI = document.getElementById('h');
   var SHOW_REGION = /[?&]region/.test(location.search);   // teacher option: planner.html?region shades the feasible region
   function svgEl(tag, a) { var n = document.createElementNS(NS, tag); for (var k in a) n.setAttribute(k, a[k]); G.svg.appendChild(n); return n; }
-  if (SHOW_REGION) svgEl('polygon', { points: [[15, 0], [24, 0], [12, 6], [6, 8], [4, 8], [4, 4.4]].map(function (p) { return G.X(p[0]) + ',' + G.Y(p[1]); }).join(' '), 'class': 'fz' });
+  if (SHOW_REGION) svgEl('polygon', { points: [[15, 0], [22, 0], [10.8, 6.4], [6, 8], [4, 8], [4, 4.4]].map(function (p) { return G.X(p[0]) + ',' + G.Y(p[1]); }).join(' '), 'class': 'fz' });
   var trailG = svgEl('g', {}), dot = svgEl('circle', { r: 8, 'class': 'dot' });
   var KEY = 'sfa.su2.planner.v1', log = [];
   try { log = JSON.parse(localStorage.getItem(KEY) || '[]') || []; } catch (e) { }
   function clamp(v, lo, hi) { v = Math.round(+v || 0); return Math.max(lo, Math.min(hi, v)); }
   function check(c, h) {
-    var floor = 2 * c + 6 * h, cost = 200 * c + 400 * h, take = 20 * c + 50 * h;
+    var floor = 2 * c + 6 * h, cost = 200 * c + 350 * h, take = 20 * c + 50 * h;
     var L = [
       { n: 'Prize deal', d: 'at least 4 claw machines', v: c + ' claw machine' + (c === 1 ? '' : 's'), ok: c >= 4 },
       { n: 'Stock', d: 'only 8 air hockey tables in town', v: h + ' table' + (h === 1 ? '' : 's'), ok: h <= 8 },
       { n: 'Floor space', d: '60 m² for machines', v: floor + ' m² of 60', ok: floor <= 60, blocks: { tot: 60, c: 2 * c, h: 6 * h } },
-      { n: 'Budget', d: '$4800 for rent', v: '$' + cost + ' of $4800', ok: cost <= 4800, blocks: { tot: 24, c: c, h: 2 * h, unit: '$200' } },
+      { n: 'Budget', d: '$4400 for rent', v: '$' + cost + ' of $4400', ok: cost <= 4400, blocks: { tot: 88, c: 4 * c, h: 7 * h, unit: '$50' } },
       { n: 'Staff pay', d: 'more than $300 a day', v: '$' + take + ' a day', ok: take > 300 }
     ];
     return { L: L, take: take, ok: L.every(function (x) { return x.ok; }) };

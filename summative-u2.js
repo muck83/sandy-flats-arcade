@@ -67,31 +67,33 @@
   // the support grid: floor space and budget already drawn, the rest is the student's
   function drawPre(svg, X, Y) {
     var line = function (a, b, cls) { s('line', { x1: X(a[0]), y1: Y(a[1]), x2: X(b[0]), y2: Y(b[1]), 'class': 'bd ' + cls }, svg); };
-    line([0, 10], [30, 0], 'sp'); line([0, 12], [24, 0], 'bu');
-    [[0, 10], [30, 0], [0, 12], [24, 0]].forEach(function (p) { s('circle', { cx: X(p[0]), cy: Y(p[1]), r: 4.5, 'class': 'cpt' }, svg); });
+    line([0, 10], [30, 0], 'sp'); line([0, 88 / 7], [22, 0], 'bu');
+    [[0, 10], [30, 0], [0, 88 / 7], [22, 0]].forEach(function (p) { s('circle', { cx: X(p[0]), cy: Y(p[1]), r: 4.5, 'class': 'cpt' }, svg); });
     var lab = function (c, h, dy, str, cls, deg) { var x = X(c), y = Y(h) + dy; txt(svg, x, y, str, 'glab ' + cls, { transform: 'rotate(' + deg + ' ' + x + ' ' + y + ')' }); };
     lab(19.5, 10 - 19.5 / 3, -5, 'floor space 2c + 6h = 60', 'sp', 33.7);
-    lab(3, 12 - 3 / 2, -5, 'budget 200c + 400h = 4800', 'bu', 45);
+    lab(2, (4400 - 400) / 350, -5, 'budget 200c + 350h = 4400', 'bu', 48.8);
   }
   function drawAnswer(svg, X, Y, mode) {
     var P = function (pts) { return pts.map(function (p) { return X(p[0]) + ',' + Y(p[1]); }).join(' '); };
-    // the feasible region: c >= 4, 0 <= h <= 8, 2c + 6h <= 60, 200c + 400h <= 4800, 20c + 50h > 300
-    s('polygon', { points: P([[15, 0], [24, 0], [12, 6], [6, 8], [4, 8], [4, 4.4]]), 'class': 'fz' }, svg);
+    // the feasible region: c >= 4, 0 <= h <= 8, 2c + 6h <= 60, 200c + 350h <= 4400, 20c + 50h > 300
+    s('polygon', { points: P([[15, 0], [22, 0], [10.8, 6.4], [6, 8], [4, 8], [4, 4.4]]), 'class': 'fz' }, svg);
     var line = function (a, b, cls) { s('line', { x1: X(a[0]), y1: Y(a[1]), x2: X(b[0]), y2: Y(b[1]), 'class': 'bd ' + cls }, svg); };
     line([4, 0], [4, 14], 'lm'); line([0, 8], [32, 8], 'lm');
-    line([0, 10], [30, 0], 'sp'); line([0, 12], [24, 0], 'bu'); line([0, 6], [15, 0], 'st d');
+    line([0, 10], [30, 0], 'sp'); line([0, 88 / 7], [22, 0], 'bu'); line([0, 6], [15, 0], 'st d');
     txt(svg, X(4) + 4, Y(13.3), 'c = 4', 'glab'); txt(svg, X(25), Y(8) - 5, 'h = 8', 'glab');
     // labels sit along their lines (on screen: 1 c-unit = 12 px, 1 h-unit = 24 px, so the angles are not the slopes)
     var lab = function (c, h, dy, str, cls, deg) { var x = X(c), y = Y(h) + dy; txt(svg, x, y, str, 'glab ' + cls, { transform: 'rotate(' + deg + ' ' + x + ' ' + y + ')' }); };
     lab(19.5, 10 - 19.5 / 3, -5, 'floor space', 'sp', 33.7);
-    lab(16, 12 - 16 / 2, -5, 'budget', 'bu', 45);
+    lab(14.5, (4400 - 200 * 14.5) / 350, -5, 'budget', 'bu', 48.8);
     lab(6.5, 6 - 0.4 * 6.5, 22, 'staff pay (dashed)', 'st', 38.7);
     txt(svg, X(11), Y(2.6), 'feasible region', 'glab fz', { 'text-anchor': 'middle' });
-    [[24, 0], [12, 6], [6, 8], [4, 8]].forEach(function (p) { s('circle', { cx: X(p[0]), cy: Y(p[1]), r: 5.5, 'class': 'cpt' }, svg); });
-    [[15, 0], [4, 4.4]].forEach(function (p) { s('circle', { cx: X(p[0]), cy: Y(p[1]), r: 5.5, 'class': 'cpt o' }, svg); });
-    txt(svg, X(12) + 8, Y(6) - 8, '(12, 6) best: $540', 'glab');
+    [[22, 0], [6, 8], [4, 8]].forEach(function (p) { s('circle', { cx: X(p[0]), cy: Y(p[1]), r: 5.5, 'class': 'cpt' }, svg); });
+    [[15, 0], [4, 4.4], [10.8, 6.4]].forEach(function (p) { s('circle', { cx: X(p[0]), cy: Y(p[1]), r: 5.5, 'class': 'cpt o' }, svg); });
+    txt(svg, X(10.8) + 8, Y(6.4) + 4, '(10.8, 6.4) not whole', 'glab');
+    s('path', { d: 'M' + X(9) + ' ' + (Y(7) - 8) + ' l2.4 5 5.4 .6 -4 3.7 1.1 5.3 -4.9 -2.7 -4.9 2.7 1.1 -5.3 -4 -3.7 5.4 -.6z', fill: '#E8A317', stroke: '#7A4A00', 'stroke-width': 1 }, svg);
+    txt(svg, X(9) - 2, Y(7) - 12, '(9, 7) best: $530', 'glab', { 'text-anchor': 'end' });
     txt(svg, X(6) + 4, Y(8) - 9, '(6, 8) Gus', 'glab');
-    txt(svg, X(24) - 4, Y(0) - 9, '(24, 0) Priya', 'glab', { 'text-anchor': 'middle' });
+    txt(svg, X(22) - 4, Y(0) - 9, '(22, 0) Priya', 'glab', { 'text-anchor': 'middle' });
     if (mode === 'full') {
       s('circle', { cx: X(10), cy: Y(10), r: 5.5, 'class': 'ppt' }, svg);
       txt(svg, X(10) + 8, Y(10) + 4, '(10, 10) Marcus: outside', 'glab');
@@ -108,20 +110,20 @@
     2: ['"Only 8" means 8 is the most they can rent.', 'Use ≤ for "at most". You can\'t rent −1 tables either, so h ≥ 0.', 'Example: "no more than 6 drinks" → 0 ≤ d ≤ 6. Closed dots on 0 and 6, shaded between.'],
     3: ['With claw machines only, the floor used is 2 × c.', 'Floor: 2c ≤ 60, then divide both sides by 2. Build the budget (200c ≤ ___) and staff pay (20c > ___) the same way.', 'Example: a taco takes 2 minutes on a grill that has 240 minutes: 2t ≤ 240, so t ≤ 120. For 3d, a number has to be in every shaded part at once.'],
     4: ['Put c = 4 in first. 4 claw machines already use 2 × 4 = 8 m².', 'Floor: 8 + 6h ≤ 60. Subtract 8 from both sides, then divide by 6.', 'Example: 10 burritos use 4 × 10 = 40 minutes, so 40 + 2t ≤ 240 → 2t ≤ 200 → t ≤ 100.'],
-    5: ['c claw machines use 2c m². What do h air hockey tables use?', 'Floor: 2c + 6h ≤ 60. Build the budget the same way with $200 and $400.', 'Example: t tacos (2 minutes each) and b burritos (4 minutes each) on a 240-minute grill: 2t + 4b ≤ 240.'],
+    5: ['c claw machines use 2c m². What do h air hockey tables use?', 'Floor: 2c + 6h ≤ 60. Build the budget the same way with $200 and $350.', 'Example: t tacos (2 minutes each) and b burritos (4 minutes each) on a 240-minute grill: 2t + 4b ≤ 240.'],
     6: ['A system is a list. Write every limit, one per line.', 'You need five: prize deal, stock, floor space, budget, staff pay.', 'Look back at questions 1, 2 and 5.'],
     7: ['Marcus\'s plan is c = 10, h = 10. Put those numbers into each inequality.', 'Floor for Marcus: 2(10) + 6(10) = 80. Is 80 ≤ 60?', 'Example: 50 tacos and 40 burritos: 2(50) + 4(40) = 260. Is 260 ≤ 240? No, so ✗.'],
     8: ['Get h on its own on one side.', '2c + 6h = 60 → take 2c from both sides → 6h = −2c + 60 → divide every term by 6.', 'Example: 2t + 4b = 240 → 4b = −2t + 240 → b = −½t + 60.'],
     9: ['Look at your slope. When h goes up by 1, what happens to c?', 'One air hockey table uses 6 m². How many 2 m² claw machines is that?', 'Example: a burrito uses 4 minutes, the same as 2 tacos, so each extra burrito means 2 fewer tacos.'],
     10: ['To find where a line crosses the c-axis, put h = 0.', 'Floor: 2c + 6(0) = 60, so c = 30 and the point is (30, 0). Now put c = 0 to find where it crosses the h-axis.', 'Dashed for < or > (the line itself isn\'t included). Solid for ≤ or ≥.'],
     11: ['Plot the two crossing points from question 10 and join them with a ruler. Across, each square is 2 machines.', 'Test point (0, 0): is 2(0) + 6(0) ≤ 60? Yes, so keep the side with (0, 0). Test every line the same way.', 'The feasible region is where all the "keep" sides overlap. It has six corners.'],
-    12: ['Find where the floor space and budget lines meet. Read across, then up.', 'Put the point you read into 2c + 6h and into 200c + 400h.', 'Both should come out exactly at the limit: 60 and 4800. If not, try a nearby point.'],
-    13: ['Plot (10, 10), (24, 0) and (6, 8).', 'A plan is possible if it is in the shaded region or on a solid edge.', 'One of the three should be well outside. Where are the other two?'],
+    12: ['Find where the floor space and budget lines meet. Read across, then up.', 'Put (10.8, 6.4) into 2c + 6h and into 200c + 350h.', 'Both should come out exactly at the limit: 60 and 4400. Then ask: can you rent 0.8 of a machine?'],
+    13: ['Plot (10, 10), (22, 0) and (6, 8).', 'A plan is possible if it is in the shaded region or on a solid edge.', 'One of the three should be well outside. Where are the other two?'],
     14: ['Each claw machine takes in $20 a day, so c machines take in 20c.', 'M = 20c + ___h', 'Example: tacos make $3 each and burritos $5 each: P = 3t + 5b.'],
-    15: ['The corners are where two edges of the shaded region meet.', 'One corner is where floor space meets budget. Others are on the c-axis, on h = 8 and on c = 4.', 'For each corner: M = 20 × c + 50 × h. Example: (24, 0) → 20 × 24 + 50 × 0 = $480.'],
-    16: ['Which row of your table has the biggest M?', 'Check that plan is inside the region and uses whole numbers.', 'Frame: "The best plan is ___ claw machines and ___ air hockey tables. It takes in $___ a day, which is $___ more than Gus\'s plan and $___ more than Priya\'s."'],
+    15: ['The corners are where two edges of the shaded region meet.', 'One corner is where floor space meets budget. Others are on the c-axis, on h = 8 and on c = 4.', 'For each corner: M = 20 × c + 50 × h. Example: (22, 0) → 20 × 22 + 50 × 0 = $440.'],
+    16: ['Try the whole-number points around (10.8, 6.4): (10, 6), (11, 6), (10, 7), (9, 7) and more. Check every limit for each one.', 'A point that breaks the floor or the budget doesn\'t count, however much money it takes in. Rounding down isn\'t always best: try moving along the floor line.', 'Frame: "The best plan is ___ claw machines and ___ air hockey tables. It takes in $___ a day, which is $___ more than Gus\'s plan and $___ more than Priya\'s."'],
     17: ['Look at your ✓ and ✗ table for Marcus.', 'Name each limit his plan breaks, with numbers.', 'Frame: "Ten of each would need ___ m², but there are only 60 m². It would cost $___, but …"'],
-    18: ['The new rule is M = 20c + 70h.', 'Work out M again at the corners (24, 0), (12, 6), (6, 8) and (4, 8).', 'To explain why: going from (12, 6) to (6, 8) loses 6 claw machines and gains 2 tables. Compare the money lost with the money gained.'],
+    18: ['The new rule is M = 20c + 70h.', 'Work out M again for your best plan from question 16 and for (6, 8), (4, 8) and (22, 0).', 'To explain why: going from (9, 7) to (6, 8) loses 3 claw machines and gains 1 table. Compare the money lost with the money gained.'],
     19: ['Read your card. Which limit or which takings number changes?', 'Rewrite that one inequality (or the money rule), redraw that one line, and find the new corners.', 'Work out M at the new corners. Is the best plan the same as before? Say why or why not.']
   };
   var CARDS = [
