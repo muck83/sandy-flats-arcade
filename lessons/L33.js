@@ -1,7 +1,7 @@
-/* Inequalities 5 of 5: the Unit 2 Summative's lesson 5 (Part 5: put it together and hand it in). Short hands-on
+/* Inequalities 7 of 7: the Unit 2 Summative's lesson 5 (Part 5: put it together and hand it in). Short hands-on
    slides on what a finished plan needs, then most of the lesson to build it. */
 SFA_LESSON({
-  id: 'L33', n: 21.9, label: 'Inequalities 5', title: 'Put It Together',
+  id: 'L33', n: 21.9, label: 'Inequalities 7', title: 'Put It Together',
   game: { title: 'Unit 2 Summative', file: 'summative-u2.html#p5' },
   big: 'A finished plan tells the whole story in order: the question and the variables, the limits, the system, the graph, the corner table, and a recommendation that uses numbers. Choose your best work and tidy it, so someone new could check every step.',
   slides: [
@@ -37,7 +37,8 @@ SFA_LESSON({
       learn: ['A strong recommendation names the plan, gives its money, and says with numbers why it beats each friend\'s plan.'],
       cards: [{ t: '"Rent the plan from our corner table that takes in the most: $___ a day. Marcus\'s plan breaks the floor, budget and stock limits; Gus\'s takes in $___ and Priya\'s $___."', b: 0 },
         { t: '"Gus is right because air hockey is better."', b: 1, why: 'No numbers, and "better" at what? Use the corner table.' },
-        { t: '"We tested every corner. The best one beats Gus by $___ a day, and still fits all 60 m² and the $4800."', b: 0 },
+        { t: '"We hunted the whole-number plans around the best corner. Ours beats Gus by $___ a day and fits the 60 m² and the $4400."', b: 0 },
+        { t: '"Rent 10.8 claw machines and 6.4 air hockey tables: the best corner."', b: 1, why: 'You can\'t rent part of a machine. Do the whole-number hunt and recommend whole numbers.' },
         { t: '"Our answer is on the graph."', b: 1, why: 'Say which plan, and why, in words and numbers.' }],
       help: 'Does it name a plan? Give money? Compare with the friends?',
       why: 'Convincing recommendations use numbers from the corner table and deal with every friend\'s plan.',

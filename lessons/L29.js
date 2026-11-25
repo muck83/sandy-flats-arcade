@@ -1,10 +1,10 @@
-/* Inequalities 1 of 5: the Unit 2 Summative's lesson 1 (launch + Part 1). Every summative lesson runs the same way:
+/* Inequalities 3 of 7: the Unit 2 Summative's lesson 1 (launch + Part 1). Every summative lesson runs the same way:
    a few hands-on slides on the skills the part needs, taught on the Pond Boat Hire (k kayaks, p pedal boats: the same
    kinds of limits as the boathouse, different numbers, so nothing gives the summative away), then work time on the part,
    then the part's own self-check, and the part is kept for Part 5.
-   Pond Boat Hire: dock 3k + 4p ≤ 48 · budget 100k + 200p ≤ 2000 · lifeguard k ≥ 2 · stock 0 ≤ p ≤ 7 · takings 15k + 40p > 120. */
+   Pond Boat Hire: dock 3k + 4p ≤ 48 · budget 100k + 300p ≤ 2500 · lifeguard k ≥ 2 · stock 0 ≤ p ≤ 7 · takings 15k + 40p > 120. */
 SFA_LESSON({
-  id: 'L29', n: 21.5, label: 'Inequalities 1', title: 'One Thing at a Time',
+  id: 'L29', n: 21.5, label: 'Inequalities 3', title: 'One Thing at a Time',
   game: { title: 'Unit 2 Summative', file: 'summative-u2.html#p1' },
   big: 'A limit in words becomes an inequality: at least is ≥, no more than is ≤, more than is >. Solve it like an equation, graph it with an open or a closed dot, and when there are several limits, keep only the numbers that pass all of them.',
   slides: [
@@ -63,8 +63,8 @@ SFA_LESSON({
       help: 'Divide both sides by 3. Dividing by a positive number keeps the sign.',
       why: 'k ≤ 16: at most 16 kayaks fit. 16 × 3 = 48 m² exactly.',
       more: [
-        { k: 'solve', q: 'Budget, kayaks only: each kayak costs $100 and there is $2000. Solve *100k ≤ 2000* and graph it.', start: '100k ≤ 2000', v: 'k', moves: [{ q: 'First move?', opts: ['Divide both sides by 100', 'Subtract 100'], ans: 0, res: ['k ≤ 20', 'k ≤ 1900', 'k ≥ 20'], rans: 0 }],
-          graph: { range: [0, 20], at: 20, open: false, dir: 'l' }, why: 'k ≤ 20.', steps: ['Divide by 100.', 'k ≤ 20.', 'Closed dot at 20, shade left.'] },
+        { k: 'solve', q: 'Budget, kayaks only: each kayak costs $100 and there is $2500. Solve *100k ≤ 2500* and graph it.', start: '100k ≤ 2500', v: 'k', moves: [{ q: 'First move?', opts: ['Divide both sides by 100', 'Subtract 100'], ans: 0, res: ['k ≤ 25', 'k ≤ 2400', 'k ≥ 25'], rans: 0 }],
+          graph: { range: [0, 26], at: 25, open: false, dir: 'l' }, why: 'k ≤ 25.', steps: ['Divide by 100.', 'k ≤ 25.', 'Closed dot at 25, shade left.'] },
         { k: 'solve', q: 'Takings, kayaks only: $15 each, more than $120. Solve *15k > 120* and graph it.', start: '15k > 120', v: 'k', moves: [{ q: 'First move?', opts: ['Divide both sides by 15', 'Subtract 15'], ans: 0, res: ['k > 8', 'k > 105', 'k < 8'], rans: 0 }],
           graph: { range: [0, 20], at: 8, open: true, dir: 'r' }, why: 'k > 8: open dot. 8 kayaks take in exactly $120, which is not more than $120.', steps: ['Divide by 15: k > 8.', 'Strict (>): open dot.', '9 kayaks or more.'] },
         { k: 'solve', kick: 'For the Unit 2 Check', q: 'Not in the summative, but on the Check: solve *−3x + 4 > 19*.', start: '−3x + 4 > 19',
@@ -72,15 +72,15 @@ SFA_LESSON({
           why: 'x < −5.', steps: ['Subtract 4: −3x > 15.', 'Divide by −3 and turn the sign: x < −5.'] }
       ] },
 
-    { k: 'pick', min: 2, id: 'all', where: 'line', range: [0, 20], v: 'k', cond: 'k ≥ 2, k ≤ 16, k ≤ 20, k > 8', kick: 'Every limit at once', q: 'Kayaks only. The limits are *k ≥ 2*, *k ≤ 16*, *k ≤ 20* and *k > 8*. Tap every number of kayaks that passes *all four*.',
+    { k: 'pick', min: 2, id: 'all', where: 'line', range: [0, 20], v: 'k', cond: 'k ≥ 2, k ≤ 16, k ≤ 25, k > 8', kick: 'Every limit at once', q: 'Kayaks only. The limits are *k ≥ 2*, *k ≤ 16*, *k ≤ 25* and *k > 8*. Tap every number of kayaks that passes *all four*.',
       learn: ['A plan has to pass *every* limit, so keep only the numbers that are in all of them.', 'The tightest limit at each end wins.'],
-      help: 'Which is the tightest top limit: 16 or 20? Which bottom limit matters more: 2 or 8?',
-      why: '9 to 16: eight numbers. k ≤ 16 beats k ≤ 20, and k > 8 beats k ≥ 2. Not 8: it fails k > 8.',
+      help: 'Which is the tightest top limit: 16 or 25? Which bottom limit matters more: 2 or 8?',
+      why: '9 to 16: eight numbers. k ≤ 16 beats k ≤ 25, and k > 8 beats k ≥ 2. Not 8: it fails k > 8.',
       more: [
         { k: 'nl', between: true, range: [0, 20], v: 'k', ans: { at: 8, open: true, to: 16, toOpen: false, dir: 'b' }, q: 'Graph them together: *8 < k ≤ 16*.', why: 'Open dot at 8, closed dot at 16, shaded between.',
           steps: ['Bottom: k > 8, open dot.', 'Top: k ≤ 16, closed dot.', 'Shade between.'] },
-        { k: 'poll', q: 'Which two limits don\'t matter at all when it\'s kayaks only?', opts: ['k ≥ 2 and k ≤ 20', 'k ≤ 16 and k > 8', 'All four matter'], ans: 0,
-          why: 'Any k from 9 to 16 already passes k ≥ 2 and k ≤ 20. The tighter limits do the work.', steps: ['k > 8 already means k ≥ 2.', 'k ≤ 16 already means k ≤ 20.', 'So those two never stop a plan here.'] },
+        { k: 'poll', q: 'Which two limits don\'t matter at all when it\'s kayaks only?', opts: ['k ≥ 2 and k ≤ 25', 'k ≤ 16 and k > 8', 'All four matter'], ans: 0,
+          why: 'Any k from 9 to 16 already passes k ≥ 2 and k ≤ 25. The tighter limits do the work.', steps: ['k > 8 already means k ≥ 2.', 'k ≤ 16 already means k ≤ 25.', 'So those two never stop a plan here.'] },
         { k: 'number', q: 'How many whole numbers of kayaks pass all four limits?', ans: 8, hint: 'Count from 9 to 16, both included.', why: '9, 10, 11, 12, 13, 14, 15, 16: eight.',
           steps: ['Smallest: 9 (8 fails k > 8).', 'Largest: 16.', '16 − 9 + 1 = *8*.'] }
       ] },
@@ -102,8 +102,8 @@ SFA_LESSON({
           { q: 'Next?', opts: ['Divide both sides by 40', 'Subtract 40'], ans: 0, res: ['p > 2.25', 'p > 50'], rans: 0 },
           { q: 'Whole boats, and you must beat $120. The fewest?', opts: ['3 pedal boats', '2 pedal boats'], ans: 0, res: ['p ≥ 3 whole boats', 'p ≥ 2'], rans: 0, why: '2 boats take in 30 + 80 = $110: not enough. Round up.' }],
           why: 'At least 3 pedal boats.', steps: ['30 + 40p > 120.', '40p > 90, so p > 2.25.', 'Must beat it: round *up* to 3.'] },
-        { k: 'pick', where: 'line', range: [0, 12], v: 'p', cond: 'p ≤ 10.5, p ≤ 9, p > 2.25, p ≤ 7, p ≥ 0', q: 'With 2 kayaks the limits on p are *p ≤ 10.5* (dock), *p ≤ 9* (budget), *p > 2.25* (takings) and *0 ≤ p ≤ 7* (stock). Tap every number of pedal boats that works.',
-          why: '3, 4, 5, 6, 7. The stock limit (7) is the tightest top, and the takings (more than 2.25) the tightest bottom.', steps: ['Top: 7 beats 9 and 10.5.', 'Bottom: more than 2.25, so 3.', '3, 4, 5, 6, 7.'] },
+        { k: 'pick', where: 'line', range: [0, 12], v: 'p', cond: 'p ≤ 10.5, p ≤ 7.67, p > 2.25, p ≤ 7, p ≥ 0', q: 'With 2 kayaks the limits on p are *p ≤ 10.5* (dock), *p ≤ 7⅔* (budget), *p > 2.25* (takings) and *0 ≤ p ≤ 7* (stock). Tap every number of pedal boats that works.',
+          why: '3, 4, 5, 6, 7. The stock limit (7) is the tightest top, and the takings (more than 2.25) the tightest bottom.', steps: ['Top: 7 beats 7⅔ and 10.5.', 'Bottom: more than 2.25, so 3.', '3, 4, 5, 6, 7.'] },
         { k: 'number', q: 'With exactly *4* kayaks, how many pedal boats fit on the dock at most? (3(4) + 4p ≤ 48)', ans: 9, hint: '12 + 4p ≤ 48, so 4p ≤ 36.', why: 'p ≤ 9.',
           steps: ['3(4) = 12.', '4p ≤ 36.', 'p ≤ *9*.'] }
       ] },
@@ -111,13 +111,13 @@ SFA_LESSON({
     { k: 'play', min: 16, title: 'Your turn: Summative Part 1', file: 'summative-u2.html#p1', btn: '📄 Open Part 1', minutes: 16,
       steps: ['Questions 1 to 4. Do the ★ CORE ones first: 1, 2 and 3.', 'Same moves as today, with the boathouse: c claw machines, h air hockey tables.', 'Stuck? Press 💡 Need a hint. Using hints is fine.', 'Show your working, and keep your page: you need it for Part 5.'],
       aim: 'Done when 1 to 4 are answered and the self-check at the end of Part 1 matches.' },
-    { k: 'number', min: 1, id: 'chk', kick: 'Part 1 self-check', q: 'How many whole numbers are in your list for question *3d*?', ans: 9,
+    { k: 'number', min: 1, id: 'chk', kick: 'Part 1 self-check', q: 'How many whole numbers are in your list for question *3d*?', ans: 7,
       hint: 'Look again at which dots are open, and use the tightest limit at each end.', why: 'That matches the self-check. Now check 4d.',
       more: [
         { k: 'number', q: 'And how many whole numbers are in your list for question *4d*?', ans: 4, hint: 'Look again: subtract the claw machines\' share first, then use the stock limit too.', why: 'That matches.',
           steps: ['Put c = 4 into each limit first.', 'Solve each for h, then keep the tightest top and bottom.', 'Count the whole numbers between your dots, closed ones included.'] }
       ] },
     { k: 'conf', min: 1, id: 'conf', q: 'Writing, solving and graphing one-variable limits: how do you feel?' },
-    { k: 'end', title: 'Part 1: one machine at a time.', next: 'Keep your Part 1 (in your folder, or in the same browser). Next lesson: *Inequalities 2* and Part 2, both machines at once.' }
+    { k: 'end', title: 'Part 1: one machine at a time.', next: 'Keep your Part 1 (in your folder, or in the same browser). Next lesson: *Inequalities 4* and Part 2, both machines at once.' }
   ]
 });

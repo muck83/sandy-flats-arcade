@@ -125,7 +125,7 @@ if (/[?&]mock\b/.test(location.search)) document.write('<script src="climb/dev/m
 (function () {
   'use strict';
   var SFA = window.SFA, el = SFA.el, esc = SFA.esc, CFG = window.SFA_CONFIG || {}, SG = window.SFA_SCAFFOLD, body = document.getElementById('body');
-  var Q = new URLSearchParams(location.search), MAXL = 33, LES = {}, left = MAXL;
+  var Q = new URLSearchParams(location.search), MAXL = 35, LES = {}, left = MAXL;
   var cur = 'L' + (parseInt(Q.get('l'), 10) || SFA.store.get('plan.last', 25) || 25);
   var skipOpt = !!SFA.store.get('plan.skipopt', false), startAt = SFA.store.get('plan.start', '') || '', lang = SFA.store.get('sg.lang', 'ar') || 'ar';
   var results = null, resErr = '', cls = SFA.store.get('teacher.lesson.cls', '') || '';
