@@ -1,0 +1,113 @@
+PROMPT FOR CLAUDE IN CHROME: set up the Unit 2 Summative (The Pop-Up Arcade) in Toddle, one post per day
+
+Paste everything below the line into Claude in Chrome while you are signed in to Toddle. Before you paste, fill in the
+[brackets]: the class or classes, and the five dates.
+----------------------------------------------------------------------------------------------------------------------
+
+You are helping me, a Grade 8 maths teacher, set up a five-day summative task in Toddle. I'm signed in to Toddle in this
+browser. Work in a new tab. Ask me before you publish, schedule or assign anything to students, and never message students
+or families. If Toddle's screens don't match what I describe, look around, choose the closest feature, and tell me what you
+chose.
+
+CLASS(ES): [Grade 8 Maths class name(s) in Toddle]
+DATES: Day 1 [date] · Day 2 [date] · Day 3 [date] · Day 4 [date] · Day 5 [date] (the upload is due at the end of Day 5)
+
+THE TASK
+Unit 2 Summative: "The Pop-Up Arcade" (systems of linear inequalities). Students build a plan in four parts, one part a
+day, then put it together on Day 5 and upload one finished plan (photo, PDF or a 90-second pitch video). All the student
+material is on our class website. Use these exact links:
+- Task handout: https://muck83.github.io/sandy-flats-arcade/summative-u2.html
+- Boathouse Planner: https://muck83.github.io/sandy-flats-arcade/summative-u2-planner.html
+- Support pack: https://muck83.github.io/sandy-flats-arcade/summative-u2-support.html
+Parts of the handout have their own links: add #p0 (the situation), #p1, #p2, #p3, #p4, #p5 or #rubric to the end of the
+handout link.
+Teacher only. NEVER put these in anything students can see:
+- Key and rubric: https://muck83.github.io/sandy-flats-arcade/summative-u2-teacher.html
+- Marking task sheet: https://muck83.github.io/sandy-flats-arcade/summative-u2-tasksheet.html
+
+WHAT TO CREATE
+1. First, look at how my existing Unit 2 posts and assignments are set up in this class (the unit, folder or learning
+   experience they sit in, how titles are written, which tags or standards are used). Copy that set-up. Tell me in two or
+   three lines what you found before you create anything.
+2. Create five daily posts (or learning experiences, whichever my class already uses for daily work), one for each date.
+   Each is a draft, or scheduled for 7:00 that morning if I say so. Use the titles and student text below, word for word,
+   with the links clickable.
+3. Create ONE assignment with a submission, for the Day 5 upload (details below). Attach the rubric as a Toddle rubric if
+   Toddle lets you build one. Otherwise paste it into the description.
+4. Show me all six items (titles, dates, text, links, who can see them) in one summary, and wait for my "yes" before you
+   publish or schedule any of them.
+
+DAY 1: "Pop-Up Arcade 1: Launch and one machine at a time"
+Today we start the Unit 2 Summative. Priya, Marcus and Gus are filling a beach boathouse with claw machines and air
+hockey tables, and they disagree about the best plan.
+1. Warm up with a partner in the Boathouse Planner: can you find a plan that beats all three of them?
+   https://muck83.github.io/sandy-flats-arcade/summative-u2-planner.html
+2. Read the situation: https://muck83.github.io/sandy-flats-arcade/summative-u2.html#p0
+3. Do Part 1 (questions 1 to 4): https://muck83.github.io/sandy-flats-arcade/summative-u2.html#p1
+Work on the paper handout, or type on the page (you don't sign in, and your typing stays on this device, so use the same
+one every day). Stuck? Every question has a 💡 hint button. The support pack has more help:
+https://muck83.github.io/sandy-flats-arcade/summative-u2-support.html
+Keep your Part 1. You need it on Day 5.
+
+DAY 2: "Pop-Up Arcade 2: Both machines at once"
+Do Part 2 (questions 5 to 9): https://muck83.github.io/sandy-flats-arcade/summative-u2.html#p2
+Turn each limit into an inequality with c and h, write the whole system, and test Marcus's, Priya's and Gus's plans.
+Do the ★ Core questions first. Finish with the self-check at the end of the part. Keep your Part 2.
+
+DAY 3: "Pop-Up Arcade 3: Graph the system"
+Do Part 3 (questions 10 to 13): https://muck83.github.io/sandy-flats-arcade/summative-u2.html#p3
+Find the intercepts, draw every boundary line (is it solid or dashed?), shade the feasible region and find its corners.
+On a computer: draw the graph on paper or in Desmos, and add a photo of it to the page. Need a start? The support pack has
+a starter graph: https://muck83.github.io/sandy-flats-arcade/summative-u2-support.html#s4
+Keep your Part 3.
+
+DAY 4: "Pop-Up Arcade 4: Make the decision"
+Do Part 4 (questions 14 to 19): https://muck83.github.io/sandy-flats-arcade/summative-u2.html#p4
+Use the corners to find the plan that takes in the most money, then answer Marcus. Question 19 is your news flash: use
+the card you're given in class, or draw one on the page. Keep your Part 4.
+
+DAY 5: "Pop-Up Arcade 5: Put it together and hand in"
+Today you turn your four parts into one finished plan for the arcade: a plan, a poster or a 90-second pitch video.
+Instructions and the checklist: https://muck83.github.io/sandy-flats-arcade/summative-u2.html#p5
+How it will be marked: https://muck83.github.io/sandy-flats-arcade/summative-u2.html#rubric
+Upload it to the assignment "Unit 2 Summative: The Pop-Up Arcade" before the end of the day. Check every page is readable.
+
+THE ASSIGNMENT (attach to Day 5, due end of Day 5)
+Title: Unit 2 Summative: The Pop-Up Arcade
+Submission: file upload (photos, PDF or video). More than one file allowed, if Toddle has that setting.
+Instructions:
+Upload your finished Pop-Up Arcade Plan. It must have all six parts: the question and your variables, the limits table
+with number lines, the system of inequalities, the graph with the feasible region, the corner table, and your
+recommendation (with the what-if and your news flash).
+- On paper: a clear photo of every page (flat, good light, the whole page), or one scanned PDF.
+- Typed on the website: press "Print or save my work as PDF", then choose Save as PDF.
+- A pitch video: upload the video, plus a photo of your graph and table.
+Task: https://muck83.github.io/sandy-flats-arcade/summative-u2.html
+Rubric (levels: Limited, Emerging, Developed = the goal, Deep):
+- C1 Concepts · Writing and solving inequalities
+  Limited: some inequalities, but the sign or terms often don't match the words.
+  Emerging: most one-variable inequalities right; two-variable ones have errors.
+  Developed: every one-variable inequality written and solved; every inequality in the system right (> for staff pay).
+  Deep: Developed, plus explains each sign and the meaning of the slopes as trades between machines.
+- C1 Concepts · Graphing
+  Limited: number lines or boundary lines mostly not correct.
+  Emerging: number lines mostly right; some boundary lines right, but shading or solid/dashed mixed up.
+  Developed: dots right; every boundary line right and labelled, staff pay dashed, feasible region shaded correctly.
+  Deep: Developed, plus every corner found and the crossing point checked in both equations.
+- C3 Problem solving · Making the decision
+  Limited: chooses a plan with little use of the limits.
+  Emerging: tests some plans or finds the money for some points, but doesn't reach the best plan.
+  Developed: tests the corners, finds the best whole-number plan, shows why each friend's plan is worse or not possible.
+  Deep: Developed, plus the what-if and news flash answered correctly, with reasons.
+- C2 Communicating · The finished plan
+  Limited: hard to follow; parts missing, few labels.
+  Emerging: most parts there; some working, labels or units missing.
+  Developed: all six parts there; variables defined, labels and units, a clear recommendation with numbers.
+  Deep: Developed, plus clear and convincing enough that someone new to the task could check every step.
+
+RULES
+- Students must never see the two teacher-only links.
+- Don't add students' names or any other student information anywhere.
+- Don't grade, comment on or return any submissions.
+- If a step needs a setting you're unsure of (who can see it, scheduling, the grading scale), ask me, don't guess.
+- At the end, give me the link to each item you created and say which ones are published, scheduled or still drafts.

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pop-Up Arcade Support Pack · Sandy Flats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css?v=20261118">
+<link rel="stylesheet" href="summative-u2.css?v=20261124c">
+<style>
+/* Support pack for the Pop-Up Arcade summative: printable, one tool per page. */
+.sym{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
+.sym div{background:#FFFDF5;border:2px solid #C9C1A8;border-radius:12px;padding:8px 10px;text-align:center}
+.sym b{display:block;font:600 30px var(--mono);line-height:1.2}
+.sym span{font-size:14px}
+.sym small{display:block;color:#6B6676;font-size:12px}
+.we{counter-reset:we;margin:8px 0 0;padding:0;list-style:none}
+.we li{counter-increment:we;border-left:4px solid #2456D6;padding:4px 0 6px 12px;margin:8px 0}
+.we li::before{content:"Step " counter(we) ". ";font-weight:800}
+.fp{max-width:560px;margin:8px auto 0}
+.fp svg{display:block;width:100%;height:auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:8px}
+.hcard{border:2px dashed #8C8799;border-radius:10px;padding:8px 10px;font-size:13.5px;background:#FFFDF5;break-inside:avoid;page-break-inside:avoid}
+.hcard b.q{display:block;font-size:14px;margin-bottom:3px}
+.hcard p{margin:3px 0}
+.ncards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:8px}
+.ncards .ncard{max-width:none;break-inside:avoid;page-break-inside:avoid;border-style:dashed}
+.frames p{background:#FFFDF5;border:2px solid #C9C1A8;border-radius:10px;padding:8px 12px;line-height:2}
+@media print{ .fp{max-width:150mm} .cards{grid-template-columns:repeat(3,1fr)} .ncards{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head><body>
+<div class="wrap su">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Support Pack</h1><div class="chips"><a class="chip" href="summative-u2.html">📄 Back to the task</a></div></header>
+
+  <section class="card noprint">
+    <p class="lead" style="margin:0">Tools for the Pop-Up Arcade task. Use the ones you need. None of them do the task for you, but each one gets you unstuck.</p>
+    <div class="jump"><a class="chip" href="#s1">Symbol card</a><a class="chip" href="#s2">Worked example</a><a class="chip" href="#s3">Half-filled tables</a><a class="chip" href="#s4">Starter graph</a><a class="chip" href="#s5">Sentence frames</a><a class="chip" href="#s6">Floor plan cut-outs</a><a class="chip" href="#s7">Hint cards</a><a class="chip" href="#s8">News flash cards</a></div>
+    <div class="btns"><button class="chip" type="button" onclick="window.print()">🖨️ Print the whole pack</button></div>
+  </section>
+
+  <section class="sheet" id="s1">
+    <div class="phead"><div><div class="kicker">Support pack · 1</div><h2>Words to symbols</h2></div></div>
+    <div class="sym">
+      <div><b>≥</b><span>at least · no less than · a minimum of</span><small>closed dot ●</small></div>
+      <div><b>≤</b><span>at most · no more than · up to · only · has … to spend</span><small>closed dot ●</small></div>
+      <div><b>&gt;</b><span>more than · over · above</span><small>open dot ○</small></div>
+      <div><b>&lt;</b><span>less than · under · below · fewer than</span><small>open dot ○</small></div>
+    </div>
+    <h3>Words in this task</h3>
+    <ul>
+      <li><b>Constraint (limit):</b> a rule a plan has to follow, like the floor space or the budget.</li>
+      <li><b>System:</b> all the inequalities together. A plan has to pass <i>every</i> one.</li>
+      <li><b>Boundary line:</b> the line you get when you change the inequality sign to =. Solid if the line is included (≤ or ≥), dashed if it isn't (&lt; or &gt;).</li>
+      <li><b>Test point:</b> a point you put into an inequality to see which side of the line to keep. (0, 0) is the easiest, if it isn't on the line.</li>
+      <li><b>Feasible region:</b> the area where every inequality is true: all the possible plans.</li>
+      <li><b>Corner:</b> a point where two edges of the feasible region meet. The best plan is always at a corner.</li>
+    </ul>
+  </section>
+
+  <section class="sheet" id="s2">
+    <div class="phead"><div><div class="kicker">Support pack · 2</div><h2>Worked example: the Taco Truck</h2></div></div>
+    <p>A different problem, worked all the way through, so you can see every step. Use the same steps on the Pop-Up Arcade.</p>
+    <div class="box"><b class="t">The Taco Truck</b>A food truck sells tacos (<span class="m">t</span>) and burritos (<span class="m">b</span>) at lunch. A taco takes 2 minutes on the grill and a burrito takes 4 minutes. The grill has 240 minutes. There are only 80 tortillas (one per taco or burrito). The truck promised the office next door at least 10 burritos. A taco makes $3 profit and a burrito makes $5. How many of each should they make for the most profit?</div>
+    <ol class="we">
+      <li><b>One variable.</b> "At least 10 burritos": <span class="m">b ≥ 10</span>, closed dot on 10, arrow right. Tacos only: grill <span class="m">2t ≤ 240</span>, so <span class="m">t ≤ 120</span>, and tortillas <span class="m">t ≤ 80</span>. Both are true when <span class="m">t ≤ 80</span>.</li>
+      <li><b>Two variables.</b> Grill: <span class="m">2t + 4b ≤ 240</span> (2t = minutes for tacos, 4b = minutes for burritos). Tortillas: <span class="m">t + b ≤ 80</span>. The system: <span class="m">b ≥ 10</span>, <span class="m">t ≥ 0</span>, <span class="m">2t + 4b ≤ 240</span>, <span class="m">t + b ≤ 80</span>.</li>
+      <li><b>Test a plan.</b> 50 tacos and 40 burritos: grill <span class="m">2(50) + 4(40) = 260</span>. Is 260 ≤ 240? No: ✗, so the plan doesn't work.</li>
+      <li><b>Slope-intercept form.</b> <span class="m">2t + 4b = 240</span> → <span class="m">4b = −2t + 240</span> → <span class="m">b = −½t + 60</span>. Meaning: every extra burrito uses the grill time of 2 tacos.</li>
+      <li><b>Intercepts.</b> Grill: <span class="m">t = 0</span> gives <span class="m">b = 60</span>, so (0, 60). <span class="m">b = 0</span> gives <span class="m">t = 120</span>, so (120, 0). Tortillas: (0, 80) and (80, 0). Both lines are solid (≤).</li>
+      <li><b>Shade.</b> Test (0, 0): <span class="m">0 ≤ 240</span> ✓ and <span class="m">0 ≤ 80</span> ✓, so keep the side with (0, 0) for both. Keep above <span class="m">b = 10</span>.</li>
+      <li><b>Crossing point.</b> The lines cross at (40, 40). Check: <span class="m">2(40) + 4(40) = 240</span> ✓ and <span class="m">40 + 40 = 80</span> ✓.</li>
+      <li><b>Corners and profit</b> with <span class="m">P = 3t + 5b</span>: (0, 10) → $50 · (70, 10) → $260 · (40, 40) → <b>$320</b> · (0, 60) → $300. The best plan is 40 tacos and 40 burritos.</li>
+      <li><b>Argue.</b> "Make 40 tacos and 40 burritos for $320 profit. It uses all the grill time and all the tortillas. Burritos only (60) makes $300, which is $20 less."</li>
+    </ol>
+  </section>
+
+  <section class="sheet" id="s3">
+    <div class="phead"><div><div class="kicker">Support pack · 3</div><h2>Half-filled tables</h2></div></div>
+    <p>The first row of each table is done for you. Finish the rest in the same way.</p>
+    <h3>Question 7: test the plans</h3>
+    <div class="tw"><table class="pt"><tr><th>Plan</th><th>(c, h)</th><th>Prize deal c ≥ 4</th><th>Stock h ≤ 8</th><th>Floor 2c + 6h ≤ 60</th><th>Budget 200c + 400h ≤ 4800</th><th>Staff pay 20c + 50h &gt; 300</th><th>Possible?</th></tr>
+      <tr><td class="l">Marcus</td><td>(10, 10)</td><td>10 ≥ 4 ✓</td><td>10 ≤ 8? ✗</td><td>20 + 60 = 80 ≤ 60? ✗</td><td>2000 + 4000 = 6000 ≤ 4800? ✗</td><td>200 + 500 = 700 &gt; 300 ✓</td><td>No</td></tr>
+      <tr><td class="l">Priya</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="l">Gus</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr></table></div>
+    <h3>Question 10: where the lines cross the axes</h3>
+    <div class="tw"><table class="pt"><tr><th>Boundary line</th><th>Put h = 0</th><th>Put c = 0</th><th>Solid or dashed?</th></tr>
+      <tr><td class="l">Floor 2c + 6h = 60</td><td>2c = 60 → c = 30 → (30, 0)</td><td>6h = 60 → h = 10 → (0, 10)</td><td>solid (≤)</td></tr>
+      <tr><td class="l">Budget 200c + 400h = 4800</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="l">Staff pay 20c + 50h = 300</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr></table></div>
+    <h3>Question 15: money at the corners</h3>
+    <div class="tw"><table class="pt"><tr><th>Corner (c, h)</th><th>M = 20c + 50h</th><th>Money each day</th></tr>
+      <tr><td>(24, 0)</td><td>20 × 24 + 50 × 0</td><td>$480</td></tr>
+      <tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr><tr><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr></table></div>
+  </section>
+
+  <section class="sheet" id="s4">
+    <div class="phead"><div><div class="kicker">Support pack · 4</div><h2>Starter graph</h2></div></div>
+    <p>The floor space and budget lines are already drawn. You add the staff pay line (dashed!), <span class="m">c = 4</span> and <span class="m">h = 8</span>, then shade the feasible region. Remember: across, each square is <b>2</b> machines.</p>
+    <div class="grid" data-ans="pre"></div>
+  </section>
+
+  <section class="sheet" id="s5">
+    <div class="phead"><div><div class="kicker">Support pack · 5</div><h2>Sentence frames</h2></div></div>
+    <div class="frames">
+      <p><b>Slope (Q9):</b> For every air hockey table they add, they have room for ____ fewer claw machines, because one table uses ____ m², the same as ____ claw machines.</p>
+      <p><b>Best plan (Q16):</b> The best plan is ____ claw machines and ____ air hockey tables. It takes in $____ a day. That is $____ more than Gus's plan and $____ more than Priya's plan. I know it is the best because I checked every corner of the feasible region and ____.</p>
+      <p><b>Reply to Marcus (Q17):</b> Ten of each would take in $700, but it isn't possible. It needs ____ m² of floor and there are only ____ m². It costs $____ and the budget is only $____. And ____.</p>
+      <p><b>What if (Q18):</b> With $70 a table, the best corner is ____ because ____. Moving from (12, 6) to (6, 8) loses ____ claw machines (−$____) and gains ____ tables (+$____).</p>
+      <p><b>Recommendation (Part 5):</b> We recommend renting ____ claw machines and ____ air hockey tables. This plan meets every limit: ____. It takes in $____ a day, more than ____. If ____ (news flash), we would change the plan to ____ because ____.</p>
+    </div>
+  </section>
+
+  <section class="sheet" id="s6">
+    <div class="phead"><div><div class="kicker">Support pack · 6</div><h2>Boathouse floor plan</h2></div></div>
+    <p>The boathouse floor is 10 m by 6 m: 60 m². Each square is 1 m². Cut out the machines and try plans on the floor. A claw machine is 1 m × 2 m (2 m²), an air hockey table with room for the players is 2 m × 3 m (6 m²). <b>Think about it:</b> do the machines always fit when the area adds up to 60 m² or less? Why does the task only count area?</p>
+    <div class="fp" id="fp"></div>
+  </section>
+
+  <section class="sheet" id="s7">
+    <div class="phead"><div><div class="kicker">Support pack · 7</div><h2>Hint cards</h2></div></div>
+    <p>Three hints for each question: a nudge, the first step, and an example. Try one hint at a time. (These are the same hints as the 💡 buttons on the task page.)</p>
+    <div class="cards" id="hcards"></div>
+  </section>
+
+  <section class="sheet" id="s8">
+    <div class="phead"><div><div class="kicker">Support pack · 8 · teacher: print and cut</div><h2>News flash cards (question 19)</h2></div></div>
+    <p>Give each student, or each table group, one card. Every card changes just one thing.</p>
+    <div class="ncards" id="ncards"></div>
+  </section>
+</div>
+<script src="config.js"></script>
+<script src="summative-u2.js?v=20261124b"></script>
+<script>
+(function () {
+  'use strict';
+  var SU = window.SU2, NS = 'http://www.w3.org/2000/svg';
+  function s(tag, a, p) { var n = document.createElementNS(NS, tag); for (var k in a) n.setAttribute(k, a[k]); if (p) p.appendChild(n); return n; }
+  // hint cards
+  var hc = document.getElementById('hcards'), names = ['Nudge', 'First step', 'Example'];
+  Object.keys(SU.HINTS).forEach(function (q) {
+    var d = document.createElement('div'); d.className = 'hcard';
+    var b = document.createElement('b'); b.className = 'q'; b.textContent = '💡 Question ' + q; d.appendChild(b);
+    SU.HINTS[q].forEach(function (h, i) { var p = document.createElement('p'); var bb = document.createElement('b'); bb.textContent = names[i] + ': '; p.appendChild(bb); p.appendChild(document.createTextNode(h)); d.appendChild(p); });
+    hc.appendChild(d);
+  });
+  // news flash cards
+  var nc = document.getElementById('ncards');
+  SU.CARDS.forEach(function (c, i) { var d = document.createElement('div'); d.className = 'ncard'; var b = document.createElement('b'); b.textContent = '📰 News flash ' + (i + 1) + ': ' + c.t; d.appendChild(b); d.appendChild(document.createTextNode(c.d)); nc.appendChild(d); });
+  // floor plan: 10 × 6 m, 1 m squares, plus cut-outs (8 claw machines, 6 tables); the plan and the cut-outs share one scale
+  var u = 13, W = 10 * u + 2, svg = s('svg', { viewBox: '-2 -2 ' + (W + 4) + ' ' + (6 * u + 6 + 2 * u + 4 * u + 30), role: 'img', 'aria-label': 'Boathouse floor plan, 10 by 6 metres, with machine cut-outs' }, document.getElementById('fp'));
+  for (var i = 0; i <= 10; i++) s('line', { x1: i * u, y1: 0, x2: i * u, y2: 6 * u, stroke: '#CFC6AB', 'stroke-width': .4 }, svg);
+  for (var j = 0; j <= 6; j++) s('line', { x1: 0, y1: j * u, x2: 10 * u, y2: j * u, stroke: '#CFC6AB', 'stroke-width': .4 }, svg);
+  s('rect', { x: 0, y: 0, width: 10 * u, height: 6 * u, fill: 'none', stroke: '#1B1A22', 'stroke-width': 1.2 }, svg);
+  var t = s('text', { x: 5 * u, y: 6 * u + 6, 'text-anchor': 'middle', 'font-size': 4.2, fill: '#55505F' }, svg); t.textContent = 'Boathouse floor: 10 m × 6 m (each square 1 m²). Door here ↓';
+  var y0 = 6 * u + 12;
+  var t2 = s('text', { x: 0, y: y0 - 1, 'font-size': 4.2, 'font-weight': 700, fill: '#1B1A22' }, svg); t2.textContent = '✂ Cut out: 8 claw machines (1 × 2) and 6 air hockey tables (2 × 3)';
+  for (i = 0; i < 8; i++) { s('rect', { x: i * (u + 3), y: y0 + 2, width: u, height: 2 * u, fill: '#D7F5EA', stroke: '#1E7A4C', 'stroke-width': .7, 'stroke-dasharray': '2 1.2' }, svg); var c = s('text', { x: i * (u + 3) + u / 2, y: y0 + 2 + u + 1.5, 'text-anchor': 'middle', 'font-size': 3.6, fill: '#1E7A4C' }, svg); c.textContent = 'claw'; }
+  // six tables: two rows of three
+  for (i = 0; i < 6; i++) {
+    var xx = (i % 3) * (2 * u + 2), yt = y0 + 2 * u + 6 + Math.floor(i / 3) * (3 * u + 3);
+    s('rect', { x: xx, y: yt, width: 2 * u, height: 3 * u, fill: '#FFE7CC', stroke: '#C2410C', 'stroke-width': .7, 'stroke-dasharray': '2 1.2' }, svg);
+    var h1 = s('text', { x: xx + u, y: yt + 1.5 * u + 1.5, 'text-anchor': 'middle', 'font-size': 3.6, fill: '#C2410C' }, svg); h1.textContent = 'air hockey';
+  }
+  svg.setAttribute('viewBox', '-2 -2 ' + (W + 4) + ' ' + (y0 + 2 * u + 6 + 6 * u + 6));
+})();
+</script>
+<script src="sfa-nav.js"></script>
+</body></html>

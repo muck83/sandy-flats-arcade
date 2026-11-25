@@ -1,0 +1,160 @@
+/* Unit 2 Summative, The Pop-Up Arcade: an offline task built in parts. On screen the parts are paper sheets on the kit's dark
+   desk. In print they are plain black-on-white pages with one part per page. The student and teacher pages both use it. */
+.su{max-width:980px}
+.su h2{font-family:var(--display);font-weight:400;letter-spacing:.03em;color:var(--marquee);margin:0 0 6px;font-size:22px}
+.su .muted{color:var(--muted)}
+.su .card{margin-top:14px}
+.su .card p{margin:6px 0}
+.su .lead{font-size:17px}
+.jump{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.jump a{text-decoration:none}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.note{margin-top:10px;padding:10px 14px;border-radius:12px;background:#2B2412;border-left:4px solid var(--marquee);font-size:15px}
+.note.ok{background:#14281F;border-left-color:var(--green)}
+
+/* ---------- the paper sheets ---------- */
+.sheet{background:var(--paper);color:var(--paperink);border-radius:14px;padding:18px 20px 22px;margin-top:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.sheet a{color:#1F4FC4}
+.sheet h2{color:var(--paperink);font-size:24px;margin:0}
+.sheet h3{font-size:17px;margin:18px 0 6px}
+.sheet .kicker{font:700 12px var(--ui);letter-spacing:.12em;text-transform:uppercase;color:#6B6676}
+.sheet .phead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px;border-bottom:2px solid var(--paperink);padding-bottom:8px;margin-bottom:10px}
+.sheet .phead .who{font-size:14px;color:#55505F;white-space:nowrap}
+.sheet .goal{font-size:15px;background:var(--paper2);border-radius:10px;padding:8px 12px;margin:8px 0}
+.sheet p{margin:8px 0}
+.sheet ul,.sheet ol{margin:6px 0;padding-left:22px}
+.sheet li{margin:4px 0}
+.m{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.q{margin-top:14px;break-inside:avoid;page-break-inside:avoid}
+.q>.qt{font-size:16px;line-height:1.45}
+.q>.qt .n{display:inline-block;min-width:30px;font-weight:800}
+.q .sub{margin:8px 0 0 30px}
+.box{border:2px solid var(--paperink);border-radius:10px;padding:10px 14px;margin:10px 0}
+.box.dashed{border-style:dashed}
+.box b.t{display:block;margin-bottom:4px}
+.facts{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:6px}
+.facts li{border-left:4px solid #2456D6;padding:4px 0 4px 10px;margin:0}
+.facts li b{white-space:nowrap}
+.voices{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-top:8px}
+.voice{background:#FFFDF5;border:2px solid #C9C1A8;border-radius:12px;padding:8px 12px;font-size:15px}
+.voice b{display:block}
+.check{font-size:14px;background:#E9F3EC;border:2px solid #9CC7AA;border-radius:10px;padding:8px 12px;margin-top:16px}
+.check b{display:block}
+.check ul{margin:4px 0 0}
+.check li{list-style:'☐  '}
+
+/* answer spaces: a text box on screen (saved in this browser), ruled lines in print */
+.ans{margin:6px 0 0 30px}
+.ans textarea{display:block;width:100%;min-height:calc(var(--rows,2) * 28px + 14px);resize:vertical;font:500 16px/28px var(--ui);color:var(--paperink);background:#FFFDF5 repeating-linear-gradient(to bottom,transparent 0 27px,#D8D0B8 27px 28px);background-position:0 6px;border:2px solid #C9C1A8;border-radius:10px;padding:6px 10px}
+.ans textarea:focus{outline:none;border-color:#2456D6}
+.ans .prt{display:none}
+input.ln{font:inherit;border:0;border-bottom:2px solid currentColor;background:transparent;color:inherit;border-radius:0;padding:0 2px}
+input.ln:focus{outline:none;border-bottom-color:#2456D6}
+.inl{display:inline-block;min-width:120px;border-bottom:2px solid var(--paperink);height:1.3em;vertical-align:bottom}
+
+/* tables on paper */
+.tw{overflow-x:auto;margin-top:8px}
+table.pt{border-collapse:collapse;font-size:15px;background:#FFFDF5;min-width:100%}
+table.pt th,table.pt td{border:2px solid #C9C1A8;padding:6px 10px;text-align:center;vertical-align:middle}
+table.pt th{background:var(--paper2)}
+table.pt td.l{text-align:left}
+table.pt td.blank{height:34px;min-width:70px}
+table.pt .key{font-family:var(--mono);font-weight:600;color:#1E7A4C}
+
+/* number lines and the coordinate grid */
+.nl{margin:8px 0 0 30px;max-width:620px}
+.nl svg,.grid svg{display:block;width:100%;height:auto}
+.nlrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:6px 14px;align-items:center;margin:6px 0 0 30px}
+.nlrow .nl{margin:0}
+.nlrow .ans{margin:0}
+.grid{margin:10px auto 0;max-width:620px}
+.nlbg{fill:none}.nlax{stroke:#2B2A33;stroke-width:2}.nltk{stroke:#2B2A33;stroke-width:1.4}
+.nlnum{font:500 11px var(--mono);fill:#4A4656;text-anchor:middle}
+.nlvar{font:700 13px var(--ui);fill:#1B1A22}
+.ansl{stroke:#2456D6;stroke-width:4;fill:none;stroke-linecap:round}
+.ansd{stroke:#2456D6;stroke-width:3;fill:#2456D6}.ansd.o{fill:#FFFDF5}
+.gbg{fill:#FFFDF5}.gl{stroke:#E2DCC8;stroke-width:1}.gl.mj{stroke:#CFC6AB}.gax{stroke:#2B2A33;stroke-width:2}
+.gnum{font:500 11px var(--mono);fill:#4A4656}.gttl{font:700 13px var(--ui);fill:#1B1A22}
+.bd{stroke-width:3;fill:none}.bd.d{stroke-dasharray:9 7}
+.bd.sp{stroke:#2456D6}.bd.bu{stroke:#C2410C}.bd.st{stroke:#7A3FD0}.bd.lm{stroke:#55505F;stroke-width:2.5}
+.fz{fill:#1E7A4C;fill-opacity:.2}
+.cpt{fill:#1E7A4C;stroke:#fff;stroke-width:2}.cpt.o{fill:#FFFDF5;stroke:#1E7A4C;stroke-width:2.5}
+.ppt{fill:#E8584C;stroke:#fff;stroke-width:2}
+.glab{font:700 12px var(--ui);fill:#1B1A22;paint-order:stroke;stroke:#FFFDF5;stroke-width:4px}
+.glab.sp{fill:#2456D6}.glab.bu{fill:#C2410C}.glab.st{fill:#7A3FD0}.glab.fz{fill:#1E7A4C;fill-opacity:1}
+
+/* photo slots for students working on a computer */
+.photo{margin:10px 0 0 30px;font-size:14px}
+.photo img{display:block;max-width:100%;max-height:520px;margin-top:8px;border-radius:8px;border:2px solid #C9C1A8}
+.photo label{font-weight:700}
+.photo .pbtn{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* core-question star, hint drawers, self-checks, news flash */
+.star{display:inline-block;font:800 11px var(--ui);letter-spacing:.06em;text-transform:uppercase;background:#1E7A4C;color:#fff;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:2px}
+.hints{margin:6px 0 0 30px}
+.hbtn{font:700 13px var(--ui);color:#7A4A00;background:#FFF1C9;border:2px solid #E8C35A;border-radius:999px;padding:4px 12px;cursor:pointer}
+.hbtn:hover{border-color:#C79A1F}.hbtn:disabled{opacity:.6;cursor:default}
+.hlist .hl{margin:6px 0 0;padding:6px 10px;background:#FFF8E1;border-left:4px solid #E8C35A;border-radius:0 8px 8px 0;font-size:15px}
+.hused{display:none}
+.selfcheck{margin-top:10px;font-size:14px;background:#EEF2FF;border:2px dashed #8DA2E8;border-radius:10px;padding:8px 12px}
+.ncard{margin-top:8px;background:#FFFDF5;border:3px solid var(--paperink);border-radius:12px;padding:10px 14px;font-size:15px;max-width:520px}
+.ncard b{display:block;font-family:var(--display);font-weight:400;letter-spacing:.03em;font-size:18px;margin-bottom:2px}
+.newsflash select{font:600 14px var(--ui);padding:6px 8px;border-radius:10px;border:2px solid #C9C1A8;background:#FFFDF5;color:var(--paperink);max-width:100%}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-top:8px}
+.choice{background:#FFFDF5;border:2px solid #C9C1A8;border-radius:12px;padding:8px 12px;font-size:15px}
+.choice b{display:block}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-top:10px}
+.links a{display:block;text-decoration:none;background:var(--panel2);border:2px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--ink)}
+.links a:hover{border-color:var(--marquee)}
+.links a b{display:block;color:var(--marquee)}
+.links a span{font-size:13px;color:var(--muted)}
+
+/* rubric */
+table.rub{border-collapse:collapse;font-size:13.5px;background:#FFFDF5;min-width:720px;width:100%}
+table.rub th,table.rub td{border:2px solid #C9C1A8;padding:7px 9px;vertical-align:top;text-align:left;line-height:1.35}
+table.rub th{background:var(--paper2)}
+table.rub th.goal,table.rub td.goal{background:#FBEFC4}
+table.rub td.cr b{display:block}
+table.rub td.cr small{color:#6B6676;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+
+/* teacher key */
+.key{color:#1E7A4C}
+.ka{margin:6px 0 0 30px;padding:8px 12px;background:#E9F3EC;border-left:4px solid #1E7A4C;border-radius:0 10px 10px 0;font-size:15px}
+.ka .m{color:#14532D}
+.err{margin:6px 0 0 30px;padding:8px 12px;background:#FBE9E7;border-left:4px solid #C2410C;border-radius:0 10px 10px 0;font-size:14px}
+.err b{color:#9A330A}
+
+@media (max-width:600px){
+  .sheet{padding:14px 14px 18px;border-radius:12px}
+  .q .sub,.ans,.nl,.photo,.ka,.err,.hints{margin-left:0}
+  .nlrow{grid-template-columns:minmax(0,1fr);margin-left:0}
+  .q>.qt .n{min-width:24px}
+  .m{white-space:normal}
+  .sheet h2{font-size:21px}
+}
+
+/* ---------- print: one part per page, black on white, no screen chrome ---------- */
+@page{size:auto;margin:14mm 13mm}
+@media print{
+  :root{color-scheme:light}
+  html,body{background:#fff!important}
+  body{color:#000;font-size:12.5pt}
+  .wrap{max-width:none;padding:0}
+  .topbar,.sfanav,.noprint,#sfaAccount{display:none!important}
+  .sheet{background:#fff;color:#000;box-shadow:none;border-radius:0;padding:0;margin:0}
+  .sheet+.sheet,.sheet.pb{break-before:page;page-break-before:always}
+  .sheet .goal,.check,.voice,table.pt,table.pt th,table.rub,table.rub th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ans textarea{display:none}
+  .ans .prt{display:block;white-space:pre-wrap;min-height:calc(var(--rows,2) * 9mm);line-height:9mm;font-size:12pt;background:repeating-linear-gradient(to bottom,transparent 0 calc(9mm - 1px),#999 calc(9mm - 1px) 9mm);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .photo:not(.has){display:none}
+  .photo input,.photo .pbtn{display:none}
+  .nlrow{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
+  .grid{max-width:150mm}
+  a{color:#000;text-decoration:none}
+  body.blank .ans .prt,body.blank input.ln{color:transparent}
+  body.blank .photo{display:none}
+  .hbtn,.hlist{display:none}
+  .hused{display:block;font-size:10pt;font-style:italic;margin-top:2px}
+  body.blank .hused,body.blank .ncard{display:none}
+  .ncard[hidden]{display:none}
+}

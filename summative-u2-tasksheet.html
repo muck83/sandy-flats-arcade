@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Summative Task Sheet · Sandy Flats</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css?v=20261118">
+<style>
+/* Unit 2 Summative task sheet: the same one-page layout as the Unit 2 Check's task sheets (check-u2-teacher.html),
+   marked by hand. Click a descriptor to mark the level reached; the level column, "What you can do" and
+   "How to improve" fill in from the marks. Nothing is saved: print or save as PDF for each student. */
+.tsw{max-width:1000px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.tools .muted{color:var(--muted);font-size:14px}
+.ts{background:#fff;color:#000;border-radius:12px;padding:18px 20px;margin-top:14px;font:10.5pt/1.3 Arial,Helvetica,sans-serif}
+.ts h1{font:700 17pt Arial,sans-serif;margin:0}
+.ts h3{font:700 10.5pt Arial,sans-serif;margin:0 0 3px}
+.ts .hd{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 12px;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:6px}
+.ts .meta{font-size:9.5pt;color:#333}
+.ts .who{text-align:right;font-size:11pt}
+.ts .who input{font:700 13pt Arial,sans-serif;border:0;border-bottom:1px solid #777;width:210px;text-align:right;background:transparent;color:#000}
+.ts .who input.cls{font-size:11pt;font-weight:400;width:90px}
+.ts .tw{overflow-x:auto}
+.ts table{width:100%;min-width:760px;border-collapse:collapse;margin-top:6px}
+.ts th,.ts td{border:1px solid #777;padding:3px 5px;vertical-align:top;font-size:8.6pt;line-height:1.25}
+.ts th{background:#eee;font-size:8.8pt;text-align:left}
+.ts col.c1{width:25%}.ts col.c2{width:9%}
+.ts td.cn{font-weight:700;background:#f6f6f6}
+.ts td.sk{padding-left:12px}
+.ts td.pick{cursor:pointer}
+.ts td.pick:hover{background:#FFF6D6}
+.ts td.hit{background:#d9d9d9;outline:2.5px solid #000;outline-offset:-3px;font-weight:700}
+.ts td.hit:before{content:'✔ '}
+.ts td.lv{text-align:center;white-space:nowrap;font-weight:700}
+.ts td.lv small{display:block;font-weight:400;font-style:italic;color:#555}
+.ts .tsov{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;margin-top:8px;font-size:11pt}
+.ts .tsov label{font-size:9.5pt;white-space:nowrap}
+.ts .box{border:1px solid #777;padding:4px 8px;margin-top:6px}
+.ts .box ul,.ts .box ol{margin:2px 0;padding-left:20px}
+.ts .box li{margin:1px 0}
+.ts .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ts textarea{width:100%;min-height:52px;font:10pt/1.35 Arial,sans-serif;border:0;resize:vertical;background:repeating-linear-gradient(to bottom,transparent 0 18px,#bbb 18px 19px);color:#000;padding:0}
+.ts textarea:focus{outline:1px dashed #999}
+.ts .prt{display:none;white-space:pre-wrap;min-height:40px;font-size:10pt}
+.ts .fine{font-size:8pt;color:#444;margin-top:6px}
+@media (max-width:640px){.ts{padding:12px}.ts .two{grid-template-columns:1fr}.ts .who{text-align:left}.ts .who input{text-align:left}}
+@page{size:A4 portrait;margin:10mm}
+@media print{
+  html,body{background:#fff!important}
+  .wrap{max-width:none;padding:0}
+  .topbar,.sfanav,.tools,.noprint{display:none!important}
+  .ts{border-radius:0;padding:0;margin:0}
+  .ts table{min-width:0}
+  .ts td.pick:hover{background:none}
+  .ts td.hit,.ts th,.ts td.cn{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ts textarea{display:none}.ts .prt{display:block}
+  .ts .who input{border-bottom-color:#000}
+  body.blank .ts td.hit{background:none;outline:0;font-weight:400}
+  body.blank .ts td.hit:before{content:''}
+  body.blank .ts .fillin{visibility:hidden}
+}
+</style>
+</head><body>
+<div class="wrap tsw">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Summative Task Sheet</h1><div class="chips"><a class="chip" href="summative-u2-teacher.html">📄 Key and rubric</a></div></header>
+  <div class="tools">
+    <button class="chip" id="pr" type="button">🖨️ Print or save as PDF</button>
+    <button class="chip" id="blank" type="button">Print a blank sheet</button>
+    <button class="chip" id="next" type="button">➡️ Next student (clear)</button>
+    <span class="muted">Click a descriptor to mark the level reached. Mark the strands and the criterion fills in, or click the criterion row to set it yourself. Nothing is saved, so save each sheet as a PDF (to give back on Toddle) before you clear it.</span>
+  </div>
+  <section class="ts" id="ts"></section>
+</div>
+<script>
+(function () {
+  'use strict';
+  var LVN = ['Limited', 'Emerging', 'Developed', 'Deep'];
+  // the summative rubric (summative-u2-teacher.html), as a formative-style task sheet: criterion rows and their strands
+  var CRIT = [
+    { id: 'ineq', strand: 'C1 Concepts', short: 'Writing and solving inequalities',
+      desc: ['Some inequalities written, but the sign or terms often don\'t match the words; few solved correctly.',
+        'Most one-variable inequalities right; two-step or two-variable ones have errors (e.g. ≥ 300, swapped coefficients).',
+        'Every one-variable inequality written and solved; every inequality in the system right, with > for staff pay; slope-intercept forms right.',
+        'Developed, plus explains each sign choice and the meaning of both slopes as trades between machines.'],
+      next: 'Practise in the Unit 2 Review: Inequalities (review-u2.html#r3). Use the symbol card in the support pack and say the words aloud before you choose the sign.',
+      strands: [['s1', 'One-variable inequalities and number lines (Q1–4)'], ['s2', 'Two-variable inequalities and the system (Q5–6)'], ['s3', 'Slope-intercept form and meaning of slope (Q8–9)']] },
+    { id: 'graph', strand: 'C1 Concepts', short: 'Graphing',
+      desc: ['Number lines or boundary lines drawn, but mostly not correct.',
+        'Number lines mostly right; some boundary lines right, but shading, scale or solid/dashed mixed up, or c = 4 and h = 8 missing.',
+        'Open and closed dots right; all five boundary lines right and labelled, staff pay dashed, feasible region shaded correctly, plans placed.',
+        'Developed, plus all six corners identified, (12, 6) checked in both equations, dashed-line corners marked as not included.'],
+      next: 'Find both intercepts first, plot them, and join with a ruler. Then test (0, 0) for each line before you shade. Practise in the Unit 2 Review: Graph a line (review-u2.html#r2).',
+      strands: [['g1', 'Boundary lines: intercepts, solid or dashed (Q10–11)'], ['g2', 'Shading, feasible region and corners (Q11–13)']] },
+    { id: 'decide', strand: 'C3 Problem solving', short: 'Making the decision',
+      desc: ['Chooses a plan with little use of the limits.',
+        'Tests some plans or finds M for some points, but stops at Gus\'s or Priya\'s plan, or gives a plan that breaks a limit.',
+        'Checks the three plans against every limit, finds M at the corners, recommends (12, 6) for $540 with reasons each friend\'s plan is worse or not possible.',
+        'Developed, plus a correct what-if and news flash, explained by trading machines or by the best value being at a corner.'],
+      next: 'List every corner of the feasible region in a table and work out the money at each one before you decide. Then check your plan against every limit.',
+      strands: [['d1', 'Testing plans against the limits (Q7, Q13)'], ['d2', 'Money at the corners and the best plan (Q14–17)'], ['d3', 'What-if and news flash (Q18–19)']] },
+    { id: 'comm', strand: 'C2 Communicating', short: 'The finished plan',
+      desc: ['Hard to follow: several parts missing, few labels.',
+        'Most of the six parts there, but some working, labels, units or the recommendation\'s numbers missing.',
+        'All six parts there and in order; variables defined, axes and lines labelled, units used, clear recommendation with numbers.',
+        'Developed, plus clear and convincing enough that someone new to the task could check every step.'],
+      next: 'Use the Part 5 checklist: define c and h, label every line and axis, write units ($, m², machines) and back the recommendation with numbers from your table.',
+      strands: [['c1', 'All six parts, labels and units (Part 5)'], ['c2', 'The recommendation: clear, uses numbers']] }
+  ];
+  var M = {};   // id -> level 1..4 (criterion ids and strand ids)
+  var ts = document.getElementById('ts');
+  function el(t, a, kids) {
+    var n = document.createElement(t); a = a || {};
+    for (var k in a) { if (k === 'text') n.textContent = a[k]; else if (k === 'class') n.className = a[k]; else n.setAttribute(k, a[k]); }
+    (kids || []).forEach(function (c) { if (c != null) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function critLevel(c) {
+    if (M[c.id]) return { lv: M[c.id], from: '' };
+    var ls = c.strands.map(function (s) { return M[s[0]]; }).filter(Boolean).sort();
+    if (!ls.length) return { lv: 0, from: '' };
+    return { lv: ls[Math.floor((ls.length - 1) / 2)], from: 'from strands' };   // the median, the lower one when it falls between two
+  }
+  var inputs = {};
+  function keep(id, node) { if (inputs[id] != null) node.value = inputs[id]; node.addEventListener('input', function () { inputs[id] = node.value; var p = node.nextSibling; if (p && p.className === 'prt') p.textContent = node.value; }); return node; }
+  function area(id, ph) { var t = keep(id, el('textarea', { 'aria-label': ph, placeholder: '' })), p = el('div', { 'class': 'prt', text: inputs[id] || '' }); return [t, p]; }
+  function draw() {
+    ts.innerHTML = '';
+    var d = new Date();
+    ts.appendChild(el('div', { 'class': 'hd' }, [
+      el('div', {}, [el('h1', { text: 'Unit 2: Linear Equations and Inequalities' }), el('div', { 'class': 'meta', text: 'Unit 2 Summative: The Pop-Up Arcade (offline task in four parts plus a finished plan, handed in on Toddle) · marked ' + d.toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' }) })]),
+      el('div', { 'class': 'who' }, [keep('name', el('input', { 'aria-label': 'Student name', placeholder: 'Student name' })), el('br'), 'Class ', keep('cls', el('input', { 'class': 'cls', 'aria-label': 'Class' }))])
+    ]));
+    var t = el('table', {}, [el('colgroup', {}, [el('col', { 'class': 'c1' }), el('col', { 'class': 'c2' }), el('col'), el('col'), el('col'), el('col')])]);
+    var hr = el('tr', {}, [el('th', { text: 'Success criterion / strand' }), el('th', { text: 'Level reached' })]);
+    LVN.forEach(function (l) { hr.appendChild(el('th', { text: l + (l === 'Developed' ? ' (goal)' : '') })); }); t.appendChild(hr);
+    var levels = [];
+    CRIT.forEach(function (c) {
+      var cl = critLevel(c); levels.push(cl.lv);
+      var tr = el('tr', {}, [el('td', { 'class': 'cn', text: c.strand + ': ' + c.short }), el('td', { 'class': 'lv' }, [cl.lv ? LVN[cl.lv - 1] : '', cl.from ? el('small', { text: cl.from }) : null])]);
+      c.desc.forEach(function (txt, i) {
+        var td = el('td', { 'class': 'pick' + (cl.lv === i + 1 ? ' hit' : ''), text: txt, title: 'Mark ' + LVN[i] });
+        td.addEventListener('click', function () { M[c.id] = M[c.id] === i + 1 ? 0 : i + 1; draw(); });
+        tr.appendChild(td);
+      });
+      t.appendChild(tr);
+      c.strands.forEach(function (s) {
+        var row = el('tr', {}, [el('td', { 'class': 'sk', text: s[1] }), el('td', { 'class': 'lv', text: M[s[0]] ? LVN[M[s[0]] - 1] : '' })]);
+        for (var i = 1; i <= 4; i++) (function (i) {
+          var td = el('td', { 'class': 'pick' + (M[s[0]] === i ? ' hit' : ''), text: M[s[0]] === i ? LVN[i - 1] : '', title: 'Mark ' + LVN[i - 1] });
+          td.addEventListener('click', function () { M[s[0]] = M[s[0]] === i ? 0 : i; draw(); });
+          row.appendChild(td);
+        })(i);
+        t.appendChild(row);
+      });
+    });
+    ts.appendChild(el('div', { 'class': 'tw' }, [t]));
+    var got = levels.filter(Boolean).sort(), overall = got.length === 4 ? got[1] : 0;   // the lower middle of the four criteria
+    var sup = ['hints', 'support pack', 'Boathouse Planner', 'extra time'];
+    ts.appendChild(el('div', { 'class': 'tsov' }, [el('span', {}, ['Overall: ', el('b', { 'class': 'fillin', text: overall ? LVN[overall - 1] : (got.length ? 'mark all four criteria' : '') })]),
+      el('span', { style: 'font-size:9.5pt;display:flex;flex-wrap:wrap;gap:2px 10px' }, ['Support used: '].concat(sup.map(function (x) { var cb = el('input', { type: 'checkbox' }); cb.checked = !!inputs['sup' + x]; cb.addEventListener('change', function () { inputs['sup' + x] = cb.checked; }); return el('label', {}, [cb, ' ' + x + '  ']); })))]));
+    // what you can do / how to improve, from the marks (like the formative's sheet)
+    var can = [], imp = [];
+    CRIT.forEach(function (c, k) {
+      var lv = levels[k]; if (!lv) return;
+      can.push({ lv: lv, n: c.short, t: c.desc[lv - 1] });
+      if (lv < 4) imp.push({ lv: lv, n: c.short, t: 'To reach ' + LVN[lv] + ': ' + c.desc[lv].replace(/^Developed, plus /, '') + ' ' + c.next });
+    });
+    can.sort(function (a, b) { return b.lv - a.lv; }); imp.sort(function (a, b) { return a.lv - b.lv; });
+    ts.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'What you can do' }), can.length ? el('ul', { 'class': 'fillin' }, can.slice(0, 3).map(function (x) { return el('li', {}, [el('b', { text: x.n + ' (' + LVN[x.lv - 1] + '): ' }), x.t]); })) : el('div', { style: 'min-height:38px' })]));
+    ts.appendChild(el('div', { 'class': 'box' }, [el('h3', { text: 'How to improve: your next steps, in this order' }), imp.length ? el('ol', { 'class': 'fillin' }, imp.slice(0, 3).map(function (x) { return el('li', {}, [el('b', { text: x.n + ': ' }), x.t]); })) : el('div', { 'class': 'fillin', style: 'min-height:38px', text: can.length === 4 ? 'Deep on every criterion. Try the stretch question on the key page: at what daily takings for an air hockey table do the two best plans tie?' : '' })]));
+    ts.appendChild(el('div', { 'class': 'two' }, [el('div', { 'class': 'box' }, [el('h3', { text: 'Teacher comment' })].concat(area('tc', 'Teacher comment'))),
+      el('div', { 'class': 'box' }, [el('h3', { text: 'Student reflection: one thing I will do next' })].concat(area('sr', 'Student reflection')))]));
+    ts.appendChild(el('div', { 'class': 'fine', text: 'Marked from the finished plan (Part 5), with the four parts as extra evidence. A criterion marked "from strands" uses the middle of its strand levels. Developed is the goal for this unit.' }));
+  }
+  document.getElementById('pr').addEventListener('click', function () { document.body.classList.remove('blank'); window.print(); });
+  document.getElementById('blank').addEventListener('click', function () {
+    var keepM = M, keepI = inputs; M = {}; inputs = {}; draw(); window.print();
+    setTimeout(function () { M = keepM; inputs = keepI; draw(); }, 800);
+  });
+  document.getElementById('next').addEventListener('click', function () {
+    if ((Object.keys(M).length || inputs.name) && !confirm('Clear this sheet for the next student? Save it as a PDF first if you need it.')) return;
+    M = {}; inputs = {}; draw(); window.scrollTo(0, 0);
+  });
+  draw();
+})();
+</script>
+<script src="sfa-nav.js"></script>
+</body></html>

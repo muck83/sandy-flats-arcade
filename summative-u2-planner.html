@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Boathouse Planner · Sandy Flats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css?v=20261118">
+<link rel="stylesheet" href="summative-u2.css?v=20261124c">
+<style>
+/* Boathouse Planner: try plans for the Pop-Up Arcade and watch each limit. Floor and budget are drawn as blocks, so the
+   area and the money can be counted, not just read off a number. */
+.pl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:14px;margin-top:14px;align-items:start}
+@media (max-width:860px){.pl{grid-template-columns:minmax(0,1fr)}}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.step{background:var(--panel2);border:2px solid var(--line);border-radius:14px;padding:10px 12px}
+.step .lbl{font-weight:700}
+.step .lbl small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.step .row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.step button{all:unset;cursor:pointer;width:42px;height:42px;border-radius:12px;background:var(--marquee);color:#231800;font:800 24px var(--ui);text-align:center;line-height:42px}
+.step button:focus-visible{outline:3px solid #fff}
+.step input{font:600 26px var(--mono);width:74px;text-align:center;padding:4px;border-radius:10px;border:2px solid var(--line);background:#0E0C14;color:var(--ink)}
+.lim{margin-top:10px;display:grid;gap:8px}
+.lrow{background:var(--panel2);border:2px solid var(--line);border-radius:12px;padding:8px 12px}
+.lrow.ok{border-color:#2E8F63}.lrow.no{border-color:var(--red)}
+.lrow .lh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:15px}
+.lrow .lh b{font-weight:700}
+.lrow .st{font:700 13px var(--ui);white-space:nowrap}
+.lrow.ok .st{color:var(--green)}.lrow.no .st{color:#FF8E84}
+.blocks{display:flex;flex-wrap:wrap;gap:2px;margin-top:6px}
+.blocks i{width:12px;height:12px;border-radius:2px;background:#2E2A3D}
+.blocks i.c{background:var(--teal)}.blocks i.h{background:#FF9F45}.blocks i.x{background:var(--red)}
+.leg{font-size:12px;color:var(--muted);margin-top:4px}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 4px 0 8px;vertical-align:-1px}
+.take{margin-top:10px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.take .v{font-family:var(--display);font-size:40px;color:var(--marquee);line-height:1}
+.verdict{margin-top:10px;padding:10px 14px;border-radius:12px;font-weight:700}
+.verdict.ok{background:#14281F;border:2px solid #2E8F63}.verdict.no{background:#2A1517;border:2px solid var(--red)}
+.gwrap{background:var(--paper);border-radius:14px;padding:10px}
+.gwrap .grid{margin:0 auto}
+.gwrap svg{cursor:crosshair}
+.dot{stroke:#fff;stroke-width:2.5}.dot.ok{fill:#1E7A4C}.dot.no{fill:#E8584C}
+.trail.ok{fill:#1E7A4C;opacity:.55}.trail.no{fill:#E8584C;opacity:.55}
+table.log{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+table.log th,table.log td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:center}
+table.log th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+table.log td.y{color:var(--green)}table.log td.n{color:#FF8E84}
+.who3{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+</style>
+</head><body>
+<div class="wrap su" style="max-width:1180px">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Boathouse Planner</h1><div class="chips"><a class="chip" href="summative-u2.html">📄 Back to the task</a></div></header>
+
+  <section class="card">
+    <p class="lead" style="margin:0">Fill the boathouse with <b>claw machines</b> (2 m², $200 rent, takes in $20 a day) and <b>air hockey tables</b> (6 m², $400 rent, takes in $50 a day). Watch every limit. Click the grid to jump to a plan. Then try to beat Marcus, Priya and Gus.</p>
+    <div class="who3"><button class="chip" data-p="10,10" type="button">Marcus: 10 and 10</button><button class="chip" data-p="24,0" type="button">Priya: claw only</button><button class="chip" data-p="6,8" type="button">Gus: 8 tables first</button></div>
+  </section>
+
+  <div class="pl">
+    <section class="card">
+      <div class="ctl">
+        <div class="step"><div class="lbl">🧸 Claw machines, c<small>2 m² · $200 · $20 a day</small></div><div class="row"><button type="button" data-k="c" data-d="-1" aria-label="One fewer claw machine">−</button><input id="c" type="number" min="0" max="40" value="4" aria-label="Claw machines"><button type="button" data-k="c" data-d="1" aria-label="One more claw machine">+</button></div></div>
+        <div class="step"><div class="lbl">🏒 Air hockey tables, h<small>6 m² · $400 · $50 a day</small></div><div class="row"><button type="button" data-k="h" data-d="-1" aria-label="One fewer air hockey table">−</button><input id="h" type="number" min="0" max="20" value="2" aria-label="Air hockey tables"><button type="button" data-k="h" data-d="1" aria-label="One more air hockey table">+</button></div></div>
+      </div>
+      <div class="lim" id="lim" aria-live="polite"></div>
+      <div class="take"><span class="v" id="take">$0</span><span class="muted">taken in each day (needs to be more than $300)</span></div>
+      <div class="verdict" id="verdict"></div>
+    </section>
+
+    <section class="card">
+      <div class="gwrap"><div class="grid" id="g"></div></div>
+      <div class="btns"><button class="chip" id="keep" type="button">📌 Keep this plan in my list</button><button class="chip" id="clr" type="button">Clear the list</button></div>
+      <div class="scroll"><table class="log" id="log"><thead><tr><th>c</th><th>h</th><th>Possible?</th><th>$ a day</th></tr></thead><tbody></tbody></table></div>
+      <p class="muted" style="font-size:13px">The planner checks plans for you. In the task you have to show the checking yourself, with inequalities, a graph and working.</p>
+    </section>
+  </div>
+</div>
+<script src="config.js"></script>
+<script src="summative-u2.js?v=20261124b"></script>
+<script>
+(function () {
+  'use strict';
+  var NS = 'http://www.w3.org/2000/svg', g = document.getElementById('g'), G = g.su2, cI = document.getElementById('c'), hI = document.getElementById('h');
+  var SHOW_REGION = /[?&]region/.test(location.search);   // teacher option: planner.html?region shades the feasible region
+  function svgEl(tag, a) { var n = document.createElementNS(NS, tag); for (var k in a) n.setAttribute(k, a[k]); G.svg.appendChild(n); return n; }
+  if (SHOW_REGION) svgEl('polygon', { points: [[15, 0], [24, 0], [12, 6], [6, 8], [4, 8], [4, 4.4]].map(function (p) { return G.X(p[0]) + ',' + G.Y(p[1]); }).join(' '), 'class': 'fz' });
+  var trailG = svgEl('g', {}), dot = svgEl('circle', { r: 8, 'class': 'dot' });
+  var KEY = 'sfa.su2.planner.v1', log = [];
+  try { log = JSON.parse(localStorage.getItem(KEY) || '[]') || []; } catch (e) { }
+  function clamp(v, lo, hi) { v = Math.round(+v || 0); return Math.max(lo, Math.min(hi, v)); }
+  function check(c, h) {
+    var floor = 2 * c + 6 * h, cost = 200 * c + 400 * h, take = 20 * c + 50 * h;
+    var L = [
+      { n: 'Prize deal', d: 'at least 4 claw machines', v: c + ' claw machine' + (c === 1 ? '' : 's'), ok: c >= 4 },
+      { n: 'Stock', d: 'only 8 air hockey tables in town', v: h + ' table' + (h === 1 ? '' : 's'), ok: h <= 8 },
+      { n: 'Floor space', d: '60 m² for machines', v: floor + ' m² of 60', ok: floor <= 60, blocks: { tot: 60, c: 2 * c, h: 6 * h } },
+      { n: 'Budget', d: '$4800 for rent', v: '$' + cost + ' of $4800', ok: cost <= 4800, blocks: { tot: 24, c: c, h: 2 * h, unit: '$200' } },
+      { n: 'Staff pay', d: 'more than $300 a day', v: '$' + take + ' a day', ok: take > 300 }
+    ];
+    return { L: L, take: take, ok: L.every(function (x) { return x.ok; }) };
+  }
+  function blocks(b) {
+    var d = document.createElement('div'); d.className = 'blocks'; var n = Math.max(b.tot, b.c + b.h);
+    for (var i = 0; i < n; i++) { var k = document.createElement('i'); k.className = i >= b.tot ? 'x' : i < b.c ? 'c' : i < b.c + b.h ? 'h' : ''; d.appendChild(k); }
+    return d;
+  }
+  function draw() {
+    var c = clamp(cI.value, 0, 40), h = clamp(hI.value, 0, 20); cI.value = c; hI.value = h;
+    var r = check(c, h), lim = document.getElementById('lim'); lim.innerHTML = '';
+    r.L.forEach(function (x) {
+      var row = document.createElement('div'); row.className = 'lrow ' + (x.ok ? 'ok' : 'no');
+      row.innerHTML = '<div class="lh"><span><b></b> <span class="muted"></span></span><span class="st"></span></div>';
+      row.querySelector('b').textContent = x.n; row.querySelector('.muted').textContent = '(' + x.d + ')';
+      row.querySelector('.st').textContent = (x.ok ? '✓ ' : '✗ ') + x.v;
+      if (x.blocks) {
+        row.appendChild(blocks(x.blocks));
+        var lg = document.createElement('div'); lg.className = 'leg';
+        lg.innerHTML = 'Each square = ' + (x.blocks.unit || '1 m²') + ':<i style="background:var(--teal)"></i>claw<i style="background:#FF9F45"></i>air hockey<i style="background:#2E2A3D"></i>spare<i style="background:var(--red)"></i>over the limit';
+        row.appendChild(lg);
+      }
+      lim.appendChild(row);
+    });
+    document.getElementById('take').textContent = '$' + r.take;
+    var v = document.getElementById('verdict');
+    v.className = 'verdict ' + (r.ok ? 'ok' : 'no');
+    v.textContent = r.ok ? '✓ This plan meets every limit. Can you find one that takes in more?' : '✗ This plan breaks ' + r.L.filter(function (x) { return !x.ok; }).map(function (x) { return x.n.toLowerCase(); }).join(', ') + '.';
+    var px = Math.min(c, 32), py = Math.min(h, 14);
+    dot.setAttribute('cx', G.X(px)); dot.setAttribute('cy', G.Y(py)); dot.setAttribute('class', 'dot ' + (r.ok ? 'ok' : 'no'));
+    return r;
+  }
+  function drawLog() {
+    var tb = document.querySelector('#log tbody'); tb.innerHTML = ''; trailG.innerHTML = '';
+    log.slice().sort(function (a, b) { return b.m - a.m; }).forEach(function (p) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + p.c + '</td><td>' + p.h + '</td><td class="' + (p.ok ? 'y' : 'n') + '">' + (p.ok ? '✓ yes' : '✗ no') + '</td><td>$' + p.m + '</td>';
+      tb.appendChild(tr);
+      var t = document.createElementNS(NS, 'circle'); t.setAttribute('r', 5); t.setAttribute('cx', G.X(Math.min(p.c, 32))); t.setAttribute('cy', G.Y(Math.min(p.h, 14))); t.setAttribute('class', 'trail ' + (p.ok ? 'ok' : 'no')); trailG.appendChild(t);
+    });
+    try { localStorage.setItem(KEY, JSON.stringify(log)); } catch (e) { }
+  }
+  document.querySelectorAll('.step button').forEach(function (b) {
+    b.addEventListener('click', function () { var i = b.dataset.k === 'c' ? cI : hI; i.value = (+i.value || 0) + (+b.dataset.d); draw(); });
+  });
+  [cI, hI].forEach(function (i) { i.addEventListener('input', draw); });
+  document.querySelectorAll('[data-p]').forEach(function (b) { b.addEventListener('click', function () { var p = b.dataset.p.split(','); cI.value = p[0]; hI.value = p[1]; draw(); }); });
+  G.svg.addEventListener('click', function (e) {
+    var pt = G.svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    var q = pt.matrixTransform(G.svg.getScreenCTM().inverse()), v = G.inv(q.x, q.y);
+    if (v[0] < -0.5 || v[1] < -0.5 || v[0] > 32.5 || v[1] > 14.5) return;
+    cI.value = Math.round(v[0]); hI.value = Math.round(v[1]); draw();
+  });
+  document.getElementById('keep').addEventListener('click', function () {
+    var c = +cI.value, h = +hI.value, r = check(c, h);
+    if (!log.some(function (p) { return p.c === c && p.h === h; })) log.push({ c: c, h: h, ok: r.ok, m: r.take });
+    drawLog();
+  });
+  document.getElementById('clr').addEventListener('click', function () { log = []; drawLog(); });
+  draw(); drawLog();
+})();
+</script>
+<script src="sfa-nav.js"></script>
+</body></html>
