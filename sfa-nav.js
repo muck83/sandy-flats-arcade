@@ -117,7 +117,7 @@
     if (LESSON_OF[page]) nav.appendChild(link('lesson.html?l=' + LESSON_OF[page], '📺 Lesson ' + (NUM[LESSON_OF[page]] || LESSON_OF[page]), false));
     if (page === 'lesson.html') {   // and from a lesson, straight to its game
       var ln = +((Q.match(/[?&]l=(\d+)/) || [])[1] || 0), gf = (PLAN.filter(function (p) { return p.l === ln; })[0] || {}).game;
-      if (gf) nav.appendChild(link(gf, '🕹️ Play the game', false));
+      if (gf) nav.appendChild(link(gf, /summative/.test(gf) ? '📄 Open the summative' : '🕹️ Play the game', false));
     }
     nav.appendChild(link('climb.html', '🧗 Climb', page === 'climb.html'));
     nav.appendChild(link('squeeze.html', '🍋 Squeeze Street', page === 'squeeze.html'));

@@ -58,7 +58,7 @@
       var c = el('div', { 'class': 'lcard', style: 'animation-delay:' + (i * 0.05) + 's' });
       c.appendChild(el('span', { 'class': 'n', text: L.label || 'Lesson ' + L.n }));
       c.appendChild(el('b', { text: L.title }));
-      c.appendChild(el('small', { text: (L.film ? '🎬 ' + L.film.title + '  ·  ' : '📝 No film: teach and practise  ·  ') + '🕹️ ' + L.game.title }));
+      c.appendChild(el('small', { text: (L.film ? '🎬 ' + L.film.title + '  ·  ' : '📝 No film: teach and practise  ·  ') + (/summative/.test(L.game.file) ? '📄 ' : '🕹️ ') + L.game.title }));
       // planned minutes come from the slides themselves (optional slides left out), so the card is right for every lesson
       var planned = L.slides.reduce(function (a, s) { return a + (s.opt ? 0 : +s.min || 0); }, 0);
       c.appendChild(el('small', { text: qs.length + ' questions · ' + (planned || 45) + ' minutes' }));
@@ -77,7 +77,7 @@
         if (gn) c.appendChild(el('small', { text: '🕹️ ' + gn + ' game level' + (gn === 1 ? '' : 's') + ' done' }));
         var srow = el('div', { 'class': 'tl' });
         srow.appendChild(el('a', { 'class': 'btn small primary', href: url, text: n ? '📺 Back to the lesson' : '📺 Open the lesson' }));
-        srow.appendChild(el('a', { 'class': 'btn small', href: L.game.file, text: '🕹️ ' + (gn ? 'Keep playing' : 'Play') + ' ' + L.game.title }));
+        srow.appendChild(el('a', { 'class': 'btn small', href: L.game.file, text: /summative/.test(L.game.file) ? '📄 Open ' + L.game.title : '🕹️ ' + (gn ? 'Keep playing' : 'Play') + ' ' + L.game.title }));   // the summative is a task, not a game
         c.appendChild(srow);
       }
       g.appendChild(c);
