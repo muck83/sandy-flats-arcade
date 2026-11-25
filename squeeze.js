@@ -9,7 +9,7 @@
   var app = document.getElementById('sq'), KEY = 'squeeze.run', NOW = SQ.season(new Date());
   var run = loadRun();
 
-  function blank() { return { season: NOW, plan: [], draft: null, seen: 0, started: false, posted: null }; }
+  function blank() { return { season: NOW, plan: [], draft: null, step: 0, seen: 0, started: false, posted: null }; }
   function loadRun() {
     var r = SFA.store.get(KEY, null);
     if (!r || !Array.isArray(r.plan)) return blank();
@@ -24,7 +24,9 @@
   function d2(c) { return (c / 100).toFixed(2); }   // a number on a number line or in an inequality, in dollars
   function sym(strict, up) { return up ? (strict ? '>' : '≥') : (strict ? '<' : '≤'); }
   function ival(x, money) { return money ? '$' + d2(x) : String(x); }
-  function itext(iq, v, money) {
+  // an inequality never breaks across lines: its spaces are non-breaking (only "or" may wrap)
+  function itext(iq, v, money) { return itext0(iq, v, money).replace(/ /g, ' ').replace(/ or /, ' or '); }
+  function itext0(iq, v, money) {
     if (iq.also) return v + ' ' + sym(iq.hiStrict) + ' ' + ival(iq.hi, money) + ' or ' + v + ' ' + sym(iq.also.loStrict, 1) + ' ' + ival(iq.also.lo, money);
     if (iq.lo != null && iq.hi != null) return ival(iq.lo, money) + ' ' + sym(iq.loStrict) + ' ' + v + ' ' + sym(iq.hiStrict) + ' ' + ival(iq.hi, money);
     if (iq.lo != null) return v + ' ' + sym(iq.loStrict, 1) + ' ' + ival(iq.lo, money);
@@ -146,108 +148,131 @@
     var sb = signInBox(); if (sb) app.appendChild(sb);
   }
 
+  // one slim line: day, cash, cups, profit, and a progress bar for the ten days
   function statusBar(R, d) {
-    var dots = el('div', { 'class': 'dots', 'aria-label': 'Day ' + d + ' of ' + SQ.DAYS });
-    for (var i = 1; i <= SQ.DAYS; i++) dots.appendChild(el('i', { 'class': i < d ? 'done' : i === d ? 'now' : '' }));
+    var cash = R.cash < SQ.FLOOR ? SQ.FLOOR : R.cash;
     return el('div', { 'class': 'status' }, [
-      el('div', { 'class': 'stat' }, [el('small', { text: 'Day' }), el('b', { text: d + ' of ' + SQ.DAYS })]),
-      el('div', { 'class': 'stat' }, [el('small', { text: 'Cash' }), el('b', { text: m(R.cash < SQ.FLOOR ? SQ.FLOOR : R.cash) })]),
-      el('div', { 'class': 'stat' }, [el('small', { text: 'Paper cups in stock' }), el('b', { text: String(R.stock) })]),
-      el('div', { 'class': 'stat' }, [el('small', { text: 'Profit so far' }), el('b', { text: m(R.profit) })]),
-      dots
+      el('div', { 'class': 'srow' }, [
+        el('span', { 'class': 'sday', text: 'Day ' + d + ' of ' + SQ.DAYS }),
+        el('span', { title: 'Cash' }, ['💵 ', el('b', { text: m(cash) })]),
+        el('span', { title: 'Paper cups in stock' }, ['🥤 ', el('b', { text: String(R.stock) }), ' cups']),
+        el('span', { title: 'Profit so far' }, ['Profit ', el('b', { text: m(R.profit) })])
+      ]),
+      el('div', { 'class': 'sbar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(SQ.DAYS), 'aria-valuenow': String(R.days.length), 'aria-label': 'Days finished' }, [el('i', { style: 'width:' + (R.days.length / SQ.DAYS * 100) + '%' })])
     ]);
   }
 
-  function ruleCard(title, icon, iq, v, money, show, words, d) {
-    var box = el('div', { 'class': 'rule' }, [el('h3', { text: icon + ' ' + title })]);
+  function ruleBox(iq, v, money, show, d) {
+    var box = el('div', { 'class': 'rulebox' });
     if (show === 'text') box.appendChild(el('p', { 'class': 'iq', text: itext(iq, v, money) }));
     else box.appendChild(el('p', { 'class': 'muted small', text: 'Today the rule comes as a number line. Read it carefully.' }));
     if (show === 'line' || d <= 2) box.appendChild(html('div', 'nlwrap', nline(iq, money, v)));
-    box.appendChild(el('p', { 'class': 'small', text: words }));
     return box;
   }
-  function costLine(name, it, per) {
-    if (it.lo === it.hi) return el('li', {}, [el('b', { text: name + ': ' }), m(it.cost) + ' ' + per]);
-    return el('li', {}, [el('b', { text: name + ': ' }), el('span', { 'class': 'iq inline', text: '$' + d2(it.lo) + ' < x ≤ $' + d2(it.hi) }), ' ' + per + '. You find out today\'s price at the till.']);
-  }
-
-  function dayView(R) {
-    var d = run.plan.length + 1, sp = SQ.day(SQ.seed(run.season), d), prev = R.days.length ? R.days[R.days.length - 1].out : null;
-    if (!run.draft) { run.draft = prev ? [prev.asked.P, prev.s, 0, prev.p, -1] : [3, 2, 30, 50, -1]; save(); }
-    var cash = R.cash < SQ.FLOOR ? SQ.FLOOR : R.cash, dr = run.draft;
-    app.appendChild(statusBar(R, d));
-    if (R.cash < SQ.FLOOR) app.appendChild(el('p', { 'class': 'note', text: 'Cash ran low, so your family lends you enough to reach ' + m(SQ.FLOOR) + ' this morning. Loans come off your final profit.' }));
-
-    var left = el('div', { 'class': 'stack' }), right = el('div', { 'class': 'stack' });
-    app.appendChild(el('div', { 'class': 'cols' }, [left, right]));
-
-    // forecast
-    left.appendChild(el('section', { 'class': 'card fc' }, [
-      el('div', { 'class': 'wx', text: sp.wx.icon }),
-      el('div', {}, [el('h2', { text: 'Day ' + d + ': ' + sp.wx.label + ', ' + sp.wx.temp + '°C' }),
-        el('p', { text: 'Forecast: between ' + sp.crowd.lo + ' and ' + sp.crowd.hi + ' customers come by if your price is fair.' })])
-    ]));
-
-    // the rules
-    var rules = el('section', { 'class': 'card rules' }, [el('h2', { text: 'Today\'s rules' })]);
-    // a symbol key for anyone meeting inequalities for the first time: open on days 1 to 3, folded away after
-    var keyBox = el('details', { 'class': 'symkey' }, [el('summary', { text: 'How to read the symbols' }), el('ul', {}, [
+  function symKey(open) {
+    var k = el('details', { 'class': 'symkey' }, [el('summary', { text: 'How to read the symbols' }), el('ul', {}, [
       el('li', { text: '≤ means "at most": that number is allowed. p ≤ 0.90 lets you charge $0.90.' }),
       el('li', { text: '< means "less than": that number is NOT allowed. p < 0.90 means $0.85 is the most.' }),
       el('li', { text: '≥ means "at least" and > means "more than": s > 3 means 4 scoops is the least.' }),
       el('li', { text: 'On a number line, a filled dot ● includes the number; an open dot ○ leaves it out. The shading shows every number allowed.' }),
       el('li', { text: '0.45 ≤ p < 0.80 means both at once: from $0.45 up to (but not including) $0.80.' })
     ])]);
-    if (d <= 3) keyBox.setAttribute('open', '');
-    rules.appendChild(keyBox);
+    if (open) k.setAttribute('open', '');
+    return k;
+  }
+  function costLine(name, it, per) {
+    if (it.lo === it.hi) return el('li', {}, [el('b', { text: name + ': ' }), m(it.cost) + ' ' + per]);
+    return el('li', {}, [el('b', { text: name + ': ' }), el('span', { 'class': 'iq inline', text: '$' + d2(it.lo) + ' < x ≤ $' + d2(it.hi) }), ' ' + per + " (today's price is only known at the till)"]);
+  }
+
+  // the morning, one decision at a time: price, then sugar, then what to make and buy, then the tip-jar question
+  var STEPS = ['Price', 'Sugar', 'Buy', 'Tip jar'];
+  function dayView(R) {
+    var d = run.plan.length + 1, sp = SQ.day(SQ.seed(run.season), d), prev = R.days.length ? R.days[R.days.length - 1].out : null;
+    if (!run.draft) { run.draft = prev ? [prev.asked.P, prev.s, 0, prev.p, -1] : [3, 2, 30, 50, -1]; run.step = 0; save(); }
+    var cash = R.cash < SQ.FLOOR ? SQ.FLOOR : R.cash, dr = run.draft, step = Math.max(0, Math.min(3, run.step || 0));
+    function go(i) { run.step = i; save(); view(); }
+    app.appendChild(statusBar(R, d));
+    if (R.cash < SQ.FLOOR) app.appendChild(el('p', { 'class': 'note', text: 'Cash ran low, so your family lends you enough to reach ' + m(SQ.FLOOR) + ' this morning. Loans come off your final profit.' }));
+
+    // the forecast stays at the top of every step
+    app.appendChild(el('section', { 'class': 'card fc' }, [
+      el('div', { 'class': 'wx', text: sp.wx.icon }),
+      el('div', {}, [el('h2', { text: 'Day ' + d + ': ' + sp.wx.label + ', ' + sp.wx.temp + '°C' }),
+        el('p', { text: sp.crowd.lo + ' to ' + sp.crowd.hi + ' customers will come by if your price is fair.' })])
+    ]));
+
+    // step tabs: show where you are; any step can be opened
+    var tabs = el('nav', { 'class': 'steps', 'aria-label': 'Steps' });
+    STEPS.forEach(function (t, i) {
+      tabs.appendChild(el('button', { type: 'button', 'class': 'stp' + (i === step ? ' on' : i < step ? ' done' : ''), 'aria-current': i === step ? 'step' : null, onclick: function () { go(i); } }, [el('b', { text: String(i + 1) }), el('span', { text: t })]));
+    });
+    app.appendChild(tabs);
+
+    var card = el('section', { 'class': 'card stepcard' });
+    app.appendChild(card);
     var P = sp.price, Sg = sp.sugar;
-    rules.appendChild(ruleCard('Price customers accept', '🏷️', priceIq(P), 'p', true, P.show,
-      'p is your price per cup (5¢ steps). ' + (P.min ? 'Below the bottom, the market permit fines you ' + m(SQ.FINE_PERMIT) + '. ' : '') + 'Above the top, most customers walk away.', d));
-    rules.appendChild(ruleCard('Health inspector', '🧪', sugarIq(Sg), 's', false, Sg.show,
-      's is scoops of sugar per pitcher (whole scoops). Break the bottom of the rule: a ' + m(SQ.FINE_INSPECT) + ' fine.' + (Sg.max ? ' Over the top: too sweet, and fewer people buy.' : ' More sugar than you need is wasted money.'), d));
-    rules.appendChild(el('div', { 'class': 'rule' }, [el('h3', { text: '🛒 Supplies' }), el('ul', { 'class': 'costs' }, [
-      costLine('Lemons', sp.lemon, 'for one pitcher'), costLine('Paper cups', sp.cup, 'each'), el('li', {}, [el('b', { text: 'Sugar: ' }), m(SQ.SUGAR) + ' a scoop'])
-    ])]));
-    if (sp.budget) {
-      var B = sp.budget, bx = el('div', { 'class': 'rule budget' }, [el('h3', { text: '🏦 Co-op credit limit' })]);
-      if (B.show === 'graph') bx.appendChild(el('p', { 'class': 'muted small', text: 'Today the co-op sends its limit as a graph. Your order (P pitchers of lemons, c paper cups) has to land in the shaded region.' }));
-      else bx.appendChild(el('p', { 'class': 'iq', text: budgetText(B) }));
-      bx.appendChild(el('p', { 'class': 'small', text: 'The co-op pays for your lemons and paper cups up to a limit. c = paper cups you buy, P = pitchers of lemons. ' + (B.range ? 'Prices are ranges today, so the inequality uses the highest prices: an order that fits at the highest prices always fits. ' : '') + 'Go over and the co-op charges a ' + m(SQ.FEE_COOP) + ' fee and cuts your order down until it fits.' }));
-      if (B.show === 'graph') bx.appendChild(html('div', 'bgwrap', bgraph(B)));
-      else { var dt = el('details', {}, [el('summary', { text: 'Show the graph' })]); dt.appendChild(html('div', 'bgwrap', bgraph(B))); bx.appendChild(dt); }
-      rules.appendChild(bx);
+    function next(label) { return el('button', { type: 'button', 'class': 'btn primary big wide', text: label, onclick: function () { go(step + 1); } }); }
+
+    if (step === 0) {
+      card.appendChild(el('h2', { text: '🏷️ Set your price' }));
+      card.appendChild(el('p', { text: 'The price customers accept today:' }));
+      card.appendChild(ruleBox(priceIq(P), 'p', true, P.show, d));
+      card.appendChild(el('p', { 'class': 'small muted', text: 'p is your price per cup. ' + (P.min ? 'Below the bottom, the market permit fines you ' + m(SQ.FINE_PERMIT) + '. ' : '') + 'Above the top, most customers walk away.' }));
+      if (d <= 6) card.appendChild(symKey(d <= 3));
+      card.appendChild(stepper('Price per cup', '5¢ steps', dr[3], 5, 300, [5], function (v) { dr[3] = v; save(); }, true));
+      card.appendChild(next('Next: sugar →'));
+    } else if (step === 1) {
+      card.appendChild(el('h2', { text: '🧪 The health inspector' }));
+      card.appendChild(el('p', { text: 'Scoops of sugar in each pitcher:' }));
+      card.appendChild(ruleBox(sugarIq(Sg), 's', false, Sg.show, d));
+      card.appendChild(el('p', { 'class': 'small muted', text: 's is whole scoops per pitcher, ' + m(SQ.SUGAR) + ' a scoop. Break the bottom of the rule: a ' + m(SQ.FINE_INSPECT) + ' fine.' + (Sg.max ? ' Over the top: too sweet, and fewer people buy.' : ' More sugar than you need is wasted money.') }));
+      if (d <= 6) card.appendChild(symKey(false));
+      card.appendChild(stepper('Sugar per pitcher', 'scoops', dr[1], 0, 10, [1], function (v) { dr[1] = v; save(); }));
+      card.appendChild(next('Next: make and buy →'));
+    } else if (step === 2) {
+      card.appendChild(el('h2', { text: '🛒 Make and buy' }));
+      card.appendChild(el('ul', { 'class': 'costs' }, [costLine('Lemons', sp.lemon, 'for one pitcher'), costLine('Paper cups', sp.cup, 'each'), el('li', {}, [el('b', { text: 'Sugar: ' }), dr[1] + ' scoop' + (dr[1] === 1 ? '' : 's') + ' × ' + m(SQ.SUGAR) + ' in each pitcher'])]));
+      card.appendChild(el('p', { 'class': 'small muted', text: 'Each pitcher makes 10 cups. Lemonade left over is poured out tonight; paper cups keep for tomorrow. You have ' + R.stock + ' paper cups.' }));
+      if (sp.budget) {
+        var B = sp.budget, bx = el('div', { 'class': 'rulebox budget' }, [el('h3', { text: '🏦 Co-op credit limit' })]);
+        bx.appendChild(el('p', { 'class': 'small', text: 'The co-op pays for lemons and paper cups up to a limit (c = paper cups you buy, P = pitchers).' + (B.range ? ' Prices are ranges today, so the limit uses the highest prices.' : '') + ' Go over: a ' + m(SQ.FEE_COOP) + ' fee and your order is cut.' }));
+        if (B.show === 'graph') { bx.appendChild(el('p', { 'class': 'small', text: 'Today it comes as a graph: your order has to land in the shaded region.' })); bx.appendChild(html('div', 'bgwrap', bgraph(B))); }
+        else { bx.appendChild(el('p', { 'class': 'iq', text: budgetText(B) })); var dt = el('details', {}, [el('summary', { text: 'Show the graph' })]); dt.appendChild(html('div', 'bgwrap', bgraph(B))); bx.appendChild(dt); }
+        card.appendChild(bx);
+      }
+      var bill = el('div', { 'class': 'bill', 'aria-live': 'polite' });
+      var paintBill = function () {
+        var made = dr[0] * SQ.CUPS_PER_PITCHER, cups = R.stock + dr[2], fixed = sp.cup.lo === sp.cup.hi && sp.lemon.lo === sp.lemon.hi;
+        bill.innerHTML = '';
+        bill.appendChild(el('p', { text: made + ' cups of lemonade · ' + cups + ' paper cups' }));
+        if (made > cups) bill.appendChild(el('p', { 'class': 'warn', text: 'Fewer paper cups than lemonade: you can only sell ' + cups + '.' }));
+        if (sp.budget) bill.appendChild(el('p', { 'class': 'muted small', text: 'The co-op shows no total: check your order against its limit yourself.' }));
+        else if (fixed) {
+          var tot = dr[0] * (sp.lemon.cost + dr[1] * SQ.SUGAR) + dr[2] * sp.cup.cost;
+          bill.appendChild(el('p', { 'class': tot > cash ? 'warn' : 'muted small', text: 'Bill: ' + m(tot) + ' of your ' + m(cash) + '.' + (tot > cash ? ' Too much: the till will cut your order and charge ' + m(SQ.FEE_TILL) + '.' : '') }));
+        } else bill.appendChild(el('p', { 'class': 'muted small', text: 'Cash: ' + m(cash) + ". Part of the bill depends on today's price: if it comes to more than your cash, the till cuts your order and charges " + m(SQ.FEE_TILL) + '.' }));
+      };
+      card.appendChild(stepper('Pitchers to make', '10 cups each', dr[0], 0, 30, [1], function (v) { dr[0] = v; save(); paintBill(); }));
+      card.appendChild(stepper('Paper cups to buy', 'you have ' + R.stock, dr[2], 0, 400, [1, 10], function (v) { dr[2] = v; save(); paintBill(); }));
+      card.appendChild(bill);
+      paintBill();
+      card.appendChild(next('Next: tip jar →'));
+    } else {
+      card.appendChild(el('h2', { text: '🫙 Tip jar question' }));
+      card.appendChild(el('p', { 'class': 'muted small', text: 'Optional. Get it right for +' + m(SQ.BONUS) + '.' }));
+      card.appendChild(questionBody(sp, dr, function (i) { dr[4] = i; save(); }));
+      // the plan at a glance, with a way back to each part
+      var plan = el('div', { 'class': 'plan' }, [el('h3', { text: 'Your plan (tap to change)' })]), row = el('div', { 'class': 'row' });
+      [[m(dr[3]) + ' a cup', 0], [dr[1] + ' scoop' + (dr[1] === 1 ? '' : 's') + ' of sugar', 1], [dr[0] + ' pitcher' + (dr[0] === 1 ? '' : 's') + ', ' + dr[2] + ' paper cups', 2]].forEach(function (x) {
+        row.appendChild(el('button', { type: 'button', 'class': 'chip', text: x[0] + ' ✎', onclick: function () { go(x[1]); } }));
+      });
+      plan.appendChild(row);
+      card.appendChild(plan);
+      card.appendChild(el('button', { type: 'button', 'class': 'btn primary big wide', text: 'Open the stand ▶', onclick: function () {
+        run.plan.push(SQ.clean(dr)); run.draft = null; run.step = 0; save(); view();
+      } }));
     }
-    left.appendChild(rules);
-
-    // the order
-    var order = el('section', { 'class': 'card order' }, [el('h2', { text: 'Your order' })]);
-    var bill = el('div', { 'class': 'bill', 'aria-live': 'polite' });
-    function set(i, v) { dr[i] = v; save(); paintBill(); }
-    order.appendChild(stepper('Pitchers to make', 'each makes 10 cups', dr[0], 0, 30, [1], function (v) { set(0, v); }));
-    order.appendChild(stepper('Sugar per pitcher', 'scoops', dr[1], 0, 10, [1], function (v) { set(1, v); }));
-    order.appendChild(stepper('Paper cups to buy', 'you have ' + R.stock, dr[2], 0, 400, [1, 10], function (v) { set(2, v); }));
-    order.appendChild(stepper('Price per cup', 'p, in 5¢ steps', dr[3], 5, 300, [5], function (v) { set(3, v); }, true));
-    order.appendChild(bill);
-    function paintBill() {
-      var Pn = dr[0], cups = R.stock + dr[2], made = Pn * SQ.CUPS_PER_PITCHER, fixed = sp.cup.lo === sp.cup.hi && sp.lemon.lo === sp.lemon.hi;
-      bill.innerHTML = '';
-      bill.appendChild(el('p', { text: 'You\'ll make ' + made + ' cups of lemonade and have ' + cups + ' paper cups to serve them in.' }));
-      if (made > cups) bill.appendChild(el('p', { 'class': 'warn', text: 'Fewer paper cups than lemonade: you can only sell ' + cups + '.' }));
-      if (sp.budget) bill.appendChild(el('p', { 'class': 'muted small', text: 'The co-op doesn\'t show a total. Check your order against its limit yourself. Cash on hand: ' + m(cash) + '.' }));
-      else if (fixed) {
-        var tot = Pn * (sp.lemon.cost + dr[1] * SQ.SUGAR) + dr[2] * sp.cup.cost;
-        bill.appendChild(el('p', { 'class': tot > cash ? 'warn' : 'muted small', text: 'Bill: ' + m(tot) + ' of your ' + m(cash) + '.' + (tot > cash ? ' That\'s more than you have: the till will cut your order and charge ' + m(SQ.FEE_TILL) + '.' : '') }));
-      } else bill.appendChild(el('p', { 'class': 'muted small', text: 'Part of the bill depends on today\'s price. Cash on hand: ' + m(cash) + '. If the bill comes to more than that, the till cuts your order and charges ' + m(SQ.FEE_TILL) + '.' }));
-    }
-    paintBill();
-    right.appendChild(order);
-
-    // the tip-jar question
-    right.appendChild(questionCard(sp, dr, function (i) { dr[4] = i; save(); }));
-
-    right.appendChild(el('button', { type: 'button', 'class': 'btn primary big wide', text: 'Open the stand ▶', onclick: function () {
-      run.plan.push(SQ.clean(dr)); run.draft = null; save(); view();
-    } }));
   }
 
   function stepper(label, sub, val, min, max, steps, onset, money) {
@@ -276,87 +301,83 @@
     if (q.kind === 'mostCost') return el('span', { text: m(o) });
     return el('span', { text: o.P + ' pitcher' + (o.P === 1 ? '' : 's') + ' and ' + o.c + ' paper cups' });
   }
-  function questionCard(sp, dr, onpick) {
-    var box = el('section', { 'class': 'card q' }, [el('h2', { text: '🫙 Tip jar question' }), el('p', { 'class': 'muted small', text: 'Optional. Get it right for +' + m(SQ.BONUS) + '.' }), el('p', { text: qPrompt(sp) })]);
+  function questionBody(sp, dr, onpick) {
+    var box = el('div', {}, [el('p', { text: qPrompt(sp) })]);
     var list = el('div', { 'class': 'qopts', role: 'radiogroup', 'aria-label': 'Answers' });
     sp.q.opts.forEach(function (o, i) {
-      var b = el('button', { type: 'button', role: 'radio', 'aria-checked': dr[4] === i ? 'true' : 'false', 'class': 'qo', onclick: function () {
+      list.appendChild(el('button', { type: 'button', role: 'radio', 'aria-checked': dr[4] === i ? 'true' : 'false', 'class': 'qo', onclick: function () {
         dr[4] = dr[4] === i ? -1 : i; onpick(dr[4]);
         Array.prototype.forEach.call(list.children, function (c, j) { c.setAttribute('aria-checked', dr[4] === j ? 'true' : 'false'); });
-      } }, [el('b', { text: 'ABC'.charAt(i) }), qOpt(sp, o)]);
-      list.appendChild(b);
+      } }, [el('b', { text: 'ABC'.charAt(i) }), qOpt(sp, o)]));
     });
     box.appendChild(list);
     return box;
   }
 
-  /* ---------- a day's results, and what the best reading was ---------- */
+  /* ---------- a day's results: what went right and wrong first, the money details folded away ---------- */
   function resultView(R) {
     var D = R.days[run.plan.length - 1], sp = D.spec, o = D.out, d = sp.d;
     app.appendChild(statusBar(R, d));
-    var head = el('section', { 'class': 'card res ' + (o.profit >= 0 ? 'up' : 'down') }, [
+    app.appendChild(el('section', { 'class': 'card res ' + (o.profit >= 0 ? 'up' : 'down') }, [
       el('div', { 'class': 'wx', text: sp.wx.icon }),
       el('div', {}, [el('h2', { text: 'Day ' + d + ': ' + (o.profit >= 0 ? 'you made ' + m(o.profit) : 'you lost ' + m(-o.profit)) }),
         el('p', { text: o.want + ' customers wanted lemonade. You sold ' + o.sold + ' cups at ' + m(o.p) + '.' })])
-    ]);
-    app.appendChild(head);
+    ]));
 
-    var cols = el('div', { 'class': 'cols' }), L = el('div', { 'class': 'stack' }), Rt = el('div', { 'class': 'stack' });
-    cols.appendChild(L); cols.appendChild(Rt); app.appendChild(cols);
+    // what went right and wrong, rule by rule
+    var fb = el('section', { 'class': 'card fb' }, [el('h2', { text: 'How you read the rules' })]), list = el('ul', { 'class': 'fbl' });
+    fb.appendChild(list);
+    function say(good, head, text) { list.appendChild(el('li', { 'class': good ? 'ok' : 'no' }, [el('b', { text: (good ? '✓ ' : '✗ ') + head + ': ' }), text])); }
+    var P = sp.price, Sg = sp.sugar, pt = itext(priceIq(P), 'p', true);
+    if (o.over) say(false, 'Price', 'the rule was ' + pt + '. ' + m(o.p) + (P.maxStrict && o.p === P.max ? ' is not less than ' + m(P.max) + ': an open circle leaves the number out.' : ' is above the top.') + ' Most customers walked away. The best price was ' + m(P.best) + '.');
+    else if (o.under) say(false, 'Price', 'the rule was ' + pt + '. ' + m(o.p) + (P.minStrict && o.p === P.min ? ' is not more than ' + m(P.min) : ' is below the bottom') + ', so the market permit fined you ' + m(SQ.FINE_PERMIT) + '. Any price from ' + m(P.low) + ' to ' + m(P.best) + ' was allowed; ' + m(P.best) + ' earns the most.');
+    else if (o.p < P.best) say(true, 'Price', m(o.p) + ' follows ' + pt + ', but you could have charged up to ' + m(P.best) + ': ' + m((P.best - o.p) * o.sold) + ' more for the same ' + o.sold + ' cups.');
+    else say(true, 'Price', m(o.p) + ' is the highest price that follows ' + pt + '. Spot on.');
+    var st = itext(sugarIq(Sg), 's', false);
+    if (o.P === 0) say(false, 'Sugar', 'you made no lemonade today.');
+    else if (o.weak) say(false, 'Sugar', "the inspector's rule was " + st + '. ' + o.s + ' scoop' + (o.s === 1 ? '' : 's') + (Sg.minStrict && o.s === Sg.min ? ' is not more than ' + Sg.min + ': an open circle leaves ' + Sg.min + ' out' : ' breaks it') + ', so you were fined ' + m(SQ.FINE_INSPECT) + '. The least allowed was ' + Sg.best + '.');
+    else if (o.sweet) say(false, 'Sugar', o.s + ' scoops breaks the top of ' + st + '. Too sweet: fewer people bought. ' + Sg.best + ' scoops was the cheapest safe amount.');
+    else if (o.s > Sg.best) say(true, 'Sugar', o.s + ' scoops follows ' + st + ', but ' + Sg.best + ' was enough. The extra cost ' + m((o.s - Sg.best) * o.P * SQ.SUGAR) + '.');
+    else say(true, 'Sugar', o.s + ' scoops is the least that follows ' + st + '.');
+    if (sp.budget) {
+      var B = sp.budget;
+      if (o.fines.some(function (f) { return f.k === 'coop'; })) say(false, 'Co-op', 'your order needed ' + m(o.coop) + " of credit at today's prices, over the " + m(B.L) + ' limit. The co-op charged ' + m(SQ.FEE_COOP) + ' and cut your order to ' + o.P + ' pitchers and ' + o.c + ' paper cups.');
+      else say(true, 'Co-op', 'your order used ' + m(o.coop) + ' of the ' + m(B.L) + ' limit.');
+      var gd = el('details', { 'class': 'more' }, [el('summary', { text: 'See your order on the co-op graph' })]);
+      gd.appendChild(html('div', 'bgwrap', bgraph(B, [{ P: o.asked.P, c: o.asked.c, label: '(' + o.asked.P + ', ' + o.asked.c + ')', cls: B.a * o.asked.c + B.b * o.asked.P <= B.L ? 'in' : 'out' }])));
+      gd.appendChild(el('p', { 'class': 'muted small', text: 'The shaded region is ' + budgetText(B) + '. Points on the line count: it is "less than or equal to".' }));
+      fb.appendChild(gd);
+    }
+    if (o.fines.some(function (f) { return f.k === 'till'; })) say(false, 'Till', 'the bill came to more than your cash, so the till cut your order and charged ' + m(SQ.FEE_TILL) + '.' + (sp.cup.lo !== sp.cup.hi || sp.lemon.lo !== sp.lemon.hi ? ' With a price range, plan for the highest price.' : ''));
+    if (o.P > 0) {
+      if (o.sold < o.want && o.made <= o.stock0 + o.c) say(false, 'Supply', 'you ran out of lemonade. ' + (o.want - o.sold) + ' customers left thirsty.');
+      else if (o.sold < o.want) say(false, 'Supply', 'you ran out of paper cups. ' + (o.want - o.sold) + ' customers left thirsty.');
+      else if (o.poured >= 10) { var fp = Math.floor(o.poured / 10); say(false, 'Supply', o.poured + ' cups of lemonade were poured out. ' + fp + ' fewer pitcher' + (fp === 1 ? '' : 's') + ' would have saved ' + m(fp * (sp.lemon.cost + o.s * SQ.SUGAR)) + '.'); }
+      else say(true, 'Supply', 'you made about the right amount.');
+    }
+    var q = sp.q;
+    say(o.right, 'Tip jar', o.q < 0 ? 'skipped. The answer was ' + 'ABC'.charAt(q.ans) + '.' : o.right ? 'right, +' + m(SQ.BONUS) + '.' : 'not this time. The answer was ' + 'ABC'.charAt(q.ans) + '.');
+    app.appendChild(fb);
 
+    app.appendChild(el('button', { type: 'button', 'class': 'btn primary big wide', text: d < SQ.DAYS ? 'Next morning: day ' + (d + 1) + ' ▶' : 'See your ten days ▶', onclick: function () { run.seen = run.plan.length; save(); view(); } }));
+
+    // the details, folded away: the till, and the tip-jar question with its answer
     var led = el('table', { 'class': 'ledger' });
     function row(a, b, cls) { led.appendChild(el('tr', cls ? { 'class': cls } : null, [el('td', { text: a }), el('td', { text: b })])); }
     if (o.loan) row('Family loan this morning', '+' + m(o.loan), 'muted');
     row('Sales: ' + o.sold + ' × ' + m(o.p), '+' + m(o.revenue));
-    row('Lemons: ' + o.P + ' × ' + m(sp.lemon.cost) + (sp.lemon.lo !== sp.lemon.hi ? ' (today\'s price)' : ''), '−' + m(o.cost.lemons));
+    row('Lemons: ' + o.P + ' × ' + m(sp.lemon.cost) + (sp.lemon.lo !== sp.lemon.hi ? " (today's price)" : ''), '−' + m(o.cost.lemons));
     row('Sugar: ' + o.P + ' × ' + o.s + ' scoops × ' + m(SQ.SUGAR), '−' + m(o.cost.sugar));
-    row('Paper cups: ' + o.c + ' × ' + m(sp.cup.cost) + (sp.cup.lo !== sp.cup.hi ? ' (today\'s price)' : ''), '−' + m(o.cost.cups));
+    row('Paper cups: ' + o.c + ' × ' + m(sp.cup.cost) + (sp.cup.lo !== sp.cup.hi ? " (today's price)" : ''), '−' + m(o.cost.cups));
     o.fines.forEach(function (f) { row({ coop: 'Co-op fee (over the limit)', till: 'Till fee (not enough cash)', permit: 'Market permit fine', inspector: 'Health inspector fine' }[f.k], '−' + m(f.amt), 'bad'); });
     if (o.bonus) row('Tip jar (right answer)', '+' + m(o.bonus), 'good');
     row('Day ' + d + ' profit', m(o.profit), 'tot');
-    L.appendChild(el('section', { 'class': 'card' }, [el('h2', { text: 'The till' }), led,
+    app.appendChild(el('details', { 'class': 'card more' }, [el('summary', { text: '🧾 The till: where the money went' }), led,
       el('p', { 'class': 'muted small', text: 'Lemonade made: ' + o.made + ' cups' + (o.poured ? ', ' + o.poured + ' poured out tonight' : '') + '. Paper cups left: ' + o.stock1 + '.' })]));
-
-    // what went right and wrong, rule by rule
-    var fb = el('section', { 'class': 'card fb' }, [el('h2', { text: 'Reading the rules' })]);
-    function say(good, text) { fb.appendChild(el('p', { 'class': good ? 'ok' : 'no', text: (good ? '✓ ' : '✗ ') + text })); }
-    var P = sp.price, Sg = sp.sugar, pt = itext(priceIq(P), 'p', true);
-    if (o.over) say(false, 'Price: the rule was ' + pt + '. ' + m(o.p) + (P.maxStrict && o.p === P.max ? ' is not less than ' + m(P.max) + ': an open circle leaves the number out.' : ' is above the top.') + ' Most customers walked away. The best price was ' + m(P.best) + '.');
-    else if (o.under) say(false, 'Price: the rule was ' + pt + '. ' + m(o.p) + (P.minStrict && o.p === P.min ? ' is not more than ' + m(P.min) : ' is below the bottom') + ', so the market permit fined you. Any price from ' + m(P.low) + ' to ' + m(P.best) + ' was allowed; ' + m(P.best) + ' earns the most.');
-    else if (o.p < P.best) say(true, 'Price: ' + m(o.p) + ' follows ' + pt + ', but you could have charged up to ' + m(P.best) + ': ' + m((P.best - o.p) * o.sold) + ' more for the same ' + o.sold + ' cups.');
-    else say(true, 'Price: ' + m(o.p) + ' is the highest price that follows ' + pt + '. Spot on.');
-    var st = itext(sugarIq(Sg), 's', false);
-    if (o.P === 0) say(false, 'You made no lemonade today.');
-    else if (o.weak) say(false, 'Sugar: the inspector\'s rule was ' + st + '. ' + o.s + ' scoop' + (o.s === 1 ? '' : 's') + (Sg.minStrict && o.s === Sg.min ? ' is not more than ' + Sg.min + ': an open circle leaves ' + Sg.min + ' out' : ' breaks it') + '. The least allowed was ' + Sg.best + '.');
-    else if (o.sweet) say(false, 'Sugar: ' + o.s + ' scoops breaks the top of ' + st + '. Too sweet: fewer people bought. ' + Sg.best + ' scoops was the cheapest safe amount.');
-    else if (o.s > Sg.best) say(true, 'Sugar: ' + o.s + ' scoops follows ' + st + ', but ' + Sg.best + ' was enough. The extra cost ' + m((o.s - Sg.best) * o.P * SQ.SUGAR) + '.');
-    else say(true, 'Sugar: ' + o.s + ' scoops is the least that follows ' + st + '.');
-    if (sp.budget) {
-      var B = sp.budget, used = o.coop;
-      if (o.fines.some(function (f) { return f.k === 'coop'; })) say(false, 'Co-op: your order needed ' + m(used) + ' of credit at today\'s prices, over the ' + m(B.L) + ' limit. The co-op charged its fee and cut your order (pitchers first) to ' + o.P + ' pitchers and ' + o.c + ' paper cups.');
-      else say(true, 'Co-op: your order used ' + m(used) + ' of the ' + m(B.L) + ' limit.');
-      Rt.appendChild(el('section', { 'class': 'card' }, [el('h2', { text: 'Your order on the co-op graph' }), html('div', 'bgwrap', bgraph(B, [{ P: o.asked.P, c: o.asked.c, label: '(' + o.asked.P + ', ' + o.asked.c + ')', cls: B.a * o.asked.c + B.b * o.asked.P <= B.L ? 'in' : 'out' }])),
-        el('p', { 'class': 'muted small', text: 'The shaded region is ' + budgetText(B) + '. Points on the line count: it is "less than or equal to".' })]));
-    }
-    if (o.fines.some(function (f) { return f.k === 'till'; })) say(false, 'Till: the bill came to more than your cash, so the till cut your order and charged a fee.' + (sp.cup.lo !== sp.cup.hi || sp.lemon.lo !== sp.lemon.hi ? ' With a price range, plan for the highest price.' : ''));
-    if (o.P > 0) {
-      var cupsHad = o.stock0 + o.c;
-      if (o.sold < o.want && o.made <= cupsHad) say(false, 'Supply: you ran out of lemonade. ' + (o.want - o.sold) + ' customers left thirsty.');
-      else if (o.sold < o.want) say(false, 'Supply: you ran out of paper cups. ' + (o.want - o.sold) + ' customers left thirsty.');
-      else if (o.poured >= 10) say(false, 'Supply: ' + o.poured + ' cups of lemonade were poured out. ' + Math.floor(o.poured / 10) + ' fewer pitcher' + (Math.floor(o.poured / 10) === 1 ? '' : 's') + ' would have saved ' + m(Math.floor(o.poured / 10) * (sp.lemon.cost + o.s * SQ.SUGAR)) + '.');
-      else say(true, 'Supply: you made about the right amount.');
-    }
-    L.appendChild(fb);
-
-    // the tip-jar question, answered
-    var q = sp.q, qb = el('section', { 'class': 'card q' }, [el('h2', { text: '🫙 Tip jar' }), el('p', { text: qPrompt(sp) })]);
-    var list = el('div', { 'class': 'qopts' });
-    q.opts.forEach(function (op, i) { list.appendChild(el('div', { 'class': 'qo' + (i === q.ans ? ' right' : i === o.q ? ' wrong' : '') }, [el('b', { text: 'ABC'.charAt(i) }), qOpt(sp, op)])); });
-    qb.appendChild(list);
-    qb.appendChild(el('p', { 'class': 'small', text: o.q < 0 ? 'You skipped it. The answer was ' + 'ABC'.charAt(q.ans) + '.' : o.right ? 'Right: +' + m(SQ.BONUS) + '.' : 'Not this time. The answer was ' + 'ABC'.charAt(q.ans) + '.' }));
-    Rt.appendChild(qb);
-
-    Rt.appendChild(el('button', { type: 'button', 'class': 'btn primary big wide', text: d < SQ.DAYS ? 'Next morning: day ' + (d + 1) + ' ▶' : 'See your ten days ▶', onclick: function () { run.seen = run.plan.length; save(); view(); } }));
+    var qd = el('details', { 'class': 'card more' }, [el('summary', { text: '🫙 The tip-jar question' }), el('p', { text: qPrompt(sp) })]), ql = el('div', { 'class': 'qopts' });
+    q.opts.forEach(function (op, i) { ql.appendChild(el('div', { 'class': 'qo' + (i === q.ans ? ' right' : i === o.q ? ' wrong' : '') }, [el('b', { text: 'ABC'.charAt(i) }), qOpt(sp, op)])); });
+    qd.appendChild(ql);
+    app.appendChild(qd);
   }
 
   /* ---------- the end of the run, and posting it ---------- */
