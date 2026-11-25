@@ -57,7 +57,7 @@ Do the ★ Core questions first. Finish with the self-check at the end of the pa
 DAY 3: "Pop-Up Arcade 3: Graph the system"
 Do Part 3 (questions 10 to 13): https://muck83.github.io/sandy-flats-arcade/summative-u2.html#p3
 Find the intercepts, draw every boundary line (is it solid or dashed?), shade the feasible region and find its corners.
-On a computer: draw the graph on paper or in Desmos, and add a photo of it to the page. Need a start? The support pack has
+Draw the graph by hand on paper (no graphing apps). On a computer, add a photo of it to the page. Need a start? The support pack has
 a starter graph: https://muck83.github.io/sandy-flats-arcade/summative-u2-support.html#s4
 Keep your Part 3.
 

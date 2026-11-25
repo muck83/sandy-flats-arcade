@@ -154,12 +154,12 @@
     inp.addEventListener('input', function () { saved[inp.dataset.id] = inp.value; save(); });
   });
 
-  // photo slots: a photo or screenshot of a graph (or of the finished plan), shrunk and kept in this browser
+  // photo slots: a photo of a hand-drawn graph (or of the finished plan), shrunk and kept in this browser
   document.querySelectorAll('.photo').forEach(function (box) {
     var id = box.dataset.id, img = document.createElement('img'), wrap = document.createElement('div'), inp = document.createElement('input'), rm = document.createElement('button');
     wrap.className = 'pbtn';
     inp.type = 'file'; inp.accept = 'image/*'; inp.id = 'ph-' + id;
-    var lab = document.createElement('label'); lab.htmlFor = inp.id; lab.textContent = box.dataset.label || 'Add a photo or screenshot:';
+    var lab = document.createElement('label'); lab.htmlFor = inp.id; lab.textContent = box.dataset.label || 'Add a photo:';
     rm.type = 'button'; rm.className = 'chip'; rm.textContent = 'Remove photo'; rm.hidden = true;
     img.alt = box.dataset.alt || 'Your photo';
     function show(src) { if (src) { img.src = src; box.classList.add('has'); rm.hidden = false; if (!img.parentNode) box.appendChild(img); } else { img.remove(); img.removeAttribute('src'); box.classList.remove('has'); rm.hidden = true; } }
