@@ -63,7 +63,8 @@
 .iqzone{display:flex;flex-wrap:wrap;gap:.4em;padding:.45em;min-height:2.8em;flex:1}
 .picking .iqbin{border-color:var(--marquee);cursor:pointer}
 .picking .iqpool{border-color:var(--marquee);cursor:pointer}
-.iqcard{font:600 1em var(--ui);color:var(--ink);background:var(--panel);border:.12em solid var(--line);border-radius:.55em;padding:.3em .6em;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;text-align:left;max-width:100%}
+.iqbin.over,.iqpool.over{border-color:var(--teal);background:rgba(92,224,184,.12);box-shadow:0 0 0 .15em rgba(92,224,184,.35)}
+.iqcard{font:600 1em var(--ui);color:var(--ink);background:var(--panel);border:.12em solid var(--line);border-radius:.55em;padding:.3em .6em;cursor:grab;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;text-align:left;max-width:100%}
 .iqcard:hover{border-color:var(--marquee)}
 .iqcard.sel{border-color:var(--marquee);background:#3a2f12;box-shadow:0 0 0 .15em rgba(255,201,74,.35)}
 .iqcard.lifted{opacity:.35}

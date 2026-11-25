@@ -401,29 +401,52 @@
       where[ci] = bi; delete state[ci]; picked = -1; draw();
     }
     cards.forEach(function (c, ci) {
-      var ce = el('button', { type: 'button', 'class': 'iqcard', 'data-i': String(ci) }); ce.appendChild(cardFace(c.face, spec.range));
+      var ce = el('button', { type: 'button', 'class': 'iqcard', 'data-i': String(ci), draggable: 'false' }); ce.appendChild(cardFace(c.face, spec.range));
       cardEls.push(ce);
       if (o.show) return;
-      var sx = 0, sy = 0, moved = false, ghost = null, down = false;
-      ce.addEventListener('pointerdown', function (e) { if (frozen || state[ci] === 'ok') return; down = true; moved = false; sx = e.clientX; sy = e.clientY; try { ce.setPointerCapture(e.pointerId); } catch (er) { } });
-      ce.addEventListener('pointermove', function (e) {
-        if (!down) return;
-        if (!moved && Math.hypot(e.clientX - sx, e.clientY - sy) > 8) {
-          moved = true; ghost = ce.cloneNode(true); ghost.className = 'iqcard iqghost'; var r = ce.getBoundingClientRect(); ghost.style.width = r.width + 'px'; document.body.appendChild(ghost); ce.classList.add('lifted');
-        }
-        if (moved && ghost) { ghost.style.left = (e.clientX - 20) + 'px'; ghost.style.top = (e.clientY - 18) + 'px'; }
-      });
-      function up(e) {
-        if (!down) return; down = false;
-        if (moved) {
-          if (ghost) ghost.remove(); ghost = null; ce.classList.remove('lifted');
-          var t = document.elementFromPoint(e.clientX, e.clientY), z = t && t.closest && t.closest('[data-bin]');
-          if (z && root.contains(z)) move(ci, +z.getAttribute('data-bin'));
-        }
+      /* Drag a card, or tap it and then tap a group. Mouse and pen: the drag starts after a few pixels of movement.
+         Touch: a quick swipe scrolls the page as usual; press and hold for a moment to pick the card up, then drag. */
+      var g = { down: false, moved: false, armed: false, touch: false, sx: 0, sy: 0, lx: 0, ly: 0, ghost: null, timer: 0, over: null };
+      function zoneAt(x, y) { var t = document.elementFromPoint(x, y), z = t && t.closest && t.closest('[data-bin]'); return z && root.contains(z) ? z : null; }
+      function mark(z) { var b = z ? (z.closest('.iqbin') || z) : null; if (g.over && g.over !== b) g.over.classList.remove('over'); if (b) b.classList.add('over'); g.over = b; }
+      function place(x, y) { if (!g.ghost) return; g.ghost.style.left = (x - 20) + 'px'; g.ghost.style.top = (y - 18) + 'px'; mark(zoneAt(x, y)); }
+      function lift(x, y) {
+        g.moved = true; picked = -1; draw();
+        g.ghost = ce.cloneNode(true); g.ghost.className = 'iqcard iqghost'; g.ghost.removeAttribute('data-i');
+        var r = ce.getBoundingClientRect(); g.ghost.style.width = r.width + 'px'; document.body.appendChild(g.ghost); ce.classList.add('lifted'); place(x, y);
       }
-      ce.addEventListener('pointerup', up);
-      ce.addEventListener('pointercancel', function () { down = false; if (ghost) ghost.remove(); ghost = null; ce.classList.remove('lifted'); });
-      ce.addEventListener('click', function (e) { e.stopPropagation(); if (frozen || moved || state[ci] === 'ok') return; picked = picked === ci ? -1 : ci; draw(); });
+      function end(drop) {
+        clearTimeout(g.timer); var was = g.down; g.down = false; g.armed = false;
+        if (!g.moved || !was) return;
+        if (g.ghost) g.ghost.remove(); g.ghost = null; ce.classList.remove('lifted'); mark(null);
+        var z = drop ? zoneAt(g.lx, g.ly) : null; if (z) move(ci, +z.getAttribute('data-bin'));
+      }
+      ce.addEventListener('dragstart', function (e) { e.preventDefault(); });
+      ce.addEventListener('contextmenu', function (e) { if (g.down || g.moved) e.preventDefault(); });
+      ce.addEventListener('pointerdown', function (e) {
+        if (frozen || state[ci] === 'ok' || e.button > 0) return;
+        g.down = true; g.moved = false; g.armed = false; g.touch = e.pointerType === 'touch'; g.sx = g.lx = e.clientX; g.sy = g.ly = e.clientY;
+        if (!g.touch) { e.preventDefault(); try { ce.setPointerCapture(e.pointerId); } catch (er) { } return; }   // no focus jump, no text selection
+        clearTimeout(g.timer);
+        g.timer = setTimeout(function () { if (!g.down) return; g.armed = true; lift(g.lx, g.ly); try { if (navigator.vibrate) navigator.vibrate(12); } catch (er) { } }, 220);
+      });
+      ce.addEventListener('pointermove', function (e) {
+        if (!g.down) return; g.lx = e.clientX; g.ly = e.clientY; var dist = Math.hypot(g.lx - g.sx, g.ly - g.sy);
+        if (g.touch && !g.armed) { if (dist > 8) { clearTimeout(g.timer); g.down = false; } return; }   // a swipe: the page scrolls
+        if (!g.moved && dist > 6) lift(g.lx, g.ly);
+        if (g.moved) place(g.lx, g.ly);
+      });
+      ce.addEventListener('touchmove', function (e) { if (g.armed && e.cancelable) e.preventDefault(); }, { passive: false });
+      ce.addEventListener('pointerup', function (e) { g.lx = e.clientX; g.ly = e.clientY; end(true); });
+      ce.addEventListener('pointercancel', function () { end(false); });
+      ce.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (g.moved) { g.moved = false; return; }   // the click that ends a drag
+        if (frozen || state[ci] === 'ok') return;
+        // a card is already chosen and this one sits in another group: tapping it drops the chosen card into that group
+        if (picked >= 0 && picked !== ci && where[picked] !== where[ci]) { move(picked, where[ci]); return; }
+        picked = picked === ci ? -1 : ci; draw();
+      });
     });
     function draw() {
       sh.forEach(function (ci) { var ce = cardEls[ci], tgt = where[ci] < 0 ? pool : binEls[where[ci]]; if (ce.parentNode !== tgt) tgt.appendChild(ce); });
