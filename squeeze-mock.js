@@ -12,7 +12,8 @@
   function ask(body) { return inner(EP, { method: 'POST', body: JSON.stringify(body) }).then(function (r) { return r.text(); }).then(JSON.parse); }
   function reply(o) { var t = JSON.stringify(o); return { ok: true, text: function () { return Promise.resolve(t); }, json: function () { return Promise.resolve(JSON.parse(t)); } }; }
   function fail(e) { return reply({ ok: false, error: e }); }
-  var BOTS = [{ sid: 'x1', name: 'Rivera, Sam', cls: 'A' }, { sid: 'x2', name: 'Okafor, Ada', cls: 'B' }, { sid: 'x3', name: 'Lee, Sam', cls: 'A' }];
+  var BOTS = [{ sid: 'x1', name: 'Rivera, Sam', cls: 'A', look: '412150030' }, { sid: 'x2', name: 'Okafor, Ada', cls: 'B', look: '730320010' }, { sid: 'x3', name: 'Lee, Sam', cls: 'A', look: '151004020' }];
+  function lookOf(x) { x = String(x || ''); return /^[0-9a-z]{1,32}$/.test(x) ? x : ''; }
   // pretend classmates' runs: simple fixed plans played through the real rules, so their profits are honest
   function bots(d, SQ, sea) {
     d.runs = d.runs || []; d.bots = d.bots || {};
@@ -20,7 +21,7 @@
     d.bots[sea] = 1;
     [[4, 3, 40, 60, -1], [5, 3, 50, 70, 0], [3, 4, 30, 50, 1]].forEach(function (x, i) {
       var plan = []; for (var k = 0; k < SQ.DAYS; k++) plan.push(x);
-      d.runs.push({ sid: BOTS[i].sid, season: sea, profit: SQ.run(sea, plan).profit, at: Date.now() });
+      d.runs.push({ sid: BOTS[i].sid, season: sea, profit: SQ.run(sea, plan).profit, at: Date.now(), look: BOTS[i].look });
     });
   }
   window.fetch = function (url, opts) {
@@ -36,7 +37,7 @@
       d.last = d.last || {};
       if (d.last[j.student.sid] > Date.now() - 10000) return fail('slow down');
       var run = SQ.run(String(r.season), r.plan);
-      d.runs = d.runs || []; d.runs.push({ sid: j.student.sid, season: run.season, profit: run.profit, at: Date.now(), plan: run.plan });
+      d.runs = d.runs || []; d.runs.push({ sid: j.student.sid, season: run.season, profit: run.profit, at: Date.now(), plan: run.plan, look: lookOf(r.look) });
       d.last[j.student.sid] = Date.now(); put(d);
       var b = board(d, run.season, null), me = b.best[j.student.sid];
       return reply({ ok: true, profit: run.profit, best: me.profit, rank: me.rank });
@@ -53,7 +54,7 @@
   // the same shape the results script returns: best run per player, ranked, first names (a last initial only to tell two apart)
   function board(d, sea, people, mySid) {
     var best = {};
-    (d.runs || []).forEach(function (x) { if (x.season !== sea) return; var b = best[x.sid] || (best[x.sid] = { sid: x.sid, profit: -1e9, runs: 0 }); b.runs++; if (x.profit > b.profit) b.profit = x.profit; });
+    (d.runs || []).forEach(function (x) { if (x.season !== sea) return; var b = best[x.sid] || (best[x.sid] = { sid: x.sid, profit: -1e9, runs: 0 }); b.runs++; if (x.profit > b.profit) b.profit = x.profit; if (x.look) b.look = x.look; });
     var list = Object.keys(best).map(function (k) { return best[k]; }).sort(function (a, b) { return b.profit - a.profit; });
     list.forEach(function (b, i) { b.rank = i && b.profit === list[i - 1].profit ? list[i - 1].rank : i + 1; });
     if (!people) return { best: best };
@@ -62,7 +63,7 @@
     function fn(p) { var n = String(p.name || ''); return (n.indexOf(',') >= 0 ? n.split(',')[1] : n).trim().split(' ')[0] || '?'; }
     function li(p) { var n = String(p.name || ''); return n.indexOf(',') >= 0 ? n.split(',')[0].trim().charAt(0) : ''; }
     top.forEach(function (b) { var p = by[b.sid]; if (p) firsts[fn(p)] = (firsts[fn(p)] || 0) + 1; });
-    var rows = top.map(function (b) { var p = by[b.sid] || { name: '?' }, n = fn(p); return { rank: b.rank, name: firsts[n] > 1 && li(p) ? n + ' ' + li(p) + '.' : n, cls: p.cls || '', profit: b.profit, runs: b.runs, me: b.sid === mySid }; });
+    var rows = top.map(function (b) { var p = by[b.sid] || { name: '?' }, n = fn(p); return { rank: b.rank, name: firsts[n] > 1 && li(p) ? n + ' ' + li(p) + '.' : n, cls: p.cls || '', profit: b.profit, runs: b.runs, look: b.look || '', me: b.sid === mySid }; });
     var me = mySid && best[mySid] ? { rank: best[mySid].rank, profit: best[mySid].profit } : null;
     return { ok: true, season: sea, rows: rows, players: list.length, me: me };
   }

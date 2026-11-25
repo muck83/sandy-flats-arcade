@@ -44,11 +44,15 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
    Write down the co-teacher key: it is also shown on co-teacher.html when I open it with my teacher key.
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
-   Description "Muddle Under the Pond" > Deploy. Do NOT use "New deployment" (that changes the URL).
+   Description "Squeeze Street avatars" > Deploy. Do NOT use "New deployment" (that changes the URL).
 
 5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
 
-Latest change: Muddle Under the Pond, the advisory party game (muddle-host.html for the teacher, muddle.html for players).
+Latest change: the Squeeze Street leaderboard shows each student's arcade avatar. squeezeSave also takes "look" (the avatar
+code: letters and numbers only, at most 32; anything else is saved blank) and writes it in a new 7th column "look" of the
+Squeeze tab (the header is added by itself), and each squeezeBoard row carries "look" (the student's newest one). The look
+holds no names. Nothing to set up; runs saved before this change simply show no avatar.
+Before that: Muddle Under the Pond, the advisory party game (muddle-host.html for the teacher, muddle.html for players).
 Two new operations: roomHost (teacher key; the host page sends the board and each player's secret part, and gets back the
 players' moves) and roomPing (NO sign-in: a player sends a 4-letter room code, a random id and token their device made, a
 nickname and their moves, and gets the board and only their own secret part). Nothing is written to the Sheet: rooms live in
@@ -58,7 +62,7 @@ squeezeSave (student sign-in; the page sends the week and the ten days' choices,
 with squeezeSim(), the same rules as squeeze-sim.js, and works out the profit itself; it only takes runs for this week or the
 week either side, and one post per student every 10 seconds) and squeezeBoard (no sign-in; each student's best run that week,
 top 25, first names only, with a last initial only when two first names match). Runs go in a new "Squeeze" tab that creates
-itself (time | sid | season | profit | cash | plan). Nothing to set up. To take a run off the board, delete its row in the
+itself (time | sid | season | profit | cash | plan | look). Nothing to set up. To take a run off the board, delete its row in the
 Squeeze tab (the board refreshes within a minute). If the game's rules ever change, squeeze-sim.js and the copy at the bottom
 of Code.gs must change together.
 Before that: a new operation checkAnswers (teacher or co-teacher key; games: a list of Unit 2 Check keys) returns what each student answered on each question, read from the Progress tab's raw column, for the task sheets' addendum. Nothing to set up.

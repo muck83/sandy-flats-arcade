@@ -102,6 +102,12 @@
     '<path d="M150 58h22l-3 14h-16z" fill="#FFE27A" stroke="#F7F3E3" stroke-width="2"/><ellipse cx="80" cy="64" rx="12" ry="8" fill="#FFD23F"/><ellipse cx="98" cy="66" rx="10" ry="7" fill="#F2C230"/>' +
     '<rect x="0" y="132" width="260" height="18" fill="#E9C58A"/></svg>';
 
+  /* ---------- avatars: the player's own arcade character runs the stand ---------- */
+  var AV = window.SFA_AVATAR;
+  function myLook() { if (!AV) return ''; try { return AV.myLook(AV.profile(), S && S.me ? S.me.sid : 'guest'); } catch (e) { return ''; } }
+  function avSvg(look, size, label) { if (!AV || !look) return ''; try { return AV.svg(look, { size: size, label: label || 'Avatar' }); } catch (e) { return ''; } }
+  function heroArt() { var a = avSvg(myLook(), 80, 'You'); return STAND + (a ? '<div class="heroav">' + a + '</div>' : ''); }
+
   /* ---------- views ---------- */
   function view() {
     var R = SQ.run(run.season, run.plan);
@@ -127,7 +133,7 @@
   function introView(R) {
     var go = el('button', { type: 'button', 'class': 'btn primary big', text: run.plan.length ? 'Carry on: day ' + (run.plan.length + 1) : 'Open the stand: day 1', onclick: function () { run.started = true; save(); view(); } });
     app.appendChild(el('section', { 'class': 'card hero' }, [
-      html('div', 'heroart', STAND),
+      html('div', 'heroart', heroArt()),
       el('div', {}, [
         el('h2', { text: 'Ten days on Squeeze Street' }),
         el('p', { text: 'You have ' + m(SQ.START) + ' and a lemonade stand. Every morning the weather, the prices and the town\'s rules arrive as inequalities. Read them right and the money stays in your pocket. Read them wrong and it costs you, but the stand never closes.' }),
@@ -310,7 +316,7 @@
     if (!window.SQFX) return view();
     var LBL = { coop: 'co-op fee', till: 'till fee', permit: 'permit fine', inspector: 'inspector fine' };
     window.SQFX.reveal({
-      d: sp.d, wx: sp.wx, stand: STAND, base: sp.base, sold: o.sold, price: o.p, revenue: o.revenue, profit: o.profit,
+      d: sp.d, wx: sp.wx, stand: STAND, me: avSvg(myLook(), 90, 'You'), seed: run.season, base: sp.base, sold: o.sold, price: o.p, revenue: o.revenue, profit: o.profit,
       why: o.over ? 'pricey' : o.sweet ? 'sweet' : o.sold < o.want ? 'soldout' : '',
       fines: o.fines.map(function (f) { return { label: LBL[f.k], amt: f.amt }; }),
       great: !o.fines.length && !o.over && o.p === sp.price.best && o.sold >= o.want
@@ -406,7 +412,7 @@
     });
     var fines = 0, tips = 0; R.days.forEach(function (D) { D.out.fines.forEach(function (f) { fines += f.amt; }); tips += D.out.bonus; });
     app.appendChild(el('section', { 'class': 'card hero end' }, [
-      html('div', 'heroart', STAND),
+      html('div', 'heroart', heroArt()),
       el('div', {}, [
         el('h2', { text: 'Ten days done: ' + m(R.profit) + ' profit' }),
         el('p', { text: 'You started with ' + m(SQ.START) + ' and finished with ' + m(R.cash) + (R.loans ? ', less ' + m(R.loans) + ' of family loans' : '') + '. Fines and fees cost you ' + m(fines) + '; the tip jar paid ' + m(tips) + '.' }),
@@ -430,7 +436,7 @@
       if (!S || !S.on) return paint('The leaderboard isn\'t switched on here.');
       if (!S.me) return paint('Your run isn\'t on the leaderboard: you aren\'t signed in.');
       paint('Posting your run…');
-      S.call('squeezeSave', { season: run.season, v: SQ.V, plan: run.plan }).then(function (j) {
+      S.call('squeezeSave', { season: run.season, v: SQ.V, plan: run.plan, look: myLook() }).then(function (j) {
         run.posted = { profit: j.profit, rank: j.rank, best: j.best }; save();
         paint('Posted: ' + m(j.profit) + '. Your best this week is ' + m(j.best) + (j.rank ? ', number ' + j.rank + ' on the board.' : '.'));
       }, function (e) {
@@ -472,7 +478,7 @@
       var t = el('table', { 'class': 'lb' }, [el('thead', {}, [el('tr', {}, [el('th', { text: '#' }), el('th', { text: 'Name' }), el('th', { text: 'Class' }), el('th', { text: 'Profit' }), el('th', { text: 'Runs' })])])]);
       var tb = el('tbody'); t.appendChild(tb);
       j.rows.forEach(function (r) {
-        tb.appendChild(el('tr', { 'class': (r.me ? 'me ' : '') + (r.rank <= 3 ? 'top' + r.rank : '') }, [el('td', { text: r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] : String(r.rank) }), el('td', { text: r.name }), el('td', { text: r.cls || '' }), el('td', { 'class': 'num', text: m(r.profit) }), el('td', { 'class': 'num', text: String(r.runs) })]));
+        tb.appendChild(el('tr', { 'class': (r.me ? 'me ' : '') + (r.rank <= 3 ? 'top' + r.rank : '') }, [el('td', { text: r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] : String(r.rank) }), html('td', 'who', (r.look ? avSvg(r.look, 36, 'Avatar') : '') + '<span>' + esc(r.name) + '</span>'), el('td', { text: r.cls || '' }), el('td', { 'class': 'num', text: m(r.profit) }), el('td', { 'class': 'num', text: String(r.runs) })]));
       });
       body.appendChild(t);
       body.appendChild(el('p', { 'class': 'muted small', text: j.players + ' player' + (j.players === 1 ? '' : 's') + ' ' + (boardWeek ? 'last week' : 'this week') + '.' + (j.me && !j.rows.some(function (r) { return r.me; }) ? ' You: number ' + j.me.rank + ' with ' + m(j.me.profit) + '.' : '') }));

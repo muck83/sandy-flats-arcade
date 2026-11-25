@@ -225,3 +225,28 @@ body.rv-lock{overflow:hidden}
 @media (prefers-reduced-motion:reduce){.stepcard,.fb,.res,.fc,.fbl li,.lb tbody tr,.bar i,.hero .art ellipse,.stepcard>.btn.primary:last-child,.rv-sun,.rv-cloud,.rv-rain,.rv-heat,.rv-p,.rv-big{animation:none}}
 .rv-stand svg circle,.rv-stand svg g{display:none}
 @media (max-width:560px){.rv-scene{aspect-ratio:4/3}.rv-stand{left:30%;width:46%}.rv-sign{left:42%}.rv-hud{font-size:13px;padding:6px 14px;gap:4px 8px}.rv-hud b{font-size:17px}.rv-say{left:-60%}}
+/* avatars: the player runs the stand, the customers are arcade characters, the leaderboard shows everyone's look */
+.heroart{position:relative}
+.heroav{position:absolute;right:-6%;bottom:4%;width:32%;animation:sqBob 2.6s ease-in-out infinite}
+.heroav .av,.rv-me .av,.rv-fme .av{width:100%;height:auto}
+.rv-e.av svg{width:clamp(40px,9vw,70px);height:auto;display:block}
+.rv-p:has(.av){animation:none}
+.rv-p .rv-e.av~.rv-cup{left:62%;top:-4%;font-size:clamp(16px,3.4vw,26px)}
+.rv-p .rv-e.av~.rv-say{left:-20%;bottom:100%}
+.rv-me{position:absolute;left:70%;bottom:11%;width:14%;z-index:1;transform-origin:50% 100%}
+.rv-me::before{content:'You';position:absolute;left:50%;top:-14%;transform:translateX(-50%);font:800 clamp(10px,1.9vw,14px) var(--ui);background:var(--marquee);color:#1B1A22;padding:2px 8px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.rv-me.hop{animation:rvHop .42s ease-out}
+.rv-me.oops{animation:rvOops .7s ease-in-out}
+@keyframes rvHop{40%{transform:translateY(-14%) scale(1.04,.97)}}
+@keyframes rvOops{25%{transform:rotate(-8deg)}60%{transform:rotate(6deg)}}
+.rv-fme{width:clamp(84px,18vw,130px);margin-bottom:-6px}
+.rv-fme.up{animation:rvCheer .7s ease-in-out .5s 3}
+.rv-fme.down{transform-origin:50% 100%;animation:rvSlump .8s ease-out .4s both}
+@keyframes rvCheer{40%{transform:translateY(-18px) rotate(-4deg)}70%{transform:translateY(0) rotate(3deg)}}
+@keyframes rvSlump{to{transform:rotate(-6deg) scaleY(.9);filter:saturate(.5)}}
+.lb td.who{display:flex;align-items:center;gap:8px}
+.lb td.who .av{width:36px;height:auto;flex:none}
+html.screen .lb td.who .av{width:56px}
+@media (max-width:560px){.rv-me{left:77%;width:18%}.lb td.who .av{width:30px}}
+@media (prefers-reduced-motion:reduce){.heroav,.rv-me,.rv-fme{animation:none!important}}
+.rv-final{z-index:5}

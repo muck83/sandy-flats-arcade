@@ -96,12 +96,24 @@
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', bar); else bar();
 
   /* ---------------- the reveal ---------------- */
+  /* customers are arcade avatars with made-up looks (the same ones each time for a given week and day); without sfa-avatar.js, emoji */
+  var AVS = W.SFA_AVATAR;
+  function rng(seed) { var a = AVS.hash(seed); return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function custLook(seed) {
+    var C = AVS.CAT, R = rng(seed);
+    function pick(k, p) { return C[k] && R() < (p == null ? 1 : p) ? Math.floor(R() * C[k].items.length) : 0; }
+    return AVS.encode({ b: pick('b'), e: pick('e'), m: pick('m'), h: pick('h', .4), a: pick('a', .3), t: 0, n: 0, k: pick('k'), p: pick('p', .1), r: pick('r', .5), c: pick('c'), o: pick('o', .5), q: pick('q') });
+  }
+  function customer(seed, k) {
+    if (AVS) { try { var w = mk('i', 'rv-e av'); w.innerHTML = AVS.svg(custLook(seed), { size: 60, walk: true, label: 'Customer' }); return w; } catch (e) { } }
+    return mk('i', 'rv-e', PEOPLE[k % PEOPLE.length]);
+  }
   var PEOPLE = ['🧑', '👩', '👨', '🧒', '👧', '👦', '👵', '🧓', '👱', '🧔', '👩‍🦱', '👨‍🦰'];
   function sfx(n) { if (FX) FX.sfx(n); }
   function money(c) { var neg = c < 0; c = Math.abs(Math.round(c)); return (neg ? '−' : '') + '$' + Math.floor(c / 100) + '.' + ('0' + c % 100).slice(-2); }
   function mk(tag, cls, text) { var e = D.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
-  // o: { d, wx: {k, label, icon, temp}, stand: svg html, base, sold, price, revenue, profit, why: 'pricey'|'soldout'|'sweet'|'', fines: [{label, amt}], great }
+  // o: { d, wx: {k, label, icon, temp}, stand: svg html, me: the player's avatar svg html (or ''), seed: text for the customers' looks, base, sold, price, revenue, profit, why: 'pricey'|'soldout'|'sweet'|'', fines: [{label, amt}], great }
   function reveal(o, done) {
     var reduce = FX ? FX.reduced() : false, timers = [], finished = false, closed = false;
     function later(f, ms) { timers.push(setTimeout(f, ms)); }
@@ -117,6 +129,9 @@
     scene.appendChild(title);
     var stand = mk('div', 'rv-stand'); stand.innerHTML = o.stand; scene.appendChild(stand);
     var sign = mk('div', 'rv-sign', 'CLOSED'); scene.appendChild(sign);
+    var me = null;
+    if (o.me) { me = mk('div', 'rv-me'); me.innerHTML = o.me; scene.appendChild(me); }
+    function react(cls, ms) { if (!me) return; me.classList.remove('hop', 'oops'); void me.offsetWidth; me.classList.add(cls); setTimeout(function () { me.classList.remove(cls); }, ms); }
     var crowd = mk('div', 'rv-crowd'); scene.appendChild(crowd);
     scene.appendChild(mk('div', 'rv-ground'));
     ov.appendChild(scene);
@@ -140,6 +155,7 @@
       mood = 'calm';
       fin.innerHTML = '';
       var up = o.profit >= 0;
+      if (o.me) { var fme = mk('div', 'rv-fme ' + (up ? 'up' : 'down')); fme.innerHTML = o.me; fin.appendChild(fme); }
       fin.appendChild(mk('div', 'rv-fday', 'Day ' + o.d + (up ? ': you made' : ': you lost')));
       var big = mk('div', 'rv-big ' + (up ? 'up' : 'down'), money(0)); fin.appendChild(big);
       fin.appendChild(mk('div', 'rv-fsub', o.sold + ' cups sold at ' + money(o.price) + ' = ' + money(o.revenue) + ' in the till'));
@@ -182,18 +198,18 @@
     var SAY = { pricey: 'Too pricey!', soldout: 'Sold out?!', sweet: 'Too sweet!', '': 'Not today' };
     order.forEach(function (buy, k) {
       later(function () {
-        var p = mk('span', 'rv-p'); p.appendChild(mk('i', 'rv-e', PEOPLE[(k * 7 + o.d) % PEOPLE.length]));
+        var p = mk('span', 'rv-p'); p.appendChild(customer((o.seed || '') + '|' + o.d + '|' + k, k * 7 + o.d));
         p.style.bottom = (8 + (k % 3) * 3) + '%';
         crowd.appendChild(p);
         requestAnimationFrame(function () { p.style.transitionDuration = '800ms'; p.style.left = buy ? '47%' : '30%'; });
         setTimeout(function () {
           if (buy) {
             bought++; setCups(bought === buyers ? o.sold : Math.round(bought * per));
-            var cup = mk('span', 'rv-cup', '🥤'); p.appendChild(cup); sfx('coin');
+            var cup = mk('span', 'rv-cup', '🥤'); p.appendChild(cup); sfx('coin'); react('hop', 420);
             setTimeout(function () { p.style.transitionDuration = '900ms'; p.style.left = '112%'; }, 180);
           } else {
             if (o.why === 'soldout' && !sign.classList.contains('out')) { sign.textContent = 'SOLD OUT'; sign.classList.add('out'); sfx('wrong'); }
-            p.appendChild(mk('span', 'rv-say', SAY[o.why] || SAY[''])); p.classList.add('turn');
+            p.appendChild(mk('span', 'rv-say', SAY[o.why] || SAY[''])); p.classList.add('turn'); react('oops', 700);
             setTimeout(function () { p.style.transitionDuration = '900ms'; p.style.left = '-14%'; }, 420);
           }
           setTimeout(function () { p.remove(); }, 1600);

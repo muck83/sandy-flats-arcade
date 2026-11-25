@@ -9,7 +9,7 @@
  *   Responses time | sid | lesson | q | kind | answer | correct   (lesson slideshows: polls, typed answers)
  *   Climb     sid | updated | theta | sessions | secure | retained | frontier | map | today | hist | ov | state   (one row per student)
  *   ClimbLog  time | sid | session | skill | template | seed | mode | answer | result | tag | secs | flags   (every Climb answer)
- *   Squeeze   time | sid | season | profit | cash | plan   (one row per finished Squeeze Street run: the lemonade stand game's leaderboard)
+ *   Squeeze   time | sid | season | profit | cash | plan | look   (one row per finished Squeeze Street run: the lemonade stand game's leaderboard)
  *   (Responses, Climb, ClimbLog and Squeeze are created the first time they are needed.)
  *   Muddle Under the Pond (the advisory party game) keeps nothing in the Sheet: its rooms live in the script cache.
  *
@@ -35,7 +35,7 @@ var TABS = {
   Climb: ['sid', 'updated', 'theta', 'sessions', 'secure', 'retained', 'frontier', 'map', 'today', 'hist', 'ov', 'state'],
   ClimbLog: ['time', 'sid', 'session', 'skill', 'template', 'seed', 'mode', 'answer', 'result', 'tag', 'secs', 'flags'],
   ClimbAsk: ['time', 'sid', 'session', 'screen', 'skill', 'template', 'seed', 'note', 'answer', 'vals', 'status', 'reply', 'closed'],
-  Squeeze: ['time', 'sid', 'season', 'profit', 'cash', 'plan']
+  Squeeze: ['time', 'sid', 'season', 'profit', 'cash', 'plan', 'look']
 };
 var GAMES = /^g[1-9][0-9]?$/;
 var MAX_RAW = 40000;
@@ -864,7 +864,12 @@ function squeezeSave(s, req) {
   if (!run.done || !isFinite(run.profit) || Math.abs(run.profit) > 1000000) throw new Error('bad run');
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(8000)) throw new Error('busy');
-  try { climbSheet('Squeeze').appendRow([new Date(), s.sid, season, run.profit, run.cash, JSON.stringify(run.plan)]); }
+  var look = String(req.look || ''); if (!/^[0-9a-z]{1,32}$/.test(look)) look = '';   // the arcade avatar code, shown on the board
+  try {
+    var sh = climbSheet('Squeeze');
+    if (sh.getRange(1, 7).getValue() === '') sh.getRange(1, 7).setValue('look');   // a tab made before looks were kept
+    sh.appendRow([new Date(), s.sid, season, run.profit, run.cash, JSON.stringify(run.plan), look]);
+  }
   finally { lock.releaseLock(); }
   cache.put('sq_' + s.sid, '1', 10);
   cache.remove('sqb_' + season);
@@ -876,11 +881,12 @@ function squeezeBests(season) {
   var cache = CacheService.getScriptCache(), hit = cache.get('sqb_' + season);
   if (hit) { try { return JSON.parse(hit); } catch (e) { } }
   var sh = climbSheet('Squeeze'), n = sh.getLastRow(), best = {};
-  if (n > 1) sh.getRange(2, 2, n - 1, 3).getValues().forEach(function (r) {
+  if (n > 1) sh.getRange(2, 2, n - 1, 6).getValues().forEach(function (r) {
     if (String(r[1]) !== season) return;
     var sid = String(r[0]), p = Number(r[2]); if (!sid || !isFinite(p)) return;
-    var b = best[sid] || (best[sid] = { sid: sid, profit: -1e9, runs: 0 });
+    var b = best[sid] || (best[sid] = { sid: sid, profit: -1e9, runs: 0, look: '' });
     b.runs++; if (p > b.profit) b.profit = p;
+    if (r[5]) b.look = String(r[5]);   // the newest look wins (rows are in time order)
   });
   var list = Object.keys(best).map(function (k) { return best[k]; }).sort(function (a, b) { return b.profit - a.profit; });
   list.forEach(function (b, i) { b.rank = i && b.profit === list[i - 1].profit ? list[i - 1].rank : i + 1; });
@@ -900,7 +906,7 @@ function squeezeBoard(req) {
   top.forEach(function (x) { var r = by[x.sid]; if (r) firsts[fn(r)] = (firsts[fn(r)] || 0) + 1; });
   var rows = top.map(function (x) {
     var r = by[x.sid] || { name: '?', cls: '' }, f = fn(r);
-    return { rank: x.rank, name: firsts[f] > 1 && li(r) ? f + ' ' + li(r) + '.' : f, cls: r.cls || '', profit: x.profit, runs: x.runs, me: x.sid === mySid };
+    return { rank: x.rank, name: firsts[f] > 1 && li(r) ? f + ' ' + li(r) + '.' : f, cls: r.cls || '', profit: x.profit, runs: x.runs, look: x.look || '', me: x.sid === mySid };
   });
   var me = mySid && b.best[mySid] ? { rank: b.best[mySid].rank, profit: b.best[mySid].profit } : null;
   return { ok: true, season: season, rows: rows, players: b.list.length, me: me };
