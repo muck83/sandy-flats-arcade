@@ -19,6 +19,8 @@
      plane  Graph a two-variable inequality: plot two points on the boundary, choose solid or dashed, tap a side to shade,
             and test points. { range: [-6, 6], m: 2, b: 1, op: '<', parts: ['line', 'style', 'shade'] (leave out 'line'
             and the boundary is drawn for them), vx: 3 for a vertical line x = 3 (then m and b are not used) }
+            Graph a line (an equation): { m: 2, b: −1, op: '=', parts: ['line'] }: plot two points, no shading or testing.
+   tab: { head: ['x', 'y'], rows: [[0, 3], [2, 7]] } on any of them shows a small table under the question.
    more: the slide's 🔭 Go deeper tasks, any of the kinds above (plus 'poll' and 'number'), each with q and steps (a worked
    solution shown once it is done). They save as the slide id + x1, x2, x3 like the other lessons' extras. */
 (function () {
@@ -646,7 +648,7 @@
     }
     function near(p) { for (var i = 0; i < st.pts.length; i++) if (Math.abs(st.pts[i].x - p.x) < 0.5 && Math.abs(st.pts[i].y - p.y) < 0.5) return i; return -1; }
     if (!o.show) {
-      var modes = [has('line') && bPlot, has('shade') && bShadeB, bTest].filter(Boolean);
+      var modes = [has('line') && bPlot, has('shade') && bShadeB, spec.op !== '=' && bTest].filter(Boolean);   // op '=': graph a line, nothing to test or shade
       bPlot.onclick = function () { mode = 'plot'; draw(); }; bShadeB.onclick = function () { mode = 'shade'; draw(); }; bTest.onclick = function () { mode = 'test'; draw(); };
       bSolid.onclick = function () { if (frozen) return; st.solid = true; draw(); }; bDash.onclick = function () { if (frozen) return; st.solid = false; draw(); };
       var ctl = H('div', 'iqctl');
@@ -678,7 +680,7 @@
       ['pointerup', 'pointercancel'].forEach(function (ev) { ax.svg.addEventListener(ev, function () { if (dragI >= 0) { if (!st.moved) st.pts.splice(dragI, 1); dragI = -1; draw(); } }); });
     }
     draw();
-    function readMine() { var ln = myLine(); if (!ln) return 'no line'; var op = st.side === 'above' || st.side === 'right' ? (st.solid ? '≥' : '>') : st.side ? (st.solid ? '≤' : '<') : '?'; return st.side ? ineqTxt(ln, op === '≥' ? '>=' : op === '≤' ? '<=' : op, V) : lineTxt(ln, V) + (st.solid == null ? '' : st.solid ? ', solid' : ', dashed'); }
+    function readMine() { var ln = myLine(); if (!ln) return 'no line'; var op = st.side === 'above' || st.side === 'right' ? (st.solid ? '≥' : '>') : st.side ? (st.solid ? '≤' : '<') : '?'; return st.side ? ineqTxt(ln, op === '≥' ? '>=' : op === '≤' ? '<=' : op, V) : lineTxt(ln, V) + (st.solid == null || spec.op === '=' ? '' : st.solid ? ', solid' : ', dashed'); }
     return { root: root,
       check: function () {
         if (has('line') && st.pts.length < 2) { toast('Plot two points on the boundary line first.'); return null; }
@@ -698,6 +700,13 @@
   /* ---------------- the slides ---------------- */
   var ICON = { nl: ['📏', 'Graph it'], pick: ['👆', 'Tap the solutions'], sort: ['🗂️', 'Sort it'], match: ['🔗', 'Match them'], build: ['🧱', 'Build the inequality'], solve: ['🪜', 'Solve it, step by step'], plane: ['📈', 'Graph it on the plane'] };
   function learnBox(s) { var b = H('div', 'iqlearn'); b.appendChild(H('span', 'iqlico', '📘')); var ul = H('ul', ''); s.learn.forEach(function (t) { ul.appendChild(H('li', '', fmt(t))); }); b.appendChild(ul); return b; }
+  // tab: { head: ['x', 'y'], rows: [[0, 3], [2, 7]] }: a small table under the question (any hands-on kind or Go deeper task)
+  function tabBox(t) {
+    var w = H('div', 'iqtab'), tb = H('table', 'ftab'), tr = H('tr');
+    (t.head || []).forEach(function (h) { tr.appendChild(H('th', '', fmt(String(h)))); }); tb.appendChild(tr);
+    (t.rows || []).forEach(function (r) { var row = H('tr'); r.forEach(function (c) { row.appendChild(H('td', String(c) === '?' ? 'qm' : '', fmt(String(c).replace(/^-/, '−')))); }); tb.appendChild(row); });
+    w.appendChild(tb); return w;
+  }
   Object.keys(ICON).forEach(function (kind) {
     K.NEWK[kind] = 1;
     K.KINDS[kind] = function (s, d, show) {
@@ -706,6 +715,7 @@
       var grid = H('div', 'iqgrid' + (side ? ' side' : '')), txt = H('div', 'st iqtxt'), area = H('div', 'iqarea'), foot = H('div', 'iqfoot');
       txt.appendChild(H('p', 'kick', ICON[kind][0] + ' ' + fmt(s.kick || ICON[kind][1])));
       K.qline(s, txt);
+      if (s.tab) txt.appendChild(tabBox(s.tab));
       if (s.learn && s.learn.length) txt.appendChild(learnBox(s));
       grid.appendChild(txt); grid.appendChild(area); d.appendChild(grid);
       if (side) txt.appendChild(foot); else grid.appendChild(foot);
@@ -794,6 +804,7 @@
     c.appendChild(H('p', 'xl', label));
     if (m.kick) c.appendChild(H('p', 'kick', fmt(m.kick)));
     c.appendChild(H('p', 'xqq', fmt(m.q)));
+    if (m.tab) c.appendChild(tabBox(m.tab));
     if (m.learn && m.learn.length) c.appendChild(learnBox(m));
     var save = function (ans, ok) { var t = (x && x.tries) || 0; K.record({ id: id, k: 'open' }, ans, ok); mine()[id].tries = t + 1; K.saveLocal(); s._open = null; if (ok) K.confetti(); d._upd(); };
     if (W[m.k]) {

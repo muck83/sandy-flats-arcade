@@ -37,6 +37,8 @@
     { l: 26, n: 21.2, label: 'Review 2', game: 'review-u2.html' },
     { l: 27, n: 21.3, label: 'Review 3', game: 'review-u2.html' },
     { l: 28, n: 21.4, label: 'Review 4', game: 'review-u2.html' },
+    { l: 36, n: 21.41, label: 'Review 5', game: 'review-u2.html' },   // step-by-step review: slope, graphing, finding b (hands-on kinds from sfa-ineq.js)
+    { l: 37, n: 21.42, label: 'Review 6', game: 'review-u2.html' },   // step-by-step review: forms, stories, inequality signs
     { l: 34, n: 21.45, label: 'Inequalities 1', game: 'review-u2.html' },   // the inequalities arc: two lessons before the summative launches (number line, then the plane)
     { l: 35, n: 21.46, label: 'Inequalities 2', game: 'review-u2.html' },
     { l: 29, n: 21.5, label: 'Inequalities 3', game: 'summative-u2.html' },   // then one lesson per part of the Unit 2 Summative: the lesson teaches what the part needs, then students do the part

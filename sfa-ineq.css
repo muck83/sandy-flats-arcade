@@ -156,3 +156,5 @@
 }
 @media (prefers-reduced-motion:reduce){.iqray{animation:none;stroke-dashoffset:0}.iqcard.no{animation:none}}
 .dragging,.dragging *{cursor:grabbing!important;user-select:none;-webkit-user-select:none}
+.iqtab{margin:.4em 0}.iqtab .ftab{font-size:.95em}
+.iqcard .iqpic.plane .iqplane{width:8.5em}

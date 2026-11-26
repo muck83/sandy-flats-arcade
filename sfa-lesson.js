@@ -8,7 +8,7 @@
   var SFA = window.SFA, el = SFA.el, esc = SFA.esc, CFG = window.SFA_CONFIG || {}, S = SFA.sync;
   var Q = new URLSearchParams(location.search);
   var MODE = Q.has('teach') ? 'teach' : Q.has('screen') ? 'screen' : 'student';
-  var N = Math.max(1, Math.min(35, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
+  var N = Math.max(1, Math.min(37, parseInt(Q.get('l'), 10) || 1)), LID = 'L' + N;
   var TEACHER = 'Mr. Crowell';
   var LIVE_FRESH = 10 * 60 * 1000;   // a live session counts as running while the console has checked in within 10 minutes
   document.body.classList.add('lesson', 'm-' + MODE);
@@ -2491,7 +2491,7 @@
     numTxt: numTxt, slideEl: function () { return slideEl; }, cur: function () { return cur; } };
   window.SFA_LESSON = function (L) { LES = L; };
   var sc = document.createElement('script');
-  sc.src = 'lessons/' + LID + '.js?v=20261125f';   // bump when lesson files change
+  sc.src = 'lessons/' + LID + '.js?v=20261126a';   // bump when lesson files change
   sc.onload = function () { if (!LES) return fail(); document.title = (LES.label || 'Lesson ' + LES.n) + ': ' + LES.title + ' · Sandy Flats'; boot(); };
   sc.onerror = fail;
   function fail() { document.querySelector('.lmain').innerHTML = '<div class="card keybox"><h2>That lesson isn\'t here</h2><p class="muted">Go back to <a href="lessons.html">all lessons</a>.</p></div>'; }
