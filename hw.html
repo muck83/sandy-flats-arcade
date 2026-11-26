@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Homework · Sandy Flats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css?v=20261102a">
+<link rel="stylesheet" href="sfa-lesson.css?v=20261121c">
+<link rel="stylesheet" href="sfa-ineq.css?v=20261126b">
+<link rel="stylesheet" href="hw.css?v=20261127a">
+</head><body>
+<div class="wrap hw">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle" id="hwGame">Homework</h1><div class="chips"><a class="chip" href="homework.html">All homework</a></div></header>
+  <main id="hwApp" aria-live="polite"><p class="muted">Loading…</p></main>
+</div>
+<script src="config.js"></script>
+<script src="sfa-kit.js?v=20261102a"></script>
+<script src="sfa-sync.js"></script>
+<script>
+/* sfa-ineq.js adds its widgets to the lesson player through SFA_LESSON_API. The homework arcade only borrows the widgets
+   (window.SFA_INEQ.W), so this stands in for the player with the few pieces the widgets touch. */
+(function () {
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fmt(s) { return esc(s).replace(/\*([^*]+)\*/g, '<b>$1</b>').replace(/_([^_]+)_/g, '<i>$1</i>'); }
+  function H(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function nop() { }
+  // the same seeded shuffle as sfa-lesson.js: cards come out in a fixed, mixed-up order for each task
+  function seeded(id, n) {
+    var h = 2166136261, a = [], i; id = String(id);
+    for (i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    for (i = 0; i < n; i++) a.push(i);
+    for (i = n - 1; i > 0; i--) { h = (Math.imul(h, 1103515245) + 12345) >>> 0; var j = (h >>> 8) % (i + 1), t = a[i]; a[i] = a[j]; a[j] = t; }
+    if (n > 1 && a.every(function (v, k) { return v === k; })) a.push(a.shift());
+    return a;
+  }
+  window.SFA_LESSON_API = { MODE: 'student', TEACHER: false, el: SFA.el, toast: function (t) { SFA.toast(t); }, mine: function () { return {}; },
+    kit: { KINDS: {}, NEWK: {}, H: H, fmt: fmt, plain: function (s) { return String(s || '').replace(/[*_]/g, ''); }, head: nop, qline: nop, tallyFor: nop,
+      rightSoFar: nop, retry: nop, record: nop, stateLine: nop, helpFor: nop, confetti: nop, reveal: nop, peeking: nop, onScreen: nop,
+      answerGroups: nop, seeded: seeded, xid: function (a, b) { return a + 'x' + b; }, saveLocal: nop } };
+})();
+</script>
+<script src="sfa-ineq.js?v=20261126a"></script>
+<script src="sfa-fx.js?v=20261121a"></script>
+<script src="hw.js?v=20261127a"></script>
+<script src="sfa-account.js"></script>
+<script src="sfa-nav.js"></script>
+<script src="sfa-avatar.js?v=20261125w"></script>
+</body></html>
