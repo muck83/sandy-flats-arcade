@@ -324,6 +324,21 @@ a.btn{text-decoration:none;display:inline-block}
 @keyframes sqfBob{50%{transform:translateY(-6px) rotate(-8deg)}}
 @media (max-width:640px){.sqfeat{grid-template-columns:auto minmax(0,1fr)}.sqfeat .acts{grid-column:1 / -1;flex-direction:row}.sqfeat .acts a{flex:1}}
 @media (prefers-reduced-motion:reduce){.sqfeat .lem{animation:none}.sqfeat:hover{transform:none}}
+/* the Show-Off banner: the same shape as Squeeze Street's, in stage colours, with the student's own avatar */
+.sofeat{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px 20px;align-items:center;margin:0 0 22px;padding:16px 20px;border-radius:16px;background:radial-gradient(120% 160% at 0% 0%,#FF8FD1 0%,#B34BC9 45%,#5B2A86 100%);color:#fff;box-shadow:0 8px 0 #3A1660,0 14px 30px rgba(0,0,0,.35);overflow:hidden}
+.sofeat:hover,.sofeat:focus-within{transform:translateY(-2px)}
+.sofeat .sostar{font-size:clamp(46px,7vw,68px);line-height:0;animation:sqfBob 2.6s ease-in-out infinite;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
+.sofeat .sostar svg{width:clamp(64px,10vw,84px);height:auto}
+.sofeat .k{font:800 12px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:#FFE27A}
+.sofeat b{display:block;font-family:var(--display);font-weight:400;font-size:clamp(26px,3.6vw,36px);letter-spacing:.03em;line-height:1.05;text-shadow:2px 2px 0 rgba(0,0,0,.3)}
+.sofeat p{margin:4px 0 0;max-width:56ch;font-weight:600}
+.sofeat .lead{display:inline-block;margin-top:6px;font:700 14px var(--ui);background:rgba(0,0,0,.28);border-radius:999px;padding:3px 10px}
+.sofeat .acts{display:flex;flex-direction:column;gap:8px}
+.sofeat .acts a{font:800 18px var(--ui);padding:12px 24px;border-radius:999px;text-align:center;text-decoration:none;white-space:nowrap}
+.sofeat .play{background:#FFE27A;color:#3A1660;box-shadow:0 4px 0 #B88A1A}
+.sofeat .board{background:rgba(255,255,255,.2);color:#fff;font-size:15px!important;padding:8px 18px!important}
+@media (max-width:640px){.sofeat{grid-template-columns:auto minmax(0,1fr)}.sofeat .acts{grid-column:1 / -1;flex-direction:row}.sofeat .acts a{flex:1}}
+@media (prefers-reduced-motion:reduce){.sofeat .sostar{animation:none}.sofeat:hover{transform:none}}
 .pbar{height:8px;border-radius:99px;background:var(--bg);overflow:hidden}.pbar i{display:block;height:100%;background:var(--green)}
 .game details{font-size:13px;color:var(--muted)}.game details summary{cursor:pointer}
 .guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:14px}
@@ -380,12 +395,13 @@ a.btn{text-decoration:none;display:inline-block}
     <div class="nextup" id="nextUp"></div>
     <div id="questCard"></div>
     <div class="sqfeat" id="sqFeat"><span class="lem" aria-hidden="true">🍋</span><div><span class="k">New game · leaderboard</span><b>Squeeze Street</b><p>Run a lemonade stand for 10 days. Every day the prices and rules are inequalities: read them right and rake in the money.</p><span class="lead" id="sqLead" hidden></span></div><div class="acts"><a class="play" href="squeeze.html">Play ▶</a><a class="board" href="squeeze.html#board">🏆 Leaderboard</a></div></div>
+    <div class="sofeat" id="soFeat"><span class="sostar" id="soStar" aria-hidden="true">🌟</span><div><span class="k">New game · your avatar is the star</span><b>Show-Off</b><p>Ten looks, three acts: walk the number-line runway, solve fast, then pose on the coordinate plane. Right answers make your avatar strike a pose; the best show takes the podium.</p><span class="lead" id="soLead" hidden></span></div><div class="acts"><a class="play" href="showoff-u2.html">Play ▶</a><a class="board" href="showoff-u2.html#board">🏆 Podium</a></div></div>
     <div class="myres" id="myRes" hidden></div>
     <h2 id="gH">All the games</h2>
     <p>One game for each film, in film order, a season at a time. Play the game for the film you just watched. Each one starts easy and takes about 30 minutes.</p>
     <div id="seasons"></div>
     <ol class="glist" id="games"></ol>
-    <p style="margin-top:14px"><a class="btn" href="lessons.html">📺 Lesson slideshows: films, questions and polls</a> <a class="btn" href="climb.html">🧗 Climb: the linear functions check-in</a> <a class="btn" href="review-u2.html">📝 Unit 2 Review: get ready for the formative</a> <a class="btn" href="check-u2.html">🎯 Unit 2 Check: the formative (opens in class)</a> <a class="btn" href="squeeze.html">🍋 Squeeze Street: the lemonade stand game (leaderboard)</a> <a class="btn" href="summative-u2.html">📄 Unit 2 Summative: the Pop-Up Arcade task</a> <a class="btn" href="summative-u2-planner.html">🏖️ Boathouse Planner</a> <a class="btn" href="summative-u2-support.html">🧰 Summative support pack</a></p>
+    <p style="margin-top:14px"><a class="btn" href="lessons.html">📺 Lesson slideshows: films, questions and polls</a> <a class="btn" href="climb.html">🧗 Climb: the linear functions check-in</a> <a class="btn" href="review-u2.html">📝 Unit 2 Review: get ready for the formative</a> <a class="btn" href="check-u2.html">🎯 Unit 2 Check: the formative (opens in class)</a> <a class="btn" href="squeeze.html">🍋 Squeeze Street: the lemonade stand game (leaderboard)</a> <a class="btn" href="showoff-u2.html">🌟 Show-Off: the avatar stage show (podium)</a> <a class="btn" href="summative-u2.html">📄 Unit 2 Summative: the Pop-Up Arcade task</a> <a class="btn" href="summative-u2-planner.html">🏖️ Boathouse Planner</a> <a class="btn" href="summative-u2-support.html">🧰 Summative support pack</a></p>
   </section>
 
   <section class="shelf" aria-labelledby="vH">
@@ -1053,8 +1069,8 @@ a.btn{text-decoration:none;display:inline-block}
 </script>
 <script src="sfa-nav.js"></script>
 <!-- the student's own corner: avatar, quests, streak and the next unlock (sfa-quests.js draws it; sfa-avatar.js does the counting) -->
-<script src="sfa-avatar.js?v=20261120b"></script>
-<script src="sfa-wardrobe.js?v=20261120b"></script>
+<script src="sfa-avatar.js?v=20261125w"></script>
+<script src="sfa-wardrobe.js?v=20261125w"></script>
 <script src="sfa-quests.js?v=20261119q"></script>
 <script>if (window.SFA_QUESTS) SFA_QUESTS.mount(document.getElementById('questCard'));</script>
 <script>(function () {   // Squeeze Street banner: show this week's leader from the public leaderboard
@@ -1063,6 +1079,17 @@ a.btn{text-decoration:none;display:inline-block}
     .then(function (r) { return r.json(); }).then(function (j) {
       if (!j || !j.ok) return; var top = (j.rows || [])[0];
       el.textContent = top ? '🏆 This week’s leader: ' + top.name + ', $' + (top.profit / 100).toFixed(2) + (j.players > 1 ? ' · ' + j.players + ' players' : '') : '🏆 No runs yet this week: be the first on the board';
+      el.hidden = false;
+    }).catch(function () { });
+})();</script>
+<script>(function () {   // Show-Off banner: your own avatar on it, and this week's top show from the public podium
+  var C = window.SFA_CONFIG || {}, AV = window.SFA_AVATAR, star = document.getElementById('soStar'), el = document.getElementById('soLead');
+  try { var me = window.SFA && SFA.sync && SFA.sync.me; if (AV && star) star.innerHTML = AV.svg(AV.myLook(AV.profile(), me ? me.sid : 'guest'), { size: 84, label: 'Your avatar' }); } catch (e) { }
+  if (!C.endpoint || !el || !window.fetch) return;
+  fetch(C.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ op: 'showoffBoard' }), redirect: 'follow' })
+    .then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || !j.ok) return; var top = (j.rows || [])[0];
+      el.textContent = top ? '🏆 Top of the podium: ' + top.name + ', ' + top.score + ' points' + (j.players > 1 ? ' · ' + j.players + ' players' : '') : '🏆 Nobody on the podium yet this week: be the first star';
       el.hidden = false;
     }).catch(function () { });
 })();</script>

@@ -436,7 +436,7 @@
       if (!S || !S.on) return paint('The leaderboard isn\'t switched on here.');
       if (!S.me) return paint('Your run isn\'t on the leaderboard: you aren\'t signed in.');
       paint('Posting your run…');
-      S.call('squeezeSave', { season: run.season, v: SQ.V, plan: run.plan, look: myLook() }).then(function (j) {
+      S.call('squeezeSave', { season: run.season, v: SQ.V, plan: run.plan, look: AV && AV.fit ? AV.fit(myLook(), 32) : myLook() }).then(function (j) {
         run.posted = { profit: j.profit, rank: j.rank, best: j.best }; save();
         paint('Posted: ' + m(j.profit) + '. Your best this week is ' + m(j.best) + (j.rank ? ', number ' + j.rank + ' on the board.' : '.'));
       }, function (e) {

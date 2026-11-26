@@ -1334,7 +1334,7 @@
   var lookKey = '';
   function lookSync() {
     if (MODE !== 'student' || !S || !S.me || !saving || !isLive() || !window.SFA_AVATAR) return;
-    var P = heroP(), look = P.look || SFA_AVATAR.defLook(S.me.sid), lv = heroLv(P.xp || 0), lx = String(P.lx || '').replace(/[^0-9a-z]/g, '').slice(0, 16), k = liveRun() + ':' + look + ':' + lv + ':' + lx;
+    var P = heroP(), look = P.look || SFA_AVATAR.defLook(S.me.sid), lv = heroLv(P.xp || 0), lx = String(P.lx || '').replace(/[^0-9a-z]/g, '').slice(0, 40), k = liveRun() + ':' + look + ':' + lv + ':' + lx;
     if (k === lookKey) return; lookKey = k;
     record({ id: 'zlookx1', k: 'open' }, 'lk1;' + look + ';' + lv + (lx ? ';' + lx : ''), null);   // the 4th part is the extended look (hair, outfit, title…)
   }
@@ -2495,7 +2495,7 @@
   sc.onload = function () { if (!LES) return fail(); document.title = (LES.label || 'Lesson ' + LES.n) + ': ' + LES.title + ' · Sandy Flats'; boot(); };
   sc.onerror = fail;
   function fail() { document.querySelector('.lmain').innerHTML = '<div class="card keybox"><h2>That lesson isn\'t here</h2><p class="muted">Go back to <a href="lessons.html">all lessons</a>.</p></div>'; }
-  var tgs = document.createElement('script'); tgs.src = 'sfa-together.js?v=20261120a';
+  var tgs = document.createElement('script'); tgs.src = 'sfa-together.js?v=20261125w';
   tgs.onload = tgs.onerror = function () { document.head.appendChild(sc); };
   // ✨ sfa-fx.js: the shared effects and sound kit (window.SFA_FX), loaded first so every game can count on it
   var FX_V = '20261120f', fxs = document.createElement('script'); fxs.src = 'sfa-fx.js?v=' + FX_V;

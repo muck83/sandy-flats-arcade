@@ -236,7 +236,7 @@
     var o = {}, seen = {}, bad = {};
     D.here.forEach(function (r) {
       var l = D.looks[r.sid] || (window.SFA_AVATAR ? SFA_AVATAR.defLook(r.sid) : ''); if (!l) return;
-      var k = pad12(l.slice(0, 12)), e = l.slice(12, 40);
+      var k = pad12(l.slice(0, 12)), e = l.slice(12, 52);
       if (seen[k] != null && seen[k] !== e) bad[k] = 1;
       seen[k] = e; if (e) o[k] = e;
     });
@@ -246,7 +246,7 @@
   function fullLook(look) {
     look = String(look || ''); if (!look || look.length > 12) return look;
     var m = MODE === 'teach' ? lxT : X().lx, k = pad12(look), e = m && m[k];
-    return typeof e === 'string' && /^[0-9a-z]{1,28}$/.test(e) ? k + e : look;
+    return typeof e === 'string' && /^[0-9a-z]{1,40}$/.test(e) ? k + e : look;
   }
   function isAway(sid) { return !!(D.away[sid] && D.away[sid] >= (D.last[sid] || 0) - 500); }
   // active: answered this question, or busy in the last minute or so. quiet: here, but nothing from them. away: their device left the lesson page.

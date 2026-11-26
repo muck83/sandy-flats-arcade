@@ -31,6 +31,8 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
      Logger.log('checkAnswers ok: ' + an.ok + ', attempts: ' + an.rows.length);
      var sq = route({ op: 'squeezeBoard' });
      Logger.log('squeezeBoard ok: ' + sq.ok + ', week: ' + sq.season + ', players: ' + sq.players);
+     var so = route({ op: 'showoffBoard' });
+     Logger.log('showoffBoard ok: ' + so.ok + ', week: ' + so.season + ', players: ' + so.players + ', marks a perfect test show as ' + showoffSim().mark('test01', showoffSim().show('test01').map(function (L) { return L.k === 'pose' ? L.ex : L.ans; })).score);
      var rh = route({ op: 'roomHost', teacherKey: key, code: 'TSTX', owner: 'test1', pub: { ph: 'lobby' }, priv: {} });
      var rp = route({ op: 'roomPing', code: 'TSTX', pid: 'tester1', tok: 'testtoken12345', nick: 'Test', look: 0, acts: [] });
      var rh2 = route({ op: 'roomHost', teacherKey: key, code: 'TSTX', owner: 'test1', pub: { ph: 'lobby' }, priv: {} });
@@ -38,17 +40,27 @@ Update it to the newest code and redeploy WITHOUT changing the web app URL. Walk
      Logger.log('Muddle rooms ok: ' + (rh.ok && rp.ok && rp.board.ph === 'lobby') + ', players seen by the host: ' + Object.keys(rh2.players).length);
    }
    Expected: {"ok":true,...}, "climbClass ok: true ... questions today: 0", "report ok: true",
-   "coWho ok: true, co-teacher key: (16 letters and numbers) ... AUTH_MODE: code" (or both), "coClass ... ok: true" and "checkState ok: true, my classes open: ..., co-teacher classes open: ..." (true or false), "checkAnswers ok: true, attempts: (a number)" and "squeezeBoard ok: true, week: (this week, like 2026-W48), players: 0" (or more).
+   "coWho ok: true, co-teacher key: (16 letters and numbers) ... AUTH_MODE: code" (or both), "coClass ... ok: true" and "checkState ok: true, my classes open: ..., co-teacher classes open: ..." (true or false), "checkAnswers ok: true, attempts: (a number)" and "squeezeBoard ok: true, week: (this week, like 2026-W48), players: 0" (or more),
+   and "showoffBoard ok: true, week: (this week), players: 0 (or more), marks a perfect test show as 1700".
    Last line: "Muddle rooms ok: true, players seen by the host: 1".
    If it says "unknown op", the old code is still in Code.gs. If AUTH_MODE says google, change it to both in step 2.
    Write down the co-teacher key: it is also shown on co-teacher.html when I open it with my teacher key.
 
 4. Deploy > Manage deployments > the existing web app > Edit (pencil) > Version: New version >
-   Description "Squeeze Street avatars" > Deploy. Do NOT use "New deployment" (that changes the URL).
+   Description "Show-Off podium" > Deploy. Do NOT use "New deployment" (that changes the URL).
 
 5. Open the /exec URL in a browser: it should show {"ok":true,"service":"sandy-flats-arcade"}.
 
-Latest change: the Squeeze Street leaderboard shows each student's arcade avatar. squeezeSave also takes "look" (the avatar
+Latest change: Show-Off, the avatar stage show (showoff-u2.html), gets a public podium. Two new operations: showoffSave
+(student sign-in; the page sends the week, the show's seed and its ten answers, never a score: the script rebuilds the ten
+questions from the seed with showoffSim(), the same text as showoff-sim.js, marks the answers and works out the score itself;
+it only takes shows for this week or the week either side, each seed once per student, and one post per student every 10
+seconds; "look" is the avatar code, letters and numbers only, at most 80) and showoffBoard (no sign-in; each student's best
+show that week, top 25, first names only, a last initial only when two first names match, each row with the student's newest
+look). Shows go in a new "ShowOff" tab that creates itself (time | sid | season | score | right | seed | answers | look).
+Nothing to set up. To take a show off the podium, delete its row (the podium refreshes within a minute). If the questions or
+scoring ever change, showoff-sim.js and the copy at the very bottom of Code.gs must change together.
+Before that: the Squeeze Street leaderboard shows each student's arcade avatar. squeezeSave also takes "look" (the avatar
 code: letters and numbers only, at most 32; anything else is saved blank) and writes it in a new 7th column "look" of the
 Squeeze tab (the header is added by itself), and each squeezeBoard row carries "look" (the student's newest one). The look
 holds no names. Nothing to set up; runs saved before this change simply show no avatar.

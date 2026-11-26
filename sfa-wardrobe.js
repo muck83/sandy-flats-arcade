@@ -3,7 +3,7 @@
    lesson both use it. Needs sfa-kit.js, sfa-sync.js and sfa-avatar.js first.
 
    Built for a phone: the avatar stays in view at the top, the parts are in a few groups (Body, Hair, Face, Outfit, Head,
-   Extras, Friends, Moves, Card), and there is a Surprise me button, an Undo and saved looks. Free parts go on with one
+   Extras, Friends, Moves, Card), and there is a Surprise me button, an Undo, saved looks and dyes (recolour the hat, extras or pet). Free parts go on with one
    tap; coin parts are tried on first and bought from the bar at the bottom; effort parts (🎯) are never sold: the bar
    says what earns them and how far along the student is.
 
@@ -44,6 +44,9 @@
       '.wd .wdparts{width:100%;margin:6px 0 0;padding:0;list-style:none;text-align:left;font-size:14px}.wd .wdparts li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid #3A3550}.wd .wdparts li small{display:block;color:#ABA5BC;font-size:12px}.wd .wdparts b{color:#FFC94A;white-space:nowrap}',
       '.wd details summary{cursor:pointer;font-weight:800}.wd .wdstate{font-size:13px;color:#ABA5BC;margin:6px 0 0}',
       '.wd .wdhint{font-size:13px;color:#ABA5BC;margin:0 0 10px}.wd .wdhint b{color:#F3EFE7}',
+      // the dye row: a swatch per dye above the hats, extras and pets
+      '.wd .wddye{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px;padding:8px 10px;border-radius:14px;background:#24202F;border:2px solid #3A3550}.wd .wddye>b{font-size:13px;margin-right:4px}',
+      '.wd .wddy{width:30px;height:30px;padding:0;border-radius:50%;border:3px solid #141428;box-shadow:0 0 0 2px #3A3550;cursor:pointer}.wd .wddy:hover{box-shadow:0 0 0 2px #B48CFF}.wd .wddy.on{box-shadow:0 0 0 3px #3BFF8A}',
       '.wd .wdgrp{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding-bottom:4px}',   // wraps: a row that scrolls sideways hid Friends, Moves and Card on a narrow laptop
       '.wd .wdg{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:58px;padding:6px 8px;border-radius:14px;border:2px solid #3A3550;background:#24202F;font-weight:800;font-size:12px;cursor:pointer}',
       '.wd .wdg span{font-size:22px;line-height:1.1}.wd .wdg.on{border-color:#FFC94A;background:#3a2f14;color:#FFC94A}',
@@ -109,14 +112,14 @@
     g: 'Your backdrop shows on your profile card, here and on the arcade front page.', j: 'Your move plays wherever your avatar is on a page.',
     u: 'Your title shows under your name on your card.', y: 'Pick a line that sounds like you.', fav: 'Badges are earned by effort. Pick up to 3 to show on your card.'
   };
-  var SWATCH = { c: 1, q: 1 }, TEXT = { u: 1, y: 1 }, RANDOM = ['k', 'b', 'e', 'm', 'r', 'c', 'o', 'q', 'w', 'f', 'h', 'p', 't', 'g', 'j'];
+  var DYEFOR = { h: 'dh', a: 'dx', p: 'dp' }, SWATCH = { c: 1, q: 1 }, TEXT = { u: 1, y: 1 }, RANDOM = ['k', 'b', 'e', 'm', 'r', 'c', 'o', 'q', 'w', 'f', 'h', 'p', 't', 'g', 'j'];
 
   function mount(box, opt) {
     opt = opt || {};
     var grp = 0, cat = 'k', tryLook = null, undo = [];
     function first() { return AV.firstName(); }
     function seed() { return S && S.me ? S.me.sid : 'me'; }
-    function clone(L) { var t = {}; AV.ALL.forEach(function (k) { t[k] = L[k]; }); t.x = L.x.slice(); t.fav = L.fav.slice(); return t; }
+    function clone(L) { var t = {}; AV.ALL.forEach(function (k) { t[k] = L[k]; }); t.x = L.x.slice(); t.fav = L.fav.slice(); t.dh = L.dh; t.dx = L.dx; t.dp = L.dp; return t; }
     function wearIt(code, keepUndo) {
       var P = AV.profile(), was = AV.myLook(P, seed());
       if (code === was) return;
@@ -135,6 +138,7 @@
       if (!L.r && Math.random() < 0.8) { var hs = []; AV.CAT.r.items.forEach(function (it, i) { if (i && AV.owns(P, 'r', i)) hs.push(i); }); L.r = hs[Math.floor(Math.random() * hs.length)] || 0; }
       var xs = []; AV.CAT.a.items.forEach(function (it, i) { if (i && AV.owns(P, 'a', i)) xs.push(i); });
       L.x = []; for (var n = Math.floor(Math.random() * 3); n > 0 && xs.length; n--) L.x = AV.wear(L.x, xs.splice(Math.floor(Math.random() * xs.length), 1)[0]);
+      ['dh', 'dx', 'dp'].forEach(function (k) { L[k] = Math.random() < 0.25 ? 1 + Math.floor(Math.random() * (AV.DYES.length - 1)) : 0; });
       wearIt(AV.encode(L)); draw();
     }
     // a redraw empties the box for a moment; hold its height and the page's place so a pick far down the list doesn't jump the page to the top
@@ -200,6 +204,18 @@
       if (G.n === 'Card') shop.appendChild(mk('div', { 'class': 'wdcardprev', html: AV.card({ look: show, name: first(), lv: lv }) }));
       var hint = multi ? '<b>Wearing ' + cur.x.length + ' of ' + AV.MAXX + '.</b> Wear up to ' + AV.MAXX + ' extras, one per spot (face, neck, back, hands, feet…). Tap a worn one to take it off.' : HINT[cat];
       if (hint) shop.appendChild(mk('p', { 'class': 'wdhint', html: hint }));
+      /* 🎨 dyes: recolour the hat, the extras or the pet you're wearing (free, and they stay when you change the item) */
+      var dk = DYEFOR[cat];
+      if (dk && (cat === 'a' ? cur.x.length : cur[cat])) {
+        var dr = mk('div', { 'class': 'wddye', role: 'group', 'aria-label': 'Dye' }, [mk('b', { text: '🎨 Dye ' + (cat === 'a' ? 'your extras' : cat === 'h' ? 'your hat' : 'your pet') })]);
+        AV.DYES.forEach(function (D, di) {
+          var bg = !di ? 'conic-gradient(#FF5B5B,#FFD23F,#4FD97A,#53B7FF,#9B6BFF,#FF5B5B)' : D.m ? 'linear-gradient(135deg,#fff,#8A93A3)' : D.c;
+          var sw = mk('button', { type: 'button', 'class': 'wddy' + ((cur[dk] || 0) === di ? ' on' : ''), title: D.n, 'aria-label': D.n, 'aria-pressed': (cur[dk] || 0) === di ? 'true' : 'false', style: 'background:' + bg });
+          sw.onclick = function () { var w = clone(cur); w[dk] = di; wearIt(AV.encode(w)); draw(); };
+          dr.appendChild(sw);
+        });
+        shop.appendChild(dr);
+      }
       var grid = mk('div', { 'class': 'wdgrid' + (SWATCH[cat] ? ' sw' : TEXT[cat] ? ' tx' : '') }); shop.appendChild(grid);
 
       if (cat === 'fav') {

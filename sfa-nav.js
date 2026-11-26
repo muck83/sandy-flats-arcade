@@ -106,6 +106,7 @@
     nav.appendChild(link('check-u2-teacher.html', '🎯 Unit 2 Check', page === 'check-u2-teacher.html'));
     nav.appendChild(link('summative-u2-teacher.html', '📄 Unit 2 Summative', page === 'summative-u2-teacher.html'));
     nav.appendChild(link('squeeze.html?screen#board', '🍋 Squeeze board', false));
+    nav.appendChild(link('showoff-u2.html?screen#board', '🌟 Show-Off podium', false));
     nav.appendChild(link('muddle-host.html', '🫧 Muddle', page === 'muddle-host.html'));
     nav.appendChild(link('day.html', '📅 Student day', page === 'day.html'));
     nav.appendChild(link('report.html', '🧾 Report', page === 'report.html'));
@@ -124,6 +125,7 @@
     }
     nav.appendChild(link('climb.html', '🧗 Climb', page === 'climb.html'));
     nav.appendChild(link('squeeze.html', '🍋 Squeeze Street', page === 'squeeze.html'));
+    nav.appendChild(link('showoff-u2.html', '🌟 Show-Off', page === 'showoff-u2.html'));
     nav.appendChild(link('muddle.html', '🫧 Muddle', page === 'muddle.html'));
     nav.appendChild(link('results.html', '⭐ My Results', page === 'results.html'));
     nav.appendChild(link('avatar.html', '👕 Wardrobe', page === 'avatar.html'));
