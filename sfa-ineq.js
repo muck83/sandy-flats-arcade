@@ -404,41 +404,74 @@
       var ce = el('button', { type: 'button', 'class': 'iqcard', 'data-i': String(ci), draggable: 'false' }); ce.appendChild(cardFace(c.face, spec.range));
       cardEls.push(ce);
       if (o.show) return;
-      /* Drag a card, or tap it and then tap a group. Mouse and pen: the drag starts after a few pixels of movement.
-         Touch: a quick swipe scrolls the page as usual; press and hold for a moment to pick the card up, then drag. */
-      var g = { down: false, moved: false, armed: false, touch: false, sx: 0, sy: 0, lx: 0, ly: 0, ghost: null, timer: 0, over: null };
+      /* Drag a card, or tap it and then tap a group.
+         Mouse and pen: the drag starts after a few pixels of movement.
+         Touch (cards are touch-action: pan-y): a sideways move picks the card up at once; holding still for a moment
+         picks it up too; a quick up-or-down swipe scrolls the page. While dragging, the page scrolls when the card nears
+         the top or bottom edge, so groups below the fold can be reached. If the browser takes the touch away mid-drag
+         (pointercancel), the card stays chosen (gold) and a tap on a group puts it there, so nothing is lost. */
+      var g = { down: false, moved: false, touch: false, id: 0, sx: 0, sy: 0, lx: 0, ly: 0, ghost: null, timer: 0, over: null, raf: 0, gx: 0, gy: 0 };
       function zoneAt(x, y) { var t = document.elementFromPoint(x, y), z = t && t.closest && t.closest('[data-bin]'); return z && root.contains(z) ? z : null; }
       function mark(z) { var b = z ? (z.closest('.iqbin') || z) : null; if (g.over && g.over !== b) g.over.classList.remove('over'); if (b) b.classList.add('over'); g.over = b; }
-      function place(x, y) { if (!g.ghost) return; g.ghost.style.left = (x - 20) + 'px'; g.ghost.style.top = (y - 18) + 'px'; mark(zoneAt(x, y)); }
-      function lift(x, y) {
-        g.moved = true; picked = -1; draw();
-        g.ghost = ce.cloneNode(true); g.ghost.className = 'iqcard iqghost'; g.ghost.removeAttribute('data-i');
-        var r = ce.getBoundingClientRect(); g.ghost.style.width = r.width + 'px'; document.body.appendChild(g.ghost); ce.classList.add('lifted'); place(x, y);
+      function place(x, y) { if (!g.ghost) return; g.ghost.style.transform = 'translate(' + (x - g.gx) + 'px,' + (y - g.gy) + 'px) rotate(-3deg)'; mark(zoneAt(x, y)); }
+      function edge() {   // scroll the page while the card is held near the top or bottom edge
+        g.raf = 0; if (!g.ghost) return;
+        var h = window.innerHeight, m = Math.min(70, h * 0.12), v = 0;
+        if (g.ly < m) v = -Math.ceil((m - g.ly) / 4); else if (g.ly > h - m) v = Math.ceil((g.ly - (h - m)) / 4);
+        if (v) { window.scrollBy(0, v); mark(zoneAt(g.lx, g.ly)); }
+        g.raf = requestAnimationFrame(edge);
       }
-      function end(drop) {
-        clearTimeout(g.timer); var was = g.down; g.down = false; g.armed = false;
-        if (!g.moved || !was) return;
-        if (g.ghost) g.ghost.remove(); g.ghost = null; ce.classList.remove('lifted'); mark(null);
-        var z = drop ? zoneAt(g.lx, g.ly) : null; if (z) move(ci, +z.getAttribute('data-bin'));
+      function lift() {
+        clearTimeout(g.timer); g.moved = true; picked = -1; draw();
+        var r = ce.getBoundingClientRect();
+        g.ghost = ce.cloneNode(true); g.ghost.className = 'iqcard iqghost'; g.ghost.removeAttribute('data-i');
+        g.ghost.style.width = r.width + 'px'; g.ghost.style.left = r.left + 'px'; g.ghost.style.top = r.top + 'px';
+        g.gx = g.sx; g.gy = g.sy;   // the card stays under the finger where it was grabbed
+        document.body.appendChild(g.ghost); ce.classList.add('lifted'); root.classList.add('dragging');
+        place(g.lx, g.ly); if (!g.raf) g.raf = requestAnimationFrame(edge);
+        if (g.touch) { try { if (navigator.vibrate) navigator.vibrate(12); } catch (er) { } }
+      }
+      function clear() {
+        if (g.raf) cancelAnimationFrame(g.raf); g.raf = 0;
+        if (g.ghost) g.ghost.remove(); g.ghost = null; ce.classList.remove('lifted'); root.classList.remove('dragging'); mark(null);
+      }
+      function end(drop, e) {
+        clearTimeout(g.timer); if (!g.down) return; g.down = false;
+        if (e) { g.lx = e.clientX; g.ly = e.clientY; }
+        if (!g.moved) return;
+        var z = drop ? zoneAt(g.lx, g.ly) : null; clear();
+        if (z) move(ci, +z.getAttribute('data-bin'));
+        else if (!drop) { picked = ci; draw(); }   // the browser took the touch: keep the card chosen, tap a group to place it
+        setTimeout(function () { g.moved = false; }, 0);   // let the click that ends a drag see it, then forget
       }
       ce.addEventListener('dragstart', function (e) { e.preventDefault(); });
       ce.addEventListener('contextmenu', function (e) { if (g.down || g.moved) e.preventDefault(); });
       ce.addEventListener('pointerdown', function (e) {
-        if (frozen || state[ci] === 'ok' || e.button > 0) return;
-        g.down = true; g.moved = false; g.armed = false; g.touch = e.pointerType === 'touch'; g.sx = g.lx = e.clientX; g.sy = g.ly = e.clientY;
-        if (!g.touch) { e.preventDefault(); try { ce.setPointerCapture(e.pointerId); } catch (er) { } return; }   // no focus jump, no text selection
+        if (frozen || state[ci] === 'ok' || e.button > 0 || g.down) return;
+        clear(); g.down = true; g.moved = false; g.id = e.pointerId; g.touch = e.pointerType === 'touch';
+        g.sx = g.lx = e.clientX; g.sy = g.ly = e.clientY;
+        try { ce.setPointerCapture(e.pointerId); } catch (er) { }
+        if (!g.touch) { e.preventDefault(); return; }   // no focus jump, no text selection
         clearTimeout(g.timer);
-        g.timer = setTimeout(function () { if (!g.down) return; g.armed = true; lift(g.lx, g.ly); try { if (navigator.vibrate) navigator.vibrate(12); } catch (er) { } }, 220);
+        g.timer = setTimeout(function () { if (g.down && !g.moved) lift(); }, 200);
       });
       ce.addEventListener('pointermove', function (e) {
-        if (!g.down) return; g.lx = e.clientX; g.ly = e.clientY; var dist = Math.hypot(g.lx - g.sx, g.ly - g.sy);
-        if (g.touch && !g.armed) { if (dist > 8) { clearTimeout(g.timer); g.down = false; } return; }   // a swipe: the page scrolls
-        if (!g.moved && dist > 6) lift(g.lx, g.ly);
-        if (g.moved) place(g.lx, g.ly);
+        if (!g.down || e.pointerId !== g.id) return;
+        g.lx = e.clientX; g.ly = e.clientY;
+        var dx = Math.abs(g.lx - g.sx), dy = Math.abs(g.ly - g.sy);
+        if (!g.moved) {
+          if (g.touch) {
+            if (dx > 6 && dx >= dy) lift();   // sideways: drag now
+            else if (dy > 8) { clearTimeout(g.timer); g.down = false; return; }   // up or down: the page scrolls
+            else return;
+          } else if (dx + dy > 5) lift(); else return;
+        }
+        place(g.lx, g.ly);
       });
-      ce.addEventListener('touchmove', function (e) { if (g.armed && e.cancelable) e.preventDefault(); }, { passive: false });
-      ce.addEventListener('pointerup', function (e) { g.lx = e.clientX; g.ly = e.clientY; end(true); });
-      ce.addEventListener('pointercancel', function () { end(false); });
+      ce.addEventListener('touchmove', function (e) { if (g.moved && e.cancelable) e.preventDefault(); }, { passive: false });
+      ce.addEventListener('pointerup', function (e) { if (e.pointerId === g.id) end(true, e); });
+      ce.addEventListener('pointercancel', function (e) { if (e.pointerId === g.id) end(false); });
+      ce.addEventListener('lostpointercapture', function (e) { if (g.down && e.pointerId === g.id) end(true); });
       ce.addEventListener('click', function (e) {
         e.stopPropagation();
         if (g.moved) { g.moved = false; return; }   // the click that ends a drag

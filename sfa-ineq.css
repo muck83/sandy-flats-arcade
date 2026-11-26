@@ -64,14 +64,14 @@
 .picking .iqbin{border-color:var(--marquee);cursor:pointer}
 .picking .iqpool{border-color:var(--marquee);cursor:pointer}
 .iqbin.over,.iqpool.over{border-color:var(--teal);background:rgba(92,224,184,.12);box-shadow:0 0 0 .15em rgba(92,224,184,.35)}
-.iqcard{font:600 1em var(--ui);color:var(--ink);background:var(--panel);border:.12em solid var(--line);border-radius:.55em;padding:.3em .6em;cursor:grab;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;text-align:left;max-width:100%}
+.iqcard{font:600 1em var(--ui);color:var(--ink);background:var(--panel);border:.12em solid var(--line);border-radius:.55em;padding:.3em .6em;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;text-align:left;max-width:100%}
 .iqcard:hover{border-color:var(--marquee)}
 .iqcard.sel{border-color:var(--marquee);background:#3a2f12;box-shadow:0 0 0 .15em rgba(255,201,74,.35)}
 .iqcard.lifted{opacity:.35}
 .iqcard.ok{border-color:var(--green);background:#12301f;cursor:default}
 .iqcard.no{border-color:var(--red);background:#3a1515;animation:iqshake .4s}
 .iqcard b{color:var(--marquee)}
-.iqghost{position:fixed;z-index:9999;pointer-events:none;opacity:.92;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(0,0,0,.5);font-size:16px}
+.iqghost{position:fixed;z-index:9999;pointer-events:none;opacity:.92;margin:0;will-change:transform;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(0,0,0,.5);font-size:16px}
 @keyframes iqshake{20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
 .iqface{display:flex;flex-direction:column;gap:.15em;align-items:flex-start}
 .iqpic{background:rgba(0,0,0,.18);border-radius:.4em;padding:.1em .3em}
@@ -155,3 +155,4 @@
   .iqlbl{font-size:20px}
 }
 @media (prefers-reduced-motion:reduce){.iqray{animation:none;stroke-dashoffset:0}.iqcard.no{animation:none}}
+.dragging,.dragging *{cursor:grabbing!important;user-select:none;-webkit-user-select:none}
