@@ -101,6 +101,32 @@
     if (T.tab && !IQK[T.k]) box.appendChild(H('div', '', table(T.tab)));
   }
 
+  /* ---------- options in a fixed, mixed-up order (so the right one isn't always first); hints move with their option ---------- */
+  function order(id, n) {
+    var h = 2166136261, a = [], i; id = String(id);
+    for (i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    for (i = 0; i < n; i++) a.push(i);
+    for (i = n - 1; i > 0; i--) { h = (Math.imul(h, 1103515245) + 12345) >>> 0; var j = (h >>> 8) % (i + 1), t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;   // a[newPos] = old index
+  }
+  function mixList(list, ans, id) { var o = order(id, list.length); return { list: o.map(function (k) { return list[k]; }), ans: o.indexOf(ans), map: o }; }
+  function mixed(T, id) {
+    if (T.keep) return T;
+    if (T.k === 'choice') {
+      var m = mixList(T.opts, T.ans, id + 'c'), c = Object.assign({}, T, { opts: m.list, ans: m.ans });
+      if (T.no) c.no = m.map.map(function (k) { return T.no[k]; });
+      return c;
+    }
+    if (T.k === 'solve' && T.moves) {
+      return Object.assign({}, T, { moves: T.moves.map(function (mv, i) {
+        var a = mixList(mv.opts || [], mv.ans, id + 'm' + i), r = mixList(mv.res || [], mv.rans, id + 'r' + i), n = Object.assign({}, mv, { opts: a.list, ans: a.ans, res: r.list, rans: r.ans });
+        if (mv.no) { n.no = {}; a.map.forEach(function (k, p) { if (mv.no[k] != null) n.no[p] = mv.no[k]; }); r.map.forEach(function (k, p) { if (mv.no['r' + k] != null) n.no['r' + p] = mv.no['r' + k]; }); }
+        return n;
+      }) });
+    }
+    return T;
+  }
+
   /* ---------- task widgets: each returns { root, check() → {ok, msg} | null, showAnswer(), freeze() } or self-checking ---------- */
   var IQK = { solve: 1, sort: 1, match: 1, plane: 1, pick: 1, nl: 1, build: 1 };
   var K = {};
@@ -219,6 +245,7 @@
     };
     function slipsOf(ans) { var m = String(ans || '').match(/\((\d+) slip/); return m ? +m[1] : 0; }
     function upd() { var s = document.getElementById('hwStreak'); if (s) s.textContent = cur.streak; var cn = document.getElementById('hwCoins'); if (cn) cn.textContent = totalCoins() + cur.coins; }
+    T = mixed(T, o.id);
     if (IQK[T.k]) {
       var spec = Object.assign({}, T); delete spec.q;
       w = IQ.W[T.k](spec, { id: o.id, show: false, done: function (ans, ok) { o.done(ans); } });
@@ -296,7 +323,7 @@
     home();
   };
   if (!/^u[34]-\d\d$/.test(key)) { app.innerHTML = '<div class="hwcard"><h2>Pick a homework game</h2><p><a href="homework.html">All homework games</a></p></div>'; return; }
-  var s = document.createElement('script'); s.src = 'hw/' + key + '.js?v=20261127a';
+  var s = document.createElement('script'); s.src = 'hw/' + key + '.js?v=20261127b';
   s.onerror = function () { app.innerHTML = '<div class="hwcard"><h2>That homework isn\'t here yet</h2><p><a href="homework.html">All homework games</a></p></div>'; };
   document.head.appendChild(s);
 })();
