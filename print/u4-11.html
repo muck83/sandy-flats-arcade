@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 Linear Systems · Lesson 11: Choose Your Method · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 4 Linear Systems · Lesson 11: Choose Your Method</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u4-11">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 11</div>
+      <div class="h1">Choose Your Method</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> look at a system and choose the fastest method to solve it.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes</div>
+    <p>1. Graphing, substitution and elimination all give the <span class="bl" style="min-width:80px"></span> solution.</p>
+    <p>2. <span class="bl" style="min-width:110px"></span> is best when you want to SEE the lines, or an <span class="bl" style="min-width:100px"></span> is enough.</p>
+    <p>3. <span class="bl" style="min-width:120px"></span> is best when a variable is already <span class="bl" style="min-width:80px"></span> (like <span class="m">y = 3x − 1</span>).</p>
+    <p>4. <span class="bl" style="min-width:110px"></span> is best for <span class="m">ax + by = c</span> form with <span class="bl" style="min-width:100px"></span> or equal coefficients.</p>
+    <p>5. Look first: the best method has the fewest <span class="bl" style="min-width:80px"></span> and the cleanest numbers.</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example · look first, then choose the move</div>
+    <div class="row" style="gap:18px;align-items:flex-start">
+      <div style="flex:none;font-size:16px;line-height:1.6">Solve:<br><span class="m">y = x + 2</span><br><span class="m">3x + y = 14</span><br><span style="font-size:13.5px;color:#3b434b"><b>I notice:</b> y is<br>already alone.<br><b>I choose:</b><br>substitution.</span></div>
+      <table class="tbl" style="flex:1;font-size:14px">
+        <tr><th style="width:38%">Move I choose</th><th>What it gives me</th></tr>
+        <tr><td>Replace y with <span class="m">x + 2</span></td><td><span class="m">3x + (x + 2) = 14</span></td></tr>
+        <tr><td>Collect like terms</td><td><span class="m">4x + 2 = 14</span></td></tr>
+        <tr><td>Subtract 2, divide by 4</td><td><span class="m">x = 3</span></td></tr>
+        <tr><td>Put 3 in <span class="m">y = x + 2</span></td><td><span class="m">y = 5</span></td></tr>
+        <tr><td>Check in <span class="m">3x + y = 14</span></td><td><span class="m">9 + 5 = 14</span> ✓ &#160;<b>Solution: (3, 5)</b></td></tr>
+      </table>
+    </div>
+    <p style="font-size:14px">Why not elimination? It works too, but first we would need to rewrite <span class="m">y = x + 2</span> as <span class="m">−x + y = 2</span>: one extra step.</p>
+  </div>
+
+  <h2 class="h2">Your turn <span style="font:400 14px 'Atkinson Hyperlegible',Arial,sans-serif;color:#3b434b">Choose a method for each and give a reason. Solve at least one.</span></h2>
+  <div class="three">
+    <div class="box" style="gap:5px"><b>a)</b><span><span class="m">y = 3x − 1</span><br><span class="m">y = −x + 7</span></span><span style="font-size:14px">Method: <span class="bl" style="min-width:100px"></span></span><span style="font-size:14px">Because: <span class="bl" style="min-width:96px"></span></span><div class="work" style="height:108px"></div><span>( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> )</span></div>
+    <div class="box" style="gap:5px"><b>b)</b><span><span class="m">4x + 3y = 18</span><br><span class="m">2x − 3y = 0</span></span><span style="font-size:14px">Method: <span class="bl" style="min-width:100px"></span></span><span style="font-size:14px">Because: <span class="bl" style="min-width:96px"></span></span><div class="work" style="height:108px"></div><span>( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> )</span></div>
+    <div class="box" style="gap:5px"><b>c)</b><span><span class="m">x = 2y</span><br><span class="m">x + y = 9</span></span><span style="font-size:14px">Method: <span class="bl" style="min-width:100px"></span></span><span style="font-size:14px">Because: <span class="bl" style="min-width:96px"></span></span><div class="work" style="height:108px"></div><span>( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> )</span></div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 11 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 11</div>
+      <div class="h1">Choose Your Method</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> explain why one method is faster than another for a given system.</span>
+  </div>
+
+  <div class="box" style="gap:5px"><div class="lab">The situation</div>
+    <p>Three students solve every system their favorite way. <b>Lina</b> always graphs. <b>Faisal</b> always substitutes. <b>Maya</b> always eliminates. Which method wins for each kind of system?</p>
+  </div>
+
+  <h2 class="h2"><span class="num">1</span>Look first, then choose</h2>
+  <p>Do <b>not</b> solve yet. For each system, write what you notice and who would win: Lina, Faisal or Maya.</p>
+  <table class="tbl" style="font-size:14px;line-height:1.3">
+    <tr><th style="width:6%">#</th><th style="width:36%">System</th><th>What I notice</th><th style="width:20%">Best method</th></tr>
+    <tr><td><b>1</b></td><td style="text-align:left"><span class="m">y = 2x + 1</span> &#160;&#160; <span class="m">y = −x + 7</span></td><td style="text-align:left;font-size:13.5px" class="starter">Both are y = …, so set them equal.</td><td style="font-size:13.5px">Faisal (or Lina)</td></tr>
+    <tr><td><b>2</b></td><td style="text-align:left"><span class="m">3x + 2y = 16</span> &#160;&#160; <span class="m">5x − 2y = 16</span></td><td></td><td></td></tr><tr><td><b>3</b></td><td style="text-align:left"><span class="m">x = 3y − 1</span> &#160;&#160; <span class="m">2x + 5y = 20</span></td><td></td><td></td></tr><tr><td><b>4</b></td><td style="text-align:left"><span class="m">2x + 3y = 13</span> &#160;&#160; <span class="m">3x + 4y = 18</span></td><td></td><td></td></tr><tr><td><b>5</b></td><td style="text-align:left"><span class="m">y = x + 1</span> &#160;&#160; <span class="m">y = −2x + 10</span></td><td></td><td></td></tr><tr><td><b>6</b></td><td style="text-align:left"><span class="m">4x − y = 9</span> &#160;&#160; <span class="m">2x + 3y = 15</span></td><td></td><td></td></tr>
+  </table>
+  <div class="hint"><b>Hint</b>Look for a variable alone, opposite or equal coefficients, or easy-to-graph lines.</div>
+
+  <h2 class="h2"><span class="num">2</span>Solve two, two different ways</h2>
+  <p>Pick two systems from the table that need <b>different</b> methods. Solve them fully and check.</p>
+  <div class="two" style="gap:12px">
+    <div class="box" style="gap:5px"><span>System # <span class="bl" style="min-width:36px"></span> &#160; Method: <span class="bl" style="min-width:120px"></span></span><div class="work" style="height:190px"></div><span>Solution ( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> ) &#160; Checked ✓ <span class="bl" style="min-width:30px"></span></span></div>
+    <div class="box" style="gap:5px"><span>System # <span class="bl" style="min-width:36px"></span> &#160; Method: <span class="bl" style="min-width:120px"></span></span><div class="work" style="height:190px"></div><span>Solution ( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> ) &#160; Checked ✓ <span class="bl" style="min-width:30px"></span></span></div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 11 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 11</div>
+      <div class="h1">Choose Your Method</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · continued</span>
+    <span class="target"><b>I can</b> decide when an estimate from a graph is good enough.</span>
+  </div>
+
+  <h2 class="h2"><span class="num">3</span>When is an estimate enough?</h2>
+  <div class="row" style="gap:16px;align-items:flex-start;flex-wrap:nowrap">
+    <div style="flex:none"><svg width="350" height="306" viewBox="0 0 350 306" role="img" aria-label="Graph of water in two tanks over 6 hours. Tank A starts at 600 liters and goes down. Tank B starts at 200 liters and goes up. They cross a little before 3.5 hours at about 440 liters."><defs><pattern id="w11" x="44" y="20" width="24" height="18" patternUnits="userSpaceOnUse"><path d="M24 0H0V18" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="44" y="20" width="288" height="252" fill="url(#w11)" stroke="#59626b" stroke-width="1"></rect><path d="M44 272H332M44 20V272" stroke="#1b1f23" stroke-width="2"></path><text x="44" y="287" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="92" y="287" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="140" y="287" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="188" y="287" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="236" y="287" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="284" y="287" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="332" y="287" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="39" y="276" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">0</text><text x="39" y="240" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">100</text><text x="39" y="204" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">200</text><text x="39" y="168" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">300</text><text x="39" y="132" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">400</text><text x="39" y="96" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">500</text><text x="39" y="60" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">600</text><text x="39" y="24" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">700</text><path d="M44 56.0L332 153.2" stroke="#0e6b70" stroke-width="2.5"></path><path d="M44 200.0L332 48.8" stroke="#a64b08" stroke-width="2.5" stroke-dasharray="7 5"></path><text x="104" y="50" font-size="12" font-weight="700" fill="#0e6b70" font-family="Arial">Tank A</text><text x="64" y="218" font-size="12" font-weight="700" fill="#a64b08" font-family="Arial">Tank B</text><text x="188" y="302" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">Time (hours)</text><text x="12" y="146" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle" transform="rotate(-90 12 146)">Water (liters)</text></svg></div>
+    <div style="display:flex;flex-direction:column;gap:7px;font-size:15px">
+      <p>At a desert camp, Tank A has 600 L and loses 45 L each hour: <span class="m">A = 600 − 45t</span>. Tank B has 200 L and gains 70 L each hour: <span class="m">B = 200 + 70t</span>.</p>
+      <p>The leader swaps the hoses when the tanks are equal. She only needs the time <b>to the nearest half hour</b>.</p>
+      <p>a) From the graph, the tanks are equal after about <span class="bl" style="min-width:50px"></span> hours, with about <span class="bl" style="min-width:50px"></span> L each.</p>
+      <p>b) Is the graph good enough for the leader? Why?</p>
+      <div class="work" style="height:84px"></div>
+      <p>c) When would you need algebra instead?</p>
+      <div class="work" style="height:28px"></div>
+    </div>
+  </div>
+
+  <h2 class="h2"><span class="num">4</span>Make a “best when …” table</h2>
+  <table class="tbl" style="font-size:14px">
+    <tr><th style="width:18%">Method</th><th>Best when …</th><th style="width:30%">Watch out for …</th><th style="width:13%">Example #</th></tr>
+    <tr><th>Graphing</th><td></td><td></td><td></td></tr>
+    <tr><th>Substitution</th><td></td><td></td><td></td></tr>
+    <tr><th>Elimination</th><td></td><td></td><td></td></tr>
+  </table>
+
+  <div class="box vocab">
+    <div class="lab">What did you discover?</div>
+    <p>Every method gives the <span class="bl" style="min-width:70px"></span> answer. I choose by <span class="bl" style="min-width:90px"></span> at the equations first.</p>
+    <p>Variable alone → <span class="bl" style="min-width:100px"></span>. Opposite or equal → <span class="bl" style="min-width:100px"></span>. Estimate → <span class="bl" style="min-width:80px"></span>.</p>
+  </div>
+  <div class="two">
+    <div class="check"><div class="lab">Check yourself</div><span>The six x-values on page 2 add to 19.</span><span>The six y-values add to 19 too.</span><span>Your two solutions work in both equations.</span></div>
+    <div class="further"><div class="lab">Go further</div><p style="font-size:14.5px">Find the exact time the tanks are equal with algebra. Give it in hours and minutes. How close was your graph estimate?</p></div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 11 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

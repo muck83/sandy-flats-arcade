@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 3 Functions & Graphing · Lesson 14: Error Detective · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 3 Functions &amp; Graphing · Lesson 14: Error Detective</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u3-14">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 14</div>
+      <div class="h1">Error Detective</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> find, explain and fix a mistake in math work.</span>
+  </div>
+
+  <div class="two" style="grid-template-columns:1.45fr 1fr">
+    <div class="box vocab">
+      <div class="lab">Fill in the notes</div>
+      <p>1. A mistake is <span class="bl" style="min-width:100px"></span> about what to learn.</p>
+      <p>2. Find the <span class="bl" style="min-width:70px"></span> step that is wrong.</p>
+      <p>3. Name the mistake. Write the <span class="bl" style="min-width:60px"></span> (correct work).</p>
+      <p>4. Explain <span class="bl" style="min-width:60px"></span> someone might make it.</p>
+      <p>5. Always <span class="bl" style="min-width:70px"></span> your fix: test a point.</p>
+    </div>
+    <div class="box">
+      <div class="lab">Detective words</div>
+      <p><b>Case file:</b> work to check.</p>
+      <p>A <span class="bl" style="min-width:70px"></span> is what the student says is true.</p>
+      <p><span class="bl" style="min-width:80px"></span> is the math that proves it right or wrong.</p>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example: case file 0</div>
+    <p><b>Question:</b> Find the slope of the line through (1, 5) and (3, 1).</p>
+    <p style="border-left:3px solid #a64b08;padding-left:9px;font-style:italic;color:#3b434b">Student work: &#160;<span class="m">m</span> = (3 − 1) ÷ (1 − 5) = 2 ÷ (−4) = −½</p>
+    <table class="tbl" style="font-size:14px">
+      <tr><th style="width:30%">Detective step</th><th>What I find</th></tr>
+      <tr><td style="text-align:left">Read the question</td><td style="text-align:left">Slope = change in <span class="m">y</span> ÷ change in <span class="m">x</span>.</td></tr>
+      <tr><td style="text-align:left">Find the first wrong step</td><td style="text-align:left">The first line: the <span class="m">x</span>-values (3 − 1) are on top.</td></tr>
+      <tr><td style="text-align:left">Name the mistake</td><td style="text-align:left">Rise and run are swapped (the fraction is upside down).</td></tr>
+      <tr><td style="text-align:left">Write the fix</td><td style="text-align:left"><span class="m">m</span> = (1 − 5) ÷ (3 − 1) = −4 ÷ 2 = −2</td></tr>
+      <tr><td style="text-align:left">Why someone might do it</td><td style="text-align:left">Both parts use subtraction, so it is easy to mix up which goes on top.</td></tr>
+      <tr><td style="text-align:left">Check the fix</td><td style="text-align:left">From (1, 5): right 2, down 4 lands on (3, 1). ✓</td></tr>
+    </table>
+  </div>
+
+  <div class="h2"><span class="num">✓</span>Your turn: name the mistake and fix it</div>
+  <div class="three">
+    <div class="box" style="gap:6px">
+      <p><b>a.</b> “<span class="m">y = 4x − 7</span> has a <span class="m">y</span>-intercept of 7.”</p>
+      <p style="font-size:14.5px">Mistake:</p><div class="work" style="height:84px"></div>
+      <p style="font-size:14.5px">Fix: <span class="bl" style="min-width:110px"></span></p>
+    </div>
+    <div class="box" style="gap:6px">
+      <p><b>b.</b> <span class="m">x</span>: 1, 2, 3, 4 &#160;<span class="m">y</span>: 5, 8, 11, 14<br>“The rate of change is 5.”</p>
+      <p style="font-size:14.5px">Mistake:</p><div class="work" style="height:84px"></div>
+      <p style="font-size:14.5px">Fix: <span class="bl" style="min-width:110px"></span></p>
+    </div>
+    <div class="box" style="gap:6px">
+      <p><b>c.</b> “<span class="m">f(x) = 3x</span>, so <span class="m">f(5) = 3 + 5 = 8</span>.”</p>
+      <p style="font-size:14.5px">Mistake:</p><div class="work" style="height:84px"></div>
+      <p style="font-size:14.5px">Fix: <span class="bl" style="min-width:110px"></span></p>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 3 · Lesson 14 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 14</div>
+      <div class="h1">Error Detective</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> find, explain and fix mistakes about slope, graphs and transformations.</span>
+  </div>
+
+  <div class="box" style="gap:5px">
+    <div class="lab">Welcome to the Riyadh Math Detective Agency</div>
+    <p>Each case file shows a student’s work. <b>One thing is wrong.</b> With your partner: read the work out loud, find the first wrong step, then fill in the three lines. Switch who reads for each case.</p>
+  </div>
+  <div class="two">
+    <div class="box" style="gap:6px;padding:10px 13px"><div class="lab">Case file 1 · Slope</div><div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start"><div style="display:flex;flex-direction:column;gap:5px"><p>Find the slope of this line.</p><div style="border-left:3px solid #a64b08;padding:2px 0 2px 9px;font-size:14.5px;font-style:italic;color:#3b434b">“Rise = 6, run = 3, so the slope is 6 ÷ 3 = 2.”</div></div><svg width="128" height="120" viewBox="0 0 128 120" role="img" aria-label="Line through (0, 6) and (3, 0)"><defs><pattern id="g14a" x="18" y="8" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="18" y="8" width="96" height="96" fill="url(#g14a)" stroke="#59626b" stroke-width="1"></rect><path d="M18 104H114 M18 8V104" stroke="#1b1f23" stroke-width="2"></path><text x="18" y="117" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="50" y="117" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="82" y="117" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="114" y="117" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="14" y="76" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2</text><text x="14" y="44" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><text x="14" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">6</text><line x1="18" y1="8" x2="66" y2="104" stroke="#0e6b70" stroke-width="2.5"></line><circle cx="18" cy="8" r="3.5" fill="#0e6b70"></circle><circle cx="66" cy="104" r="3.5" fill="#0e6b70"></circle></svg></div><div style="display:flex;flex-direction:column;gap:3px;font-size:14.5px"><p><b>The mistake is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>The fix is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>Someone might do this because</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div></div></div>
+    <div class="box" style="gap:6px;padding:10px 13px"><div class="lab">Case file 2 · Equation from a graph</div><div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start"><div style="display:flex;flex-direction:column;gap:5px"><p>Write the equation of this line.</p><div style="border-left:3px solid #a64b08;padding:2px 0 2px 9px;font-size:14.5px;font-style:italic;color:#3b434b">“Slope = −2. The line crosses at 2, so <span class="m">b</span> = 2. My equation is <span class="m">y = −2x + 2</span>.”</div></div><svg width="122" height="114" viewBox="0 0 122 114" role="img" aria-label="Line crossing the y-axis at 4 and the x-axis at 2"><defs><pattern id="g14b" x="18" y="8" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M18 0H0V18" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="18" y="8" width="90" height="90" fill="url(#g14b)" stroke="#59626b" stroke-width="1"></rect><path d="M18 98H108 M18 8V98" stroke="#1b1f23" stroke-width="2"></path><text x="18" y="111" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="36" y="111" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="54" y="111" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="72" y="111" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="90" y="111" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="108" y="111" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="14" y="84" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1</text><text x="14" y="66" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2</text><text x="14" y="48" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">3</text><text x="14" y="30" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><text x="14" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">5</text><line x1="18" y1="26" x2="54" y2="98" stroke="#0e6b70" stroke-width="2.5"></line></svg></div><div style="display:flex;flex-direction:column;gap:3px;font-size:14.5px"><p><b>The mistake is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>The fix is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>Someone might do this because</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div></div></div>
+  </div>
+  <div class="two">
+    <div class="box" style="gap:6px;padding:10px 13px"><div class="lab">Case file 3 · Is it a function?</div><div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start"><div style="display:flex;flex-direction:column;gap:5px"><p>Is this graph a function?</p><div style="border-left:3px solid #a64b08;padding:2px 0 2px 9px;font-size:14.5px;font-style:italic;color:#3b434b">“I drew a line at <span class="m">y</span> = 2. It hits the graph twice, so it is <b>not</b> a function.”</div></div><svg width="134" height="92" viewBox="0 0 134 92" role="img" aria-label="V-shaped graph y equals absolute value of x, with a dashed horizontal line at y equals 2 crossing it twice"><defs><pattern id="g14c" x="18" y="8" width="17" height="17" patternUnits="userSpaceOnUse"><path d="M17 0H0V17" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="18" y="8" width="102" height="68" fill="url(#g14c)" stroke="#59626b" stroke-width="1"></rect><path d="M18 76H120 M69 8V76" stroke="#1b1f23" stroke-width="2"></path><text x="18" y="89" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">−3</text><text x="35" y="89" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">−2</text><text x="52" y="89" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">−1</text><text x="86" y="89" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="103" y="89" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="120" y="89" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="65" y="63" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1</text><text x="65" y="46" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2</text><text x="65" y="29" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">3</text><text x="65" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><polyline points="18,25 69,76 120,25" fill="none" stroke="#0e6b70" stroke-width="2.5"></polyline><line x1="18" y1="42" x2="120" y2="42" stroke="#a64b08" stroke-width="2" stroke-dasharray="7 5"></line><circle cx="35" cy="42" r="3.5" fill="#a64b08"></circle><circle cx="103" cy="42" r="3.5" fill="#a64b08"></circle></svg></div><div style="display:flex;flex-direction:column;gap:3px;font-size:14.5px"><p><b>The mistake is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>The fix is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>Someone might do this because</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div></div></div>
+    <div class="box" style="gap:6px;padding:10px 13px"><div class="lab">Case file 4 · Transformation</div><div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start"><div style="display:flex;flex-direction:column;gap:5px"><p>Describe <span class="m">g(x) = f(x) + 3</span>.</p><div style="border-left:3px solid #a64b08;padding:2px 0 2px 9px;font-size:14.5px;font-style:italic;color:#3b434b">“The + 3 moves the graph 3 units to the <b>right</b>.” (The student drew <span class="m">g</span> dashed.)</div></div><svg width="116" height="122" viewBox="0 0 116 122" role="img" aria-label="Line f of x equals x, and the student sketch of g, a dashed line 3 units to the right of f"><defs><pattern id="g14d" x="18" y="8" width="14" height="14" patternUnits="userSpaceOnUse"><path d="M14 0H0V14" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="18" y="8" width="84" height="98" fill="url(#g14d)" stroke="#59626b" stroke-width="1"></rect><path d="M18 64H102 M18 8V106" stroke="#1b1f23" stroke-width="2"></path><text x="18" y="119" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="46" y="119" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="74" y="119" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="102" y="119" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="14" y="110" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">−3</text><text x="14" y="82" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">−1</text><text x="14" y="54" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1</text><text x="14" y="26" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">3</text><line x1="18" y1="64" x2="74" y2="8" stroke="#0e6b70" stroke-width="2.5"></line><line x1="18" y1="106" x2="102" y2="22" stroke="#a64b08" stroke-width="2.2" stroke-dasharray="7 5"></line><text x="55" y="20" font-size="12" fill="#0e6b70" font-family="Arial" text-anchor="end" font-weight="bold">f</text><text x="93" y="46" font-size="12" fill="#a64b08" font-family="Arial" text-anchor="start" font-weight="bold">g</text></svg></div><div style="display:flex;flex-direction:column;gap:3px;font-size:14.5px"><p><b>The mistake is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>The fix is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>Someone might do this because</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div></div></div>
+  </div>
+  <div class="hint"><b>Hint</b>Stuck on case 3? Ask: “What does one point stacked above another point mean for inputs and outputs?”</div>
+
+  <div class="ft"><span>Unit 3 · Lesson 14 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 14</div>
+      <div class="h1">Error Detective</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> find, explain and fix mistakes about domain, notation and rate.</span>
+  </div>
+
+  <div class="two">
+    <div class="box" style="gap:6px;padding:10px 13px"><div class="lab">Case file 5 · Domain</div><div style="display:flex;flex-direction:column;gap:5px"><p>Riyadh Metro: one ticket costs 4 SAR. <span class="m">C(t) = 4t</span>, where <span class="m">t</span> = number of tickets. Give the domain.</p><div style="border-left:3px solid #a64b08;padding:2px 0 2px 9px;font-size:14.5px;font-style:italic;color:#3b434b">“Domain: all numbers from −10 to 10.”</div></div><div style="display:flex;flex-direction:column;gap:3px;font-size:14.5px"><p><b>The mistake is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>The fix is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>Someone might do this because</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div></div></div>
+    <div class="box" style="gap:6px;padding:10px 13px"><div class="lab">Case file 6 · Function notation</div><div style="display:flex;flex-direction:column;gap:5px"><p><span class="m">f(x) = 2x − 1</span>. Find <span class="m">x</span> when <span class="m">f(x) = 3</span>.</p><div style="border-left:3px solid #a64b08;padding:2px 0 2px 9px;font-size:14.5px;font-style:italic;color:#3b434b">“<span class="m">f(3) = 2(3) − 1 = 5</span>, so <span class="m">x = 5</span>.”</div></div><div style="display:flex;flex-direction:column;gap:3px;font-size:14.5px"><p><b>The mistake is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>The fix is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>Someone might do this because</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div></div></div>
+  </div>
+  <div class="two">
+    <div class="box" style="gap:6px;padding:10px 13px"><div class="lab">Case file 7 · Inverse</div><div style="display:flex;flex-direction:column;gap:5px"><p>1 USD = 3.75 SAR. Change 30 SAR into USD.</p><div style="border-left:3px solid #a64b08;padding:2px 0 2px 9px;font-size:14.5px;font-style:italic;color:#3b434b">“30 × 3.75 = 112.50, so 30 SAR is 112.50 USD.”</div></div><div style="display:flex;flex-direction:column;gap:3px;font-size:14.5px"><p><b>The mistake is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>The fix is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>Someone might do this because</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div></div></div>
+    <div class="box" style="gap:6px;padding:10px 13px"><div class="lab">Case file 8 · Rate of change</div><div style="display:flex;flex-direction:column;gap:5px"><p><span class="m">x</span>: 0, 2, 4, 6 &#160; <span class="m">y</span>: 1, 7, 13, 19. Write the equation.</p><div style="border-left:3px solid #a64b08;padding:2px 0 2px 9px;font-size:14.5px;font-style:italic;color:#3b434b">“<span class="m">y</span> goes up 6 each time, so the slope is 6: <span class="m">y = 6x + 1</span>.”</div></div><div style="display:flex;flex-direction:column;gap:3px;font-size:14.5px"><p><b>The mistake is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>The fix is</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div><p><b>Someone might do this because</b></p><div class="bl" style="min-width:100%;margin:0;height:20px"></div></div></div>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">What did you discover? My detective checklist</div>
+    <p>1. Line goes up: <span class="bl" style="min-width:76px"></span> slope. Down: <span class="bl" style="min-width:76px"></span> slope. &#160;2. The <span class="m">y</span>-intercept is on the <span class="bl" style="min-width:30px"></span>-axis.</p>
+    <p>3. The function test uses <span class="bl" style="min-width:80px"></span> lines: one input, only one <span class="bl" style="min-width:70px"></span>.</p>
+    <p>4. <span class="m">f(x) + k</span> moves the graph up or <span class="bl" style="min-width:60px"></span>. &#160;5. A domain has only <span class="bl" style="min-width:80px"></span> values from the story.</p>
+    <p>6. <span class="m">f(3)</span>: the input is 3. <span class="m">f(x) = 3</span>: the <span class="bl" style="min-width:70px"></span> is 3. &#160;7. Rate = change in <span class="m">y</span> ÷ change in <span class="bl" style="min-width:30px"></span>.</p>
+  </div>
+  <div class="two">
+    <div class="check"><div class="lab">Check yourself</div><span>Your fixed numbers in cases 1, 2, 6, 7 and 8 add to 15.</span><span>Every fix line has math in it.</span></div>
+    <div class="further"><div class="lab">Go further</div><p style="font-size:14.5px">Write your own case file for your partner: wrong work about stretching, like “<span class="m">g(x) = ½ f(x)</span> is steeper”. Then solve theirs.</p></div>
+  </div>
+
+  <div class="ft"><span>Unit 3 · Lesson 14 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

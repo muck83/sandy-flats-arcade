@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 3 Functions & Graphing · Lesson 2: Function Machines · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 3 Functions &amp; Graphing · Lesson 2: Function Machines</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u3-02">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 2</div>
+      <div class="h1">Function Machines</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> decide if a rule is a function: each input gives exactly one output.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes</div>
+    <p>1. A <span class="bl" style="min-width:110px"></span> is a rule that gives each <span class="bl" style="min-width:80px"></span> exactly <span class="bl" style="min-width:60px"></span> <span class="bl" style="min-width:80px"></span>.</p>
+    <p>2. Different inputs can give the <span class="bl" style="min-width:80px"></span> output. That is still a function.</p>
+    <p>3. If one input gives <span class="bl" style="min-width:60px"></span> different outputs, it is <span class="bl" style="min-width:60px"></span> a function.</p>
+    <p>4. We can show a function as a machine, a <span class="bl" style="min-width:80px"></span>, a mapping <span class="bl" style="min-width:90px"></span>, or a set of ordered <span class="bl" style="min-width:80px"></span>.</p>
+  </div>
+  <div class="box"><div class="lab">One function, four ways · rule: times 2, then add 1</div><div style="display:grid;grid-template-columns:150px 1fr 150px 1fr;gap:14px;align-items:center">
+<div><svg width="150" height="78" viewBox="0 0 150 78" role="img" aria-label="Function machine: input 2 goes in, rule times 2 then plus 1, output 5 comes out"><defs><marker id="ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1b1f23"></path></marker></defs><rect x="40" y="14" width="70" height="46" rx="6" fill="#fff" stroke="#0e6b70" stroke-width="2"></rect><text x="75" y="35" font-size="12" font-family="Arial" text-anchor="middle" fill="#1b1f23">×2</text><text x="75" y="51" font-size="12" font-family="Arial" text-anchor="middle" fill="#1b1f23">then +1</text><line x1="4" y1="37" x2="38" y2="37" stroke="#1b1f23" stroke-width="1.6" marker-end="url(#ma)"></line><line x1="112" y1="37" x2="146" y2="37" stroke="#1b1f23" stroke-width="1.6" marker-end="url(#ma)"></line><text x="14" y="30" font-size="13" font-family="Arial" fill="#1b1f23">2</text><text x="126" y="30" font-size="13" font-family="Arial" fill="#1b1f23">5</text><text x="4" y="74" font-size="11" font-family="Arial" fill="#59626b">input</text><text x="114" y="74" font-size="11" font-family="Arial" fill="#59626b">output</text></svg></div>
+<table class="tbl" style="font-size:14px"><tr><th style="padding:3px 6px;height:20px">x</th><th style="padding:3px 6px;height:20px">y</th></tr><tr><td style="padding:3px 6px;height:20px">1</td><td style="padding:3px 6px;height:20px">3</td></tr><tr><td style="padding:3px 6px;height:20px">2</td><td style="padding:3px 6px;height:20px">5</td></tr><tr><td style="padding:3px 6px;height:20px">3</td><td style="padding:3px 6px;height:20px">7</td></tr></table>
+<div><svg width="150" height="92" viewBox="0 0 150 92" role="img" aria-label="Mapping diagram"><defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#0e6b70"></path></marker><marker id="m1h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#a64b08"></path></marker></defs><ellipse cx="26" cy="46" rx="20" ry="42" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><ellipse cx="124" cy="46" rx="20" ry="42" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><text x="26" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">1</text><text x="26" y="51" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">2</text><text x="26" y="82" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">3</text><text x="124" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">3</text><text x="124" y="51" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">5</text><text x="124" y="82" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">7</text><line x1="37.0" y1="15" x2="111.0" y2="15" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m1)"></line><line x1="37.0" y1="46" x2="111.0" y2="46" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m1)"></line><line x1="37.0" y1="77" x2="111.0" y2="77" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m1)"></line></svg></div>
+<p style="font-size:14px"><b>Ordered pairs</b><br>(1, 3), (2, 5), (3, 7)<br><span style="color:#59626b">(input, output)</span></p>
+</div></div>
+  <div class="box">
+    <div class="lab">Worked example</div>
+    <p>Is this set of pairs a function? &#160;<span class="m">(1, 4), (2, 6), (3, 8), (1, 9)</span></p>
+    <div style="display:flex;gap:14px;align-items:center">
+      <table class="tbl" style="font-size:14px">
+        <tr><th style="width:44%">Move I choose</th><th>What it gives me</th></tr>
+        <tr><td style="text-align:left;padding:3px 8px">1. List the inputs (first numbers)</td><td style="text-align:left;padding:3px 8px">1, 2, 3, 1</td></tr>
+        <tr><td style="text-align:left;padding:3px 8px">2. Look for a repeated input</td><td style="text-align:left;padding:3px 8px">Input 1 appears twice.</td></tr>
+        <tr><td style="text-align:left;padding:3px 8px">3. Check its outputs</td><td style="text-align:left;padding:3px 8px">1 goes to 4 <b>and</b> to 9: two outputs.</td></tr>
+        <tr><td style="text-align:left;padding:3px 8px">4. Decide and give the reason</td><td style="text-align:left;padding:3px 8px"><b>Not a function</b>: input 1 has two outputs.</td></tr>
+      </table>
+      <svg width="160" height="110" viewBox="0 0 160 110" role="img" aria-label="Mapping diagram"><defs><marker id="m2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#0e6b70"></path></marker><marker id="m2h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#a64b08"></path></marker></defs><ellipse cx="26" cy="55" rx="20" ry="51" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><ellipse cx="134" cy="55" rx="20" ry="51" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><text x="26" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">1</text><text x="26" y="60" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">2</text><text x="26" y="100" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">3</text><text x="134" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">4</text><text x="134" y="46.67" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">6</text><text x="134" y="73.33" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">8</text><text x="134" y="100" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">9</text><line x1="37.0" y1="15" x2="121.0" y2="15" stroke="#a64b08" stroke-width="1.8" marker-end="url(#m2h)"></line><line x1="37.0" y1="55" x2="121.0" y2="41.67" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m2)"></line><line x1="37.0" y1="95" x2="121.0" y2="68.33" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m2)"></line><line x1="37.0" y1="15" x2="121.0" y2="95" stroke="#a64b08" stroke-width="1.8" marker-end="url(#m2h)"></line></svg>
+    </div>
+  </div>
+  <div class="h2"><span class="num">?</span>Your turn: function or not? Circle one, then say why.</div>
+  <div class="three">
+    <div class="box"><p><b>a)</b> <span class="m">(2, 5), (3, 5), (4, 5)</span></p><p>Function: &#160;Yes &#160;/ &#160;No</p><p class="starter">Because …</p><div class="work" style="height:60px"></div></div>
+    <div class="box"><p><b>b)</b> Function: &#160;Yes &#160;/ &#160;No</p><table class="tbl" style="font-size:14px"><tr><th style="padding:3px 6px;height:20px">x</th><td style="padding:3px 6px;height:20px">1</td><td style="padding:3px 6px;height:20px">2</td><td style="padding:3px 6px;height:20px">2</td><td style="padding:3px 6px;height:20px">3</td></tr><tr><th style="padding:3px 6px;height:20px">y</th><td style="padding:3px 6px;height:20px">0</td><td style="padding:3px 6px;height:20px">4</td><td style="padding:3px 6px;height:20px">5</td><td style="padding:3px 6px;height:20px">6</td></tr></table><p class="starter">Because …</p></div>
+    <div class="box"><p><b>c)</b> Function: &#160;Yes &#160;/ &#160;No</p><svg width="150" height="76" viewBox="0 0 150 76" role="img" aria-label="Mapping diagram"><defs><marker id="m3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#0e6b70"></path></marker><marker id="m3h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#a64b08"></path></marker></defs><ellipse cx="26" cy="38" rx="20" ry="34" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><ellipse cx="124" cy="38" rx="20" ry="34" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><text x="26" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">3</text><text x="26" y="43" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">4</text><text x="26" y="66" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">5</text><text x="124" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">7</text><text x="124" y="66" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">9</text><line x1="37.0" y1="15" x2="111.0" y2="15" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m3)"></line><line x1="37.0" y1="38" x2="111.0" y2="15" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m3)"></line><line x1="37.0" y1="61" x2="111.0" y2="61" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m3)"></line></svg><p class="starter">Because …</p></div>
+  </div>
+
+  <div class="ft"><span>Unit 3 · Lesson 2 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 2</div>
+      <div class="h1">Function Machines</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> decide if a rule is a function: each input gives exactly one output.</span>
+  </div>
+
+  <p><b>The situation.</b> In the cafeteria snack machine, a button is the <b>input</b> and the snack is the <b>output</b>.</p>
+  <div class="h2"><span class="num">1</span>Button → snack. Draw the arrows. The first one is done.</div>
+  <div style="display:grid;grid-template-columns:220px 230px 1fr;gap:14px;align-items:center">
+    <table class="tbl" style="font-size:14px"><tr><th style="padding:3px 6px;height:20px">Button</th><th style="padding:3px 6px;height:20px">Snack</th><th style="padding:3px 6px;height:20px">Price</th></tr><tr><td style="padding:3px 6px;height:20px">A1</td><td style="padding:3px 6px;height:20px">water</td><td style="padding:3px 6px;height:20px">2 SAR</td></tr><tr><td style="padding:3px 6px;height:20px">A2</td><td style="padding:3px 6px;height:20px">orange juice</td><td style="padding:3px 6px;height:20px">3 SAR</td></tr><tr><td style="padding:3px 6px;height:20px">B1</td><td style="padding:3px 6px;height:20px">chips</td><td style="padding:3px 6px;height:20px">4 SAR</td></tr><tr><td style="padding:3px 6px;height:20px">B2</td><td style="padding:3px 6px;height:20px">laban</td><td style="padding:3px 6px;height:20px">3 SAR</td></tr><tr><td style="padding:3px 6px;height:20px">C1</td><td style="padding:3px 6px;height:20px">chocolate</td><td style="padding:3px 6px;height:20px">5 SAR</td></tr></table><svg width="230" height="150" viewBox="0 0 230 150" role="img" aria-label="Mapping diagram"><defs><marker id="m4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#0e6b70"></path></marker><marker id="m4h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#a64b08"></path></marker></defs><ellipse cx="40" cy="75" rx="34" ry="71" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><ellipse cx="190" cy="75" rx="34" ry="71" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><text x="40" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">A1</text><text x="40" y="50" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">A2</text><text x="40" y="80" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">B1</text><text x="40" y="110" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">B2</text><text x="40" y="140" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">C1</text><text x="190" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">water</text><text x="190" y="50" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">juice</text><text x="190" y="80" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">chips</text><text x="190" y="110" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">laban</text><text x="190" y="140" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">choc.</text><line x1="58.7" y1="15" x2="167.9" y2="15" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m4)"></line></svg>
+    <div style="display:flex;flex-direction:column;gap:6px"><p>Does each button give exactly one snack?</p><p>Is button → snack a function? &#160;Yes / No</p><p class="starter">Each button gives …</p><div class="work" style="height:28px"></div></div>
+  </div>
+  <div class="h2"><span class="num">2</span>The machine breaks.</div>
+  <p>Now B2 gives laban on Monday but juice on Tuesday. Still a function? Why would you be annoyed?</p>
+  <p class="starter">It is / is not a function, because button B2 …</p>
+  <div class="work" style="height:28px"></div>
+  <div class="h2"><span class="num">3</span>Turn it around: price → snack. (The machine is fixed again.)</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+    <table class="tbl" style="font-size:14px"><tr><th style="padding:3px 6px;height:20px">Price (input)</th><th style="padding:3px 6px;height:20px">Snack(s) (output)</th></tr><tr><td style="padding:3px 6px;height:20px">2 SAR</td><td style="padding:3px 6px;height:20px">water</td></tr><tr><td style="padding:3px 6px;height:20px">3 SAR</td><td style="padding:3px 6px;height:20px"></td></tr><tr><td style="padding:3px 6px;height:20px">4 SAR</td><td style="padding:3px 6px;height:20px"></td></tr><tr><td style="padding:3px 6px;height:20px">5 SAR</td><td style="padding:3px 6px;height:20px"></td></tr></table>
+    <div style="display:flex;flex-direction:column;gap:6px"><p>Is price → snack a function? &#160;Yes / No</p><p>Which input breaks the rule? <span class="bl" style="min-width:80px"></span></p><p>Is snack → price a function? &#160;Yes / No</p></div>
+  </div>
+  <div class="hint"><b>Hint</b>Look for one input that is paired with two different outputs. Two inputs sharing an output is fine.</div>
+  <div class="h2"><span class="num">4</span>School IDs.</div>
+  <table class="tbl" style="font-size:14px"><tr><th style="padding:3px 6px;height:20px">Student ID</th><td style="padding:3px 6px;height:20px">8041</td><td style="padding:3px 6px;height:20px">8042</td><td style="padding:3px 6px;height:20px">8043</td><td style="padding:3px 6px;height:20px">8044</td><td style="padding:3px 6px;height:20px">8045</td></tr><tr><th style="padding:3px 6px;height:20px">Name</th><td style="padding:3px 6px;height:20px">Sara Khan</td><td style="padding:3px 6px;height:20px">Omar Ali</td><td style="padding:3px 6px;height:20px">Lina Haddad</td><td style="padding:3px 6px;height:20px">Omar Ali</td><td style="padding:3px 6px;height:20px">Yusuf Noor</td></tr></table>
+  <div class="two">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <p><b>a)</b> ID → name. Is it a function? &#160;Yes / No</p><p class="starter">Each ID …</p><div class="work" style="height:28px"></div>
+      </div><div style="display:flex;flex-direction:column;gap:6px"><p><b>b)</b> Name → ID. Is it a function? &#160;Yes / No</p><p class="starter">The name … goes to …</p><div class="work" style="height:28px"></div>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 3 · Lesson 2 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 2</div>
+      <div class="h1">Function Machines</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> decide if a rule is a function: each input gives exactly one output.</span>
+  </div>
+
+  <div class="h2"><span class="num">5</span>Card sort. Cut out the 10 cards. Sort them: Function / Not a function.</div>
+  <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px"><div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 8px;display:flex;flex-direction:column;gap:5px;font-size:14px;min-height:118px"><b style="color:#0e6b70">A</b><table class="tbl" style="font-size:13.5px"><tr><th style="padding:3px 6px;height:20px">x</th><td style="padding:3px 6px;height:20px">1</td><td style="padding:3px 6px;height:20px">2</td><td style="padding:3px 6px;height:20px">3</td><td style="padding:3px 6px;height:20px">4</td></tr><tr><th style="padding:3px 6px;height:20px">y</th><td style="padding:3px 6px;height:20px">5</td><td style="padding:3px 6px;height:20px">5</td><td style="padding:3px 6px;height:20px">5</td><td style="padding:3px 6px;height:20px">5</td></tr></table></div><div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 8px;display:flex;flex-direction:column;gap:5px;font-size:14px;min-height:118px"><b style="color:#0e6b70">B</b><table class="tbl" style="font-size:13.5px"><tr><th style="padding:3px 6px;height:20px">x</th><td style="padding:3px 6px;height:20px">2</td><td style="padding:3px 6px;height:20px">2</td><td style="padding:3px 6px;height:20px">3</td><td style="padding:3px 6px;height:20px">4</td></tr><tr><th style="padding:3px 6px;height:20px">y</th><td style="padding:3px 6px;height:20px">1</td><td style="padding:3px 6px;height:20px">3</td><td style="padding:3px 6px;height:20px">5</td><td style="padding:3px 6px;height:20px">7</td></tr></table></div><div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 8px;display:flex;flex-direction:column;gap:5px;font-size:14px;min-height:118px"><b style="color:#0e6b70">C</b><svg width="120" height="76" viewBox="0 0 120 76" role="img" aria-label="Mapping diagram"><defs><marker id="m5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#0e6b70"></path></marker><marker id="m5h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#a64b08"></path></marker></defs><ellipse cx="23" cy="38" rx="17" ry="34" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><ellipse cx="97" cy="38" rx="17" ry="34" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><text x="23" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">1</text><text x="23" y="43" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">2</text><text x="23" y="66" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">3</text><text x="97" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">a</text><text x="97" y="66" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">b</text><line x1="32.35" y1="15" x2="85.95" y2="15" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m5)"></line><line x1="32.35" y1="38" x2="85.95" y2="61" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m5)"></line><line x1="32.35" y1="61" x2="85.95" y2="61" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m5)"></line></svg></div><div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 8px;display:flex;flex-direction:column;gap:5px;font-size:14px;min-height:118px"><b style="color:#0e6b70">D</b><svg width="120" height="76" viewBox="0 0 120 76" role="img" aria-label="Mapping diagram"><defs><marker id="m6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#0e6b70"></path></marker><marker id="m6h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#a64b08"></path></marker></defs><ellipse cx="23" cy="38" rx="17" ry="34" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><ellipse cx="97" cy="38" rx="17" ry="34" fill="none" stroke="#1b1f23" stroke-width="1.4"></ellipse><text x="23" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">1</text><text x="23" y="66" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">2</text><text x="97" y="20" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">a</text><text x="97" y="43" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">b</text><text x="97" y="66" font-size="14" font-family="Arial" text-anchor="middle" fill="#1b1f23">c</text><line x1="32.35" y1="15" x2="85.95" y2="15" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m6)"></line><line x1="32.35" y1="15" x2="85.95" y2="38" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m6)"></line><line x1="32.35" y1="61" x2="85.95" y2="61" stroke="#0e6b70" stroke-width="1.8" marker-end="url(#m6)"></line></svg></div><div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 8px;display:flex;flex-direction:column;gap:5px;font-size:14px;min-height:118px"><b style="color:#0e6b70">E</b><p class="m">(0, 1), (1, 2),<br>(2, 3), (3, 4)</p></div><div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 8px;display:flex;flex-direction:column;gap:5px;font-size:14px;min-height:118px"><b style="color:#0e6b70">F</b><p class="m">(5, 0), (5, 1),<br>(6, 2)</p></div><div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 8px;display:flex;flex-direction:column;gap:5px;font-size:14px;min-height:118px"><b style="color:#0e6b70">G</b><p>a student → their birthday</p></div><div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 8px;display:flex;flex-direction:column;gap:5px;font-size:14px;min-height:118px"><b style="color:#0e6b70">H</b><p>a birthday → the students born on that day</p></div><div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 8px;display:flex;flex-direction:column;gap:5px;font-size:14px;min-height:118px"><b style="color:#0e6b70">I</b><p>a number → that number doubled</p></div><div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 8px;display:flex;flex-direction:column;gap:5px;font-size:14px;min-height:118px"><b style="color:#0e6b70">J</b><p>a positive number → the numbers that square to give it (9 → 3 and −3)</p></div></div>
+  <div class="hint"><b>Hint</b>For each card, ask: can one input ever give two different outputs? For words, test a real example: could one birthday belong to two students?</div>
+  <div class="h2"><span class="num">6</span>Record your sort.</div>
+  <div class="two">
+    <div class="box"><p><b>Function</b> (cards): <span class="bl" style="min-width:150px"></span></p></div>
+    <div class="box"><p><b>Not a function</b> (cards): <span class="bl" style="min-width:130px"></span></p></div>
+  </div>
+  <p>Pick one "Not" card. Card <span class="bl" style="min-width:40px"></span>: the input <span class="bl" style="min-width:50px"></span> gives two outputs, <span class="bl" style="min-width:50px"></span> and <span class="bl" style="min-width:50px"></span>.</p>
+  <p>Card A has the same output four times. Explain why it is still a function.</p>
+  <div class="work" style="height:28px"></div>
+  <div class="box vocab"><div class="lab">What did you discover?</div>
+    <p>A rule is a function when every <span class="bl" style="min-width:80px"></span> has exactly <span class="bl" style="min-width:60px"></span> output. Many inputs can share the <span class="bl" style="min-width:70px"></span> output. To show it is <b>not</b> a function, find <span class="bl" style="min-width:60px"></span> input with <span class="bl" style="min-width:60px"></span> outputs. Turning a function around (output → input) can make it <span class="bl" style="min-width:110px"></span>.</p></div>
+  <div class="two">
+    <div class="check"><div class="lab">Check yourself</div>
+      <span>Both piles have the same number of cards.</span>
+      <span>G and H are in different piles.</span>
+      <span>Each "Not" card has an input you can name.</span></div>
+    <div class="further"><div class="lab">Go further</div><p>Write your own pair like G and H: one rule that is a function, and the same rule turned around that is not.</p></div>
+  </div>
+
+  <div class="ft"><span>Unit 3 · Lesson 2 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

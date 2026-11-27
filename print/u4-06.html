@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 Linear Systems · Lesson 6: How Many Solutions? · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 4 Linear Systems · Lesson 6: How Many Solutions?</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u4-06">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 6</div>
+      <div class="h1">How Many Solutions?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> tell if a system has one, no or infinitely many solutions by comparing slopes and intercepts.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes</div>
+    <div class="three" style="text-align:center;font-size:14.5px">
+      <div><svg width="96" height="94" viewBox="0 0 96 94" role="img" aria-label="Two lines with different slopes crossing once"><defs><pattern id="n6a" x="6" y="8" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="6" y="8" width="80" height="80" fill="url(#n6a)" stroke="#59626b" stroke-width="1"></rect><path d="M6 48H86M46 8V88" stroke="#1b1f23" stroke-width="2"></path><path d="M6 88L86 8" stroke="#0e6b70" stroke-width="2.5" fill="none"></path><path d="M26 8L86 68" stroke="#a64b08" stroke-width="2.5" fill="none" stroke-dasharray="7 5"></path></svg><p>1. Different slopes.<br>The lines cross once:<br><span class="bl" style="min-width:60px"></span> solution.</p></div>
+      <div><svg width="96" height="94" viewBox="0 0 96 94" role="img" aria-label="Two parallel lines that never meet"><defs><pattern id="n6b" x="6" y="8" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="6" y="8" width="80" height="80" fill="url(#n6b)" stroke="#59626b" stroke-width="1"></rect><path d="M6 48H86M46 8V88" stroke="#1b1f23" stroke-width="2"></path><path d="M6 48L86 8" stroke="#0e6b70" stroke-width="2.5" fill="none"></path><path d="M6 78L86 38" stroke="#a64b08" stroke-width="2.5" fill="none" stroke-dasharray="7 5"></path></svg><p>2. Same slope, different <span class="m">b</span>.<br>The lines are <span class="bl" style="min-width:80px"></span>.<br>They never meet: <span class="bl" style="min-width:50px"></span> solution.</p></div>
+      <div><svg width="96" height="94" viewBox="0 0 96 94" role="img" aria-label="Two equations that make the same line, drawn on top of each other"><defs><pattern id="n6c" x="6" y="8" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="6" y="8" width="80" height="80" fill="url(#n6c)" stroke="#59626b" stroke-width="1"></rect><path d="M6 48H86M46 8V88" stroke="#1b1f23" stroke-width="2"></path><path d="M16 8L86 78" stroke="#0e6b70" stroke-width="2.5" fill="none"></path><path d="M16 8L86 78" stroke="#a64b08" stroke-width="2.5" fill="none" stroke-dasharray="7 5"></path></svg><p>3. Same slope, same <span class="m">b</span>.<br>It is the <span class="bl" style="min-width:60px"></span> line:<br><span class="bl" style="min-width:80px"></span> many solutions.</p></div>
+    </div>
+    <p>4. To compare, write both equations in <span class="bl" style="min-width:130px"></span> form, <span class="m">y = mx + b</span>.</p>
+    <p>5. Shortcut: <span class="m">3x + 2y = 5</span> and <span class="m">3x + 2y = 6</span>. The same left side can't equal 5 and 6 at the same time, so there is <span class="bl" style="min-width:50px"></span> solution.</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example · How many solutions? <span class="m">2x + y = 3</span> and <span class="m">4x + 2y = 10</span></div>
+    <table class="tbl" style="font-size:14px">
+      <tr><th style="width:46%">Move I choose</th><th>What it gives me</th></tr>
+      <tr><td style="text-align:left">Solve equation 1 for <span class="m">y</span>: subtract <span class="m">2x</span></td><td><span class="m">y = −2x + 3</span></td></tr>
+      <tr><td style="text-align:left">Solve equation 2: subtract <span class="m">4x</span>, divide by 2</td><td><span class="m">2y = −4x + 10</span>, so <span class="m">y = −2x + 5</span></td></tr>
+      <tr><td style="text-align:left">Compare slopes, then y-intercepts</td><td>slopes −2, −2: <b>same</b> · intercepts 3, 5: <b>different</b></td></tr>
+      <tr><td style="text-align:left">Decide</td><td>Parallel lines, so <b>no solution</b></td></tr>
+    </table>
+  </div>
+
+  <div class="box">
+    <div class="lab">Your turn · write each in y = mx + b, then decide</div>
+    <div class="three">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <p><b>A.</b> <span class="m">y = 3x − 2</span><br><span class="m">y = 3x + 4</span></p>
+        <div class="work" style="height:56px"></div>
+        <p style="font-size:14px">Slopes: <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span><br>Intercepts: <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span></p>
+        <p style="font-size:14px">Circle: one · none · infinite</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <p><b>B.</b> <span class="m">y = 2x + 1</span><br><span class="m">4x − 2y = −2</span></p>
+        <div class="work" style="height:56px"></div>
+        <p style="font-size:14px">Slopes: <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span><br>Intercepts: <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span></p>
+        <p style="font-size:14px">Circle: one · none · infinite</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <p><b>C.</b> <span class="m">y = −x + 4</span><br><span class="m">y = x + 2</span></p>
+        <div class="work" style="height:56px"></div>
+        <p style="font-size:14px">Slopes: <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span><br>Intercepts: <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span></p>
+        <p style="font-size:14px">Circle: one · none · infinite</p>
+      </div>
+    </div>
+  </div>
+  <div class="ft"><span>Unit 4 · Lesson 6 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 6</div>
+      <div class="h1">Will They Ever Match?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> predict how many solutions a system has before I solve it.</span>
+  </div>
+
+  <div class="box">
+    <p><b>The situation.</b> Four friends save for a school trip. <b>Lina</b> starts with 50 SAR, saves 20 a week. <b>Omar</b>: 80 SAR, saves 20 a week. <b>Sara</b>: 50 SAR, saves 20 a week. <b>Ali</b>: 20 SAR, saves 30 a week.</p>
+  </div>
+
+  <p class="h2"><span class="num">1</span>Fill in the savings table (SAR).</p>
+  <table class="tbl">
+    <tr><th>Week</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>Equation</th></tr>
+    <tr><th>Lina</th><td>50</td><td>70</td><td></td><td></td><td></td><td><span class="m">y = 20x + 50</span></td></tr>
+    <tr><th>Omar</th><td>80</td><td></td><td>120</td><td></td><td></td><td><span class="m">y = 20x + 80</span></td></tr>
+    <tr><th>Sara</th><td>50</td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><th>Ali</th><td>20</td><td>50</td><td></td><td></td><td></td><td></td></tr>
+  </table>
+
+  <p>Who will ever have the same amount as Lina? <span class="bl" style="min-width:150px"></span> When? <span class="bl" style="min-width:150px"></span></p>
+  <div class="hint"><b>Hint</b>Look down each column. Does Omar's lead ever shrink? Is Sara ever different from Lina? Does Ali catch up?</div>
+  <p class="h2"><span class="num">2</span>Cut out the 9 cards. Sort them: one, none or infinitely many.</p>
+  <div class="three" style="gap:8px">
+    <div style="border:1.5px dashed #59626b;border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:2px;min-height:90px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font:800 16px 'Bricolage Grotesque','Arial Black',sans-serif">A</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a939b" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M8.5 7.5L20 18M8.5 16.5L20 6"></path></svg></div><div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;font-size:16px"><span class="m">y = 2x + 1</span><span class="m">y = 2x − 3</span></div></div>
+    <div style="border:1.5px dashed #59626b;border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:2px;min-height:90px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font:800 16px 'Bricolage Grotesque','Arial Black',sans-serif">B</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a939b" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M8.5 7.5L20 18M8.5 16.5L20 6"></path></svg></div><div style="display:flex;gap:8px;align-items:center"><span style="flex:none;display:flex"><svg width="88" height="86" viewBox="0 0 88 86" role="img" aria-label="Two lines with different slopes that cross once"><defs><pattern id="c6b" x="6" y="8" width="9" height="9" patternUnits="userSpaceOnUse"><path d="M9 0H0V9" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="6" y="8" width="72" height="72" fill="url(#c6b)" stroke="#59626b" stroke-width="1"></rect><path d="M6 44H78M42 8V80" stroke="#1b1f23" stroke-width="2"></path><path d="M6 80L78 8" stroke="#0e6b70" stroke-width="2.5" fill="none"></path><path d="M42 8L78 44" stroke="#a64b08" stroke-width="2.5" fill="none" stroke-dasharray="7 5"></path></svg></span><span style="font-size:13px">Two lines on one grid</span></div></div>
+    <div style="border:1.5px dashed #59626b;border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:2px;min-height:90px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font:800 16px 'Bricolage Grotesque','Arial Black',sans-serif">C</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a939b" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M8.5 7.5L20 18M8.5 16.5L20 6"></path></svg></div><div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;font-size:16px"><span class="m">x + y = 4</span><span class="m">2x + 2y = 8</span></div></div>
+    <div style="border:1.5px dashed #59626b;border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:2px;min-height:90px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font:800 16px 'Bricolage Grotesque','Arial Black',sans-serif">D</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a939b" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M8.5 7.5L20 18M8.5 16.5L20 6"></path></svg></div><div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;font-size:16px"><span class="m">y = −x + 5</span><span class="m">y = x + 1</span></div></div>
+    <div style="border:1.5px dashed #59626b;border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:2px;min-height:90px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font:800 16px 'Bricolage Grotesque','Arial Black',sans-serif">E</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a939b" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M8.5 7.5L20 18M8.5 16.5L20 6"></path></svg></div><div style="display:flex;gap:8px;align-items:center"><span style="flex:none;display:flex"><svg width="88" height="86" viewBox="0 0 88 86" role="img" aria-label="Two equations drawn on top of each other as one line"><defs><pattern id="c6e" x="6" y="8" width="9" height="9" patternUnits="userSpaceOnUse"><path d="M9 0H0V9" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="6" y="8" width="72" height="72" fill="url(#c6e)" stroke="#59626b" stroke-width="1"></rect><path d="M6 44H78M42 8V80" stroke="#1b1f23" stroke-width="2"></path><path d="M37.5 8L73.5 80" stroke="#0e6b70" stroke-width="2.5" fill="none"></path><path d="M37.5 8L73.5 80" stroke="#a64b08" stroke-width="2.5" fill="none" stroke-dasharray="7 5"></path></svg></span><span style="font-size:13px">Both lines drawn: one on top of the other.</span></div></div>
+    <div style="border:1.5px dashed #59626b;border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:2px;min-height:90px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font:800 16px 'Bricolage Grotesque','Arial Black',sans-serif">F</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a939b" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M8.5 7.5L20 18M8.5 16.5L20 6"></path></svg></div><div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;font-size:16px"><span class="m">3x + 2y = 5</span><span class="m">3x + 2y = 6</span></div></div>
+    <div style="border:1.5px dashed #59626b;border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:2px;min-height:90px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font:800 16px 'Bricolage Grotesque','Arial Black',sans-serif">G</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a939b" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M8.5 7.5L20 18M8.5 16.5L20 6"></path></svg></div><div style="display:flex;gap:8px;align-items:center"><span style="flex:none;display:flex"><svg width="88" height="86" viewBox="0 0 88 86" role="img" aria-label="Two lines with the same slope that never meet"><defs><pattern id="c6g" x="6" y="8" width="9" height="9" patternUnits="userSpaceOnUse"><path d="M9 0H0V9" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="6" y="8" width="72" height="72" fill="url(#c6g)" stroke="#59626b" stroke-width="1"></rect><path d="M6 44H78M42 8V80" stroke="#1b1f23" stroke-width="2"></path><path d="M6 44L78 8" stroke="#0e6b70" stroke-width="2.5" fill="none"></path><path d="M6 71L78 35" stroke="#a64b08" stroke-width="2.5" fill="none" stroke-dasharray="7 5"></path></svg></span><span style="font-size:13px">Two lines on one grid</span></div></div>
+    <div style="border:1.5px dashed #59626b;border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:2px;min-height:90px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font:800 16px 'Bricolage Grotesque','Arial Black',sans-serif">H</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a939b" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M8.5 7.5L20 18M8.5 16.5L20 6"></path></svg></div><div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;font-size:16px"><span class="m">y = 3x − 6</span><span class="m">6x − 2y = 12</span></div></div>
+    <div style="border:1.5px dashed #59626b;border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:2px;min-height:90px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font:800 16px 'Bricolage Grotesque','Arial Black',sans-serif">I</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a939b" stroke-width="2" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M8.5 7.5L20 18M8.5 16.5L20 6"></path></svg></div><div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;font-size:16px"><span class="m">y = 4x</span><span class="m">y = −4x</span></div></div>
+  </div>
+  <div class="ft"><span>Unit 4 · Lesson 6 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 6</div>
+      <div class="h1">Sort and Explain</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> explain my sort using slopes and y-intercepts.</span>
+  </div>
+
+  <p class="h2"><span class="num">3</span>Back to the friends. Compare each pair with Lina.</p>
+  <table class="tbl">
+    <tr><th style="width:19%">Pair</th><th style="width:15%">Same slope?</th><th style="width:15%">Same start?</th><th>When equal?</th><th style="width:24%">How many solutions?</th></tr>
+    <tr><td>Lina and Omar</td><td>yes</td><td>no</td><td></td><td></td></tr>
+    <tr><td>Lina and Sara</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>Lina and Ali</td><td></td><td></td><td></td><td></td></tr>
+  </table>
+  
+  <p class="h2"><span class="num">4</span>Record your sort. What do the cards in each pile have in common?</p>
+  <table class="tbl" style="font-size:14px">
+    <tr><th style="width:20%">Pile</th><th style="width:18%">Cards</th><th>The slopes are …</th><th>The y-intercepts are …</th></tr>
+    <tr><th>One solution</th><td></td><td></td><td></td></tr>
+    <tr><th>No solution</th><td>A, ___, ___</td><td></td><td></td></tr>
+    <tr><th>Infinitely many</th><td></td><td></td><td></td></tr>
+  </table>
+  <p class="h2"><span class="num">5</span>Write your own system of each type.</p>
+  <div class="three">
+    <div class="box" style="padding:6px 12px;gap:4px"><div class="lab">One solution</div><p><span class="m">y =</span> <span class="bl" style="min-width:90px"></span></p><p><span class="m">y =</span> <span class="bl" style="min-width:90px"></span></p></div>
+    <div class="box" style="padding:6px 12px;gap:4px"><div class="lab">No solution</div><p><span class="m">y =</span> <span class="bl" style="min-width:90px"></span></p><p><span class="m">y =</span> <span class="bl" style="min-width:90px"></span></p></div>
+    <div class="box" style="padding:6px 12px;gap:4px"><div class="lab">Infinitely many</div><p><span class="bl" style="min-width:150px"></span></p><p><span class="bl" style="min-width:150px"></span></p></div>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">What did you discover?</div>
+    <p>Different slopes: the lines cross once, so there is <span class="bl" style="min-width:60px"></span> solution.</p>
+    <p>Same slope, different y-intercepts: the lines are <span class="bl" style="min-width:90px"></span>, so there is <span class="bl" style="min-width:60px"></span> solution.</p>
+    <p>Same slope and same y-intercept: the <span class="bl" style="min-width:60px"></span> line, so <span class="bl" style="min-width:90px"></span> many solutions.</p>
+  </div>
+
+  <div class="check">
+    <div class="lab">Check yourself</div>
+    <span>Each type (one, none, infinitely many) has exactly 3 cards.</span>
+    <span>For Lina and Ali, your week is between 1 and 4.</span>
+  </div>
+
+  <div class="further">
+    <div class="lab">Go further</div>
+    <p><span class="m">y = kx + 3</span> and <span class="m">6x − 2y = 4</span>. No solution if <i class="m">k =</i> <span class="bl" style="min-width:36px"></span>. Change 3 to <span class="bl" style="min-width:36px"></span> for infinitely many.</p>
+  </div>
+  <div class="ft"><span>Unit 4 · Lesson 6 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

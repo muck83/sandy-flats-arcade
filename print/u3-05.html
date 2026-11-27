@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 3 Functions & Graphing · Lesson 5: Domain and Range · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+.sc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start}
+.cd{font-weight:700;color:#0e6b70}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 3 Functions &amp; Graphing · Lesson 5: Domain and Range</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u3-05">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 5</div>
+      <div class="h1">Domain and Range</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> choose a sensible domain and range, and tell discrete from continuous.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes</div>
+    <p>1. The <span class="bl" style="min-width:90px"></span> is the set of all allowed <b>inputs</b> (x-values).</p>
+    <p>2. The <span class="bl" style="min-width:90px"></span> is the set of all <b>outputs</b> (y-values) you can get.</p>
+    <p>3. A <span class="bl" style="min-width:100px"></span> function uses separate, countable inputs. Its graph is <span class="bl" style="min-width:70px"></span>.</p>
+    <p>4. A <span class="bl" style="min-width:110px"></span> function allows every value in between. Its graph is a connected <span class="bl" style="min-width:70px"></span>.</p>
+    <p>5. The real situation limits the domain. You can’t buy <span class="bl" style="min-width:50px"></span> tickets or rent 3.5 <span class="bl" style="min-width:70px"></span>.</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example</div>
+    <p>Bowling costs <b>15 SAR per game</b>. You have <b>60 SAR</b>. Cost: <span class="m">C(g) = 15g</span>.</p>
+    <div class="sc">
+      <table class="tbl" style="font-size:14px">
+        <tr><th style="width:34%">Question I ask</th><th>What it gives me</th></tr>
+        <tr><td style="text-align:left">What inputs make sense?</td><td style="text-align:left">Whole games, 0 to 4 (4 × 15 = 60).<br>Domain: {0, 1, 2, 3, 4}</td></tr>
+        <tr><td style="text-align:left">What outputs come out?</td><td style="text-align:left">Put each input in: 0, 15, 30, 45, 60.<br>Range: {0, 15, 30, 45, 60}</td></tr>
+        <tr><td style="text-align:left">Can the input be 2.5?</td><td style="text-align:left">No half games. So it is <b>discrete</b>: draw <b>dots</b>, not a line.</td></tr>
+      </table>
+      <svg width="168" height="134" viewBox="0 0 168 134" role="img" aria-label="Five separate dots for bowling cost: 0, 15, 30, 45 and 60 SAR for 0 to 4 games"><defs><pattern id="g1" x="36" y="8" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="36" y="8" width="120" height="96" fill="url(#g1)" stroke="#59626b" stroke-width="1"></rect><path d="M36 104H156M36 8V104" stroke="#1b1f23" stroke-width="2"></path><text x="36" y="118" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="60" y="118" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="84" y="118" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="108" y="118" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="132" y="118" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="156" y="118" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="32" y="84" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">15</text><text x="32" y="60" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">30</text><text x="32" y="36" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">45</text><text x="32" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">60</text><text x="96" y="129" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle">games</text><text x="12" y="56" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle" transform="rotate(-90 12 56)">cost (SAR)</text><circle cx="36" cy="104" r="4" fill="#0e6b70"></circle><circle cx="60" cy="80" r="4" fill="#0e6b70"></circle><circle cx="84" cy="56" r="4" fill="#0e6b70"></circle><circle cx="108" cy="32" r="4" fill="#0e6b70"></circle><circle cx="132" cy="8" r="4" fill="#0e6b70"></circle></svg>
+    </div>
+  </div>
+
+  <div class="h2"><span class="num">?</span>Your turn</div>
+  <div class="two">
+    <div class="box" style="gap:5px">
+      <p><b>a.</b> Juice costs <b>8 SAR</b> a cup. You can buy at most <b>5</b> cups. <span class="m">J(c) = 8c</span></p>
+      <p>Domain: <span class="bl" style="min-width:200px"></span></p>
+      <p>Range: <span class="bl" style="min-width:210px"></span></p>
+      <p>Discrete or continuous? <span class="bl" style="min-width:110px"></span></p>
+    </div>
+    <div class="box" style="gap:5px">
+      <p><b>b.</b> A 2-liter bottle fills at <b>0.5 L per minute</b>. <span class="m">V(t) = 0.5t</span></p>
+      <p>Domain: <span class="m">0 ≤ t ≤</span> <span class="bl" style="min-width:60px"></span> minutes</p>
+      <p>Range: <span class="m">0 ≤ V ≤</span> <span class="bl" style="min-width:60px"></span> liters</p>
+      <p>Discrete or continuous? <span class="bl" style="min-width:110px"></span></p>
+    </div>
+  </div>
+  <div class="box" style="gap:4px;padding:9px 14px">
+    <p><b>c.</b> Write <b>D</b> (discrete) or <b>C</b> (continuous) for the input of each function.</p>
+    <div class="two" style="gap:6px 20px">
+      <p><span class="bl" style="min-width:34px"></span> number of students on a bus → cost</p>
+      <p><span class="bl" style="min-width:34px"></span> time spent running → distance run</p>
+      <p><span class="bl" style="min-width:34px"></span> kilograms of rice → price</p>
+      <p><span class="bl" style="min-width:34px"></span> number of goals → points</p>
+    </div>
+  </div>
+  <div class="hint"><b>Hint</b>Ask: “Can the input be 2.5?” Yes → continuous (line). No → discrete (dots).</div>
+  <div class="ft"><span>Unit 3 · Lesson 5 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 5</div>
+      <div class="h1">Domain and Range</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M16 16l5 5"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> decide which inputs and outputs make sense in a real situation.</span>
+  </div>
+  <div class="box vocab" style="gap:4px">
+    <div class="lab">The situation</div>
+    <p>A function rule like <span class="m">C(n) = 4n</span> works for <b>any</b> number. Real life does not! You will test 5 situations and decide which inputs and outputs really make sense.</p>
+  </div>
+  <div class="h2"><span class="num">1</span>Fill the table. Find the domain and range. Sketch the graph.</div>
+  <div class="hint"><b>Hint</b>One input in each table is <b>impossible</b> in real life. Cross it out and write “X” under it. That is a clue for the domain.</div>
+
+  <div class="box" style="padding:9px 14px">
+    <div class="sc">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <p><span class="cd">A. Riyadh Metro tickets.</span> A ticket costs <b>4 SAR</b>. Your card has <b>20 SAR</b>. Cost <span class="m">C(n) = 4n</span> for <span class="m">n</span> tickets.</p>
+        <table class="tbl" style="font-size:14px"><tr><th style="width:96px;padding:3px 6px">n (tickets)</th><td>0</td><td>1</td><td>2</td><td>2.5</td><td>4</td><td>5</td></tr><tr><th>C (SAR)</th><td>0</td><td>4</td><td></td><td></td><td></td><td></td></tr></table>
+        <p>Domain: { <span class="bl" style="min-width:250px"></span> }</p>
+        <p>Range: { <span class="bl" style="min-width:150px"></span> } <span style="margin-left:12px;white-space:nowrap">Circle: <b>discrete</b> / <b>continuous</b></span></p>
+      </div>
+      <svg width="170" height="158" viewBox="0 0 170 158" role="img" aria-label="Blank grid for metro cost: tickets 0 to 6, cost 0 to 24 SAR"><defs><pattern id="g2" x="38" y="8" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="38" y="8" width="120" height="120" fill="url(#g2)" stroke="#59626b" stroke-width="1"></rect><path d="M38 128H158M38 8V128" stroke="#1b1f23" stroke-width="2"></path><text x="38" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="58" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="78" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="98" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="118" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="138" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="158" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="34" y="112" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><text x="34" y="92" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">8</text><text x="34" y="72" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">12</text><text x="34" y="52" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">16</text><text x="34" y="32" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">20</text><text x="34" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">24</text><text x="98" y="153" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle">tickets</text><text x="12" y="68" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle" transform="rotate(-90 12 68)">cost (SAR)</text></svg>
+    </div>
+  </div>
+  <div class="box" style="padding:9px 14px">
+    <div class="sc">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <p><span class="cd">B. Filling a water tank at a desert camp.</span> The tank holds <b>300 L</b>. A hose adds <b>50 L per minute</b>. <span class="m">V(t) = 50t</span>.</p>
+        <table class="tbl" style="font-size:14px"><tr><th style="width:96px;padding:3px 6px">t (min)</th><td>0</td><td>1</td><td>2.5</td><td>4</td><td>6</td><td>7</td></tr><tr><th>V (L)</th><td>0</td><td>50</td><td></td><td></td><td></td><td></td></tr></table>
+        <p>Domain: <span class="bl" style="min-width:50px"></span> ≤ <span class="m">t</span> ≤ <span class="bl" style="min-width:60px"></span> minutes</p>
+        <p>Range: <span class="bl" style="min-width:60px"></span> ≤ <span class="m">V</span> ≤ <span class="bl" style="min-width:60px"></span> liters <span style="margin-left:12px;white-space:nowrap">Circle: <b>discrete</b> / <b>continuous</b></span></p>
+      </div>
+      <svg width="190" height="158" viewBox="0 0 190 158" role="img" aria-label="Blank grid for tank volume: minutes 0 to 7, liters 0 to 300"><defs><pattern id="g3" x="38" y="8" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="38" y="8" width="140" height="120" fill="url(#g3)" stroke="#59626b" stroke-width="1"></rect><path d="M38 128H178M38 8V128" stroke="#1b1f23" stroke-width="2"></path><text x="38" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="58" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="78" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="98" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="118" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="138" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="158" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="178" y="142" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">7</text><text x="34" y="112" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">50</text><text x="34" y="92" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">100</text><text x="34" y="72" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">150</text><text x="34" y="52" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">200</text><text x="34" y="32" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">250</text><text x="34" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">300</text><text x="108" y="153" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle">minutes</text><text x="12" y="68" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle" transform="rotate(-90 12 68)">water (L)</text></svg>
+    </div>
+  </div>
+  <div class="box" style="padding:9px 14px">
+    <div class="sc">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <p><span class="cd">C. Phone battery draining.</span> Your phone starts at <b>100%</b> and loses <b>10% each hour</b> of video. <span class="m">B(h) = 100 − 10h</span>.</p>
+        <table class="tbl" style="font-size:14px"><tr><th style="width:96px;padding:3px 6px">h (hours)</th><td>0</td><td>2</td><td>4.5</td><td>7</td><td>10</td><td>11</td></tr><tr><th>B (%)</th><td>100</td><td></td><td></td><td></td><td></td><td></td></tr></table>
+        <p>Domain: <span class="bl" style="min-width:60px"></span> ≤ <span class="m">h</span> ≤ <span class="bl" style="min-width:60px"></span> hours</p>
+        <p>Range: <span class="bl" style="min-width:60px"></span> ≤ <span class="m">B</span> ≤ <span class="bl" style="min-width:60px"></span> % <span style="margin-left:12px;white-space:nowrap">Circle: <b>discrete</b> / <b>continuous</b></span></p>
+      </div>
+      <svg width="170" height="138" viewBox="0 0 170 138" role="img" aria-label="Blank grid for battery: hours 0 to 12, percent 0 to 100"><defs><pattern id="g4" x="38" y="8" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="38" y="8" width="120" height="100" fill="url(#g4)" stroke="#59626b" stroke-width="1"></rect><path d="M38 108H158M38 8V108" stroke="#1b1f23" stroke-width="2"></path><text x="38" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="58" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="78" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="98" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="118" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">8</text><text x="138" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">10</text><text x="158" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">12</text><text x="34" y="92" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">20</text><text x="34" y="72" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">40</text><text x="34" y="52" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">60</text><text x="34" y="32" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">80</text><text x="34" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">100</text><text x="98" y="133" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle">hours</text><text x="12" y="58" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle" transform="rotate(-90 12 58)">battery (%)</text></svg>
+    </div>
+  </div>
+  <div class="ft"><span>Unit 3 · Lesson 5 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 5</div>
+      <div class="h1">Domain and Range</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="h2"><span class="num">2</span>Two more situations. Same steps.</div>
+
+  <div class="box" style="padding:9px 14px">
+    <div class="sc">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <p><span class="cd">D. Buses for a school trip.</span> Each bus costs <b>600 SAR</b>. The trip needs <b>1 to 4 buses</b>. <span class="m">R(b) = 600b</span>.</p>
+        <table class="tbl" style="font-size:14px"><tr><th style="width:96px;padding:3px 6px">b (buses)</th><td>1</td><td>2</td><td>3</td><td>3.5</td><td>4</td></tr><tr><th>R (SAR)</th><td>600</td><td></td><td></td><td></td><td></td></tr></table>
+        <p>Domain: { <span class="bl" style="min-width:250px"></span> }</p>
+        <p>Range: { <span class="bl" style="min-width:150px"></span> } <span style="margin-left:12px;white-space:nowrap">Circle: <b>discrete</b> / <b>continuous</b></span></p>
+      </div>
+      <svg width="160" height="138" viewBox="0 0 160 138" role="img" aria-label="Blank grid for bus cost: buses 0 to 5, cost 0 to 3000 SAR"><defs><pattern id="g5" x="48" y="8" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="48" y="8" width="100" height="100" fill="url(#g5)" stroke="#59626b" stroke-width="1"></rect><path d="M48 108H148M48 8V108" stroke="#1b1f23" stroke-width="2"></path><text x="48" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="68" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="88" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="108" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="128" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="148" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="44" y="92" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">600</text><text x="44" y="72" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1200</text><text x="44" y="52" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1800</text><text x="44" y="32" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2400</text><text x="44" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">3000</text><text x="98" y="133" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle">buses</text><text x="12" y="58" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle" transform="rotate(-90 12 58)">cost (SAR)</text></svg>
+    </div>
+  </div>
+  <div class="box" style="padding:9px 14px">
+    <div class="sc">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <p><span class="cd">E. Temperature on a Riyadh summer day.</span> 6 am: <b>26°C</b>. It rises <b>2°C an hour</b> until 2 pm. <span class="m">T(h) = 26 + 2h</span>, <span class="m">h</span> = hours after 6 am.</p>
+        <table class="tbl" style="font-size:14px"><tr><th style="width:96px;padding:3px 6px">h (hours)</th><td>0</td><td>3</td><td>5.5</td><td>8</td><td>−2</td></tr><tr><th>T (°C)</th><td>26</td><td></td><td></td><td></td><td></td></tr></table>
+        <p>Domain: <span class="bl" style="min-width:60px"></span> ≤ <span class="m">h</span> ≤ <span class="bl" style="min-width:60px"></span> hours</p>
+        <p>Range: <span class="bl" style="min-width:44px"></span> ≤ <span class="m">T</span> ≤ <span class="bl" style="min-width:44px"></span> °C <span style="margin-left:12px;white-space:nowrap">Circle: <b>discrete</b> / <b>continuous</b></span></p>
+      </div>
+      <svg width="210" height="138" viewBox="0 0 210 138" role="img" aria-label="Blank grid for temperature: hours 0 to 8, temperature 0 to 50 degrees"><defs><pattern id="g6" x="38" y="8" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="38" y="8" width="160" height="100" fill="url(#g6)" stroke="#59626b" stroke-width="1"></rect><path d="M38 108H198M38 8V108" stroke="#1b1f23" stroke-width="2"></path><text x="38" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="58" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="78" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="98" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="118" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="138" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="158" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="178" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">7</text><text x="198" y="122" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">8</text><text x="34" y="92" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">10</text><text x="34" y="72" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">20</text><text x="34" y="52" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">30</text><text x="34" y="32" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">40</text><text x="34" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">50</text><text x="118" y="133" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle">hours after 6 am</text><text x="12" y="58" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle" transform="rotate(-90 12 58)">temp (°C)</text></svg>
+    </div>
+  </div>
+  <div class="h2"><span class="num">3</span>Sort your five situations, then sum up.</div>
+  <div class="box vocab" style="gap:6px">
+    <div class="lab">What did you discover?</div>
+    <p>Discrete (dots): letters <span class="bl" style="min-width:80px"></span> The inputs are things you <span class="bl" style="min-width:80px"></span>.</p>
+    <p>Continuous (line): letters <span class="bl" style="min-width:80px"></span> The inputs are things you <span class="bl" style="min-width:80px"></span>.</p>
+    <p>The domain is the inputs that make <span class="bl" style="min-width:90px"></span> in the situation. It is limited by things like money, the size of the tank, or the <span class="bl" style="min-width:80px"></span> of day.</p>
+  </div>
+  <div class="two">
+    <div class="check"><div class="lab">Check yourself</div>
+      <span>A: your 6 range values add up to 60.</span>
+      <span>B: your largest output is the size of the tank.</span>
+      <span>D: your 4 range values add up to 6,000.</span>
+      <span>Each table had exactly one impossible input.</span>
+      <span>B, C, E: each line has two endpoints (no arrows).</span>
+    </div>
+    <div class="further"><div class="lab">Go further</div>
+      <p style="font-size:14.5px">Invent your own situation with domain {0, 1, 2, 3} and range {5, 10, 15, 20}. Write the rule and the story.</p>
+      <div class="work" style="height:84px"></div>
+    </div>
+  </div>
+  <div class="ft"><span>Unit 3 · Lesson 5 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 3 Functions & Graphing · Lesson 6: Linear or Not? · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.cd{border:1.5px dashed #59626b;border-radius:8px;padding:6px 8px 8px;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;position:relative;min-height:96px;font-size:14px;text-align:center}
+.cd .n{position:absolute;left:7px;top:5px;font:700 12px Arial,sans-serif;color:#0e6b70}
+.cd .ln{position:absolute;right:6px;top:5px;width:20px;height:18px;border:1.2px solid #1b1f23;border-radius:3px}
+.mt{border-collapse:collapse;font-size:13px}
+.mt td,.mt th{border:1px solid #59626b;padding:1px 6px;min-width:16px}
+.mt th{background:#eef6f6}
+.dt td,.dt th{height:20px;padding:2px 8px}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 3 Functions &amp; Graphing · Lesson 6: Linear or Not?</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u3-06">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 6</div>
+      <div class="h1">Linear or Not?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> test a table, graph or equation to decide if a function is linear.</span>
+  </div>
+  <div class="box vocab">
+    <div class="lab">Fill in the notes</div>
+    <p>1. A <b>linear</b> function has a <span class="bl" style="min-width:100px"></span> rate of change.</p>
+    <p>2. In a table: equal x steps give <span class="bl" style="min-width:70px"></span> y steps. The y changes are called <span class="bl" style="min-width:130px"></span>.</p>
+    <p>3. Its graph is a <span class="bl" style="min-width:110px"></span>. Its equation can be written <span class="m">y =</span> <span class="bl" style="min-width:80px"></span>.</p>
+    <p>4. A <b>non-linear</b> function has changes that are <span class="bl" style="min-width:80px"></span> the same. Its graph is <span class="bl" style="min-width:80px"></span>.</p>
+    <p>5. Example: <span class="m">A = s²</span> gives 1, 4, 9, 16. The changes are 3, 5, <span class="bl" style="min-width:40px"></span>, so it is <span class="bl" style="min-width:100px"></span>.</p>
+  </div>
+  <div class="box">
+    <div class="lab">Worked example: is this table linear?</div>
+    <div class="sc" style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center">
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+        <table class="mt"><tr><th>x</th><td>0</td><td>1</td><td>2</td><td>3</td></tr><tr><th>y</th><td>3</td><td>5</td><td>7</td><td>9</td></tr></table>
+        <svg width="150" height="22" viewBox="0 0 150 22" aria-hidden="true"><text x="75" y="15" font-size="13" fill="#0e6b70" font-family="Arial" font-weight="bold" text-anchor="middle">change in y: +2, +2, +2</text></svg>
+      </div>
+      <table class="tbl" style="font-size:14px">
+        <tr><th style="width:42%">Move I choose</th><th>What it gives me</th></tr>
+        <tr><td style="text-align:left">Check the x steps are equal</td><td style="text-align:left">x goes up by 1 each time.</td></tr>
+        <tr><td style="text-align:left">Find each change in y</td><td style="text-align:left">5 − 3 = 2, 7 − 5 = 2, 9 − 7 = 2</td></tr>
+        <tr><td style="text-align:left">Compare the changes</td><td style="text-align:left">All equal, so it is <b>linear</b>. Rate <span class="m">m = 2</span>.</td></tr>
+        <tr><td style="text-align:left">Find the start (x = 0)</td><td style="text-align:left">y = 3, so <span class="m">b = 3</span>. Equation: <span class="m">y = 2x + 3</span></td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="h2"><span class="num">?</span>Your turn: find the changes, decide, write the equation.</div>
+  <div class="three">
+    <div class="box" style="gap:5px;padding:9px 12px">
+      <p><b>a.</b></p>
+      <table class="mt"><tr><th>x</th><td>0</td><td>1</td><td>2</td><td>3</td></tr><tr><th>y</th><td>10</td><td>7</td><td>4</td><td>1</td></tr></table>
+      <p style="font-size:14.5px">Changes in y: <span class="bl" style="min-width:90px"></span></p>
+      <p style="font-size:14.5px">Linear? <span class="bl" style="min-width:44px"></span></p>
+      <p style="font-size:14.5px">If yes, <span class="m">y =</span> <span class="bl" style="min-width:90px"></span></p>
+    </div>
+    <div class="box" style="gap:5px;padding:9px 12px">
+      <p><b>b.</b></p>
+      <table class="mt"><tr><th>x</th><td>1</td><td>2</td><td>3</td><td>4</td></tr><tr><th>y</th><td>2</td><td>4</td><td>8</td><td>16</td></tr></table>
+      <p style="font-size:14.5px">Changes in y: <span class="bl" style="min-width:90px"></span></p>
+      <p style="font-size:14.5px">Linear? <span class="bl" style="min-width:44px"></span></p>
+      <p style="font-size:14.5px">If yes, <span class="m">y =</span> <span class="bl" style="min-width:90px"></span></p>
+    </div>
+    <div class="box" style="gap:5px;padding:9px 12px">
+      <p><b>c.</b></p>
+      <table class="mt"><tr><th>x</th><td>0</td><td>2</td><td>4</td><td>6</td></tr><tr><th>y</th><td>1</td><td>4</td><td>7</td><td>10</td></tr></table>
+      <p style="font-size:14.5px">Changes in y: <span class="bl" style="min-width:90px"></span></p>
+      <p style="font-size:14.5px">Linear? <span class="bl" style="min-width:44px"></span></p>
+      <p style="font-size:14.5px">If yes, <span class="m">y =</span> <span class="bl" style="min-width:90px"></span></p>
+    </div>
+  </div>
+  <div class="hint"><b>Hint</b>In c, x goes up by 2 each time. Rate of change = change in y ÷ change in x.</div>
+  <div class="work" style="height:112px"></div>
+  <div class="ft"><span>Unit 3 · Lesson 6 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 6</div>
+      <div class="h1">Linear or Not?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M16 16l5 5"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> use changes and graph shape to spot a linear function.</span>
+  </div>
+  <div class="box vocab" style="gap:4px">
+    <div class="lab">The situation</div>
+    <p>The school is building square planting beds in the courtyard. Each bed has side length <span class="m">s</span> meters. The fence goes around the edge (<b>perimeter</b> <span class="m">P = 4s</span>). The soil covers the inside (<b>area</b> <span class="m">A = s²</span>).</p>
+  </div>
+  <div class="h2"><span class="num">1</span>Fill in the table. Then find the changes.</div>
+  <table class="tbl dt">
+    <tr><th style="width:150px">side s (m)</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+    <tr><th>perimeter P (m)</th><td>4</td><td>8</td><td></td><td></td><td></td></tr>
+    <tr><th>change in P</th><td style="background:#f3f4f5"></td><td>+4</td><td></td><td></td><td></td></tr>
+    <tr><th>area A (m²)</th><td>1</td><td>4</td><td></td><td></td><td></td></tr>
+    <tr><th>change in A</th><td style="background:#f3f4f5"></td><td>+3</td><td></td><td></td><td></td></tr>
+  </table>
+  <p><span class="starter">The changes in P are always …, but the changes in A …</span> <span class="bl" style="min-width:250px"></span></p>
+  <div class="h2"><span class="num">2</span>Plot both on one grid.</div>
+  <div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:start">
+    <svg width="266" height="248" viewBox="0 0 266 248" role="img" aria-label="Blank grid: side length 0 to 5 across, 0 to 25 up"><defs><pattern id="g1" x="44" y="8" width="21" height="21" patternUnits="userSpaceOnUse"><path d="M21 0H0V21" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="44" y="8" width="210" height="210" fill="url(#g1)" stroke="#59626b" stroke-width="1"></rect><path d="M44 218H254M44 8V218" stroke="#1b1f23" stroke-width="2"></path><text x="44" y="232" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="86" y="232" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="128" y="232" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="170" y="232" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="212" y="232" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="254" y="232" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="40" y="180" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">5</text><text x="40" y="138" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">10</text><text x="40" y="96" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">15</text><text x="40" y="54" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">20</text><text x="40" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">25</text><text x="149" y="243" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle">side length s (m)</text><text x="12" y="113" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle" transform="rotate(-90 12 113)">perimeter or area</text></svg>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <p>Plot the 5 points for <b>P</b>. Join them with a ruler.</p>
+      <p>Plot the 5 points for <b>A</b>. Join them with a smooth curve.</p>
+      <p>a. Which graph is a straight line? <span class="bl" style="min-width:60px"></span></p>
+      <p>b. Which graph bends? <span class="bl" style="min-width:60px"></span></p>
+      <p>c. At which side length are P and A equal? <span class="m">s =</span> <span class="bl" style="min-width:50px"></span></p>
+      <div class="hint"><b>Hint</b>Each small square is 0.5 m across and 2.5 up. <span class="m">A = 16</span> sits between 15 and 17.5.</div>
+    </div>
+  </div>
+  <div class="h2"><span class="num">3</span>A different kind of growth.</div>
+  <p>News spreads at school: each hour, the number of students who know <b>doubles</b>.</p>
+  <table class="tbl dt">
+    <tr><th style="width:150px">hours</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+    <tr><th>students who know</th><td>1</td><td>2</td><td></td><td></td><td></td><td></td></tr>
+    <tr><th>change</th><td style="background:#f3f4f5"></td><td>+1</td><td></td><td></td><td></td><td></td></tr>
+  </table>
+  <p>Linear or not? Why? <span class="bl" style="min-width:420px"></span></p>
+  <p>Keep doubling. After how many hours do more than 1,000 students know? <span class="bl" style="min-width:60px"></span> hours</p>
+  <div class="ft"><span>Unit 3 · Lesson 6 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 6</div>
+      <div class="h1">Linear or Not?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="h2"><span class="num">4</span>Card sort: Linear or Non-linear?</div>
+  <p>Test each card. Write <b>L</b> or <b>N</b> in its corner box. Then cut out the cards and sort them into two groups.</p>
+  <div class="row" style="font-size:13px;color:#59626b;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M8.5 7.5L20 18M8.5 16.5L20 6"></path></svg>Cut along the dashed lines.</div>
+  <div class="cards"><div class="cd"><span class="n">1</span><span class="ln"></span><table class="mt"><tr><th>x</th><td>0</td><td>1</td><td>2</td><td>3</td></tr><tr><th>y</th><td>5</td><td>8</td><td>11</td><td>14</td></tr></table></div><div class="cd"><span class="n">2</span><span class="ln"></span><table class="mt"><tr><th>x</th><td>1</td><td>2</td><td>3</td><td>4</td></tr><tr><th>y</th><td>1</td><td>4</td><td>9</td><td>16</td></tr></table></div><div class="cd"><span class="n">3</span><span class="ln"></span><span class="m" style="font-size:17px">y = 4x − 1</span></div><div class="cd"><span class="n">4</span><span class="ln"></span>A taxi charges 5 SAR, plus 2 SAR for each km.</div><div class="cd"><span class="n">5</span><span class="ln"></span><svg width="96" height="56" viewBox="0 0 96 56" role="img" aria-label="Graph of a curve that starts flat and bends upward"><path d="M8 4V50H92" fill="none" stroke="#1b1f23" stroke-width="1.5"></path><path d="M8 48Q60 48 86 6" fill="none" stroke="#0e6b70" stroke-width="2.5"></path></svg></div><div class="cd"><span class="n">6</span><span class="ln"></span><span class="m" style="font-size:17px">y = x² + 2</span></div><div class="cd"><span class="n">7</span><span class="ln"></span>Bacteria in a dish double every hour.</div><div class="cd"><span class="n">8</span><span class="ln"></span><table class="mt"><tr><th>x</th><td>0</td><td>2</td><td>4</td><td>6</td></tr><tr><th>y</th><td>10</td><td>8</td><td>6</td><td>4</td></tr></table></div><div class="cd"><span class="n">9</span><span class="ln"></span><svg width="96" height="56" viewBox="0 0 96 56" role="img" aria-label="Graph of a straight rising line"><path d="M8 4V50H92" fill="none" stroke="#1b1f23" stroke-width="1.5"></path><line x1="8" y1="44" x2="88" y2="10" stroke="#0e6b70" stroke-width="2.5"></line></svg></div><div class="cd"><span class="n">10</span><span class="ln"></span><table class="mt"><tr><th>x</th><td>0</td><td>1</td><td>2</td><td>3</td></tr><tr><th>y</th><td>0</td><td>1</td><td>3</td><td>6</td></tr></table></div><div class="cd"><span class="n">11</span><span class="ln"></span>The area of a square photo as its side length grows.</div><div class="cd"><span class="n">12</span><span class="ln"></span><table class="mt"><tr><th>x</th><td>0</td><td>1</td><td>3</td><td>4</td></tr><tr><th>y</th><td>2</td><td>4</td><td>8</td><td>10</td></tr></table></div></div>
+  <div class="hint"><b>Hint</b>Card 12: look at the x-values first. The steps are not all equal. Find the change in y for <b>each 1</b> step in x.</div>
+  <div class="box vocab" style="gap:6px">
+    <div class="lab">What did you discover?</div>
+    <p>A function is linear when equal steps in x always give <span class="bl" style="min-width:80px"></span> steps in y.</p>
+    <p>So its rate of change is <span class="bl" style="min-width:90px"></span> and its graph is a <span class="bl" style="min-width:110px"></span>.</p>
+    <p>In <span class="m">A = s²</span>, the changes go up by <span class="bl" style="min-width:40px"></span> each time, so the graph <span class="bl" style="min-width:90px"></span>.</p>
+    <p>An equation with <span class="m">x²</span> in it, or a story that <span class="bl" style="min-width:80px"></span>, is not linear.</p>
+  </div>
+  <div class="two">
+    <div class="check"><div class="lab">Check yourself</div>
+      <span>You have exactly 6 cards in each group.</span>
+      <span>Each group has at least one table, one graph, one equation and one story.</span>
+      <span>Step 1: the changes in A add up to 24.</span>
+      <span>Step 3: your last number is 32.</span>
+    </div>
+    <div class="further"><div class="lab">Go further</div>
+      <p style="font-size:14.5px">Make a table that looks linear for the first 3 values but is <b>not</b> linear. Swap with a partner: can they catch it?</p>
+      <div class="work" style="height:56px"></div>
+    </div>
+  </div>
+  <div class="ft"><span>Unit 3 · Lesson 6 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

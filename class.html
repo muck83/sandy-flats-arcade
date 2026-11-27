@@ -423,6 +423,11 @@ a.btn{text-decoration:none;display:inline-block}
     { id: 'g21', title: 'The Last Cart Down', file: 'g21-last-cart-down.html', film: 21 },
     { id: 'g90', title: 'Unit 2 Review', file: 'review-u2.html', film: 99, label: 'Review' }   // levels = skills at Developed
   ];
+  // Homework Arcade (hw.html): one game per lesson, g31-g45 for Unit 3 and g61-g75 for Unit 4. hw: hidden until picked.
+  [[3, 30, ['Laser Line Show', 'Prize Counter Chaos', 'The Scanner Beam', 'The Fare Machine', 'Festival Gatekeeper', 'Sand Square Science', 'Model Maker', 'Beach Dash Duel', 'The Kite Day Tracker', 'Marcus Delivers', 'Zero\'s Multiplier', 'Clock Restart', 'The Undo Booth', 'Case Files of Sandy Flats', 'Model Test Lab']],
+   [4, 60, ['The Lost Receipt', 'The Mind-Reading Machine', 'Camp Cost Splitter', 'Buggy Price Check', 'Arcade Card Showdown', 'The Savings Race', 'The Swap Booth', 'Boardwalk Clue Trail', 'Scale Showdown', 'The Code Vault', 'Method Race', 'Festival Count-Up', 'Kart Chase', 'Prize Shop Zone', 'Bike Hire Battle']]].forEach(function (U) {
+    U[2].forEach(function (t, i) { var n = i + 1; SFA.GAMES.push({ id: 'g' + (U[1] + n), title: t, file: 'hw.html?g=u' + U[0] + '-' + (n < 10 ? '0' : '') + n, film: U[0] * 100 + n, label: 'HW ' + U[0] + '.' + n, hw: U[0] }); });
+  });
   SFA.parseLevels = function (s) {
     return String(s || '').split(' ').filter(Boolean).map(function (t) { var m = t.match(/^([^.]+)\.([a-z]*):(.)$/); return m ? { id: m[1], tier: m[2], st: m[3] } : null; }).filter(Boolean);
   };
@@ -443,7 +448,8 @@ a.btn{text-decoration:none;display:inline-block}
   function getPref(k, d) { try { var v = localStorage.getItem('sfa.class.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function setPref(k, v) { try { localStorage.setItem('sfa.class.' + k, JSON.stringify(v)); } catch (e) { } }
   var showGames = getPref('games', null), showEmail = getPref('email', true), pickOpen = false;
-  function gamesShown() { return SFA.GAMES.filter(function (G) { return !showGames || showGames.indexOf(G.id) >= 0; }); }
+  // no choice saved yet: the arcade games, not the 30 homework games (pick those with the Homework buttons)
+  function gamesShown() { return SFA.GAMES.filter(function (G) { return showGames ? showGames.indexOf(G.id) >= 0 : !G.hw; }); }
   // The key lives in this tab only, unless the teacher ticks "remember"; then until the end of the day.
   // Stored outside the sfa.teacher prefix so a student's "Clear my progress" removes it too.
   var KEY = 'sfa.classkey';
@@ -683,9 +689,13 @@ a.btn{text-decoration:none;display:inline-block}
     var pick = el('details', { 'class': 'gpick' }); pick.open = pickOpen; pick.addEventListener('toggle', function () { pickOpen = pick.open; });
     pick.appendChild(el('summary', { text: 'Choose games to show (' + GS.length + ' of ' + SFA.GAMES.length + ')' }));
     var gl = el('div', { 'class': 'glist' });
-    function setGames(ids) { showGames = ids && ids.length === SFA.GAMES.length ? null : ids; setPref('games', showGames); render(); }
+    function setGames(ids) { showGames = ids; setPref('games', showGames); render(); }
+    function idsOf(f) { return SFA.GAMES.filter(f).map(function (x) { return x.id; }); }
     gl.appendChild(el('div', { 'class': 'row' }, [
-      el('button', { type: 'button', 'class': 'btn small', text: 'All games', onclick: function () { setGames(null); } }),
+      el('button', { type: 'button', 'class': 'btn small', text: 'Arcade games', onclick: function () { setGames(null); } }),
+      el('button', { type: 'button', 'class': 'btn small', text: 'Homework Unit 3', onclick: function () { setGames(idsOf(function (x) { return x.hw === 3; })); } }),
+      el('button', { type: 'button', 'class': 'btn small', text: 'Homework Unit 4', onclick: function () { setGames(idsOf(function (x) { return x.hw === 4; })); } }),
+      el('button', { type: 'button', 'class': 'btn small', text: 'Everything', onclick: function () { setGames(idsOf(function () { return true; })); } }),
       el('button', { type: 'button', 'class': 'btn small', text: 'None', onclick: function () { setGames([]); } }),
       (function () { var l = el('label', { 'class': 'gopt' }), c = el('input', { type: 'checkbox' }); c.checked = showEmail; c.addEventListener('change', function () { showEmail = c.checked; setPref('email', showEmail); render(); }); l.appendChild(c); l.appendChild(document.createTextNode(' Email column')); return l; })()
     ]));

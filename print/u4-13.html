@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 Linear Systems · Lesson 13: Will the Lines Cross? · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+.tbl.tight th,.tbl.tight td{padding:3px 7px;height:21px}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 4 Linear Systems · Lesson 13: Will the Lines Cross?</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u4-13">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 13</div>
+      <div class="h1">Will the Lines Cross?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> use two points on each line to decide if two lines cross, and find where.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes</div>
+    <p>1. Slope from two points: <span class="m">m</span> = change in <span class="bl" style="min-width:40px"></span> ÷ change in <span class="bl" style="min-width:40px"></span> = <span class="m">(y₂ − y₁) ÷ (x₂ − x₁)</span></p>
+    <p>2. To find <span class="m">b</span>: put the slope and one point into <span class="m">y = mx + b</span>, then solve for <span class="bl" style="min-width:40px"></span>.</p>
+    <p>3. <b>Different</b> slopes: the lines cross at exactly <span class="bl" style="min-width:70px"></span> point. The system has one solution.</p>
+    <p>4. <b>Same</b> slope, different <span class="m">b</span>: the lines are <span class="bl" style="min-width:100px"></span>. They never cross: <span class="bl" style="min-width:50px"></span> solution.</p>
+    <p>5. <b>Same</b> slope and same <span class="m">b</span>: it is the <span class="bl" style="min-width:70px"></span> line. Infinitely many solutions.</p>
+    <p>6. To find the crossing, set the two equations <span class="bl" style="min-width:70px"></span> and solve for <span class="m">x</span>. Then find <span class="m">y</span>.</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example: Line A goes through (0, 2) and (4, 10). Line B goes through (1, 7) and (3, 5).</div>
+    <table class="tbl tight" style="font-size:14px">
+      <tr><th style="width:24%">Move I choose</th><th style="width:44%">What it gives me</th><th>Why</th></tr>
+      <tr><td>Slope of A</td><td><span class="m">(10 − 2) ÷ (4 − 0) = 8 ÷ 4 = 2</span></td><td>change in y ÷ change in x</td></tr>
+      <tr><td>Equation of A</td><td><span class="m">b = 2</span>, so <span class="m">y = 2x + 2</span></td><td>(0, 2) is on the y-axis</td></tr>
+      <tr><td>Slope of B</td><td><span class="m">(5 − 7) ÷ (3 − 1) = −2 ÷ 2 = −1</span></td><td>same formula</td></tr>
+      <tr><td>Equation of B</td><td><span class="m">7 = −1(1) + b</span>, so <span class="m">b = 8</span>: <span class="m">y = −x + 8</span></td><td>put in (1, 7), solve for b</td></tr>
+      <tr><td>Compare, set equal</td><td><span class="m">2 ≠ −1</span>, so <span class="m">2x + 2 = −x + 8</span> → <span class="m">x = 2</span></td><td>slopes differ: one crossing; add x, subtract 2, ÷ 3</td></tr>
+      <tr><td>Find y, check</td><td><span class="m">2(2) + 2 = 6</span> and <span class="m">−2 + 8 = 6</span> ✓</td><td>both lines give y = 6</td></tr>
+    </table>
+    <p><b>Answer:</b> the lines cross at <b>(2, 6)</b>.</p>
+  </div>
+
+  <div class="h2"><span class="num">?</span>Your turn: cross, parallel or same line? If they cross, find where.</div>
+  <div class="three">
+    <div class="box" style="gap:5px;font-size:14.5px">
+      <div class="lab">Problem 1</div>
+      <p>P: (0, 1) and (2, 7)<br>Q: (1, 2) and (3, 8)</p>
+      <div class="work" style="height:84px"></div>
+      <p>Slopes: <span class="bl" style="min-width:34px"></span> and <span class="bl" style="min-width:34px"></span></p>
+      <p>Circle: cross · parallel · same</p>
+    </div>
+    <div class="box" style="gap:5px;font-size:14.5px">
+      <div class="lab">Problem 2</div>
+      <p>R: (0, 4) and (2, 0)<br>S: (1, 2) and (3, −2)</p>
+      <div class="work" style="height:84px"></div>
+      <p>Slopes: <span class="bl" style="min-width:34px"></span> and <span class="bl" style="min-width:34px"></span></p>
+      <p>Circle: cross · parallel · same</p>
+    </div>
+    <div class="box" style="gap:5px;font-size:14.5px">
+      <div class="lab">Problem 3</div>
+      <p>T: (0, −1) and (1, 1)<br>U: (0, 5) and (2, 3)</p>
+      <div class="work" style="height:84px"></div>
+      <p>Slopes: <span class="bl" style="min-width:34px"></span> and <span class="bl" style="min-width:34px"></span></p>
+      <p>Crossing: ( <span class="bl" style="min-width:28px"></span> , <span class="bl" style="min-width:28px"></span> )</p>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 13 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 13</div>
+      <div class="h1">Will the Lines Cross?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> find slopes and equations from two points and use them to predict a crossing.</span>
+  </div>
+
+  <div class="box">
+    <div class="lab">The catch-up race</div>
+    <p>Sara and Lina run on a straight 1,200 m path in a Riyadh park. Lina starts ahead. The coach notes (time t in s, distance d in m from the start) twice for each runner:
+    <b>Sara</b> (0, 0) and (60, 240). <b>Lina</b> (20, 160) and (80, 340). <b>Will Sara catch Lina? When and where?</b></p>
+  </div>
+
+  <div class="h2"><span class="num">1</span>Find each runner's slope. The slope is her speed.</div>
+  <table class="tbl">
+    <tr><th>Runner</th><th>Change in d (m)</th><th>Change in t (s)</th><th>Slope = speed (m per s)</th></tr>
+    <tr><td>Sara</td><td>240 − 0 = 240</td><td>60 − 0 = 60</td><td>240 ÷ 60 = 4</td></tr>
+    <tr><td>Lina</td><td>340 − 160 = <span class="bl" style="min-width:50px"></span></td><td><span class="bl" style="min-width:90px"></span></td><td><span class="bl" style="min-width:90px"></span></td></tr>
+  </table>
+
+  <div class="h2"><span class="num">2</span>Write each runner's equation: <span class="m" style="font-family:inherit">d = mt + b</span></div>
+  <div class="two">
+    <div class="box" style="gap:6px">
+      <p><b>Sara</b> starts at the start line, so <span class="m">b = 0</span>.</p>
+      <p>Sara: <span class="m">d = 4t</span></p>
+    </div>
+    <div class="box" style="gap:6px">
+      <p><b>Lina:</b> <span class="m">160 = 3(20) + b</span>, so <span class="m">b</span> = <span class="bl" style="min-width:60px"></span></p>
+      <p>Lina: <span class="m">d</span> = <span class="bl" style="min-width:140px"></span></p>
+    </div>
+  </div>
+  <div class="hint"><b>Hint</b>b is where Lina is at t = 0. It is NOT 160: she is at 160 m at t = 20 s.</div>
+
+  <div class="h2"><span class="num">3</span>Compare the slopes. Predict, then graph.</div>
+  <div class="two" style="grid-template-columns:auto 1fr;align-items:start">
+    <svg width="299" height="230" viewBox="0 0 299 230" role="img" aria-label="Blank grid: time 0 to 200 seconds across, distance 0 to 640 meters up"><defs><pattern id="g13a" x="49" y="8" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern><clipPath id="g13ac"><rect x="49" y="8" width="240" height="192"></rect></clipPath></defs><rect x="49" y="8" width="240" height="192" fill="url(#g13a)" stroke="#59626b" stroke-width="1"></rect><path d="M49 200.0H289M49.0 8V200" stroke="#1b1f23" stroke-width="2"></path><text x="49.0" y="214.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="97.0" y="214.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">40</text><text x="145.0" y="214.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">80</text><text x="193.0" y="214.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">120</text><text x="241.0" y="214.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">160</text><text x="289.0" y="214.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">200</text><text x="45.0" y="180.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">80</text><text x="45.0" y="156.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">160</text><text x="45.0" y="132.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">240</text><text x="45.0" y="108.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">320</text><text x="45.0" y="84.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">400</text><text x="45.0" y="60.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">480</text><text x="45.0" y="36.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">560</text><text x="45.0" y="12.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">640</text><text x="169.0" y="228" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle">Time t (seconds)</text><text x="10" y="104.0" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle" transform="rotate(-90 10 104.0)">Distance d (meters)</text></svg>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <p class="starter">The slopes are ____ and ____. They are different / the same, so the lines will …</p>
+      <div class="work" style="height:38px"></div>
+      <p>Who is faster? How do you know from the slopes?</p>
+      <div class="work" style="height:38px"></div>
+      <p><b>Graph it:</b> plot the two notes for each runner and draw a line through them. Use a different color for Lina. Circle the point where the lines cross.</p>
+      <p>From my graph, they cross near t = <span class="bl" style="min-width:50px"></span> s, d = <span class="bl" style="min-width:50px"></span> m.</p>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 13 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 13</div>
+      <div class="h1">Will the Lines Cross?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> decide if two lines cross, are parallel or are the same line, and explain what it means.</span>
+  </div>
+
+  <div class="h2"><span class="num">4</span>Find the crossing exactly, with algebra.</div>
+  <div class="box" style="flex-direction:row;gap:14px;align-items:center">
+    <div style="flex:1.2;display:flex;flex-direction:column;gap:5px">
+      <p>At the crossing both runners are at the same place, so set <span class="m">4t = 3t + 100</span>.</p>
+      <p><span class="m">t</span> = <span class="bl" style="min-width:50px"></span> s,&nbsp; <span class="m">d</span> = <span class="bl" style="min-width:50px"></span> m. Does your graph agree?</p>
+    </div>
+    <div class="work" style="flex:1;height:58px"></div>
+  </div>
+
+  <div class="h2"><span class="num">5</span>Metro test day: three pairs of trains</div>
+  <p>Riyadh Metro trains on side-by-side tracks. Points are (min, km from Station 1). Find each slope and equation, then decide.</p>
+  <table class="tbl tight" style="font-size:13.5px">
+    <tr><th>Pair</th><th>Train</th><th>Two points</th><th>Slope</th><th>Equation</th><th>Cross, parallel or same?</th></tr>
+    <tr><td rowspan="2">1</td><td>A</td><td>(0, 2) and (4, 6)</td><td>1</td><td><span class="m">y = x + 2</span></td><td rowspan="2"></td></tr>
+    <tr><td>B</td><td>(2, 10) and (6, 6)</td><td></td><td></td></tr>
+    <tr><td rowspan="2">2</td><td>C</td><td>(0, 1) and (3, 4)</td><td></td><td></td><td rowspan="2"></td></tr>
+    <tr><td>D</td><td>(2, 5) and (5, 8)</td><td></td><td></td></tr>
+    <tr><td rowspan="2">3</td><td>E</td><td>(1, 3) and (3, 7)</td><td></td><td></td><td rowspan="2"></td></tr>
+    <tr><td>F</td><td>(2, 5) and (4, 9)</td><td></td><td></td></tr>
+  </table>
+
+  <div class="three">
+    <div class="box" style="gap:5px;font-size:14.5px"><p><b>6. Meaning?</b> Pair 1: they meet at ( <span class="bl" style="min-width:22px"></span> , <span class="bl" style="min-width:22px"></span> ).</p><p class="starter">At ____ min both trains are …</p></div>
+    <div class="box" style="gap:5px;font-size:14.5px"><p><b>Pair 2:</b> do C and D ever meet?</p><p class="starter">D is always ____ km ahead, so …</p></div>
+    <div class="box" style="gap:5px;font-size:14.5px"><p><b>Pair 3:</b> what is going on?</p><p class="starter">E and F have the same …, so …</p></div>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">What did you discover?</div>
+    <p>Different slopes: the lines cross <span class="bl" style="min-width:80px"></span>. Same slope, different <span class="m">b</span>: the lines are <span class="bl" style="min-width:90px"></span> with <span class="bl" style="min-width:60px"></span> solution. Same slope and same <span class="m">b</span>: the <span class="bl" style="min-width:60px"></span> line. To find a crossing, set the equations <span class="bl" style="min-width:70px"></span>.</p>
+  </div>
+
+  <div class="two">
+    <div class="check" style="gap:2px">
+      <div class="lab">Check yourself</div>
+      <span>Step 4: t is between 90 and 110.</span>
+      <span>Every slope in step 5 is 1, −1 or 2.</span>
+      <span>Pair 1: the meeting numbers add to 12.</span>
+    </div>
+    <div class="further" style="gap:4px">
+      <div class="lab">Go further</div>
+      <p>Same speeds (4 and 3 m per s). What head start for Lina makes Sara catch her exactly at the 1,200 m finish?</p>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 13 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

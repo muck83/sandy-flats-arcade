@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 Linear Systems · Lesson 2: One, None or Infinitely Many · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 4 Linear Systems · Lesson 2: One, None or Infinitely Many</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u4-02">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 2</div>
+      <div class="h1">One, None or Infinitely Many</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> solve an equation and tell if it has one, no, or infinitely many solutions.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes</div>
+    <p>1. To solve, do the same <span class="bl" style="min-width:80px"></span> to both sides, so the equation stays <span class="bl" style="min-width:90px"></span>.</p>
+    <p>2. If you end with <span class="m">x = a number</span>, there is <span class="bl" style="min-width:70px"></span> solution.</p>
+    <p>3. If the x’s disappear and you get a <b>true</b> statement, like 6 = 6, there are <span class="bl" style="min-width:130px"></span> solutions. <span class="bl" style="min-width:70px"></span> number works.</p>
+    <p>4. If the x’s disappear and you get a <b>false</b> statement, like 1 = −3, there is <span class="bl" style="min-width:70px"></span> solution. No number works.</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example: choose the move, then write the result</div>
+    <div class="two" style="grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start">
+      <div>
+        <p style="margin-bottom:5px">Solve <span class="m">3x + 5 = x + 13</span></p>
+        <table class="tbl" style="font-size:14px">
+          <tr><th>Move I choose</th><th>What it gives me</th></tr>
+          <tr><td>Subtract <span class="m">x</span> from both sides</td><td><span class="m">2x + 5 = 13</span></td></tr>
+          <tr><td>Subtract 5 from both sides</td><td><span class="m">2x = 8</span></td></tr>
+          <tr><td>Divide both sides by 2</td><td><span class="m">x = 4</span></td></tr>
+        </table>
+        <p style="font-size:14px;margin-top:5px">Check: 3(4) + 5 = 17 and 4 + 13 = 17. <b>One solution.</b></p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:14.5px">
+        <p><span class="m">2x + 6 = 2(x + 3)</span></p>
+        <p>Distribute: <span class="m">2x + 6 = 2x + 6</span><br>Subtract 2x: <span class="m">6 = 6</span> &#160;true<br><b>Infinitely many solutions.</b></p>
+        <p style="border-top:1px solid #c3c9ce;padding-top:6px"><span class="m">4x + 1 = 4x − 3</span></p>
+        <p>Subtract 4x: <span class="m">1 = −3</span> &#160;false<br><b>No solution.</b></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="box" style="gap:5px">
+    <p><span class="lab">Your turn</span> &#160; <b>a.</b> Solve <span class="m">5x − 2 = 3x + 8</span>.</p>
+    <table class="tbl" style="font-size:14px">
+      <tr><th style="width:50%">Move I choose</th><th>What it gives me</th></tr>
+      <tr><td>Subtract <span class="m">3x</span> from both sides</td><td><span class="m">2x − 2 = 8</span></td></tr>
+      <tr><td></td><td></td></tr>
+      <tr><td></td><td></td></tr>
+    </table>
+  </div>
+  <div class="two">
+    <div class="box" style="gap:5px">
+      <p><b>b.</b> <span class="m">3(x + 2) = 3x + 6</span></p>
+      <div class="work" style="height:62px"></div>
+      <p style="font-size:14px">Circle: &#160;one &#160;/ &#160;none &#160;/ &#160;infinitely many</p>
+    </div>
+    <div class="box" style="gap:5px">
+      <p><b>c.</b> <span class="m">7x + 4 = 7x + 9</span></p>
+      <div class="work" style="height:62px"></div>
+      <p style="font-size:14px">Circle: &#160;one &#160;/ &#160;none &#160;/ &#160;infinitely many</p>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 2 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 2</div>
+      <div class="h1">The Number Trick</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> notice when an equation is true for every number, or for none.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">The situation</div>
+    <p>At lunch, Yousef says: “Think of a number. Double it. Add 6. Now take away two times your first number. I can read your mind: you got <b>6</b>!”</p>
+  </div>
+
+  <div class="h2"><span class="num">1</span>Try the trick</div>
+  <table class="tbl">
+    <tr><th>My number</th><th>Double it</th><th>Add 6</th><th>Take away 2 × my number</th><th>Result</th></tr>
+    <tr><td>5</td><td>10</td><td>16</td><td>16 − 10</td><td>6</td></tr>
+    <tr><td>2</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>11</td><td></td><td></td><td></td><td></td></tr>
+  </table>
+
+  <div class="h2"><span class="num">2</span>Write the trick with algebra</div>
+  <p>With <span class="m">x</span> for the number, the trick says: <span class="m">2x + 6 − 2x = 6</span>. Simplify the left side: <span class="bl" style="min-width:60px"></span> = 6.</p>
+  <p>Which numbers make it true? <span class="bl" style="min-width:150px"></span> &#160; Now Lina asks: “Is a number plus 3 ever equal to the same number plus 5?” <span class="m">x + 3 = x + 5</span>. Which numbers work? <span class="bl" style="min-width:90px"></span></p>
+
+  <div class="h2"><span class="num">3</span>Simplify each card until you see x = a number, a true statement, or a false one</div>
+  <div class="three">
+      <div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:5px"><p><b style="display:inline-flex;width:20px;height:20px;border-radius:4px;background:#0e6b70;color:#fff;justify-content:center;align-items:center;font-size:13px;margin-right:4px">A</b> <span class="m">2x + 7 = 15</span></p><div class="work" style="height:50px"></div></div>
+      <div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:5px"><p><b style="display:inline-flex;width:20px;height:20px;border-radius:4px;background:#0e6b70;color:#fff;justify-content:center;align-items:center;font-size:13px;margin-right:4px">B</b> <span class="m">3(x + 4) = 3x + 12</span></p><div class="work" style="height:50px"></div></div>
+      <div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:5px"><p><b style="display:inline-flex;width:20px;height:20px;border-radius:4px;background:#0e6b70;color:#fff;justify-content:center;align-items:center;font-size:13px;margin-right:4px">C</b> <span class="m">5x − 1 = 5x + 4</span></p><div class="work" style="height:50px"></div></div>
+      <div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:5px"><p><b style="display:inline-flex;width:20px;height:20px;border-radius:4px;background:#0e6b70;color:#fff;justify-content:center;align-items:center;font-size:13px;margin-right:4px">D</b> <span class="m">4x + 3 = 2x + 11</span></p><div class="work" style="height:50px"></div></div>
+      <div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:5px"><p><b style="display:inline-flex;width:20px;height:20px;border-radius:4px;background:#0e6b70;color:#fff;justify-content:center;align-items:center;font-size:13px;margin-right:4px">E</b> <span class="m">6x + 2 − x = 5x + 2</span></p><div class="work" style="height:50px"></div></div>
+      <div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:5px"><p><b style="display:inline-flex;width:20px;height:20px;border-radius:4px;background:#0e6b70;color:#fff;justify-content:center;align-items:center;font-size:13px;margin-right:4px">F</b> <span class="m">2(3x − 1) = 6x + 5</span></p><div class="work" style="height:50px"></div></div>
+      <div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:5px"><p><b style="display:inline-flex;width:20px;height:20px;border-radius:4px;background:#0e6b70;color:#fff;justify-content:center;align-items:center;font-size:13px;margin-right:4px">G</b> <span class="m">7 − x = x + 1</span></p><div class="work" style="height:50px"></div></div>
+      <div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:5px"><p><b style="display:inline-flex;width:20px;height:20px;border-radius:4px;background:#0e6b70;color:#fff;justify-content:center;align-items:center;font-size:13px;margin-right:4px">H</b> <span class="m">8x − 3x + 9 = 5x − 9</span></p><div class="work" style="height:50px"></div></div>
+      <div style="border:1.5px dashed #59626b;border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:5px"><p><b style="display:inline-flex;width:20px;height:20px;border-radius:4px;background:#0e6b70;color:#fff;justify-content:center;align-items:center;font-size:13px;margin-right:4px">I</b> <span class="m">4(x − 2) + 8 = 4x</span></p><div class="work" style="height:50px"></div></div>
+  </div>
+  <div class="hint"><b>Hint</b>Distribute first. Then collect the x terms on one side. Write what is left in the box.</div>
+
+  <div class="ft"><span>Unit 4 · Lesson 2 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 2</div>
+      <div class="h1">Sort and Build</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> sort equations by their number of solutions and build my own.</span>
+  </div>
+
+  <div class="h2"><span class="num">4</span>Sort the nine cards from page 2</div>
+  <table class="tbl">
+    <tr><th style="width:34%">One solution (x = a number)</th><th style="width:33%">Infinitely many (true)</th><th>No solution (false)</th></tr>
+    <tr><td>Card ___ : &#160;x = ____</td><td>Card ___ : &#160;___ = ___</td><td>Card ___ : &#160;___ = ___</td></tr>
+    <tr><td>Card ___ : &#160;x = ____</td><td>Card ___ : &#160;___ = ___</td><td>Card ___ : &#160;___ = ___</td></tr>
+    <tr><td>Card ___ : &#160;x = ____</td><td>Card ___ : &#160;___ = ___</td><td>Card ___ : &#160;___ = ___</td></tr>
+  </table>
+
+  <div class="h2"><span class="num">5</span>Look closer: what do the cards in each group share?</div>
+  <p>a. After simplifying cards B, E and I, the two sides are <span class="bl" style="min-width:110px"></span>.</p>
+  <p>b. After simplifying cards C, F and H, the x terms are the <span class="bl" style="min-width:70px"></span>, but the numbers are <span class="bl" style="min-width:80px"></span>.</p>
+
+  <div class="h2"><span class="num">6</span>Build your own equations</div>
+  <div class="three">
+    <div class="box" style="gap:5px"><div class="lab">No solution</div><p><span class="m">4x + 3 = 4x +</span> <span class="bl" style="min-width:40px"></span></p><div class="work" style="height:44px"></div></div>
+    <div class="box" style="gap:5px"><div class="lab">Infinitely many</div><p><span class="m">4x + 3 = 4x +</span> <span class="bl" style="min-width:40px"></span></p><div class="work" style="height:44px"></div></div>
+    <div class="box" style="gap:5px"><div class="lab">One solution: solve it</div><p><span class="bl" style="min-width:40px"></span><span class="m">x + 3 = 4x + 11</span></p><div class="work" style="height:44px"></div></div>
+  </div>
+  <div class="hint"><b>Hint</b>For one solution, the number of x’s on the left must be different from 4. Try 6.</div>
+  <p>Your own equation <b>with brackets</b> that has infinitely many solutions: <span class="bl" style="min-width:220px"></span></p>
+
+  <div class="box vocab">
+    <div class="lab">What did you discover?</div>
+    <p><span class="m">x = a number</span> means <span class="bl" style="min-width:60px"></span> solution. &#160; A true statement like 5 = 5 means <span class="bl" style="min-width:130px"></span> solutions. &#160; A false statement like 2 = 7 means <span class="bl" style="min-width:60px"></span> solution.</p>
+    <p>I can predict “none” or “infinitely many” when both sides have the <span class="bl" style="min-width:70px"></span> number of x’s.</p>
+  </div>
+
+  <div class="two">
+    <div class="check">
+      <div class="lab">Check yourself</div>
+      <span>Each column of my sort has exactly 3 cards.</span>
+      <span>My three x values add to 11.</span>
+      <span>I tested my “one solution” answer in the original.</span>
+    </div>
+    <div class="further">
+      <div class="lab">Go further</div>
+      <p>Look at <span class="m">ax + 6 = 2(x + 3)</span>.</p>
+      <p>a. Which value of <span class="m">a</span> gives infinitely many solutions?</p>
+      <p>b. Can any value of <span class="m">a</span> give no solution? Explain.</p>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 2 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>
