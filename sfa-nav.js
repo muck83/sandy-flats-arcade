@@ -125,6 +125,7 @@
       var ln = +((Q.match(/[?&]l=(\d+)/) || [])[1] || 0), gf = (PLAN.filter(function (p) { return p.l === ln; })[0] || {}).game;
       if (gf) nav.appendChild(link(gf, /summative/.test(gf) ? '📄 Open the summative' : '🕹️ Play the game', false));
     }
+    nav.appendChild(link('homework.html', '🎒 Homework', page === 'homework.html' || page === 'hw.html'));
     nav.appendChild(link('climb.html', '🧗 Climb', page === 'climb.html'));
     nav.appendChild(link('squeeze.html', '🍋 Squeeze Street', page === 'squeeze.html'));
     nav.appendChild(link('showoff-u2.html', '🌟 Show-Off', page === 'showoff-u2.html'));

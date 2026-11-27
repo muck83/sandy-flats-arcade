@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Homework Arcade · Sandy Flats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Patrick+Hand&family=IBM+Plex+Mono:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="sfa-kit.css?v=20261102a">
+<link rel="stylesheet" href="hw.css?v=20261127a">
+<style>
+.hub h2{font:400 26px var(--display);letter-spacing:.03em;color:var(--marquee);margin:26px 0 4px}
+.hub .unit{color:var(--muted);margin:0}
+.hwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:12px}
+.hwg{display:flex;flex-direction:column;gap:4px;padding:14px;border-radius:16px;border:2px solid var(--line);background:var(--panel);color:var(--ink);text-decoration:none;min-height:130px}
+.hwg:hover,.hwg:focus-visible{border-color:var(--marquee);transform:translateY(-2px)}
+.hwg .n{font:800 11px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.hwg b{font:400 21px/1.1 var(--display);letter-spacing:.03em;color:var(--marquee)}
+.hwg small{color:var(--muted)}
+.hwg .st{margin-top:auto;color:var(--marquee);letter-spacing:2px}
+.hwg.soon{opacity:.45;pointer-events:none}
+</style>
+</head><body>
+<div class="wrap hw hub">
+  <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Homework Arcade</h1><div class="chips"></div></header>
+  <p class="hwsub" style="margin-top:14px">One game for each lesson. Open the one your teacher sets. Every level walks you through the math one move at a time: choose the move, then choose what it gives. Right first time earns 3 coins.</p>
+  <div id="units"></div>
+</div>
+<script src="config.js"></script>
+<script src="sfa-kit.js?v=20261102a"></script>
+<script src="sfa-sync.js"></script>
+<script>
+(function () {
+  'use strict';
+  var UNITS = [{ u: 3, name: 'Unit 3 · Functions & Graphing', n: 15 }, { u: 4, name: 'Unit 4 · Linear Systems', n: 15 }];
+  var defs = {}, left = 0, el = SFA.el;
+  window.SFA_HW = function (d) { defs[d.unit + '-' + d.lesson] = d; };
+  function draw() {
+    var box = document.getElementById('units'); box.innerHTML = '';
+    UNITS.forEach(function (U) {
+      box.appendChild(el('h2', { text: U.name }));
+      var g = el('div', { 'class': 'hwgrid' });
+      for (var i = 1; i <= U.n; i++) {
+        var d = defs[U.u + '-' + i], k = 'u' + U.u + '-' + (i < 10 ? '0' : '') + i;
+        if (!d) { g.appendChild(el('div', { 'class': 'hwg soon' }, [el('span', { 'class': 'n', text: 'Lesson ' + i }), el('b', { text: 'Coming soon' })])); continue; }
+        var P = SFA.store.get('hw.' + d.id, null) || {}, stars = 0; for (var s in (P.stars || {})) stars += P.stars[s] || 0;
+        var a = el('a', { 'class': 'hwg', href: 'hw.html?g=' + k });
+        a.appendChild(el('span', { 'class': 'n', text: 'Lesson ' + i + ' · ' + d.topic }));
+        a.appendChild(el('b', { text: d.title }));
+        a.appendChild(el('small', { text: d.levels.length + ' levels · ' + d.levels.reduce(function (t, L) { return t + L.tasks.length; }, 0) + ' questions' }));
+        a.appendChild(el('span', { 'class': 'st', text: stars ? '★ ' + stars + ' / ' + 3 * d.levels.length : 'Not started' }));
+        g.appendChild(a);
+      }
+      box.appendChild(g);
+    });
+  }
+  UNITS.forEach(function (U) { for (var i = 1; i <= U.n; i++) { left++; var s = document.createElement('script'); s.src = 'hw/u' + U.u + '-' + (i < 10 ? '0' : '') + i + '.js?v=20261127b'; s.onload = s.onerror = function () { if (--left === 0) draw(); }; document.head.appendChild(s); } });
+})();
+</script>
+<script src="sfa-account.js"></script>
+<script src="sfa-nav.js"></script>
+</body></html>
