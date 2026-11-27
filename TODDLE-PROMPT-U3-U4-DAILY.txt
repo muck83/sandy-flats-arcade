@@ -1,206 +1,202 @@
-PROMPT FOR CLAUDE IN CHROME: post each day's lesson and its homework in Toddle (Grade 8 Units 3 and 4)
+PROMPT FOR CLAUDE IN CHROME: post each lesson and its homework in Toddle (Grade 8 Units 3 and 4)
 
 Paste everything below the line into Claude in Chrome while you are signed in to Toddle. Before you paste, fill in the
-[brackets]. You can paste it once for a whole unit, or again each week with only that week's lessons left in.
+[brackets]. Everything is created as drafts named Lesson 1, Lesson 2 and so on, with no dates: you set the dates in
+Toddle yourself later.
 ----------------------------------------------------------------------------------------------------------------------
 
-You are helping me, a Grade 8 math teacher, post each day's lesson and homework in Toddle. I'm signed in to Toddle in
-this browser. Work in a new tab. Ask me before you publish, schedule or assign anything to students, and never message
-students or families. If Toddle's screens don't match what I describe, look around, choose the closest feature, and tell
-me what you chose.
+You are helping me, a Grade 8 math teacher, set up each lesson and its homework in Toddle. I'm signed in to Toddle in
+this browser. Work in a new tab. Never publish, schedule or assign anything to students, and never message students or
+families: everything you make stays a draft. If Toddle's screens don't match what I describe, look around, choose the
+closest feature, and tell me what you chose.
 
 CLASS(ES): [Grade 8 Math class name(s) in Toddle]
 UNIT: [3 or 4]
-FIRST LESSON: [lesson number to start from, e.g. 3.1]   FIRST DATE: [date of that lesson]
-CLASS DAYS: [which weekdays we have math, e.g. Sun Mon Tue Wed Thu]
-NO-CLASS DAYS TO SKIP: [dates: holidays, trips, assessment days]
-POST TIME: [e.g. 7:00 on the morning of each lesson, or "drafts only"]
-HOMEWORK DUE: [e.g. the start of the next math lesson]
+LESSONS: [all 15, or a range such as Lessons 1-5]
 
 THE PLAN
-One lesson per class day, in order. Each lesson day gets ONE post with the day's work, and ONE homework assignment.
-All student material is on our class website; use the exact links below, clickable. There are no teacher keys on the
-website, so nothing below is secret.
+Each lesson gets ONE post with that lesson's work and ONE homework assignment, both drafts with no date set. I will
+add the dates and publish them myself. All student material is on our class website; use the exact links below,
+clickable. There are no teacher keys on the website, so nothing below is secret.
 
 WHAT TO DO
 1. First, look at how my existing posts and assignments are set up in this class: the unit, folder or learning
    experience they sit in, how titles are written, which tags or standards are used. Copy that set-up, inside the unit
-   for the UNIT above, if one exists (otherwise ask me where to put them). Tell me in two or three lines what
-   you found before you create anything.
-2. Work out the date of each lesson: start at FIRST LESSON on FIRST DATE, then the next class day, skipping NO-CLASS DAYS.
-   Show me the list (lesson, title, date) and wait for my "yes".
-3. For each lesson, create:
-   a) A POST (or learning experience, whichever my class already uses for daily work), dated that lesson's day, titled
-      exactly as in the lesson list below, with this text:
+   for the UNIT above, if one exists (otherwise ask me where to put them). Tell me in two or three lines what you found
+   before you create anything.
+2. For each lesson in LESSONS, in order, create:
+   a) A POST (or learning experience, whichever my class already uses for daily work), as a draft with no date, titled
+      exactly as in the lesson list below (for example "Lesson 1: Transformation Mystery"), with this text:
          Today: [the lesson title]
          [the "I can" line]
          1. Open today's pages: [pages link]. Print them, or work on paper from the screen.
          2. Notes (5 minutes): fill in the blanks as we go.
          3. Investigation (25 minutes): work through the steps with your partner. Use the hints when you are stuck.
          Missed class? Do the pages at home, then the homework game.
-   b) A HOMEWORK ASSIGNMENT, titled "Homework [lesson number]: [game name]", set the same day, due at HOMEWORK DUE, with:
+   b) A HOMEWORK ASSIGNMENT, as a draft with no date or due date, titled "Homework [lesson number]: [game name]" (for
+      example "Homework 1: Laser Line Show"), with:
          Play [game name] in the Sandy Flats Homework Arcade: [homework link]
          Sign in first so your progress saves (the sign-in button is at the top of the page).
          Done when you finish all 5 levels. Right first time earns 3 coins. Replay any level to raise your stars.
          Not signed in? Take a screenshot of the certificate at the end and upload it here.
       Let students submit a file (for the screenshot), and make it not graded unless my class's other homework is graded.
-4. Show me every item you will create (title, date, time, text, links, due date, who can see it) in one summary, and
-   wait for my "yes" before you publish or schedule anything. Then publish or schedule exactly what I approved, and give
-   me a list of what you did with a link to each item.
+      If Toddle insists on a date before it will save a draft, use today's date and tell me which items have one.
+3. Do one lesson first (its post and its homework), show me what you made, and wait for my "yes" before doing the rest.
+4. When you finish, give me a list of every draft you made, with a link to each, so I can add the dates.
 
 THE LESSONS: UNIT 3, FUNCTIONS & GRAPHING
-LESSON 3.1: "Unit 3 · Lesson 1: Transformation Mystery"
+Lesson 1: Transformation Mystery
 I can describe how a line changes when its equation changes.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-01.html
 Homework: play "Laser Line Show" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-01
 
-LESSON 3.2: "Unit 3 · Lesson 2: Function Machines"
+Lesson 2: Function Machines
 I can decide if a rule is a function: each input gives exactly one output.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-02.html
 Homework: play "Prize Counter Chaos" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-02
 
-LESSON 3.3: "Unit 3 · Lesson 3: Graphs That Are Functions"
+Lesson 3: Graphs That Are Functions
 I can use the vertical line test to explain if a graph is a function.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-03.html
 Homework: play "The Scanner Beam" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-03
 
-LESSON 3.4: "Unit 3 · Lesson 4: Function Notation"
+Lesson 4: Function Notation
 I can read f(x), evaluate it, and solve f(x) = a number.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-04.html
 Homework: play "The Fare Machine" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-04
 
-LESSON 3.5: "Unit 3 · Lesson 5: Domain and Range"
+Lesson 5: Domain and Range
 I can choose a sensible domain and range, and tell discrete from continuous.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-05.html
 Homework: play "Festival Gatekeeper" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-05
 
-LESSON 3.6: "Unit 3 · Lesson 6: Linear or Not?"
+Lesson 6: Linear or Not?
 I can test a table, graph or equation to decide if a function is linear.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-06.html
 Homework: play "Sand Square Science" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-06
 
-LESSON 3.7: "Unit 3 · Lesson 7: Build a Linear Model"
+Lesson 7: Build a Linear Model
 I can find the rate of change and initial value, then write y = mx + b.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-07.html
 Homework: play "Model Maker" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-07
 
-LESSON 3.8: "Unit 3 · Lesson 8: Compare Two Functions"
+Lesson 8: Compare Two Functions
 I can compare two functions given in different forms.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-08.html
 Homework: play "Beach Dash Duel" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-08
 
-LESSON 3.9: "Unit 3 · Lesson 9: Tell the Story of a Graph"
+Lesson 9: Tell the Story of a Graph
 I can describe each piece of a graph: up, down or flat, fast or slow.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-09.html
 Homework: play "The Kite Day Tracker" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-09
 
-LESSON 3.10: "Unit 3 · Lesson 10: Shift It Up or Down"
+Lesson 10: Shift It Up or Down
 I can shift a graph up or down and write g(x) = f(x) + k.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-10.html
 Homework: play "Marcus Delivers" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-10
 
-LESSON 3.11: "Unit 3 · Lesson 11: Stretch It or Flip It"
+Lesson 11: Stretch It or Flip It
 I can stretch, compress or flip a graph and write g(x) = a · f(x).
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-11.html
 Homework: play "Zero's Multiplier" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-11
 
-LESSON 3.12: "Unit 3 · Lesson 12: Move the Starting Point"
+Lesson 12: Move the Starting Point
 I can shift a graph left or right and write g(x) = f(x − h).
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-12.html
 Homework: play "Clock Restart" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-12
 
-LESSON 3.13: "Unit 3 · Lesson 13: Undo It: Inverse Functions"
+Lesson 13: Undo It: Inverse Functions
 I can undo a function with a table and tell if two functions are inverses.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-13.html
 Homework: play "The Undo Booth" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-13
 
-LESSON 3.14: "Unit 3 · Lesson 14: Error Detective"
+Lesson 14: Error Detective
 I can find, explain and fix a mistake in math work.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-14.html
 Homework: play "Case Files of Sandy Flats" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-14
 
-LESSON 3.15: "Unit 3 · Lesson 15: Is the Model Good Enough?"
+Lesson 15: Is the Model Good Enough?
 I can test a model with errors and say where it stops working.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u3-15.html
 Homework: play "Model Test Lab" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u3-15
 
 THE LESSONS: UNIT 4, LINEAR SYSTEMS
-LESSON 4.1: "Unit 4 · Lesson 1: One Equation Isn't Enough"
+Lesson 1: One Equation Isn't Enough
 I can test if a pair (x, y) is a solution, and explain why one equation is not enough.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-01.html
 Homework: play "The Lost Receipt" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-01
 
-LESSON 4.2: "Unit 4 · Lesson 2: One, None or Infinitely Many"
+Lesson 2: One, None or Infinitely Many
 I can solve an equation and tell if it has one, no, or infinitely many solutions.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-02.html
 Homework: play "The Mind-Reading Machine" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-02
 
-LESSON 4.3: "Unit 4 · Lesson 3: Brackets and Fractions"
+Lesson 3: Brackets and Fractions
 I can solve equations with brackets, fractions and decimals, one move at a time.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-03.html
 Homework: play "Camp Cost Splitter" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-03
 
-LESSON 4.4: "Unit 4 · Lesson 4: What Is a Solution to a System?"
+Lesson 4: What Is a Solution to a System?
 I can check if a point is a solution to a system by testing it in both equations.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-04.html
 Homework: play "Buggy Price Check" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-04
 
-LESSON 4.5: "Unit 4 · Lesson 5: Solve by Graphing"
+Lesson 5: Solve by Graphing
 I can graph two lines, read where they cross, and check that point in both equations.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-05.html
 Homework: play "Arcade Card Showdown" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-05
 
-LESSON 4.6: "Unit 4 · Lesson 6: How Many Solutions?"
+Lesson 6: How Many Solutions?
 I can tell if a system has one, no or infinitely many solutions by comparing slopes and intercepts.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-06.html
 Homework: play "The Savings Race" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-06
 
-LESSON 4.7: "Unit 4 · Lesson 7: Substitution, Part 1"
+Lesson 7: Substitution, Part 1
 I can solve a system by substitution when one equation is already solved for a variable.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-07.html
 Homework: play "The Swap Booth" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-07
 
-LESSON 4.8: "Unit 4 · Lesson 8: Substitution, Part 2"
+Lesson 8: Substitution, Part 2
 I can solve for a variable first, substitute with brackets, and spot no solution or infinitely many.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-08.html
 Homework: play "Boardwalk Clue Trail" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-08
 
-LESSON 4.9: "Unit 4 · Lesson 9: Elimination, Part 1"
+Lesson 9: Elimination, Part 1
 I can add or subtract two equations to cancel a variable and solve a system.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-09.html
 Homework: play "Scale Showdown" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-09
 
-LESSON 4.10: "Unit 4 · Lesson 10: Elimination, Part 2"
+Lesson 10: Elimination, Part 2
 I can multiply one or both equations to make a variable cancel, then solve.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-10.html
 Homework: play "The Code Vault" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-10
 
-LESSON 4.11: "Unit 4 · Lesson 11: Choose Your Method"
+Lesson 11: Choose Your Method
 I can look at a system and choose the fastest method to solve it.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-11.html
 Homework: play "Method Race" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-11
 
-LESSON 4.12: "Unit 4 · Lesson 12: Write the System"
+Lesson 12: Write the System
 I can turn a word problem into a system, solve it and answer in a sentence.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-12.html
 Homework: play "Festival Count-Up" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-12
 
-LESSON 4.13: "Unit 4 · Lesson 13: Will the Lines Cross?"
+Lesson 13: Will the Lines Cross?
 I can use two points on each line to decide if two lines cross, and find where.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-13.html
 Homework: play "Kart Chase" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-13
 
-LESSON 4.14: "Unit 4 · Lesson 14: Systems of Inequalities, Revisited"
+Lesson 14: Systems of Inequalities, Revisited
 I can graph a system of inequalities and find a corner of the region exactly with algebra.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-14.html
 Homework: play "Prize Shop Zone" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-14
 
-LESSON 4.15: "Unit 4 · Lesson 15: Make the Decision"
+Lesson 15: Make the Decision
 I can find a break-even point and use it to choose the better option.
 In class: 5-minute notes, then a 25-minute investigation. Pages (print or open): https://muck83.github.io/sandy-flats-arcade/print/u4-15.html
 Homework: play "Bike Hire Battle" (5 levels, about 20 questions): https://muck83.github.io/sandy-flats-arcade/hw.html?g=u4-15
 
 CHECKS BEFORE YOU FINISH
 - Every link opens (click one pages link and one homework link to be sure) and points to the right lesson number.
-- No post or assignment is published or scheduled without my "yes".
-- Dates skip the NO-CLASS DAYS, and no two lessons share a date.
+- Everything you made is a draft: nothing is published, scheduled or visible to students.
+- Titles start "Lesson 1", "Lesson 2" … and "Homework 1", "Homework 2" … to match the lesson numbers below.
