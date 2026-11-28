@@ -371,7 +371,7 @@ a.btn{text-decoration:none;display:inline-block}
 </style></head><body>
 <div class="wrap">
   <header class="topbar"><a class="brand" href="index.html">Sandy Flats Arcade</a><h1 class="gtitle">Class Results</h1>
-    <div class="chips"><button type="button" class="chip" id="refresh">Refresh</button><button type="button" class="chip" id="allCsv">Download everything</button><button type="button" class="chip" id="ansCsv">Lesson answers CSV</button><button type="button" class="chip" id="csv">Game progress CSV</button><button type="button" class="chip" id="codes">Student codes</button><button type="button" class="chip" id="lock">Lock</button></div></header>
+    <div class="chips"><button type="button" class="chip" id="refresh">Refresh</button><button type="button" class="chip" id="dashCopy">📋 Copy for dashboard</button><button type="button" class="chip" id="allCsv">Download everything</button><button type="button" class="chip" id="ansCsv">Lesson answers CSV</button><button type="button" class="chip" id="csv">Game progress CSV</button><button type="button" class="chip" id="codes">Student codes</button><button type="button" class="chip" id="lock">Lock</button></div></header>
   <div id="body"></div>
 </div>
 <script src="config.js"></script>
@@ -816,6 +816,30 @@ a.btn{text-decoration:none;display:inline-block}
     if (out.length < 2) { SFA.toast('No lesson answers yet' + (cls ? ' for class ' + cls : '') + '.', 3000); return; }
     download('lesson-answers' + (cls ? '-' + cls : '') + '-' + new Date().toISOString().slice(0, 10) + '.csv', out);
     SFA.toast((out.length - 1) + ' answers downloaded' + (cls ? ' (class ' + cls + ' only)' : '') + '. It opens in Excel or Google Sheets.', 4000);
+  });
+  // 📋 Copy for dashboard: every student's arcade games, homework games, lessons and Climb as one block of JSON, for the
+  // Grade 8 Student Dashboard's Sync box (Participation tab). It follows the class filter. Shown in a box as well as copied,
+  // so a browser assistant can read it straight off the page.
+  document.getElementById('dashCopy').addEventListener('click', function () {
+    if (!data) return;
+    if (!les.by) { SFA.toast(les.busy ? 'Still loading the lesson answers. Try again in a moment.' : 'Loading the lesson answers…', 3000); if (!les.busy) loadAnswers(); return; }
+    var sids = {}; data.roster.forEach(function (s) { if (!cls || s.cls === cls) sids[s.sid] = 1; });
+    var per = {}; answerRows(sids).forEach(function (x) { var p = per[x.s.sid] || (per[x.s.sid] = { answers: 0, marked: 0, right: 0, les: {} }); p.answers++; p.les[x.L.id] = 1; if (x.a.correct) { p.marked++; if (x.a.correct === 'yes') p.right++; } });
+    var G = {}; SFA.GAMES.forEach(function (g) { G[g.id] = g; });
+    var by = {}; data.progress.forEach(function (p) { (by[p.sid] = by[p.sid] || []).push(p); });
+    var out = { kind: 'sandyflats', v: 1, syncedAt: new Date().toISOString(), cls: cls || 'all', students: data.roster.filter(function (s) { return sids[s.sid]; }).map(function (s) {
+      var games = (by[s.sid] || []).filter(function (p) { return G[p.game]; }).map(function (p) { var g = G[p.game]; return { id: p.game, title: g.title, label: g.label || ('Film ' + g.film), homework: g.hw ? 'U' + g.hw : '', done: p.levelsDone || 0, total: p.levelsTotal || 0, std: !!p.standard, updated: p.updated || '' }; });
+      var last = games.reduce(function (a, g) { return g.updated > a ? g.updated : a; }, '');
+      var l = per[s.sid] || { answers: 0, marked: 0, right: 0, les: {} }, c = climbBy()[s.sid];
+      return { sid: s.sid, name: s.name, cls: s.cls || '', email: emails[s.sid] || s.email || '', last: last, games: games,
+        lessons: { joined: Object.keys(l.les).length, answers: l.answers, marked: l.marked, right: l.right },
+        climb: c ? { score: Math.round(c.theta), secure: c.secure, sessions: c.sess, updated: c.updated } : null };
+    }) };
+    var txt = JSON.stringify(out);
+    var box = document.getElementById('dashBox');
+    if (!box) { box = el('textarea', { id: 'dashBox', readonly: 'readonly', 'aria-label': 'Data for the dashboard', style: 'width:100%;min-height:120px;margin-top:10px;font:12px var(--mono);background:#0c0b11;color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:8px' }); body.insertBefore(box, body.firstChild); }
+    box.value = txt;
+    (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(function () { SFA.toast('Copied ' + out.students.length + ' students' + (cls ? ' (class ' + cls + ')' : '') + '. Paste it into the dashboard\'s Sync box.', 4500); }, function () { box.select(); SFA.toast('Select-all in the box above and copy it, then paste it into the dashboard\'s Sync box.', 5000); });
   });
   document.getElementById('csv').addEventListener('click', function () {
     if (!data) return;
