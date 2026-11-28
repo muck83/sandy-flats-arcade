@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 3 Functions & Graphing · Lesson 13: Undo It: Inverse Functions · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 3 Functions &amp; Graphing · Lesson 13: Undo It: Inverse Functions</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u3-13">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 13</div>
+      <div class="h1">Undo It: Inverse Functions</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> undo a function with a table and tell if two functions are inverses.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes</div>
+    <p>1. An <b>inverse function</b> <span class="bl" style="min-width:90px"></span> what the original function does.</p>
+    <p>2. It swaps the <span class="bl" style="min-width:80px"></span> and the <span class="bl" style="min-width:80px"></span>.</p>
+    <p>3. If <span class="m">f(2) = 7</span>, the inverse takes 7 back to <span class="bl" style="min-width:40px"></span>. The point (2, 7) becomes ( <span class="bl" style="min-width:36px"></span> , <span class="bl" style="min-width:36px"></span> ).</p>
+    <p>4. The domain of <span class="m">f</span> becomes the <span class="bl" style="min-width:80px"></span> of the inverse. The range becomes the <span class="bl" style="min-width:80px"></span>.</p>
+    <p>5. To undo steps, use the <span class="bl" style="min-width:90px"></span> operations in <span class="bl" style="min-width:90px"></span> order.</p>
+    <p style="font-size:13.5px"><b>Word bank:</b> undoes · inputs · outputs · range · domain · opposite · reverse · 2 · 7</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example: build an undo machine</div>
+    <p>The function <span class="m">f</span> says: <b>double, then add 3</b>. So <span class="m">f(5) = 2(5) + 3 = 13</span>. How do we get from 13 back to 5?</p>
+    <div class="two" style="grid-template-columns:1.45fr 1fr">
+      <table class="tbl">
+        <tr><th>Move I choose</th><th style="white-space:nowrap">What it gives me</th></tr>
+        <tr><td style="text-align:left">Start with the output</td><td>13</td></tr>
+        <tr><td style="text-align:left">Undo “add 3” first (done <b>last</b>): − 3</td><td>13 − 3 = 10</td></tr>
+        <tr><td style="text-align:left">Undo “double”: divide by 2</td><td>10 ÷ 2 = 5</td></tr>
+        <tr><td style="text-align:left">Check: put 5 into <span class="m">f</span></td><td style="white-space:nowrap">2(5) + 3 = 13 ✓</td></tr>
+      </table>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <p style="font-size:14px"><b>Undo machine:</b> subtract 3, then halve.</p>
+        <table class="tbl"><tr><th><span class="m">x</span></th><td>0</td><td>1</td><td>2</td><td>5</td></tr><tr><th><span class="m">f(x)</span></th><td>3</td><td>5</td><td>7</td><td>13</td></tr></table>
+        <table class="tbl"><tr><th>in</th><td>3</td><td>5</td><td>7</td><td>13</td></tr><tr><th>undo</th><td>0</td><td>1</td><td>2</td><td>5</td></tr></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="h2"><span class="num">✓</span>Your turn</div>
+  <div class="three">
+    <div class="box" style="gap:6px">
+      <p><b>a.</b> <span class="m">g</span>: × 4, then − 1.</p>
+      <p>Undo: first <span class="bl" style="min-width:70px"></span>, then <span class="bl" style="min-width:70px"></span>.</p>
+      <p><span class="m">g(x) = 19</span>. Undo 19: <span class="m">x</span> = <span class="bl" style="min-width:40px"></span></p>
+      <div class="work" style="height:70px"></div>
+    </div>
+    <div class="box" style="gap:6px">
+      <p><b>b.</b> Fill in the inverse of <span class="m">h</span>.</p>
+      <table class="tbl"><tr><th><span class="m">x</span></th><td>1</td><td>2</td><td>3</td><td>4</td></tr><tr><th><span class="m">h(x)</span></th><td>6</td><td>11</td><td>16</td><td>21</td></tr></table>
+      <table class="tbl"><tr><th>in</th><td>6</td><td>11</td><td>16</td><td>21</td></tr><tr><th>undo</th><td></td><td></td><td></td><td></td></tr></table>
+      <p style="font-size:14px">The undo rule in words:</p>
+      <div class="work" style="height:44px"></div>
+    </div>
+    <div class="box" style="gap:6px">
+      <p><b>c.</b> <span class="m">k(4) = 9</span>. The inverse takes <span class="bl" style="min-width:34px"></span> to <span class="bl" style="min-width:34px"></span>.</p>
+      <p style="font-size:14.5px">Domain of <span class="m">k</span>: {0, 2, 4}. Range of <span class="m">k</span>: {1, 5, 9}.</p>
+      <p>Domain of the inverse:<br>{ <span class="bl" style="min-width:110px"></span> }</p>
+      <p>Range of the inverse:<br>{ <span class="bl" style="min-width:110px"></span> }</p>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 3 · Lesson 13 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 13</div>
+      <div class="h1">Undo It: Inverse Functions</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> discover how an inverse undoes a function, using tables.</span>
+  </div>
+
+  <p><b style="color:#0e6b70">The situation.</b> Lina lives in Riyadh. Her cousin Sam is visiting from New York. They change prices back and forth with the rule <b>1 USD = 3.75 SAR</b>.</p>
+
+  <div class="h2"><span class="num">1</span>Sam changes dollars into riyals: “multiply by 3.75”</div>
+  <table class="tbl">
+    <tr><th>USD (input)</th><td>1</td><td>2</td><td>4</td><td>8</td><td>10</td><td>20</td><td>100</td></tr>
+    <tr><th>SAR (output)</th><td>3.75</td><td>7.50</td><td></td><td></td><td>37.50</td><td></td><td></td></tr>
+  </table>
+  <div class="hint"><b>Hint</b>No calculator? 4 USD is 2 USD + 2 USD, so double the SAR for 2 USD.</div>
+
+  <div class="h2"><span class="num">2</span>At a Riyadh mall, prices are in SAR. Sam wants USD.</div>
+  <table class="tbl">
+    <tr><th>SAR (input)</th><td>7.50</td><td>15</td><td>30</td><td>37.50</td><td>75</td><td>150</td><td>375</td></tr>
+    <tr><th>USD (output)</th><td>2</td><td></td><td></td><td>10</td><td></td><td></td><td></td></tr>
+  </table>
+
+  <div class="h2"><span class="num">3</span>Compare the tables. What happened to the inputs and outputs?</div>
+  <p class="starter">The SAR → USD table is the USD → SAR table with <span class="bl" style="min-width:330px"></span></p>
+
+  <div class="h2"><span class="num">4</span>Build the undo machine</div>
+  <div class="two" style="grid-template-columns:1fr 1fr">
+    <div class="box" style="gap:9px">
+      <p>USD → <b>[ × 3.75 ]</b> → SAR</p>
+      <p>SAR → <b>[ <span class="bl" style="min-width:80px"></span> ]</b> → USD</p>
+      <p style="font-size:14px">Test it: 37.50 SAR → <span class="bl" style="min-width:50px"></span> USD</p>
+    </div>
+    <div class="box" style="gap:9px">
+      <p><b>Round trip.</b> Start with 6 USD.</p>
+      <p>6 USD → <span class="bl" style="min-width:60px"></span> SAR → <span class="bl" style="min-width:50px"></span> USD</p>
+      <p class="starter" style="font-size:14px">I got back … because the second machine …</p>
+      <div class="bl" style="min-width:100%;margin:0"></div>
+    </div>
+  </div>
+  <div class="h2"><span class="num">5</span>Riyadh in summer: °C and °F</div>
+  <p>Sam’s phone shows °F. The rule °C → °F is “<b>multiply by 1.8, then add 32</b>”. Fill in the table.</p>
+  <table class="tbl">
+    <tr><th>°C</th><td>0</td><td>10</td><td>20</td><td>30</td><td>40</td><td>45</td></tr>
+    <tr><th>°F</th><td>32</td><td>50</td><td></td><td></td><td>104</td><td></td></tr>
+  </table>
+  <div class="box" style="gap:6px">
+    <p>Undo machine °F → °C: first <span class="bl" style="min-width:110px"></span>, then <span class="bl" style="min-width:110px"></span>. &#160;Use it: 86 °F = <span class="bl" style="min-width:40px"></span> °C</p>
+    <p style="font-size:13px;color:#0e6b70"><b>HINT</b> “Add 32” was done last, so undo it first.</p>
+  </div>
+
+  <div class="ft"><span>Unit 3 · Lesson 13 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 13</div>
+      <div class="h1">Undo It: Inverse Functions</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> check if two functions are inverses and explain what an inverse does.</span>
+  </div>
+
+  <div class="h2"><span class="num">6</span>Inverse or not?</div>
+  <p>Swap the rows of the first table. If you get the second table, they are inverses. Circle Yes or No.</p>
+  <div class="three">
+    <div class="box" style="gap:5px;padding:9px 10px"><div class="lab">Pair A</div>
+      <table class="tbl"><tr><th>x</th><td>1</td><td>2</td><td>3</td></tr><tr><th>y</th><td>5</td><td>7</td><td>9</td></tr></table>
+      <table class="tbl"><tr><th>x</th><td>5</td><td>7</td><td>9</td></tr><tr><th>y</th><td>1</td><td>2</td><td>3</td></tr></table>
+      <p style="font-size:14px">Inverses? &#160; Yes &#160; / &#160; No</p></div>
+    <div class="box" style="gap:5px;padding:9px 10px"><div class="lab">Pair B</div>
+      <table class="tbl"><tr><th>x</th><td>0</td><td>2</td><td>4</td></tr><tr><th>y</th><td>1</td><td>5</td><td>9</td></tr></table>
+      <table class="tbl"><tr><th>x</th><td>1</td><td>5</td><td>9</td></tr><tr><th>y</th><td>0</td><td>4</td><td>2</td></tr></table>
+      <p style="font-size:14px">Inverses? &#160; Yes &#160; / &#160; No</p></div>
+    <div class="box" style="gap:5px;padding:9px 10px"><div class="lab">Pair C</div>
+      <table class="tbl"><tr><th>x</th><td>2</td><td>4</td><td>6</td></tr><tr><th>y</th><td>8</td><td>10</td><td>12</td></tr></table>
+      <table class="tbl"><tr><th>x</th><td>8</td><td>10</td><td>12</td></tr><tr><th>y</th><td>14</td><td>16</td><td>18</td></tr></table>
+      <p style="font-size:14px">Inverses? &#160; Yes &#160; / &#160; No</p></div>
+  </div>
+
+  <div class="h2"><span class="num">7</span>See it on a graph</div>
+  <div class="two" style="grid-template-columns:auto 1fr;align-items:start">
+    <svg width="226" height="216" viewBox="0 0 226 216" role="img" aria-label="Grid from 0 to 10 with a dashed line y equals x, for plotting a function and its inverse"><defs><pattern id="g13a" x="22" y="8" width="19" height="19" patternUnits="userSpaceOnUse"><path d="M19 0H0V19" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="22" y="8" width="190" height="190" fill="url(#g13a)" stroke="#59626b" stroke-width="1"></rect><path d="M22 198H212 M22 8V198" stroke="#1b1f23" stroke-width="2"></path><text x="22" y="211" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="41" y="211" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="60" y="211" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="79" y="211" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="98" y="211" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="117" y="211" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="136" y="211" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="155" y="211" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">7</text><text x="174" y="211" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">8</text><text x="193" y="211" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">9</text><text x="212" y="211" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">10</text><text x="18" y="183" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1</text><text x="18" y="164" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2</text><text x="18" y="145" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">3</text><text x="18" y="126" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><text x="18" y="107" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">5</text><text x="18" y="88" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">6</text><text x="18" y="69" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">7</text><text x="18" y="50" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">8</text><text x="18" y="31" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">9</text><text x="18" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">10</text><text x="26" y="18" font-size="11" fill="#1b1f23" font-family="Arial" font-style="italic">y</text><line x1="22" y1="198" x2="212" y2="8" stroke="#a64b08" stroke-width="1.8" stroke-dasharray="7 5"></line><text x="209" y="40.3" font-size="11" fill="#a64b08" font-family="Arial" text-anchor="end" font-weight="bold">y = x</text></svg>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <p style="font-size:14.5px">Plot Pair A’s first table as dots: (1, 5), (2, 7), (3, 9).</p>
+      <p style="font-size:14.5px">Plot the second table as open circles: (5, 1), (7, 2), (9, 3).</p>
+      <p style="font-size:14.5px">What do you notice about the dots, the circles and the dashed line?</p>
+      <p class="starter" style="font-size:14px">The circles are like a … of the dots across …</p>
+      <div class="work" style="height:56px"></div>
+    </div>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">What did you discover?</div>
+    <p>An inverse <span class="bl" style="min-width:70px"></span> the inputs and outputs: the point (<span class="m">a</span>, <span class="m">b</span>) becomes ( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> ).</p>
+    <p>To undo a rule, use the <span class="bl" style="min-width:80px"></span> operations in <span class="bl" style="min-width:80px"></span> order. The domain of a function is the <span class="bl" style="min-width:70px"></span> of its inverse. On a graph they are mirror images over the line <span class="bl" style="min-width:60px"></span>.</p>
+  </div>
+  <div class="two">
+    <div class="check"><div class="lab">Check yourself</div><span>Your four new SAR values in step 1 add to 495.</span><span>Your five new USD values in step 2 add to 172.</span><span>In step 6, exactly one pair is inverses.</span></div>
+    <div class="further"><div class="lab">Go further</div><p style="font-size:14.5px">“Square it”: inputs −3, −2, 2, 3 give 9, 4, 4, 9. Swap the table. Is the inverse a function? Explain.</p></div>
+  </div>
+
+  <div class="ft"><span>Unit 3 · Lesson 13 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 Linear Systems · Lesson 8: Substitution, Part 2 · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 4 Linear Systems · Lesson 8: Substitution, Part 2</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u4-08">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 8</div>
+      <div class="h1">Substitution, Part 2</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> solve for a variable first, substitute with brackets, and spot no solution or infinitely many.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes</div>
+    <p>1. If no variable is alone yet, first <span class="bl" style="min-width:70px"></span> one equation for a variable.</p>
+    <p>2. Pick a variable whose coefficient is <span class="bl" style="min-width:40px"></span> (or −1). Then you avoid fractions.</p>
+    <p>3. Put the expression in <span class="bl" style="min-width:90px"></span>, then <span class="bl" style="min-width:90px"></span> to multiply it out.</p>
+    <p>4. Variables cancel and you get something <b>false</b>, like <span class="m">0 = 5</span>: <span class="bl" style="min-width:50px"></span> solution. The lines are <span class="bl" style="min-width:80px"></span>.</p>
+    <p>5. Variables cancel and you get something <b>true</b>, like <span class="m">4 = 4</span>: <span class="bl" style="min-width:90px"></span> many solutions. It is the <span class="bl" style="min-width:60px"></span> line.</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example · <span class="m">x + 2y = 7</span> and <span class="m">3x − 4y = 1</span></div>
+    <table class="tbl" style="font-size:14.5px">
+      <tr><th style="width:52%">Move I choose</th><th>What it gives me</th></tr>
+      <tr><td style="text-align:left">Solve equation 1 for <span class="m">x</span> (coefficient 1): subtract <span class="m">2y</span></td><td><span class="m">x = 7 − 2y</span></td></tr>
+      <tr><td style="text-align:left">Substitute into equation 2, with brackets</td><td><span class="m">3(7 − 2y) − 4y = 1</span></td></tr>
+      <tr><td style="text-align:left">Distribute the 3, then combine like terms</td><td><span class="m">21 − 6y − 4y = 1</span>, so <span class="m">21 − 10y = 1</span></td></tr>
+      <tr><td style="text-align:left">Subtract 21, then divide both sides by −10</td><td><span class="m">−10y = −20</span>, so <span class="m">y = 2</span></td></tr>
+      <tr><td style="text-align:left">Back-substitute into <span class="m">x = 7 − 2y</span></td><td><span class="m">x = 7 − 2(2) = 3</span></td></tr>
+      <tr><td style="text-align:left">Check in both equations</td><td><span class="m">3 + 4 = 7</span> ✓ <span class="m">9 − 8 = 1</span> ✓ <b>Answer (3, 2)</b></td></tr>
+    </table>
+  </div>
+
+  <div class="box">
+    <div class="lab">Your turn · solve, or say none / infinitely many</div>
+    <div class="three">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <p><b>A.</b> <span class="m">2x + y = 11</span><br><span class="m">x − y = 1</span></p>
+        <div class="work" style="height:112px"></div>
+        <p style="font-size:14px">Answer: <span class="bl" style="min-width:90px"></span></p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <p><b>B.</b> <span class="m">y − 3x = 1</span><br><span class="m">6x − 2y = 4</span></p>
+        <div class="work" style="height:112px"></div>
+        <p style="font-size:14px">Answer: <span class="bl" style="min-width:90px"></span></p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <p><b>C.</b> <span class="m">x − 2y = 3</span><br><span class="m">2x − 4y = 6</span></p>
+        <div class="work" style="height:112px"></div>
+        <p style="font-size:14px">Answer: <span class="bl" style="min-width:90px"></span></p>
+      </div>
+    </div>
+  </div>
+  <div class="ft"><span>Unit 4 · Lesson 8 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 8</div>
+      <div class="h1">The Desert Camp Trail</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> solve a chain of systems by substitution, where each answer unlocks the next.</span>
+  </div>
+
+  <div class="box">
+    <div class="lab">The situation</div>
+    <p>Your class is camping in the desert near Riyadh. The camp leader set up a trail of <b>6 stations</b>. Each station has a system. Its answer gives you a number for the next station.</p>
+    <p><span style="display:inline-block;width:22px;height:20px;border:1.5px solid #a64b08;border-radius:3px;vertical-align:-4px"></span> = a box. Fill it with the number the station tells you to use. Then solve.</p>
+  </div>
+  <div class="hint"><b>Hint</b>Look for a variable with coefficient 1 or −1. Solve for it first. Use brackets when you substitute.</div>
+
+  <div class="box" style="padding:9px 13px;gap:5px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+      <p class="h2" style="font-size:17px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0e6b70" stroke-width="2.5" aria-hidden="true"><path d="M5 21V4M5 4h12l-3 4 3 4H5"></path></svg>Station 1</p>
+      <p style="font-size:14px">Start here</p>
+    </div>
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:16px"><span class="m">x + y = 9</span><span class="m">2x − y = 9</span><p style="font-size:14.5px;margin-top:4px">Answer: ( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> )</p></div>
+      <div class="work" style="height:132px"></div>
+    </div>
+  </div>
+  <div class="box" style="padding:9px 13px;gap:5px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+      <p class="h2" style="font-size:17px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0e6b70" stroke-width="2.5" aria-hidden="true"><path d="M5 21V4M5 4h12l-3 4 3 4H5"></path></svg>Station 2</p>
+      <p style="font-size:14px"><b>Box</b> = the <span class="m">x</span> from Station 1</p>
+    </div>
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:16px"><span class="m"><span style="display:inline-block;width:22px;height:20px;border:1.5px solid #a64b08;border-radius:3px;vertical-align:-4px"></span> x − y = 11</span><span class="m">x + y = 3</span><p style="font-size:14.5px;margin-top:4px">Answer: ( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> )</p></div>
+      <div class="work" style="height:132px"></div>
+    </div>
+  </div>
+  <div class="box" style="padding:9px 13px;gap:5px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+      <p class="h2" style="font-size:17px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0e6b70" stroke-width="2.5" aria-hidden="true"><path d="M5 21V4M5 4h12l-3 4 3 4H5"></path></svg>Station 3</p>
+      <p style="font-size:14px"><b>Box</b> = the <span class="m">x</span> from Station 2</p>
+    </div>
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:16px"><span class="m">x − <span style="display:inline-block;width:22px;height:20px;border:1.5px solid #a64b08;border-radius:3px;vertical-align:-4px"></span> y = −4</span><span class="m">3x + 5y = −1</span><p style="font-size:14.5px;margin-top:4px">Answer: ( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> )</p></div>
+      <div class="work" style="height:150px"></div>
+    </div>
+  </div>
+  <p class="starter">Station 3 tip: solve the first equation for x. Then 3( … ) + 5y = −1.</p>
+  <div class="ft"><span>Unit 4 · Lesson 8 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 8</div>
+      <div class="h1">Trail Stations 4 to 6</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> explain what it means when the variables disappear.</span>
+  </div>
+
+  <div class="box" style="padding:9px 13px;gap:5px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+      <p class="h2" style="font-size:17px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0e6b70" stroke-width="2.5" aria-hidden="true"><path d="M5 21V4M5 4h12l-3 4 3 4H5"></path></svg>Station 4</p>
+      <p style="font-size:14px"><b>Box</b> = the <span class="m">x</span> from Station 3</p>
+    </div>
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:16px"><span class="m">y = <span style="display:inline-block;width:22px;height:20px;border:1.5px solid #a64b08;border-radius:3px;vertical-align:-4px"></span> x + 10</span><span class="m">3x − 2y = 1</span><p style="font-size:14.5px;margin-top:4px">Answer: ( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> )</p></div>
+      <div class="work" style="height:84px"></div>
+    </div>
+  </div>
+  <div class="box" style="padding:9px 13px;gap:5px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+      <p class="h2" style="font-size:17px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0e6b70" stroke-width="2.5" aria-hidden="true"><path d="M5 21V4M5 4h12l-3 4 3 4H5"></path></svg>Station 5</p>
+      <p style="font-size:14px"><b>Box</b> = the <span class="m">x</span> from Station 4</p>
+    </div>
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:16px"><span class="m">y = <span style="display:inline-block;width:22px;height:20px;border:1.5px solid #a64b08;border-radius:3px;vertical-align:-4px"></span> x + 2</span><span class="m">6x − 2y = 5</span><p style="font-size:14.5px;margin-top:4px">Answer: ( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> )</p></div>
+      <div class="work" style="height:84px"></div>
+    </div>
+  </div>
+  <div class="box" style="padding:9px 13px;gap:5px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+      <p class="h2" style="font-size:17px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0e6b70" stroke-width="2.5" aria-hidden="true"><path d="M5 21V4M5 4h12l-3 4 3 4H5"></path></svg>Station 6</p>
+      <p style="font-size:14px"><b>Box</b> = the <span class="m">y</span> from Station 4 (why not Station 5?)</p>
+    </div>
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:16px"><span class="m"><span style="display:inline-block;width:22px;height:20px;border:1.5px solid #a64b08;border-radius:3px;vertical-align:-4px"></span> x − 2y = 8</span><span class="m">y = 2x − 4</span><p style="font-size:14.5px;margin-top:4px">Answer: ( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> )</p></div>
+      <div class="work" style="height:84px"></div>
+    </div>
+  </div>
+
+  <p class="h2"><span class="num">7</span>What happened at Stations 5 and 6?</p>
+  <div class="two">
+    <p>Station 5 ended with <span class="bl" style="min-width:70px"></span> (true / false)</p>
+    <p>Station 6 ended with <span class="bl" style="min-width:70px"></span> (true / false)</p>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">What did you discover?</div>
+    <p>If the variables disappear and the statement is <b>false</b>, there is <span class="bl" style="min-width:50px"></span> solution: the lines are <span class="bl" style="min-width:80px"></span>.</p>
+    <p>If it is <b>true</b>, there are <span class="bl" style="min-width:90px"></span> many solutions: both equations are the <span class="bl" style="min-width:60px"></span> line.</p>
+  </div>
+
+  <div class="check">
+    <div class="lab">Check yourself</div>
+    <span>The <i class="m">x</i>-values from Stations 1 to 4 add to 9. So do the <i class="m">y</i>-values.</span>
+    <span>Every point you found makes BOTH equations at its station true.</span>
+  </div>
+
+  <div class="further">
+    <div class="lab">Go further</div>
+    <p><span class="m">x + 2y = 5</span> and <span class="m">3x + ky = 15</span>. Find <i class="m">k</i> for infinitely many solutions: <span class="bl" style="min-width:40px"></span>. Then change the 15 so there is no solution: <span class="bl" style="min-width:40px"></span></p>
+  </div>
+  <div class="ft"><span>Unit 4 · Lesson 8 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

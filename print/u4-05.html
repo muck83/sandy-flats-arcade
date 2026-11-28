@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 Linear Systems · Lesson 5: Solve by Graphing · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 4 Linear Systems · Lesson 5: Solve by Graphing</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u4-05">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 5</div>
+      <div class="h1">Solve by Graphing</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> graph two lines, read where they cross, and check that point in both equations.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes</div>
+    <p>1. To solve a system by graphing, graph <span class="bl" style="min-width:80px"></span> lines on the <span class="bl" style="min-width:80px"></span> grid.</p>
+    <p>2. The solution is the point where the two lines <span class="bl" style="min-width:110px"></span>.</p>
+    <p>3. <span class="m">y = mx + b</span>: start at <span class="m">b</span> on the <span class="bl" style="min-width:80px"></span>. Then use the <span class="bl" style="min-width:80px"></span> <span class="m">m</span> (rise over run).</p>
+    <p>4. <span class="m">Ax + By = C</span>: find the two <span class="bl" style="min-width:100px"></span>. Put <span class="m">x = 0</span>, then put <span class="m">y = 0</span>. The <span class="bl" style="min-width:100px"></span> is where <span class="m">y = 0</span>.</p>
+    <p>5. Always <span class="bl" style="min-width:70px"></span> the point. It must make <span class="bl" style="min-width:70px"></span> equations true.</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example · Solve <span class="m">y = x + 1</span> and <span class="m">x + y = 7</span></div>
+    <div style="display:grid;grid-template-columns:1fr 200px;gap:14px;align-items:center">
+      <table class="tbl" style="font-size:14px">
+        <tr><th style="width:52%">Move I choose</th><th>What it gives me</th></tr>
+        <tr><td style="text-align:left">Graph <span class="m">y = x + 1</span>: start 1, up 1 right 1</td><td>(0, 1), (1, 2), (2, 3): solid line</td></tr>
+        <tr><td style="text-align:left">Graph <span class="m">x + y = 7</span> by intercepts</td><td>(0, 7) and (7, 0): dashed line</td></tr>
+        <tr><td style="text-align:left">Read where the lines cross</td><td>(3, 4)</td></tr>
+        <tr><td style="text-align:left">Check in line 1</td><td>4 = 3 + 1 ✓</td></tr>
+        <tr><td style="text-align:left">Check in line 2</td><td>3 + 4 = 7 ✓</td></tr>
+      </table>
+      <svg width="196" height="186" viewBox="0 0 196 186" role="img" aria-label="Graph of y = x + 1 and x + y = 7 crossing at the point 3, 4"><defs><pattern id="n5a" x="26" y="8" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="26" y="8" width="160" height="160" fill="url(#n5a)" stroke="#59626b" stroke-width="1"></rect><path d="M26 168H186M26 8V168" stroke="#1b1f23" stroke-width="2"></path><text x="26" y="181" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="46" y="181" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="66" y="181" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="86" y="181" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="106" y="181" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="126" y="181" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="146" y="181" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="166" y="181" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">7</text><text x="186" y="181" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">8</text><text x="22" y="152" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1</text><text x="22" y="132" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2</text><text x="22" y="112" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">3</text><text x="22" y="92" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><text x="22" y="72" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">5</text><text x="22" y="52" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">6</text><text x="22" y="32" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">7</text><text x="22" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">8</text><path d="M26 148L166 8" stroke="#0e6b70" stroke-width="2.5" fill="none"></path><path d="M26 28L166 168" stroke="#a64b08" stroke-width="2.5" fill="none" stroke-dasharray="7 5"></path><circle cx="86" cy="88" r="4.5" fill="#1b1f23"></circle><text x="94" y="92" font-size="11" fill="#1b1f23" font-family="Arial" font-weight="700">(3, 4)</text></svg>
+    </div>
+    <p><b>Answer:</b> the solution is <b>(3, 4)</b>. It is the only point on both lines.</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Your turn · graph both lines, then check</div>
+    <div class="two">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <p><b>A.</b> <span class="m">y = 2x</span> and <span class="m">y = −x + 6</span></p>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg width="204" height="194" viewBox="0 0 204 194" role="img" aria-label="Blank grid from 0 to 7 on each axis"><defs><pattern id="n5b" x="26" y="8" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="26" y="8" width="168" height="168" fill="url(#n5b)" stroke="#59626b" stroke-width="1"></rect><path d="M26 176H194M26 8V176" stroke="#1b1f23" stroke-width="2"></path><text x="26" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="50" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="74" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="98" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="122" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="146" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="170" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="194" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">7</text><text x="22" y="156" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1</text><text x="22" y="132" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2</text><text x="22" y="108" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">3</text><text x="22" y="84" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><text x="22" y="60" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">5</text><text x="22" y="36" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">6</text><text x="22" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">7</text></svg>
+          <div style="display:flex;flex-direction:column;gap:14px;font-size:14px;padding-top:8px">
+            <span>Cross at<br>( <span class="bl" style="min-width:28px"></span> , <span class="bl" style="min-width:28px"></span> )</span>
+            <span>Check 1:<br><span class="bl" style="min-width:110px"></span></span>
+            <span>Check 2:<br><span class="bl" style="min-width:110px"></span></span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <p><b>B.</b> <span class="m">x + 2y = 8</span> and <span class="m">y = x + 1</span></p>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg width="204" height="194" viewBox="0 0 204 194" role="img" aria-label="Blank grid from 0 to 7 on each axis"><defs><pattern id="n5c" x="26" y="8" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="26" y="8" width="168" height="168" fill="url(#n5c)" stroke="#59626b" stroke-width="1"></rect><path d="M26 176H194M26 8V176" stroke="#1b1f23" stroke-width="2"></path><text x="26" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="50" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="74" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="98" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="122" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="146" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="170" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="194" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">7</text><text x="22" y="156" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1</text><text x="22" y="132" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2</text><text x="22" y="108" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">3</text><text x="22" y="84" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><text x="22" y="60" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">5</text><text x="22" y="36" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">6</text><text x="22" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">7</text></svg>
+          <div style="display:flex;flex-direction:column;gap:14px;font-size:14px;padding-top:8px">
+            <span>Cross at<br>( <span class="bl" style="min-width:28px"></span> , <span class="bl" style="min-width:28px"></span> )</span>
+            <span>Check 1:<br><span class="bl" style="min-width:110px"></span></span>
+            <span>Check 2:<br><span class="bl" style="min-width:110px"></span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ft"><span>Unit 4 · Lesson 5 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 5</div>
+      <div class="h1">Which Phone Plan?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> use a graph to find when two plans cost the same.</span>
+  </div>
+
+  <div class="box">
+    <div class="lab">The situation</div>
+    <p>You need a phone plan in Riyadh. Look at the two offers.</p>
+    <div class="two">
+      <p><b>Plan A · Basic:</b> 30 SAR each month, plus 5 SAR for each GB of data.</p>
+      <p><b>Plan B · Flex:</b> no monthly fee. 10 SAR for each GB of data.</p>
+    </div>
+    <p>Let <span class="m">x</span> = GB used in a month and <span class="m">y</span> = total cost in SAR. Plan A: <span class="m">y = 5x + 30</span>. Plan B: <span class="m">y = 10x</span>.</p>
+  </div>
+
+  <p class="h2"><span class="num">1</span>Fill in the table.</p>
+  <table class="tbl">
+    <tr><th>GB used (x)</th><th>0</th><th>2</th><th>4</th><th>6</th><th>8</th><th>10</th></tr>
+    <tr><th>Plan A cost (SAR)</th><td>30</td><td>40</td><td></td><td></td><td></td><td></td></tr>
+    <tr><th>Plan B cost (SAR)</th><td>0</td><td></td><td>40</td><td></td><td></td><td></td></tr>
+  </table>
+  <p>Which plan is cheaper at 2 GB? <span class="bl" style="min-width:80px"></span> At 10 GB? <span class="bl" style="min-width:80px"></span> Is there a column where they are equal? <span class="bl" style="min-width:60px"></span></p>
+
+  <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <p class="h2"><span class="num">2</span>Graph both plans.</p>
+      <svg width="280" height="266" viewBox="0 0 280 266" role="img" aria-label="Blank grid: data used from 0 to 10 GB across, cost from 0 to 100 SAR up"><defs><pattern id="i5a" x="30" y="8" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="30" y="8" width="240" height="240" fill="url(#i5a)" stroke="#59626b" stroke-width="1"></rect><path d="M30 248H270M30 8V248" stroke="#1b1f23" stroke-width="2"></path><text x="30" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="54" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="78" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="102" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="126" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="150" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="174" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="198" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">7</text><text x="222" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">8</text><text x="246" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">9</text><text x="270" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">10</text><text x="26" y="228" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">10</text><text x="26" y="204" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">20</text><text x="26" y="180" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">30</text><text x="26" y="156" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">40</text><text x="26" y="132" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">50</text><text x="26" y="108" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">60</text><text x="26" y="84" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">70</text><text x="26" y="60" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">80</text><text x="26" y="36" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">90</text><text x="26" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">100</text></svg>
+      <p style="font-size:13px">Across: GB used. Up: cost (SAR).</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <p>Plot the points from your table. Draw Plan A with a <b>solid</b> line and Plan B with a <b>dashed</b> line. Label each line.</p>
+      <div class="hint"><b>Hint</b>Each square is 1 GB across and 10 SAR up. So 40 SAR is 4 squares up.</div>
+      <p class="h2"><span class="num">3</span>Where do the lines cross?</p>
+      <p>The lines cross at ( <span class="bl" style="min-width:40px"></span> , <span class="bl" style="min-width:40px"></span> ).<br>This point is called the <b>break-even point</b>.</p>
+      <p class="h2"><span class="num">4</span>Check it in both rules.</p>
+      <p>Plan A: 5( <span class="bl" style="min-width:30px"></span> ) + 30 = <span class="bl" style="min-width:40px"></span></p>
+      <p>Plan B: 10( <span class="bl" style="min-width:30px"></span> ) = <span class="bl" style="min-width:40px"></span> Match? <span class="bl" style="min-width:50px"></span></p>
+      <p class="h2"><span class="num">5</span>What does it mean?</p>
+      <p class="starter">At ______ GB, both plans cost ______ SAR.</p>
+      <p class="starter">If I use less than ______ GB, Plan ______ is cheaper.</p>
+      <p class="starter">If I use more than ______ GB, Plan ______ is cheaper.</p>
+    </div>
+  </div>
+  <div class="ft"><span>Unit 4 · Lesson 5 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 5</div>
+      <div class="h1">Can a Graph Always Tell Us?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> solve systems by graphing and explain when a graph only gives an estimate.</span>
+  </div>
+
+  <div class="two">
+    <div class="box">
+      <p class="h2"><span class="num">6</span><span><span class="m">2x + 3y = 12</span> and <span class="m">y = x − 1</span></span></p>
+      <p style="font-size:14.5px">Line 1 intercepts: (0, <span class="bl" style="min-width:26px"></span>) and (<span class="bl" style="min-width:26px"></span>, 0)<br>Line 2 points: (1, <span class="bl" style="min-width:26px"></span>) and (3, <span class="bl" style="min-width:26px"></span>)</p>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <svg width="204" height="194" viewBox="0 0 204 194" role="img" aria-label="Blank grid from 0 to 7 on each axis"><defs><pattern id="i5b" x="26" y="8" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="26" y="8" width="168" height="168" fill="url(#i5b)" stroke="#59626b" stroke-width="1"></rect><path d="M26 176H194M26 8V176" stroke="#1b1f23" stroke-width="2"></path><text x="26" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="50" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="74" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="98" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="122" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="146" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="170" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="194" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">7</text><text x="22" y="156" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1</text><text x="22" y="132" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2</text><text x="22" y="108" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">3</text><text x="22" y="84" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><text x="22" y="60" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">5</text><text x="22" y="36" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">6</text><text x="22" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">7</text></svg>
+        <div style="display:flex;flex-direction:column;gap:12px;font-size:14px;padding-top:6px">
+          <span>Cross at<br>( <span class="bl" style="min-width:26px"></span> , <span class="bl" style="min-width:26px"></span> )</span>
+          <span>Check 1:<br><span class="bl" style="min-width:100px"></span></span>
+          <span>Check 2:<br><span class="bl" style="min-width:100px"></span></span>
+        </div>
+      </div>
+    </div>
+    <div class="box">
+      <p class="h2"><span class="num">7</span><span><span class="m">y = x + 1</span> and <span class="m">y = −2x + 6</span></span></p>
+      <p style="font-size:14.5px">Line 1 points: (0, <span class="bl" style="min-width:26px"></span>) and (2, <span class="bl" style="min-width:26px"></span>)<br>Line 2 points: (0, <span class="bl" style="min-width:26px"></span>) and (2, <span class="bl" style="min-width:26px"></span>)</p>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <svg width="204" height="194" viewBox="0 0 204 194" role="img" aria-label="Blank grid from 0 to 7 on each axis"><defs><pattern id="i5c" x="26" y="8" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="26" y="8" width="168" height="168" fill="url(#i5c)" stroke="#59626b" stroke-width="1"></rect><path d="M26 176H194M26 8V176" stroke="#1b1f23" stroke-width="2"></path><text x="26" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="50" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="74" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="98" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="122" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="146" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="170" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="194" y="189" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">7</text><text x="22" y="156" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1</text><text x="22" y="132" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2</text><text x="22" y="108" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">3</text><text x="22" y="84" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><text x="22" y="60" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">5</text><text x="22" y="36" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">6</text><text x="22" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">7</text></svg>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;padding-top:6px">
+          <span>Best estimate:<br>( <span class="bl" style="min-width:26px"></span> , <span class="bl" style="min-width:26px"></span> )</span>
+          <span>Test (2, 3).<br>Line 1: <span class="bl" style="min-width:50px"></span><br>Line 2: <span class="bl" style="min-width:50px"></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hint"><b>Hint</b>In Step 7, look closely: the lines do not cross on a corner of a square. Is (2, 3) on both lines, or only one?</div>
+
+  <div class="box vocab">
+    <div class="lab">What did you discover?</div>
+    <p>The solution of a system is the point where the two lines <span class="bl" style="min-width:90px"></span>. It makes <span class="bl" style="min-width:60px"></span> equations true.</p>
+    <p>Graphing works well when the lines cross exactly on a <span class="bl" style="min-width:90px"></span> point.</p>
+    <p>When they cross between grid lines, a graph only gives an <span class="bl" style="min-width:90px"></span>. To get the exact answer, we need <span class="bl" style="min-width:90px"></span>.</p>
+  </div>
+
+  <div class="check">
+    <div class="lab">Check yourself</div>
+    <span>The two numbers in your break-even point (Step 3) add to 66.</span>
+    <span>In Step 6, your solution is two whole numbers that add to 5.</span>
+    <span>In Step 7, your estimate has <i class="m">x</i> between 1 and 2, and <i class="m">y</i> between 2 and 3.</span>
+  </div>
+
+  <div class="further">
+    <div class="lab">Go further</div>
+    <p><b>Plan C</b> costs 20 SAR each month plus 6 SAR per GB: <span class="m">y = 6x + 20</span>. Add it to your Step 2 graph.</p>
+    <p>Plan C crosses Plan A at ( <span class="bl" style="min-width:36px"></span> , <span class="bl" style="min-width:36px"></span> ) and Plan B at ( <span class="bl" style="min-width:36px"></span> , <span class="bl" style="min-width:36px"></span> ). For 7 GB the cheapest plan is <span class="bl" style="min-width:50px"></span>.</p>
+  </div>
+  <div class="ft"><span>Unit 4 · Lesson 5 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

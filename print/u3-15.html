@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 3 Functions & Graphing · Lesson 15: Is the Model Good Enough? · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 3 Functions &amp; Graphing · Lesson 15: Is the Model Good Enough?</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u3-15">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 15</div>
+      <div class="h1">Is the Model Good Enough?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> test a model with errors and say where it stops working.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes</div>
+    <p>1. A <span class="bl" style="min-width:80px"></span> is a simple math rule that describes a real situation.</p>
+    <p>2. A model makes <span class="bl" style="min-width:110px"></span>: values we have not measured yet.</p>
+    <p>3. <b>Error</b> = <span class="bl" style="min-width:80px"></span> value − <span class="bl" style="min-width:90px"></span> value.</p>
+    <p>4. A model is <b>good enough</b> when its errors are <span class="bl" style="min-width:70px"></span> for our <span class="bl" style="min-width:90px"></span>.</p>
+    <p>5. Most models only work for part of the inputs: a limited <span class="bl" style="min-width:90px"></span>.</p>
+    <p>6. When new data arrives, we test and <span class="bl" style="min-width:90px"></span> the model.</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example: a phone battery</div>
+    <div class="two" style="grid-template-columns:auto 1fr;align-items:start;gap:14px">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <p style="font-size:14.5px">Battery % every 10 min:</p>
+        <table class="tbl" style="width:auto"><tr><th><span class="m">t</span> (min)</th><th>B (%)</th></tr><tr><td>0</td><td>100</td></tr><tr><td>10</td><td>92</td></tr><tr><td>20</td><td>84</td></tr><tr><td>30</td><td>77</td></tr><tr><td>40</td><td>68</td></tr></table>
+      </div>
+      <table class="tbl" style="font-size:14px">
+        <tr><th style="width:44%">Move I choose</th><th>What it gives me</th></tr>
+        <tr><td style="text-align:left">Pick two points far apart</td><td style="text-align:left">(0, 100) and (40, 68)</td></tr>
+        <tr><td style="text-align:left">Find the rate of change</td><td style="text-align:left">(68 − 100) ÷ (40 − 0) = −0.8 % per minute</td></tr>
+        <tr><td style="text-align:left">Find the starting value (<span class="m">t</span> = 0)</td><td style="text-align:left">100 %</td></tr>
+        <tr><td style="text-align:left">Write the model</td><td style="text-align:left"><span class="m">B = −0.8t + 100</span></td></tr>
+        <tr><td style="text-align:left">Test a point I did not use</td><td style="text-align:left"><span class="m">t</span> = 30: −0.8(30) + 100 = 76. Actual 77. Error = 77 − 76 = 1. Close!</td></tr>
+        <tr><td style="text-align:left">State a limit</td><td style="text-align:left">B = 0 at <span class="m">t</span> = 125. After that the model gives negative %: it breaks.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="h2"><span class="num">✓</span>Your turn</div>
+  <div class="three">
+    <div class="box" style="gap:6px">
+      <p><b>a.</b> A model predicts 30. The actual is 33.</p>
+      <p>Error = <span class="bl" style="min-width:60px"></span></p>
+      <p>Is the prediction too high or too low?</p>
+      <div class="work" style="height:56px"></div>
+    </div>
+    <div class="box" style="gap:6px">
+      <p><b>b.</b> Plant height <span class="m">h = 3w + 5</span> (cm, <span class="m">w</span> = weeks).</p>
+      <p>Week 4: <span class="m">h</span> = <span class="bl" style="min-width:50px"></span> cm</p>
+      <p>Is the model sensible for week 100? Why or why not?</p>
+      <div class="work" style="height:56px"></div>
+    </div>
+    <div class="box" style="gap:6px">
+      <p><b>c.</b> Errors of two models:</p>
+      <p style="font-size:14.5px">A: 1, −2, 1, 0<br>B: 5, −6, 4, −3</p>
+      <p>Which is good enough to plan with? Why?</p>
+      <div class="work" style="height:56px"></div>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 3 · Lesson 15 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 15</div>
+      <div class="h1">Is the Model Good Enough?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> build a model from real data, test it and improve it.</span>
+  </div>
+
+  <div class="box" style="gap:6px">
+    <div class="lab">The situation</div>
+    <p>The PE department plans outdoor events for next year. They want a model of Riyadh’s <b>average daily high temperature</b>. Here is the data for January to June (rounded).</p>
+    <table class="tbl">
+      <tr><th>Month number <span class="m">m</span></th><td>1 (Jan)</td><td>2 (Feb)</td><td>3 (Mar)</td><td>4 (Apr)</td><td>5 (May)</td><td>6 (Jun)</td></tr>
+      <tr><th>High <span class="m">T</span> (°C)</th><td>20</td><td>23</td><td>28</td><td>33</td><td>40</td><td>43</td></tr>
+    </table>
+  </div>
+  <div class="two" style="grid-template-columns:auto 1fr;align-items:start;gap:14px">
+    <svg width="328" height="278" viewBox="0 0 328 278" role="img" aria-label="Blank grid: month 0 to 12 across, temperature 0 to 50 degrees Celsius up, each square 5 degrees"><defs><pattern id="g15a" x="26" y="8" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern></defs><rect x="26" y="8" width="288" height="240" fill="url(#g15a)" stroke="#59626b" stroke-width="1"></rect><path d="M26 248H314 M26 8V248" stroke="#1b1f23" stroke-width="2"></path><text x="26" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="50" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="74" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="98" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="122" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="146" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="170" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="194" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">7</text><text x="218" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">8</text><text x="242" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">9</text><text x="266" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">10</text><text x="290" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">11</text><text x="314" y="261" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">12</text><text x="22" y="204" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">10</text><text x="22" y="156" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">20</text><text x="22" y="108" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">30</text><text x="22" y="60" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">40</text><text x="22" y="12" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">50</text><text x="314" y="277" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end" font-style="italic">month</text><text x="30" y="18" font-size="11" fill="#1b1f23" font-family="Arial" font-style="italic">°C</text></svg>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="h2"><span class="num">1</span>Plot January to May</div>
+      <p style="font-size:14.5px">Plot the 5 points as dots. Keep June secret: we will use it to test.</p>
+      <p style="font-size:14.5px">Do the points look close to a straight line? <span class="bl" style="min-width:60px"></span></p>
+      <div class="h2"><span class="num">2</span>Build a rough model</div>
+      <p style="font-size:14.5px">Draw a line through (1, 20) and (5, 40).</p>
+      <p style="font-size:14.5px">Rate: (40 − 20) ÷ (5 − 1) = <span class="bl" style="min-width:40px"></span> °C per month</p>
+      <p style="font-size:14.5px">Value at <span class="m">m</span> = 0: <span class="bl" style="min-width:40px"></span> °C</p>
+      <p style="font-size:14.5px">Model: <span class="m">T</span> = <span class="bl" style="min-width:36px"></span><span class="m">m</span> + <span class="bl" style="min-width:36px"></span></p>
+      <div class="hint"><b>Hint</b>From (1, 20), go back one month: subtract one rate from 20.</div>
+    </div>
+  </div>
+
+  <div class="two" style="grid-template-columns:1.1fr 1fr;gap:14px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="h2"><span class="num">3</span>Test on months you skipped</div>
+      <table class="tbl" style="font-size:14px">
+        <tr><th>Month <span class="m">m</span></th><td>2</td><td>3</td><td>4</td></tr>
+        <tr><th>Actual <span class="m">T</span></th><td>23</td><td>28</td><td>33</td></tr>
+        <tr><th>Predicted</th><td></td><td></td><td></td></tr>
+        <tr><th>Error = actual − predicted</th><td></td><td></td><td></td></tr>
+      </table>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:14.5px">
+      <div class="h2"><span class="num">4</span>Improve the model</div>
+      <p>What do you notice about the three errors?</p>
+      <p class="starter">The errors are all … <span class="bl" style="min-width:90px"></span></p>
+      <p>Change one number so the errors become 0:</p>
+      <p><span class="m">T</span> = 5<span class="m">m</span> + <span class="bl" style="min-width:40px"></span>. Check: <span class="m">m</span> = 3 gives <span class="bl" style="min-width:40px"></span> °C.</p>
+    </div>
+  </div>
+  <div class="box" style="gap:4px">
+    <div class="h2"><span class="num">5</span>Test with June</div>
+    <p>Use your improved model. June (<span class="m">m</span> = 6): predicted <span class="bl" style="min-width:40px"></span> °C. Actual: 43 °C. Error = <span class="bl" style="min-width:40px"></span>. Good enough for June? <span class="bl" style="min-width:50px"></span></p>
+  </div>
+
+  <div class="ft"><span>Unit 3 · Lesson 15 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 3 Functions &amp; Graphing · Lesson 15</div>
+      <div class="h1">Is the Model Good Enough?</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> say where a model breaks and revise it when new data arrives.</span>
+  </div>
+
+  <div class="h2"><span class="num">6</span>Push the model too far</div>
+  <p>Predict July (<span class="m">m</span> = 7): <span class="bl" style="min-width:40px"></span> °C. &#160;Predict December (<span class="m">m</span> = 12): <span class="bl" style="min-width:40px"></span> °C.</p>
+  <p>The hottest temperature ever measured on Earth is about 57 °C. Where does the model break?</p>
+  <p class="starter">The model only makes sense from … to … because <span class="bl" style="min-width:300px"></span></p>
+
+  <div class="h2"><span class="num">7</span>New data arrives</div>
+  <table class="tbl">
+    <tr><th>Month number <span class="m">m</span></th><td>7 (Jul)</td><td>8 (Aug)</td><td>9 (Sep)</td><td>10 (Oct)</td><td>11 (Nov)</td><td>12 (Dec)</td></tr>
+    <tr><th>High <span class="m">T</span> (°C)</th><td>44</td><td>44</td><td>40</td><td>35</td><td>27</td><td>22</td></tr>
+  </table>
+  <p>Add these points to your graph on page 2 as <b>open circles</b>. Describe the whole year in three parts.</p>
+  <p class="starter">First the temperature … then it … then it … <span class="bl" style="min-width:330px"></span></p>
+
+  <div class="h2"><span class="num">8</span>Revise: a new model for September to December</div>
+  <div class="two" style="grid-template-columns:1.6fr 1fr">
+    <div class="box" style="gap:6px">
+      <p>Use (9, 40) and (12, 22).</p>
+      <p>Rate: (22 − 40) ÷ (12 − 9) = <span class="bl" style="min-width:40px"></span>. Model: <span class="m">T</span> = <span class="bl" style="min-width:36px"></span><span class="m">m</span> + <span class="bl" style="min-width:40px"></span></p>
+      <p>Test November (<span class="m">m</span> = 11): predicted <span class="bl" style="min-width:36px"></span>, error <span class="bl" style="min-width:36px"></span></p>
+    </div>
+    <div class="hint" style="display:flex;flex-direction:column;justify-content:center"><p><b>Hint</b>To find the number added, put <span class="m">m</span> = 9 in: 40 = rate × 9 + ?</p><p>What number do you add to −54 to get 40?</p></div>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">What did you discover?</div>
+    <p>A straight-line model fit only <span class="bl" style="min-width:60px"></span> of the year. Outside that, its errors got <span class="bl" style="min-width:60px"></span>. When new data arrived, we <span class="bl" style="min-width:70px"></span> the model. A model is good enough when its errors are small enough for our <span class="bl" style="min-width:80px"></span>.</p>
+    <p><b>Reflection:</b> What makes a model “good enough”? Use the words <i>error</i> and <i>purpose</i>.</p>
+    <div class="work" style="height:56px;background-color:#fff"></div>
+  </div>
+  <div class="two">
+    <div class="check"><div class="lab">Check yourself</div><span>In step 3, all three errors are the same number.</span><span>Your step 8 model gives 34 °C for October (m = 10).</span></div>
+    <div class="further"><div class="lab">Go further</div><p style="font-size:14.5px">Write a model for July and August. What is its rate of change? Sketch it on your graph.</p></div>
+  </div>
+
+  <div class="ft"><span>Unit 3 · Lesson 15 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

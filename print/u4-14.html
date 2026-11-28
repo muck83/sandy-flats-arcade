@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 Linear Systems · Lesson 14: Systems of Inequalities, Revisited · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+.tbl.tight th,.tbl.tight td{padding:3px 7px;height:21px}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 4 Linear Systems · Lesson 14: Systems of Inequalities, Revisited</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u4-14">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 14</div>
+      <div class="h1" style="font-size:25px">Systems of Inequalities, Revisited</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> graph a system of inequalities and find a corner of the region exactly with algebra.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes (review of Unit 2, plus one new idea)</div>
+    <p>1. The graph of one linear inequality is a <span class="bl" style="min-width:110px"></span>: every point on one side of a line.</p>
+    <p>2. Use a <span class="bl" style="min-width:70px"></span> boundary line for ≤ or ≥. Use a <span class="bl" style="min-width:70px"></span> line for &lt; or &gt;.</p>
+    <p>3. Put a <span class="bl" style="min-width:60px"></span> point like (0, 0) in the inequality. True: shade its side. False: shade the other side.</p>
+    <p>4. The solution of a system of inequalities is the region where the shadings <span class="bl" style="min-width:80px"></span>.</p>
+    <p>5. In a real situation, a point is <span class="bl" style="min-width:70px"></span> only if it is in the region AND makes sense.</p>
+    <p>6. <b>New:</b> a corner of the region is where two <span class="bl" style="min-width:80px"></span> lines cross. Find it exactly by solving the system of <span class="bl" style="min-width:90px"></span> (substitution or elimination). A corner on a dashed line is <span class="bl" style="min-width:40px"></span> a solution.</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example: graph <span class="m">y ≤ x + 3</span> and <span class="m">y &gt; −2x + 6</span>. Find the corner exactly.</div>
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <table class="tbl tight" style="font-size:13.5px;flex:1">
+        <tr><th style="width:22%">Move I choose</th><th style="width:43%">What it gives me</th><th>Why</th></tr>
+        <tr><td>Boundary lines</td><td><span class="m">y = x + 3</span> solid; <span class="m">y = −2x + 6</span> dashed</td><td>≤ is solid, &gt; is dashed</td></tr>
+        <tr><td>Test (0, 0)</td><td><span class="m">0 ≤ 3</span> true; <span class="m">0 &gt; 6</span> false</td><td>shade toward (0, 0) for line 1, away for line 2</td></tr>
+        <tr><td>Find the corner</td><td><span class="m">x + 3 = −2x + 6</span> → <span class="m">3x = 3</span> → <span class="m">x = 1</span></td><td>both equal y: substitute</td></tr>
+        <tr><td>Find y</td><td><span class="m">y = 1 + 3 = 4</span>: corner (1, 4)</td><td>put x back in</td></tr>
+        <tr><td>Corner included?</td><td><span class="m">4 &gt; −2(1) + 6</span> is <span class="m">4 &gt; 4</span>: false</td><td>on the dashed line: open circle</td></tr>
+      </table>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:13px"><svg width="158" height="210" viewBox="0 0 158 210" role="img" aria-label="Worked example graph: solid line y = x + 3, dashed line y = -2x + 6, shaded overlap to the right, corner (1, 4) open circle"><defs><pattern id="g14w" x="28" y="12" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern><clipPath id="g14wc"><rect x="28" y="12" width="120" height="180"></rect></clipPath></defs><rect x="28" y="12" width="120" height="180" fill="url(#g14w)" stroke="#59626b" stroke-width="1"></rect><polygon points="68.0,92.0 148.0,12.0 148.0,192.0 118.0,192.0" fill="#0e6b70" fill-opacity="0.18" stroke="none" clip-path="url(#g14wc)"></polygon><path d="M28 172.0H148M48.0 12V192" stroke="#1b1f23" stroke-width="2"></path><text x="28.0" y="186.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">−1</text><text x="68.0" y="186.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="88.0" y="186.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="108.0" y="186.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="128.0" y="186.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="148.0" y="186.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="44.0" y="196.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">−1</text><text x="44.0" y="156.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">1</text><text x="44.0" y="136.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2</text><text x="44.0" y="116.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">3</text><text x="44.0" y="96.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><text x="44.0" y="76.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">5</text><text x="44.0" y="56.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">6</text><text x="44.0" y="36.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">7</text><text x="44.0" y="16.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">8</text><path d="M28.0 132.0L148.0 12.0" stroke="#0e6b70" stroke-width="2.5" fill="none" clip-path="url(#g14wc)"></path><path d="M28.0 12.0L148.0 252.0" stroke="#a64b08" stroke-width="2.5" fill="none" stroke-dasharray="7 5" clip-path="url(#g14wc)"></path><circle cx="68.0" cy="92.0" r="4" fill="#fff" stroke="#1b1f23" stroke-width="1.8"></circle><text x="76.0" y="85.0" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="start">(1, 4)</text></svg><span>solid: <span class="m">y ≤ x + 3</span></span><span>dashed: <span class="m">y &gt; −2x + 6</span></span></div>
+    </div>
+  </div>
+
+  <div class="h2"><span class="num">?</span>Your turn: find the corner with algebra. Is the corner a solution?</div>
+  <div class="three">
+    <div class="box" style="gap:5px;font-size:14.5px">
+      <p><b>a.</b> <span class="m">y ≥ x − 1</span><br><span style="padding-left:17px"></span><span class="m">y ≤ −x + 5</span></p>
+      <div class="work" style="height:96px"></div>
+      <p>Corner ( <span class="bl" style="min-width:26px"></span> , <span class="bl" style="min-width:26px"></span> ) &nbsp;Yes / No</p>
+    </div>
+    <div class="box" style="gap:5px;font-size:14.5px">
+      <p><b>b.</b> <span class="m">x + y &lt; 6</span><br><span style="padding-left:17px"></span><span class="m">y ≥ 2x</span></p>
+      <div class="work" style="height:96px"></div>
+      <p>Corner ( <span class="bl" style="min-width:26px"></span> , <span class="bl" style="min-width:26px"></span> ) &nbsp;Yes / No</p>
+    </div>
+    <div class="box" style="gap:5px;font-size:14.5px">
+      <p><b>c.</b> <span class="m">2x + y ≤ 10</span><br><span style="padding-left:17px"></span><span class="m">x − y ≥ −1</span></p>
+      <div class="work" style="height:96px"></div>
+      <p>Corner ( <span class="bl" style="min-width:26px"></span> , <span class="bl" style="min-width:26px"></span> ) &nbsp;Yes / No</p>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 14 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 14</div>
+      <div class="h1" style="font-size:25px">Systems of Inequalities, Revisited</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> write, test and graph a system of inequalities for a real budget.</span>
+  </div>
+
+  <div class="box">
+    <div class="lab">The robotics club budget</div>
+    <p>The robotics club has <b>400 SAR</b>. A sensor kit costs <b>40 SAR</b>. A motor pack costs <b>20 SAR</b>.
+    The club needs <b>at least 12 items</b> in total. Let <span class="m">x</span> = number of sensor kits and <span class="m">y</span> = number of motor packs.</p>
+  </div>
+
+  <div class="h2"><span class="num">1</span>Write the system of inequalities.</div>
+  <div class="two">
+    <div class="box" style="gap:6px">
+      <p><b>Money:</b> <span class="m">40x + 20y</span> <span class="bl" style="min-width:30px"></span> 400</p>
+      <p>Divide every term by 20: <span class="m">2x + y</span> ≤ <span class="bl" style="min-width:40px"></span></p>
+    </div>
+    <div class="box" style="gap:6px">
+      <p><b>Items:</b> <span class="m">x + y</span> <span class="bl" style="min-width:30px"></span> 12</p>
+      <p class="starter">I chose this sign because “at least” means …</p>
+    </div>
+  </div>
+
+  <div class="h2"><span class="num">2</span>Test some shopping lists. Which are viable?</div>
+  <table class="tbl tight" style="font-size:14px">
+    <tr><th>(x, y)</th><th>Cost 40x + 20y</th><th>Cost ≤ 400?</th><th>Items x + y</th><th>Items ≥ 12?</th><th>Viable?</th></tr>
+    <tr><td>(5, 5)</td><td>300</td><td>yes</td><td>10</td><td>no</td><td>no</td></tr>
+    <tr><td>(6, 8)</td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>(8, 4)</td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>(10, 3)</td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>(2, 12)</td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>(3, 9.5)</td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>(0, 12)</td><td></td><td></td><td></td><td></td><td></td></tr>
+  </table>
+
+  <div class="h2"><span class="num">3</span>Graph the system.</div>
+  <div class="two" style="grid-template-columns:auto 1fr;align-items:start">
+    <svg width="340" height="278" viewBox="0 0 340 278" role="img" aria-label="Blank grid: x from 0 to 12 across, y from 0 to 20 up in steps of 2"><defs><pattern id="g14a" x="42" y="8" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#c3c9ce" stroke-width="1"></path></pattern><clipPath id="g14ac"><rect x="42" y="8" width="288" height="240"></rect></clipPath></defs><rect x="42" y="8" width="288" height="240" fill="url(#g14a)" stroke="#59626b" stroke-width="1"></rect><path d="M42 248.0H330M42.0 8V248" stroke="#1b1f23" stroke-width="2"></path><text x="42.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">0</text><text x="66.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">1</text><text x="90.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">2</text><text x="114.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">3</text><text x="138.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">4</text><text x="162.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">5</text><text x="186.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">6</text><text x="210.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">7</text><text x="234.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">8</text><text x="258.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">9</text><text x="282.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">10</text><text x="306.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">11</text><text x="330.0" y="262.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="middle">12</text><text x="38.0" y="228.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">2</text><text x="38.0" y="204.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">4</text><text x="38.0" y="180.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">6</text><text x="38.0" y="156.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">8</text><text x="38.0" y="132.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">10</text><text x="38.0" y="108.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">12</text><text x="38.0" y="84.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">14</text><text x="38.0" y="60.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">16</text><text x="38.0" y="36.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">18</text><text x="38.0" y="12.0" font-size="11" fill="#1b1f23" font-family="Arial" text-anchor="end">20</text><text x="186.0" y="276" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle">x = sensor kits</text><text x="10" y="128.0" font-size="11.5" fill="#1b1f23" font-family="Arial" font-weight="bold" text-anchor="middle" transform="rotate(-90 10 128.0)">y = motor packs</text></svg>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:14.5px">
+      <table class="tbl tight" style="font-size:14px">
+        <tr><th>Boundary line</th><th>Point on y-axis</th><th>Point on x-axis</th></tr>
+        <tr><td><span class="m">x + y = 12</span></td><td>(0, 12)</td><td>(12, 0)</td></tr>
+        <tr><td><span class="m">2x + y = 20</span></td><td>(0, <span class="bl" style="min-width:26px"></span>)</td><td>( <span class="bl" style="min-width:26px"></span> , 0)</td></tr>
+      </table>
+      <p>Solid or dashed? Both lines are <span class="bl" style="min-width:70px"></span> because …</p>
+      <p>Test (0, 0) in each inequality. Shade the correct side of each line. Then darken the overlap.</p>
+      <div class="hint"><b>Hint</b>(0, 0) is 0 items. Is 0 ≥ 12 true? So shade away from (0, 0) for the items line.</div>
+      <p>Plot your viable points from step 2. Are they all in the overlap?</p>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 14 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 14</div>
+      <div class="h1" style="font-size:25px">Systems of Inequalities, Revisited</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> find the corners of a region with algebra and decide if a point is viable.</span>
+  </div>
+
+  <div class="h2"><span class="num">4</span>Find the corner exactly.</div>
+  <p>Omar's graph says “about (8, 4), maybe (7.9, 4.2)”. Don't zoom in: solve <span class="m">2x + y = 20</span> and <span class="m">x + y = 12</span>.</p>
+  <table class="tbl tight" style="font-size:14px">
+    <tr><th style="width:48%">Move I choose</th><th>What it gives me</th></tr>
+    <tr><td>Subtract the equations: <span class="m">(2x + y) − (x + y) = 20 − 12</span></td><td><span class="m">x = 8</span></td></tr>
+    <tr><td>Substitute <span class="m">x = 8</span> into <span class="m">x + y = 12</span></td><td></td></tr>
+    <tr><td>Check in <span class="m">2x + y = 20</span></td><td></td></tr>
+  </table>
+  <p class="starter">At this corner the club buys ____ sensor kits and ____ motor packs. Cost: ____ SAR.</p>
+
+  <div class="h2"><span class="num">5</span>The other two corners are on the y-axis: ( 0 , <span class="bl" style="min-width:30px"></span> ) and ( 0 , <span class="bl" style="min-width:30px"></span> ).</div>
+  <p class="starter">The corner (0, 20) means the club buys … <span class="bl" style="min-width:330px"></span></p>
+
+  <div class="h2"><span class="num">6</span>New rule: the coach wants at least 3 sensor kits.</div>
+  <p>Add <span class="m">x ≥ 3</span>. Draw the solid line <span class="m">x = 3</span> on your graph and shade the new region. Find the new corners by substitution: put 3 in place of x.</p>
+  <div class="three">
+    <div class="box" style="gap:5px;font-size:14.5px"><p><span class="m">x = 3</span> and <span class="m">x + y = 12</span></p><p>( 3 , <span class="bl" style="min-width:30px"></span> )</p></div>
+    <div class="box" style="gap:5px;font-size:14.5px"><p><span class="m">x = 3</span> and <span class="m">2x + y = 20</span></p><p>( 3 , <span class="bl" style="min-width:30px"></span> )</p></div>
+    <div class="box" style="gap:5px;font-size:14.5px"><p>Third corner (from step 4):</p><p>( <span class="bl" style="min-width:30px"></span> , <span class="bl" style="min-width:30px"></span> )</p></div>
+  </div>
+
+  <div class="h2"><span class="num">7</span>In the region, but viable?</div>
+  <p>(4, 8.5) is inside the region. Is it a viable list? <span class="starter">No, because …</span> <span class="bl" style="min-width:230px"></span></p>
+
+  <div class="box vocab">
+    <div class="lab">What did you discover?</div>
+    <p>A corner is where two <span class="bl" style="min-width:80px"></span> lines cross. I find it exactly by solving a system of <span class="bl" style="min-width:90px"></span> with substitution or <span class="bl" style="min-width:90px"></span>. A graph only gives an <span class="bl" style="min-width:80px"></span>. A point is a solution only if it makes <span class="bl" style="min-width:40px"></span> inequalities true, and in a real situation it must also make <span class="bl" style="min-width:60px"></span>.</p>
+  </div>
+
+  <div class="two">
+    <div class="check" style="gap:2px">
+      <div class="lab">Check yourself</div>
+      <span>The step 4 corner costs exactly 400 SAR.</span>
+      <span>The y-values of the three step 6 corners add to 27.</span>
+    </div>
+    <div class="further" style="gap:4px">
+      <div class="lab">Go further</div>
+      <p>The budget grows to 480 SAR. Find the new corner of the money line and the items line. What does it tell the club?</p>
+    </div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 14 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>

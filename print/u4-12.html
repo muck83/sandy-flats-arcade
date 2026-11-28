@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 Linear Systems · Lesson 12: Write the System · printable</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;display=swap">
+<style>
+
+body{margin:0;background:#fff}
+.pg{width:816px;height:1056px;box-sizing:border-box;padding:40px 52px 34px;background:#fff;color:#1b1f23;font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-size:15.5px;line-height:1.42;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.pg p{margin:0}
+.pg>*{flex-shrink:0}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2.5px solid #1b1f23;padding-bottom:8px}
+.kick{font:700 11.5px/1.2 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.h1{font:800 30px/1.05 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.01em;margin:4px 0 0}
+.who{display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:230px}
+.who span{display:flex;gap:6px;align-items:flex-end}
+.who i{flex:1;border-bottom:1.2px solid #1b1f23;height:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #1b1f23;border-radius:999px;padding:3px 11px;font:700 12px 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.chip.t{border-color:#0e6b70;color:#0e6b70}
+.chip.a{border-color:#a64b08;color:#a64b08}
+.target{font-size:15px}
+.target b{color:#0e6b70}
+.h2{font:800 18px/1.15 'Bricolage Grotesque','Arial Black',sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1b1f23;color:#fff;font:700 13px 'Atkinson Hyperlegible',Arial,sans-serif;flex:none}
+.box{border:1.5px solid #1b1f23;border-radius:10px;padding:11px 14px;display:flex;flex-direction:column;gap:7px}
+.lab{font:700 11px/1 'Atkinson Hyperlegible',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0e6b70}
+.vocab{background:#eef6f6;border-color:#0e6b70}
+.bl{display:inline-block;border-bottom:1.5px solid #1b1f23;min-width:96px;height:1.05em;vertical-align:baseline;margin:0 2px}
+.hint{border:1.5px dashed #0e6b70;border-radius:8px;padding:7px 11px;font-size:13.5px;line-height:1.35;color:#1b1f23}
+.hint b:first-child{color:#0e6b70;letter-spacing:.1em;text-transform:uppercase;font-size:11px;margin-right:6px}
+.starter{font-style:italic;color:#3b434b}
+.work{border:1.2px solid #8a939b;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#d5dade 27px,#d5dade 28px)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl th,.tbl td{border:1.2px solid #59626b;padding:5px 8px;text-align:center;height:26px}
+.tbl th{background:#eef6f6;font-weight:700}
+.check{border:1.5px solid #1b1f23;border-radius:10px;padding:9px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.check span{display:flex;gap:8px;align-items:flex-start}
+.check span:before{content:'';flex:none;width:12px;height:12px;border:1.5px solid #1b1f23;border-radius:2px;margin-top:3px}
+.further{border:1.5px solid #a64b08;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.further .lab{color:#a64b08}
+.m{font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-style:italic;white-space:nowrap}
+.ft{margin-top:auto;display:flex;justify-content:space-between;font-size:11.5px;color:#59626b;border-top:1px solid #c3c9ce;padding-top:6px}
+.key{color:#0e6b70;font-weight:700}
+
+html,body{background:#e9ecef;margin:0}
+.bar{max-width:816px;margin:0 auto;padding:14px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 15px 'Atkinson Hyperlegible',Arial,sans-serif;color:#1b1f23}
+.bar a,.bar button{font:inherit;padding:8px 14px;border-radius:999px;border:2px solid #1b1f23;background:#fff;color:#1b1f23;text-decoration:none;cursor:pointer}
+.bar .go{background:#0e6b70;border-color:#0e6b70;color:#fff}
+.sheet{width:816px;margin:0 auto 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);background:#fff}
+.wrap{overflow-x:auto}
+@page{size:letter;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheet{box-shadow:none;margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+</style></head><body>
+<div class="bar"><span>Unit 4 Linear Systems · Lesson 12: Write the System</span><button type="button" onclick="window.print()">Print or save as PDF</button><a class="go" href="../hw.html?g=u4-12">Play the homework game</a></div>
+<div class="wrap">
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 12</div>
+      <div class="h1">Write the System</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Mini-lesson · 5 min</span>
+    <span class="target"><b>I can</b> turn a word problem into a system, solve it and answer in a sentence.</span>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">Fill in the notes · 5 steps from words to a system</div>
+    <p>1. <b>Define</b> the <span class="bl" style="min-width:100px"></span>: “Let <span class="m">x</span> = the number of …”. Say what each letter means.</p>
+    <p>2. <b>Write</b> <span class="bl" style="min-width:50px"></span> equations, one from each <span class="bl" style="min-width:80px"></span> in the story.</p>
+    <p>3. <b>Solve</b> the system with any <span class="bl" style="min-width:90px"></span>.</p>
+    <p>4. <b>Answer</b> the question in a full <span class="bl" style="min-width:90px"></span>, with <span class="bl" style="min-width:70px"></span>.</p>
+    <p>5. <b>Check</b> in the story, not just the equations: does the answer <span class="bl" style="min-width:120px"></span>?</p>
+  </div>
+
+  <div class="box">
+    <div class="lab">Worked example · plan, then write</div>
+    <p>The school play sold 40 tickets for 670 SAR. Adult tickets cost 25 SAR. Student tickets cost 10 SAR. How many of each were sold?</p>
+    <table class="tbl" style="font-size:14px">
+      <tr><th style="width:26%">Planning step</th><th>What I write</th></tr>
+      <tr><td>Define variables</td><td>Let <span class="m">a</span> = number of adult tickets, <span class="m">s</span> = number of student tickets</td></tr>
+      <tr><td>Fact 1: 40 tickets</td><td><span class="m">a + s = 40</span> &#160;(counts the tickets)</td></tr>
+      <tr><td>Fact 2: 670 SAR</td><td><span class="m">25a + 10s = 670</span> &#160;(counts the money)</td></tr>
+      <tr><td>Solve (substitution)</td><td><span class="m">s = 40 − a</span> → <span class="m">25a + 400 − 10a = 670</span> → <span class="m">15a = 270</span> → <span class="m">a = 18</span>, <span class="m">s = 22</span></td></tr>
+      <tr><td>Answer + check</td><td>18 adult and 22 student tickets. &#160;450 + 220 = 670 SAR ✓ &#160;18 + 22 = 40 ✓</td></tr>
+    </table>
+  </div>
+
+  <h2 class="h2">Your turn <span style="font:400 14px 'Atkinson Hyperlegible',Arial,sans-serif;color:#3b434b">Define, write the system, solve, answer.</span></h2>
+  <div class="two">
+    <div class="box" style="gap:5px"><p><b>a)</b> A rectangle has a perimeter of 36 cm. Its length is 4 cm more than its width. Find the length and width.</p>
+      <span style="font-size:14px">Let <span class="m">L</span> = <span class="bl" style="min-width:90px"></span> &#160; Let <span class="m">W</span> = <span class="bl" style="min-width:90px"></span></span>
+      <div class="work" style="height:98px"></div><span style="font-size:14px">The length is <span class="bl" style="min-width:40px"></span> cm and the width is <span class="bl" style="min-width:40px"></span> cm.</span></div>
+    <div class="box" style="gap:5px"><p><b>b)</b> Reem has 15 coins. Some are 1 SAR coins and some are 2 SAR coins. They are worth 22 SAR. How many of each?</p>
+      <span style="font-size:14px">Let <span class="m">x</span> = <span class="bl" style="min-width:90px"></span> &#160; Let <span class="m">y</span> = <span class="bl" style="min-width:90px"></span></span>
+      <div class="work" style="height:98px"></div><span style="font-size:14px">Reem has <span class="bl" style="min-width:40px"></span> 1 SAR coins and <span class="bl" style="min-width:40px"></span> 2 SAR coins.</span></div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 12 · Notes</span><span>Page 1 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 12</div>
+      <div class="h1">Write the System</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · 25 min</span>
+    <span class="target"><b>I can</b> use a table to find the two facts in a word problem.</span>
+  </div>
+
+  <h2 class="h2"><span class="num">1</span>The juice blend</h2>
+  <p>The school café mixes mango juice (8 SAR per liter) and orange juice (5 SAR per liter). It makes 30 liters of blend, and the juice costs 189 SAR in total. How many liters of each juice are in the blend?</p>
+  <div class="row" style="gap:14px;align-items:flex-start;flex-wrap:nowrap">
+    <table class="tbl" style="font-size:14px;flex:1.3">
+      <tr><th></th><th>Liters</th><th>Price per liter</th><th>Cost (SAR)</th></tr>
+      <tr><th>Mango</th><td><span class="m">m</span></td><td>8</td><td><span class="m">8m</span></td></tr>
+      <tr><th>Orange</th><td><span class="m">o</span></td><td></td><td></td></tr>
+      <tr><th>Blend</th><td>30</td><td>—</td><td></td></tr>
+    </table>
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px;font-size:14.5px">
+      <p>Let <span class="m">m</span> = liters of mango juice<br>Let <span class="m">o</span> = <span class="bl" style="min-width:150px"></span></p>
+      <p>Eq. 1 (from the <b>Liters</b> column):<br><span class="bl" style="min-width:190px"></span></p>
+      <p>Eq. 2 (from the <b>Cost</b> column):<br><span class="bl" style="min-width:190px"></span></p>
+    </div>
+  </div>
+  <div class="work" style="height:92px"></div>
+  <p><span class="starter">The blend has … liters of mango juice and …</span> <span class="bl" style="min-width:330px"></span></p>
+
+  <h2 class="h2"><span class="num">2</span>The desert trip</h2>
+  <p>Faisal’s family drives 4 hours to a desert camp, 360 km in total. On the highway they drive at 110 km/h. On the sand track they drive at 30 km/h. How long did they spend on each part?</p>
+  <div class="row" style="gap:14px;align-items:flex-start;flex-wrap:nowrap">
+    <table class="tbl" style="font-size:14px;flex:1.3">
+      <tr><th></th><th>Speed (km/h)</th><th>Time (h)</th><th>Distance (km)</th></tr>
+      <tr><th>Highway</th><td>110</td><td><span class="m">h</span></td><td></td></tr>
+      <tr><th>Track</th><td></td><td><span class="m">t</span></td><td></td></tr>
+      <tr><th>Whole trip</th><td>—</td><td></td><td></td></tr>
+    </table>
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px;font-size:14.5px">
+      <p>Let <span class="m">h</span> = <span class="bl" style="min-width:150px"></span><br>Let <span class="m">t</span> = <span class="bl" style="min-width:150px"></span></p>
+      <p>Eq. 1 (from <span class="bl" style="min-width:90px"></span>): <span class="bl" style="min-width:110px"></span></p>
+      <p>Eq. 2 (from <span class="bl" style="min-width:90px"></span>): <span class="bl" style="min-width:110px"></span></p>
+    </div>
+  </div>
+  <div class="hint"><b>Hint</b>distance = speed × time. So the highway distance is <span class="m">110h</span>. Add the two distances to get the whole trip.</div>
+  <div class="work" style="height:92px"></div>
+  <p><span class="starter">They drove … hours on the highway and …</span> <span class="bl" style="min-width:330px"></span></p>
+
+  <div class="ft"><span>Unit 4 · Lesson 12 · Investigation</span><span>Page 2 of 3</span></div>
+</div></div>
+<div class="sheet"><div class="pg">
+  <div class="hd">
+    <div>
+      <div class="kick">Grade 8 Math · Unit 4 Linear Systems · Lesson 12</div>
+      <div class="h1">Write the System</div>
+    </div>
+    <div class="who"><span>Name <i></i></span><span>Class <i></i> Date <i></i></span></div>
+  </div>
+  <div class="row">
+    <span class="chip t"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Investigation · continued</span>
+    <span class="target"><b>I can</b> plan, solve and check a word problem on my own.</span>
+  </div>
+
+  <h2 class="h2"><span class="num">3</span>The basketball game · plan it yourself</h2>
+  <p>In a school basketball final, the Falcons scored 52 points from 23 baskets. Every basket was a 2-pointer or a 3-pointer. How many of each did they score?</p>
+  <div class="two" style="gap:12px">
+    <div class="box" style="gap:7px;font-size:14.5px">
+      <div class="lab">My plan</div>
+      <p>Let <span class="m">x</span> = <span class="bl" style="min-width:200px"></span></p>
+      <p>Let <span class="m">y</span> = <span class="bl" style="min-width:200px"></span></p>
+      <p>Eq. 1 counts <span class="bl" style="min-width:90px"></span>: <span class="bl" style="min-width:120px"></span></p>
+      <p>Eq. 2 counts <span class="bl" style="min-width:90px"></span>: <span class="bl" style="min-width:120px"></span></p>
+      <p>Method I choose: <span class="bl" style="min-width:140px"></span></p>
+      <p>Units in my answer: <span class="bl" style="min-width:130px"></span></p>
+    </div>
+    <div class="box" style="gap:5px"><div class="lab">Solve and check</div><div class="work" style="height:186px"></div></div>
+  </div>
+  <p><span class="starter">The Falcons scored …</span> <span class="bl" style="min-width:470px"></span></p>
+
+  <div class="two" style="gap:14px">
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <h2 class="h2"><span class="num">4</span>Spot the mistake</h2>
+      <p>For the basketball game, Omar wrote <span class="m">x + y = 52</span> and <span class="m">2x + 3y = 23</span>. What went wrong? Fix it.</p>
+      <div class="work" style="height:116px"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <h2 class="h2"><span class="num">5</span>Does it make sense?</h2>
+      <p>Circle the answers that <b>cannot</b> be right. Say why.<br>12.5 baskets · −2 hours · 13 liters · 31 L of mango in a 30 L blend</p>
+      <div class="work" style="height:116px"></div>
+    </div>
+  </div>
+
+  <div class="box vocab">
+    <div class="lab">What did you discover?</div>
+    <p>In each problem, one equation counts <span class="bl" style="min-width:120px"></span> (tickets, liters, baskets, hours).</p>
+    <p>The other counts the <span class="bl" style="min-width:100px"></span> (money, points, distance). A table shows both <span class="bl" style="min-width:70px"></span>.</p>
+  </div>
+  <div class="two">
+    <div class="check"><div class="lab">Check yourself</div><span>The six numbers on pages 2-3 add to 57.</span><span>Each answer is a sentence with units.</span><span>Each answer makes sense in the story.</span></div>
+    <div class="further"><div class="lab">Go further</div><p style="font-size:14.5px">Write your own word problem in SAR whose answer is 4 of one thing and 6 of another. Give it to a partner to solve.</p></div>
+  </div>
+
+  <div class="ft"><span>Unit 4 · Lesson 12 · Investigation</span><span>Page 3 of 3</span></div>
+</div></div>
+</div>
+</body></html>
